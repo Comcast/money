@@ -1,3 +1,4 @@
+.cache
 *.class
 *.log
 
@@ -6,12 +7,20 @@
 .history
 .lib/
 dist/*
-target/
+*/target/**
+target
 lib_managed/
 src_managed/
 project/boot/
 project/plugins/project/
+.project
+*/.settings/
 
 # Scala-IDE specific
 .scala_dependencies
 .worksheet
+*/.idea
+*.iml
+.iml
+.idea
+ ajcore.*.txt
