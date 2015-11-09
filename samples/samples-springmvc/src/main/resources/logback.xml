@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration debug="false">
+
+    <!-- if you haven't configured logback over jmx you haven't lived -->
+    <jmxConfigurator/>
+
+    <property name="log.dir" value="./log/"/>
+
+    <!--=========
+        Appenders
+        =========-->
+
+    <!--
+    This is the main log, we are having all things, including money traces, go into the same log file.
+    If you do not want that, you just create a separate appender
+
+    Note, the pattern uses the Money MDC value "moneyTrace", this will output the current trace context
+    with every log statement.  Very very useful when parsing log files and correlating log entries
+    -->
+    <appender name="main_log" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${log.dir}/main.log</file>
+        <encoder>
+            <pattern>%date{ISO8601} %X{moneyTrace} %X{spanName} %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+            <fileNamePattern>${log.dir}/main.log.%i</fileNamePattern>
+            <minIndex>1</minIndex>
+            <maxIndex>4</maxIndex>
+        </rollingPolicy>
+        <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+            <maxFileSize>500MB</maxFileSize>
+        </triggeringPolicy>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>INFO</level>
+        </filter>
+    </appender>
+
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%date{ISO8601} %X{moneyTrace} %X{spanName} %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!--
+    This is the Money specific log appender.  We can choose to use a different log pattern than
+    the "normal" log entries
+    -->
+    <appender name="async_money_appender" class="ch.qos.logback.classic.AsyncAppender">
+        <encoder>
+            <pattern>%date{ISO8601} %msg%n</pattern>
+        </encoder>
+        <param name="queueSize" value="10000"/>
+        <param name="discardingThreshold" value="0"/>
+        <param name="includeCallerData" value="true"/>
+        <appender-ref ref="console"/>
+    </appender>
+
+
+    <!--=======
+        Loggers
+        =======-->
+
+    <!-- 3rd party -->
+    <logger name="org.springframework">
+        <level value="info"/>
+    </logger>
+
+    <!-- US! -->
+    <logger name="com.comcast.money.samples">
+        <level value="info"/>
+    </logger>
+
+    <!--money logger-->
+    <logger name="com.comcast.money" additivity="false">
+        <level value="WARN"/>
+        <appender-ref ref="async_money_appender" />
+    </logger>
+
+    <!-- everything info and above goes to main_log -->
+    <root>
+        <level value="info"/>
+        <appender-ref ref="console"/>
+    </root>
+
+</configuration>

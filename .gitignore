@@ -1,26 +1,12 @@
 .cache
-*.class
-*.log
-
-# sbt specific
-.cache
-.history
-.lib/
-dist/*
 */target/**
-target
-lib_managed/
-src_managed/
-project/boot/
-project/plugins/project/
+*/.idea
+.class
+.iml
+.classpath
 .project
 */.settings/
-
-# Scala-IDE specific
-.scala_dependencies
-.worksheet
-*/.idea
-*.iml
-.iml
 .idea
+*.iml
+target
  ajcore.*.txt

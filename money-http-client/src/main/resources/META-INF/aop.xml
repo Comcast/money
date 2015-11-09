@@ -1,0 +1,11 @@
+<aspectj>
+
+    <aspects>
+        <aspect name="com.comcast.money.http.client.HttpTraceAspect" />
+    </aspects>
+
+    <weaver options="-XnoInline -verbose -showWeaveInfo">
+
+    </weaver>
+
+</aspectj>
