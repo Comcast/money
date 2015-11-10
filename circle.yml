@@ -3,11 +3,6 @@ machine:
   java:
     version: oraclejdk7
 
-# Collect build artifacts
-general:
-  artifacts:
-    - .*/target/scala*/money-*.jar
-
 dependencies:
   # Cache the resolution-cache and build streams to speed things up
   cache_directories:
