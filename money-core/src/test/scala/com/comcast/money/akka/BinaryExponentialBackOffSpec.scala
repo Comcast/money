@@ -60,7 +60,8 @@ class BinaryExponentialBackOffSpec extends WordSpec {
           val newBackOff = backOff.nextBackOff.nextBackOff
           assert(
             newBackOff.waitTime == Duration.Zero || newBackOff.waitTime.equals(backOff.slotTime) || newBackOff.waitTime
-              .equals(backOff.slotTime * 2) || newBackOff.waitTime.equals(backOff.slotTime * 3))
+              .equals(backOff.slotTime * 2) || newBackOff.waitTime.equals(backOff.slotTime * 3)
+          )
         }
       }
     }

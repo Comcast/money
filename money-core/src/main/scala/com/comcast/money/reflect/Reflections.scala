@@ -77,8 +77,10 @@ trait Reflections {
    * @param tracer The tracer to use to record the notes
    */
   def recordTracedParameters(method: Method, args: Array[AnyRef], tracer: Tracer): Unit =
-    for {tdOpt <- extractTracedDataValues(method, args)
-         tdTuple <- tdOpt} {
+    for {
+      tdOpt <- extractTracedDataValues(method, args)
+      tdTuple <- tdOpt
+    } {
       tracer.record(tdTuple._1, tdTuple._2)
     }
 

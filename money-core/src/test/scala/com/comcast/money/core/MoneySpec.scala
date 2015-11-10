@@ -16,17 +16,17 @@
 
 package com.comcast.money.core
 
-import java.lang.{Class => JavaClass}
+import java.lang.{ Class => JavaClass }
 import java.util.concurrent.TimeUnit
 
 import com.comcast.money.core.Money.MoneyFactory
 import com.comcast.money.internal.SpanLocal
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{ Matchers, WordSpec }
 import org.slf4j.MDC
 
 import scala.collection.JavaConversions._
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 class MoneySpec extends WordSpec with Matchers {
 
@@ -49,7 +49,8 @@ class MoneySpec extends WordSpec with Matchers {
     }
     "when disabled implementation should be empty" in {
       val moneyFactory = Money.MoneyFactory(
-        ConfigFactory.parseString("money.enabled=false\nmoney.tracer.enabled=true\nmoney.mdc.enabled=true"))
+        ConfigFactory.parseString("money.enabled=false\nmoney.tracer.enabled=true\nmoney.mdc.enabled=true")
+      )
       val tracer = moneyFactory.tracer
       val metrics = moneyFactory.metrics
       assert(metrics.emitterRef === null)
@@ -113,7 +114,8 @@ class MoneySpec extends WordSpec with Matchers {
     }
     "mdc enabled should be false if configured" in {
       val moneyFactory = Money.MoneyFactory(
-        ConfigFactory.parseString("money.enabled=false\nmoney.tracer.enabled=true\nmoney.mdc.enabled=false"))
+        ConfigFactory.parseString("money.enabled=false\nmoney.tracer.enabled=true\nmoney.mdc.enabled=false")
+      )
       moneyFactory.isMdcEnabled shouldBe false
     }
     "logging exceptions flag should exist" in {
@@ -150,11 +152,12 @@ class MoneySpec extends WordSpec with Matchers {
       val sampleVariable = convertToVariable.invoke(null, "")
       val sampleValue = convertToValue.invoke(null, "")
       val env = theEnvironmentField.get(null).asInstanceOf[java.util.Map[sampleVariable.type, sampleValue.type]]
-      newenv.foreach { case (k, v) => {
-        val variable = convertToVariable.invoke(null, k).asInstanceOf[sampleVariable.type]
-        val value = convertToValue.invoke(null, v).asInstanceOf[sampleValue.type]
-        env.put(variable, value)
-      }
+      newenv.foreach {
+        case (k, v) => {
+          val variable = convertToVariable.invoke(null, k).asInstanceOf[sampleVariable.type]
+          val value = convertToValue.invoke(null, v).asInstanceOf[sampleValue.type]
+          env.put(variable, value)
+        }
       }
 
       val theCaseInsensitiveEnvironmentField = processEnvironmentClass.getDeclaredField("theCaseInsensitiveEnvironment")

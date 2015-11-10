@@ -17,7 +17,7 @@
 package com.comcast.money.logging
 
 import com.comcast.money.core.Money
-import org.slf4j.{LoggerFactory, Logger}
+import org.slf4j.{ LoggerFactory, Logger }
 
 trait TraceLogging {
 

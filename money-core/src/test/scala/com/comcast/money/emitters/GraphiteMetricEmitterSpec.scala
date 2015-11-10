@@ -18,15 +18,15 @@ package com.comcast.money.emitters
 
 import java.net.DatagramPacket
 
-import akka.actor.{ActorKilledException, Kill}
-import akka.testkit.{EventFilter, TestActorRef}
-import com.comcast.money.internal.EmitterProtocol.{EmitMetricDouble, EmitMetricLong}
+import akka.actor.{ ActorKilledException, Kill }
+import akka.testkit.{ EventFilter, TestActorRef }
+import com.comcast.money.internal.EmitterProtocol.{ EmitMetricDouble, EmitMetricLong }
 import com.comcast.money.test.AkkaTestJawn
 import com.typesafe.config.Config
 import org.joda.time.DateTimeUtils
 import org.joda.time.DateTimeUtils.MillisProvider
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{BeforeAndAfterEach, OneInstancePerTest, WordSpecLike}
+import org.scalatest.{ BeforeAndAfterEach, OneInstancePerTest, WordSpecLike }
 
 import scala.collection.mutable
 
@@ -47,7 +47,7 @@ trait MockGraphiteNetworkAdapter extends GraphiteNetworkAdapter with MockitoSuga
 }
 
 class GraphiteMetricEmitterSpec
-  extends AkkaTestJawn with WordSpecLike with MockitoSugar with OneInstancePerTest with BeforeAndAfterEach {
+    extends AkkaTestJawn with WordSpecLike with MockitoSugar with OneInstancePerTest with BeforeAndAfterEach {
 
   val conf: Config = mock[Config]
 
@@ -57,7 +57,8 @@ class GraphiteMetricEmitterSpec
     DateTimeUtils.setCurrentMillisProvider(
       new MillisProvider {
         override def getMillis: Long = 2000L
-      })
+      }
+    )
   }
 
   override def afterEach = DateTimeUtils.setCurrentMillisSystem()

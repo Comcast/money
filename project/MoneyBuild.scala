@@ -1,5 +1,6 @@
 import com.typesafe.sbt.SbtAspectj.AspectjKeys._
 import com.typesafe.sbt.SbtAspectj._
+import com.typesafe.sbt.SbtScalariform
 import sbt.Keys._
 import sbt._
 import sbtavro.SbtAvro._
@@ -207,7 +208,7 @@ object MoneyBuild extends Build {
     javaOptions in Test <++= weaverOptions in Aspectj // adds javaagent:aspectjweaver to java options, including test
   )
 
-  def basicSettings =  Defaults.itSettings ++ Seq(
+  def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings ++ Seq(
     organization := "com.comcast.money",
     version := "0.8.8-SNAPSHOT",
     crossScalaVersions := Seq("2.10.6", "2.11.7"),

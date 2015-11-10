@@ -16,7 +16,7 @@
 
 package com.comcast.money.core
 
-import org.scalatest.{Matchers, WordSpecLike}
+import org.scalatest.{ Matchers, WordSpecLike }
 
 class SpanIdSpec extends WordSpecLike with Matchers {
 

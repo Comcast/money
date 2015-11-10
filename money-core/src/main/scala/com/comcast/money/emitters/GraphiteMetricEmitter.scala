@@ -20,7 +20,7 @@ import java.net._
 
 import akka.actor._
 import com.comcast.money.core.Money
-import com.comcast.money.internal.EmitterProtocol.{EmitMetricLong, EmitMetricDouble}
+import com.comcast.money.internal.EmitterProtocol.{ EmitMetricLong, EmitMetricDouble }
 import com.typesafe.config.Config
 import org.joda.time.DateTimeUtils
 
@@ -74,7 +74,7 @@ trait UDPGraphiteNetworkAdapter extends GraphiteNetworkAdapter {
 }
 
 class GraphiteMetricEmitter(val conf: Config)
-  extends Actor with ActorLogging with Configurable with UDPGraphiteNetworkAdapter {
+    extends Actor with ActorLogging with Configurable with UDPGraphiteNetworkAdapter {
 
   private val GraphiteFormat: String = "%s %s %s\n"
   val appName = Money.applicationName

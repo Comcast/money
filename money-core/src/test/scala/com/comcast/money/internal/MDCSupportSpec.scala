@@ -17,7 +17,7 @@
 package com.comcast.money.internal
 
 import com.comcast.money.core.SpanId
-import org.scalatest.{BeforeAndAfterEach, Matchers, OneInstancePerTest, WordSpec}
+import org.scalatest.{ BeforeAndAfterEach, Matchers, OneInstancePerTest, WordSpec }
 import org.slf4j.MDC
 
 import scala.collection.mutable

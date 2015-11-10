@@ -16,16 +16,16 @@
 
 package com.comcast.money.kafka
 
-import akka.actor.{ActorSystem, Props}
-import akka.testkit.{TestActorRef, TestKit}
+import akka.actor.{ ActorSystem, Props }
+import akka.testkit.{ TestActorRef, TestKit }
 import com.comcast.money.core
 import com.comcast.money.internal.EmitterProtocol.EmitSpan
 import com.typesafe.config.Config
-import kafka.producer.{KeyedMessage, Producer}
+import kafka.producer.{ KeyedMessage, Producer }
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
+import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpecLike }
 
 trait MockProducerMaker extends ProducerMaker {
 
@@ -46,10 +46,10 @@ class TestKafkaEmitter(conf: Config) extends KafkaEmitter(conf) {
 }
 
 class KafkaEmitterSpec extends TestKit(ActorSystem("test", core.Money.config.getConfig("money.akka")))
-with WordSpecLike
-with Matchers
-with MockitoSugar
-with BeforeAndAfterAll {
+    with WordSpecLike
+    with Matchers
+    with MockitoSugar
+    with BeforeAndAfterAll {
 
   trait KafkaFixture {
     val testConfig = mock[Config]
@@ -60,7 +60,8 @@ with BeforeAndAfterAll {
     val testProducer = underlyingActor.mockProducer
     val sampleData = core.Span(
       core.SpanId(1L), "key", "app", "host", 1L, true, 35L,
-      Map("what" -> core.Note("what", 1L), "when" -> core.Note("when", 2L), "bob" -> core.Note("bob", "craig")))
+      Map("what" -> core.Note("what", 1L), "when" -> core.Note("when", 2L), "bob" -> core.Note("bob", "craig"))
+    )
   }
 
   override def afterAll() {

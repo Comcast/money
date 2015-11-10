@@ -26,11 +26,11 @@ import org.scalatest.mock.MockitoSugar
 import scala.collection.mutable
 
 class TracersSpec extends FeatureSpec
-with MockitoSugar
-with GivenWhenThen
-with BeforeAndAfterAll
-with BeforeAndAfterEach
-with OneInstancePerTest {
+    with MockitoSugar
+    with GivenWhenThen
+    with BeforeAndAfterAll
+    with BeforeAndAfterEach
+    with OneInstancePerTest {
 
   val moneyTracer = mock[Tracer]
 

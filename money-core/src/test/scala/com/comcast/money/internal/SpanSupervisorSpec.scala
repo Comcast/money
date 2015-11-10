@@ -17,9 +17,9 @@
 package com.comcast.money.internal
 
 import akka.actor._
-import akka.testkit.{TestProbe, EventFilter, TestActorRef}
+import akka.testkit.{ TestProbe, EventFilter, TestActorRef }
 import com.comcast.money.test.AkkaTestJawn
-import com.comcast.money.core.{LongNote, Note, SpanId}
+import com.comcast.money.core.{ LongNote, Note, SpanId }
 import com.comcast.money.internal.SpanFSMProtocol._
 import com.comcast.money.internal.SpanSupervisorProtocol.SpanMessage
 import org.scalatest.WordSpecLike

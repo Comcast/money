@@ -17,13 +17,13 @@
 package com.comcast.money.java.servlet
 
 import javax.servlet._
-import javax.servlet.http.{HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse}
+import javax.servlet.http.{ HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse }
 
 import com.comcast.money.core.SpanId
 import com.comcast.money.internal.SpanLocal
 import org.slf4j.LoggerFactory
 
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 /**
  * A Java Servlet 2.5 Filter.  Examines the inbound http request, and will set the
@@ -50,7 +50,6 @@ class TraceFilter extends Filter {
       }
       incTrcaceId
     }
-
 
     incomingTraceId.foreach { traceId =>
       response match {

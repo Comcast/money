@@ -17,8 +17,8 @@
 package com.comcast.money.internal
 
 import akka.actor.ActorRef
-import akka.event.{EventBus, LookupClassification}
-import com.comcast.money.internal.EmitterBus.{EmitterEvent, EmitterGroup}
+import akka.event.{ EventBus, LookupClassification }
+import com.comcast.money.internal.EmitterBus.{ EmitterEvent, EmitterGroup }
 
 object EmitterBus {
 

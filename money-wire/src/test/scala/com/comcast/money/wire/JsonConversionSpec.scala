@@ -16,8 +16,8 @@
 
 package com.comcast.money.wire
 
-import com.comcast.money.core.{LongNote, Note, SpanId, Span}
-import org.scalatest.{Inspectors, Matchers, WordSpec}
+import com.comcast.money.core.{ LongNote, Note, SpanId, Span }
+import org.scalatest.{ Inspectors, Matchers, WordSpec }
 
 class JsonConversionSpec extends WordSpec with Matchers with Inspectors {
 
@@ -32,7 +32,8 @@ class JsonConversionSpec extends WordSpec with Matchers with Inspectors {
       "none" -> LongNote("none", None),
       "bool" -> Note("bool", true, 400L),
       "dbl" -> Note("dbl", 1.0, 500L)
-    ))
+    )
+  )
 
   "Json Conversion" should {
     "roundtrip" in {

@@ -16,7 +16,7 @@
 
 package com.comcast.money.http.client
 
-import java.io.{ByteArrayInputStream, InputStream}
+import java.io.{ ByteArrayInputStream, InputStream }
 
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
@@ -26,7 +26,7 @@ import com.comcast.money.emitters._
 import com.comcast.money.internal.SpanLocal
 import org.apache.http._
 import org.apache.http.client.methods.HttpUriRequest
-import org.apache.http.client.{HttpClient, ResponseHandler}
+import org.apache.http.client.{ HttpClient, ResponseHandler }
 import org.apache.http.util.EntityUtils
 import org.aspectj.lang.ProceedingJoinPoint
 import org.mockito.Mockito._
@@ -36,13 +36,13 @@ import org.scalatest.mock.MockitoSugar
 import scala.concurrent.duration._
 
 class HttpTraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getConfig("money.akka")))
-with FeatureSpecLike
-with Matchers
-with MockitoSugar
-with OneInstancePerTest
-with GivenWhenThen
-with BeforeAndAfter
-with BeforeAndAfterAll {
+    with FeatureSpecLike
+    with Matchers
+    with MockitoSugar
+    with OneInstancePerTest
+    with GivenWhenThen
+    with BeforeAndAfter
+    with BeforeAndAfterAll {
 
   val mockHttpClient: HttpClient = mock[HttpClient]
   val mockHttpRequest: HttpUriRequest = mock[HttpUriRequest]
@@ -72,7 +72,8 @@ with BeforeAndAfterAll {
   def expectLogMessageContaining(contains: String, wait: FiniteDuration = 2.seconds) {
     awaitCond(
       LogRecord.contains("log")(_.contains(contains)), wait, 100 milliseconds,
-      s"Expected log message containing string $contains not found after $wait")
+      s"Expected log message containing string $contains not found after $wait"
+    )
   }
 
   // Used by some tests that cannot be adequately integration tested
@@ -348,11 +349,11 @@ with BeforeAndAfterAll {
   }
   feature("test coverage") {
     scenario("loves us some code coverage") {
-      testAspect.httpClientExecute(mockHttpRequest) shouldEqual()
-      testAspect.httpClientExecuteToResponseHandler(mockHttpRequest) shouldEqual()
-      testAspect.httpResponseHandler(mockHttpResponse) shouldEqual()
-      testAspect.consumeHttpEntity() shouldEqual()
-      testAspect.traced(mockTracedAnnotation) shouldEqual()
+      testAspect.httpClientExecute(mockHttpRequest) shouldEqual ()
+      testAspect.httpClientExecuteToResponseHandler(mockHttpRequest) shouldEqual ()
+      testAspect.httpResponseHandler(mockHttpResponse) shouldEqual ()
+      testAspect.consumeHttpEntity() shouldEqual ()
+      testAspect.traced(mockTracedAnnotation) shouldEqual ()
     }
   }
 }

@@ -18,7 +18,7 @@ package com.comcast.money.japi
 
 import com.comcast.money.japi.JMoney.TraceSpan
 import com.comcast.money.test.AkkaTestJawn
-import org.scalatest.{Matchers, OneInstancePerTest, WordSpecLike}
+import org.scalatest.{ Matchers, OneInstancePerTest, WordSpecLike }
 
 class JMoneySpec extends AkkaTestJawn with WordSpecLike with OneInstancePerTest with Matchers {
 

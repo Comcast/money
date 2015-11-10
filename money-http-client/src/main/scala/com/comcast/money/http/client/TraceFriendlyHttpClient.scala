@@ -18,16 +18,16 @@ package com.comcast.money.http.client
 
 import java.io.Closeable
 
-import com.comcast.money.core.{Tracer, Money}
+import com.comcast.money.core.{ Tracer, Money }
 import com.comcast.money.core.Tracers._
 import com.comcast.money.internal.SpanLocal
 import org.apache.http.client.methods.HttpUriRequest
-import org.apache.http.client.{HttpClient, ResponseHandler}
+import org.apache.http.client.{ HttpClient, ResponseHandler }
 import org.apache.http.conn.ClientConnectionManager
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.params.HttpParams
 import org.apache.http.protocol.HttpContext
-import org.apache.http.{HttpHost, HttpRequest, HttpResponse}
+import org.apache.http.{ HttpHost, HttpRequest, HttpResponse }
 
 import scala.util.Try
 
@@ -82,8 +82,7 @@ class TraceFriendlyHttpClient(wrapee: HttpClient) extends HttpClient with java.i
     wrapee.execute(request)
   }
 
-  override def execute(request: HttpUriRequest, context: HttpContext): HttpResponse = wrapSimpleExecute(request, tracer)
-  {
+  override def execute(request: HttpUriRequest, context: HttpContext): HttpResponse = wrapSimpleExecute(request, tracer) {
     wrapee.execute(request, context)
   }
 
@@ -92,7 +91,8 @@ class TraceFriendlyHttpClient(wrapee: HttpClient) extends HttpClient with java.i
   }
 
   override def execute(target: HttpHost, request: HttpRequest, context: HttpContext): HttpResponse = wrapSimpleExecute(
-    request, tracer) {
+    request, tracer
+  ) {
     wrapee.execute(target, request, context)
   }
 
@@ -125,9 +125,9 @@ class TraceFriendlyHttpClient(wrapee: HttpClient) extends HttpClient with java.i
     if (wrapee.isInstanceOf[CloseableHttpClient])
       wrapee.asInstanceOf[CloseableHttpClient].close()
     else if (wrapee.isInstanceOf[Closeable])
-           wrapee.asInstanceOf[Closeable].close()
+      wrapee.asInstanceOf[Closeable].close()
     else if (wrapee.isInstanceOf[AutoCloseable])
-           wrapee.asInstanceOf[AutoCloseable].close()
+      wrapee.asInstanceOf[AutoCloseable].close()
   }
 }
 

@@ -16,7 +16,7 @@
 
 package com.comcast.money.metrics
 
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.{ Actor, ActorLogging, Props }
 import com.codahale.metrics._
 import com.comcast.money.akka.ActorMaker
 import com.comcast.money.core.Span

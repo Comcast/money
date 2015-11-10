@@ -25,7 +25,7 @@ import com.comcast.money.internal.SpanLocal
 import com.comcast.money.internal.SpanSupervisorProtocol._
 import com.comcast.money.util.DateTimeUtil
 
-import scala.util.{Random, Try}
+import scala.util.{ Random, Try }
 
 object ProbabilisticlyUniqueLong {
   val r: Random = new Random()

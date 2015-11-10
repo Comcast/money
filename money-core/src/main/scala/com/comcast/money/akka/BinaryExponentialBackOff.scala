@@ -16,12 +16,12 @@
 
 package com.comcast.money.akka
 
-import scala.concurrent.duration.{Duration, FiniteDuration}
+import scala.concurrent.duration.{ Duration, FiniteDuration }
 import scala.util.Random
 
 case class BinaryExponentialBackOff(slotTime: FiniteDuration, ceiling: Int = 10, stayAtCeiling: Boolean = false,
-  slot: Int = 1, rand: Random = new Random(), waitTime: FiniteDuration = Duration.Zero, retries: Int = 0,
-  resets: Int = 0, totalRetries: Long = 0) {
+    slot: Int = 1, rand: Random = new Random(), waitTime: FiniteDuration = Duration.Zero, retries: Int = 0,
+    resets: Int = 0, totalRetries: Long = 0) {
   def isStarted = retries > 0
 
   def reset(): BinaryExponentialBackOff = {

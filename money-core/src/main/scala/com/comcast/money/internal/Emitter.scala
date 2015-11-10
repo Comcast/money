@@ -16,11 +16,11 @@
 
 package com.comcast.money.internal
 
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.{ Actor, ActorLogging, Props }
 import com.comcast.money.akka.ActorMaker
-import com.comcast.money.core.{Money, Span}
+import com.comcast.money.core.{ Money, Span }
 import com.comcast.money.internal.EmitterBus._
-import com.comcast.money.internal.EmitterProtocol.{EmitMetricLong, EmitMetricDouble, EmitSpan}
+import com.comcast.money.internal.EmitterProtocol.{ EmitMetricLong, EmitMetricDouble, EmitSpan }
 import com.comcast.money.util.DateTimeUtil
 import com.typesafe.config.Config
 
@@ -64,8 +64,7 @@ class Emitter(emitterBus: EmitterBus) extends Actor with ActorMaker with ActorLo
         subscriptions.foreach {
           case "Trace" => emitterBus.subscribe(emitter, Trace)
           case "Metric" => emitterBus.subscribe(emitter, Metric)
-          case unknownSubscription: String => throw new
-              IllegalStateException(s"Unknown subscription: $unknownSubscription")
+          case unknownSubscription: String => throw new IllegalStateException(s"Unknown subscription: $unknownSubscription")
         }
       }
     }

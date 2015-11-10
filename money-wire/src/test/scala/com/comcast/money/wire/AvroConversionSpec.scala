@@ -16,8 +16,8 @@
 
 package com.comcast.money.wire
 
-import com.comcast.money.core.{LongNote, Note, Span, SpanId}
-import org.scalatest.{Inspectors, Matchers, WordSpec}
+import com.comcast.money.core.{ LongNote, Note, Span, SpanId }
+import org.scalatest.{ Inspectors, Matchers, WordSpec }
 
 class AvroConversionSpec extends WordSpec with Matchers with Inspectors {
 
@@ -34,7 +34,8 @@ class AvroConversionSpec extends WordSpec with Matchers with Inspectors {
           "none" -> LongNote("none", None),
           "bool" -> Note("bool", true, 400L),
           "dbl" -> Note("dbl", 1.0, 500L)
-        ))
+        )
+      )
 
       val bytes = orig.convertTo[Array[Byte]]
       val roundtrip = bytes.convertTo[Span]

@@ -18,8 +18,8 @@ package com.comcast.money.internal
 
 import akka.testkit.TestActorRef
 import com.comcast.money.test.AkkaTestJawn
-import com.comcast.money.core.{Span, SpanId}
-import com.comcast.money.internal.EmitterProtocol.{EmitMetricLong, EmitMetricDouble, EmitSpan}
+import com.comcast.money.core.{ Span, SpanId }
+import com.comcast.money.internal.EmitterProtocol.{ EmitMetricLong, EmitMetricDouble, EmitSpan }
 import com.comcast.money.util.DateTimeUtil
 import org.scalatest.WordSpecLike
 import org.scalatest.mock.MockitoSugar

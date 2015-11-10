@@ -22,10 +22,10 @@ import com.comcast.money.core._
 import com.comcast.money.wire.avro
 import com.comcast.money.wire.avro.NoteType
 import com.fasterxml.jackson.annotation.JsonIgnore
-import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
+import com.fasterxml.jackson.databind.{ DeserializationFeature, ObjectMapper }
 import org.apache.avro.Schema
-import org.apache.avro.io.{DecoderFactory, EncoderFactory}
-import org.apache.avro.specific.{SpecificDatumReader, SpecificDatumWriter}
+import org.apache.avro.io.{ DecoderFactory, EncoderFactory }
+import org.apache.avro.specific.{ SpecificDatumReader, SpecificDatumWriter }
 
 trait TypeConverter[From, To] {
 
@@ -61,13 +61,17 @@ trait SpanWireConverters {
 
     from match {
       case LongNote(name, value, timestamp) => avroNote(
-        new avro.NoteValue(avro.NoteType.Long, value.map(_.toString).getOrElse(null)))
+        new avro.NoteValue(avro.NoteType.Long, value.map(_.toString).getOrElse(null))
+      )
       case StringNote(name, value, timestamp) => avroNote(
-        new avro.NoteValue(avro.NoteType.String, value.getOrElse(null)))
+        new avro.NoteValue(avro.NoteType.String, value.getOrElse(null))
+      )
       case BooleanNote(name, value, timestamp) => avroNote(
-        new avro.NoteValue(avro.NoteType.Boolean, value.map(_.toString).getOrElse(null)))
+        new avro.NoteValue(avro.NoteType.Boolean, value.map(_.toString).getOrElse(null))
+      )
       case DoubleNote(name, value, timestamp) => avroNote(
-        new avro.NoteValue(avro.NoteType.Double, value.map(_.toString).getOrElse(null)))
+        new avro.NoteValue(avro.NoteType.Double, value.map(_.toString).getOrElse(null))
+      )
     }
   }
 
@@ -81,12 +85,15 @@ trait SpanWireConverters {
 
     from.getValue.getType match {
       case NoteType.Boolean => BooleanNote(
-        from.getName, toOption[Boolean](from.getValue.getData)(_.toBoolean), from.getTimestamp)
+        from.getName, toOption[Boolean](from.getValue.getData)(_.toBoolean), from.getTimestamp
+      )
       case NoteType.Long => LongNote(from.getName, toOption[Long](from.getValue.getData)(_.toLong), from.getTimestamp)
       case NoteType.String => StringNote(
-        from.getName, toOption[String](from.getValue.getData)(_.toString), from.getTimestamp)
+        from.getName, toOption[String](from.getValue.getData)(_.toString), from.getTimestamp
+      )
       case NoteType.Double => DoubleNote(
-        from.getName, toOption[Double](from.getValue.getData)(_.toDouble), from.getTimestamp)
+        from.getName, toOption[Double](from.getValue.getData)(_.toDouble), from.getTimestamp
+      )
     }
   }
 
@@ -108,7 +115,8 @@ trait SpanWireConverters {
       span.success,
       span.startTime,
       implicitly[TypeConverter[SpanId, avro.SpanId]].convert(span.spanId),
-      span.notes.values.toList.map(implicitly[TypeConverter[Note[_], avro.Note]].convert))
+      span.notes.values.toList.map(implicitly[TypeConverter[Note[_], avro.Note]].convert)
+    )
   }
 
   implicit val wireToSpan: TypeConverter[avro.Span, Span] = TypeConverter.instance { from: avro.Span =>

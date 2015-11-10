@@ -18,7 +18,7 @@ package com.comcast.money.logging
 
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{OneInstancePerTest, Matchers, WordSpec}
+import org.scalatest.{ OneInstancePerTest, Matchers, WordSpec }
 import org.slf4j.Logger
 
 class TraceLoggingSpec extends WordSpec with Matchers with MockitoSugar with OneInstancePerTest {

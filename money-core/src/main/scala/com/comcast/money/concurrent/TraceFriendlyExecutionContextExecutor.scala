@@ -16,15 +16,15 @@
 
 package com.comcast.money.concurrent
 
-import com.comcast.money.internal.{MDCSupport, SpanLocal}
+import com.comcast.money.internal.{ MDCSupport, SpanLocal }
 import com.comcast.money.logging.TraceLogging
 
-import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
+import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 
 import org.slf4j.MDC
 
 class TraceFriendlyExecutionContextExecutor(wrapped: ExecutionContext)
-  extends ExecutionContextExecutor with TraceLogging {
+    extends ExecutionContextExecutor with TraceLogging {
 
   lazy val mdcSupport = new MDCSupport()
 
@@ -58,8 +58,7 @@ class TraceFriendlyExecutionContextExecutor(wrapped: ExecutionContext)
 
 object TraceFriendlyExecutionContextExecutor {
   object Implicits {
-    implicit lazy val global: TraceFriendlyExecutionContextExecutor = new
-        TraceFriendlyExecutionContextExecutor(scala.concurrent.ExecutionContext.global)
+    implicit lazy val global: TraceFriendlyExecutionContextExecutor = new TraceFriendlyExecutionContextExecutor(scala.concurrent.ExecutionContext.global)
   }
 
   def apply(ec: ExecutionContext) = new TraceFriendlyExecutionContextExecutor(ec)

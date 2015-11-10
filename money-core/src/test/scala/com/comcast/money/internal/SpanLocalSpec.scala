@@ -19,7 +19,7 @@ package com.comcast.money.internal
 import com.comcast.money.core.SpanId
 import org.scalatest.mock.MockitoSugar
 
-import org.scalatest.{BeforeAndAfterEach, Matchers, WordSpec}
+import org.scalatest.{ BeforeAndAfterEach, Matchers, WordSpec }
 import org.slf4j.MDC
 
 class SpanLocalSpec extends WordSpec with Matchers with BeforeAndAfterEach with MockitoSugar {

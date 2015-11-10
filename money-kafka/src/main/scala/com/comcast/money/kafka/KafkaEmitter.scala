@@ -23,7 +23,7 @@ import com.comcast.money.wire.AvroConversions
 import com.comcast.money.core
 import com.comcast.money.internal.EmitterProtocol.EmitSpan
 import com.typesafe.config.Config
-import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
+import kafka.producer.{ KeyedMessage, Producer, ProducerConfig }
 
 // We use the producer maker so that we can mock this out
 trait ProducerMaker {

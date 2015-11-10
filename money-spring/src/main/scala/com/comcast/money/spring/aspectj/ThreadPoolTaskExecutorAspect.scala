@@ -21,7 +21,7 @@ import java.util.concurrent._
 
 import com.comcast.money.concurrent.TraceFriendlyThreadPoolExecutor
 import org.aspectj.lang.ProceedingJoinPoint
-import org.aspectj.lang.annotation.{Aspect, Around, Pointcut}
+import org.aspectj.lang.annotation.{ Aspect, Around, Pointcut }
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 
 import scala.util.Try
@@ -41,7 +41,8 @@ class ThreadPoolTaskExecutorAspect {
       f => {
         f.setAccessible(true)
         f.get(instance).asInstanceOf[T]
-      }).getOrElse(null.asInstanceOf[T])
+      }
+    ).getOrElse(null.asInstanceOf[T])
   }
 
   def setFieldValue[T](instance: AnyRef, fieldName: String, value: T) = {
@@ -49,13 +50,15 @@ class ThreadPoolTaskExecutorAspect {
       f => {
         f.setAccessible(true)
         f.set(instance, value)
-      })
+      }
+    )
   }
 
   @Pointcut(
     "execution(* org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor+.initializeExecutor(java.util" +
       ".concurrent.ThreadFactory, java.util.concurrent.RejectedExecutionHandler)) && args(threadFactory, " +
-      "rejectedExecutionHandler)")
+      "rejectedExecutionHandler)"
+  )
   def initializeExecutor(threadFactory: ThreadFactory, rejectedExecutionHandler: RejectedExecutionHandler) = {}
 
   @Around("initializeExecutor(threadFactory, rejectedExecutionHandler)")
@@ -72,13 +75,13 @@ class ThreadPoolTaskExecutorAspect {
     val queue: BlockingQueue[Runnable] =
       if (queueCapacity > 0) {
         new LinkedBlockingQueue[Runnable](queueCapacity)
-      }
-      else {
+      } else {
         new SynchronousQueue[Runnable]
       }
 
     val executor: ThreadPoolExecutor = new TraceFriendlyThreadPoolExecutor(
-      corePoolSize, maxPoolSize, keepAliveSeconds, TimeUnit.SECONDS, queue, threadFactory, rejectedExecutionHandler)
+      corePoolSize, maxPoolSize, keepAliveSeconds, TimeUnit.SECONDS, queue, threadFactory, rejectedExecutionHandler
+    )
     if (allowCoreThreadTimeOut) {
       executor.allowCoreThreadTimeOut(true)
     }

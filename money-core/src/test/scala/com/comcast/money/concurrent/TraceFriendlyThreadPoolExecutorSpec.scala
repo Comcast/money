@@ -16,16 +16,16 @@
 
 package com.comcast.money.concurrent
 
-import java.util.concurrent.{Callable, ExecutorService}
+import java.util.concurrent.{ Callable, ExecutorService }
 
 import com.comcast.money.core.SpanId
 import com.comcast.money.internal.SpanLocal
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{Matchers, OneInstancePerTest, WordSpecLike}
+import org.scalatest.{ Matchers, OneInstancePerTest, WordSpecLike }
 import org.slf4j.MDC
 
 class TraceFriendlyThreadPoolExecutorSpec
-  extends WordSpecLike with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest {
+    extends WordSpecLike with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest {
 
   val executor: ExecutorService = TraceFriendlyThreadPoolExecutor.newCachedThreadPool
 

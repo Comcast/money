@@ -16,17 +16,17 @@
 
 package com.comcast.money.spring3
 
-import com.comcast.money.annotations.{Traced, TracedData}
+import com.comcast.money.annotations.{ Traced, TracedData }
 import com.comcast.money.core._
 import com.sun.istack.internal.NotNull
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{BeforeAndAfterEach, Matchers, WordSpec}
+import org.scalatest.{ BeforeAndAfterEach, Matchers, WordSpec }
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
-import org.springframework.test.context.{ContextConfiguration, TestContextManager}
+import org.springframework.test.context.{ ContextConfiguration, TestContextManager }
 
 @ContextConfiguration(Array("classpath:test-context.xml"))
 class TracedMethodInterceptorScalaSpec extends WordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
@@ -147,7 +147,8 @@ class SampleScalaBean {
     @TracedData("STRING") str: String,
     @TracedData("BOOLEAN") bool: Boolean,
     @TracedData("LONG") lng: Long,
-    @TracedData("DOUBLE") dbl: Double) {
+    @TracedData("DOUBLE") dbl: Double
+  ) {
 
     return
   }
@@ -157,21 +158,26 @@ class SampleScalaBean {
     @TracedData("STRING") str: String,
     @TracedData("BOOLEAN") bool: java.lang.Boolean,
     @TracedData("LONG") lng: java.lang.Long,
-    @TracedData("DOUBLE") dbl: java.lang.Double) {
+    @TracedData("DOUBLE") dbl: java.lang.Double
+  ) {
 
     return
   }
 
   @Traced("SampleTrace")
-  def doSomethingWithTracedParamsAndNonTracedParams(@TracedData("STRING") @NotNull str: String,
-    @NotNull nn: String): Unit = {
+  def doSomethingWithTracedParamsAndNonTracedParams(
+    @TracedData("STRING")@NotNull str: String,
+    @NotNull nn: String
+  ): Unit = {
 
     return
   }
 
   @Traced("SampleTrace")
-  def doSomethingWithTracedParamsPropagated(@TracedData(value = "STRING", propagate = true) @NotNull str: String,
-    @NotNull nn: String): Unit = {
+  def doSomethingWithTracedParamsPropagated(
+    @TracedData(value = "STRING", propagate = true)@NotNull str: String,
+    @NotNull nn: String
+  ): Unit = {
 
     return
   }

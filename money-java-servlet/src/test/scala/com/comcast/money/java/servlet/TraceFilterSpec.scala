@@ -16,15 +16,15 @@
 
 package com.comcast.money.java.servlet
 
-import javax.servlet.http.{HttpServletRequest, HttpServletResponse}
-import javax.servlet.{FilterChain, FilterConfig}
+import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
+import javax.servlet.{ FilterChain, FilterConfig }
 
 import com.comcast.money.core.SpanId
 import com.comcast.money.internal.SpanLocal
 import org.mockito.Mockito._
 import org.scalatest.OptionValues._
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{BeforeAndAfter, Matchers, OneInstancePerTest, WordSpec}
+import org.scalatest.{ BeforeAndAfter, Matchers, OneInstancePerTest, WordSpec }
 
 class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest with BeforeAndAfter with MockitoSugar {
 
@@ -73,7 +73,8 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
       verify(mockResponse).addHeader(
         "X-MoneyTrace",
-        MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentSpanId, existingSpanId.spanId))
+        MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentSpanId, existingSpanId.spanId)
+      )
     }
     "doesn't add Money header to response if response is null" in {
       when(mockRequest.getHeader("X-MoneyTrace"))

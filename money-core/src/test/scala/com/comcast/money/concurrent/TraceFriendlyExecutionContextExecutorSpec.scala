@@ -20,18 +20,18 @@ import com.comcast.money.core.SpanId
 import com.comcast.money.internal.SpanLocal
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{BeforeAndAfterEach, Matchers, OneInstancePerTest, WordSpec}
+import org.scalatest.{ BeforeAndAfterEach, Matchers, OneInstancePerTest, WordSpec }
 import org.slf4j.MDC
 
 import scala.concurrent.duration._
-import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.concurrent.{ Await, ExecutionContext, Future }
 
 class TraceFriendlyExecutionContextExecutorSpec extends WordSpec
-with Matchers
-with MockitoSugar
-with OneInstancePerTest
-with ConcurrentSupport
-with BeforeAndAfterEach {
+    with Matchers
+    with MockitoSugar
+    with OneInstancePerTest
+    with ConcurrentSupport
+    with BeforeAndAfterEach {
 
   override def beforeEach() = {
     SpanLocal.clear()

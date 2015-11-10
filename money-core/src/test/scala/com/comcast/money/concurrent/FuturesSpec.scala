@@ -25,16 +25,16 @@ import com.comcast.money.test.AkkaTestJawn
 import com.comcast.money.util.DateTimeUtil
 import org.scalatest._
 
-import scala.concurrent.{Future, Await}
+import scala.concurrent.{ Future, Await }
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
 class FuturesSpec extends AkkaTestJawn
-with FeatureSpecLike
-with GivenWhenThen
-with Matchers
-with BeforeAndAfterEach
-with OneInstancePerTest {
+    with FeatureSpecLike
+    with GivenWhenThen
+    with Matchers
+    with BeforeAndAfterEach
+    with OneInstancePerTest {
 
   import Futures._
 
@@ -56,25 +56,28 @@ with OneInstancePerTest {
           tracer.record("begin", "nested")
           println(s"\r\n; begin nested ${SpanLocal.current}")
           Some(456)
-        }.flatMap { case Some(v) =>
-          tracer.record("flatMap", "nested")
-          println(s"\r\n; flatMap nested ${SpanLocal.current}")
-          Future {
-            v
-          }
-        }.map { case _ =>
-          tracer.record("map", "nested")
-          println(s"\r\n; map nested ${SpanLocal.current}")
-          SpanLocal.current.get.copy()
+        }.flatMap {
+          case Some(v) =>
+            tracer.record("flatMap", "nested")
+            println(s"\r\n; flatMap nested ${SpanLocal.current}")
+            Future {
+              v
+            }
+        }.map {
+          case _ =>
+            tracer.record("map", "nested")
+            println(s"\r\n; map nested ${SpanLocal.current}")
+            SpanLocal.current.get.copy()
         }
       }.flatMap { child =>
         tracer.record("flatMap", "root")
         println(s"\r\n; flatMap root ${SpanLocal.current}")
         child
-      }.map { case s =>
-        tracer.record("map", "root")
-        println(s"\r\n; map root ${SpanLocal.current}")
-        (SpanLocal.current.get.copy(), s)
+      }.map {
+        case s =>
+          tracer.record("map", "root")
+          println(s"\r\n; map root ${SpanLocal.current}")
+          (SpanLocal.current.get.copy(), s)
       }
 
       When("the future completes execution")
@@ -133,7 +136,8 @@ with OneInstancePerTest {
 
       Then(
         "the trace contains the items recorded from the main future, map, and the note recorded after the filter is " +
-          "applied")
+          "applied"
+      )
       expectLogMessageContaining("[ begin=root ][ map=root ][ map2=root ]")
     }
 
@@ -175,9 +179,10 @@ with OneInstancePerTest {
         tracer.record("map", "root")
         println(s"\r\n; map root ${SpanLocal.current}")
         v
-      }.collect { case v =>
-        tracer.record("collect", "root")
-        v
+      }.collect {
+        case v =>
+          tracer.record("collect", "root")
+          v
       }.map { v =>
         tracer.record("map2", "root")
         println(s"\r\n; map2 root ${SpanLocal.current}")
@@ -202,9 +207,10 @@ with OneInstancePerTest {
         tracer.record("map", "root")
         println(s"\r\n; map root ${SpanLocal.current}")
         v
-      }.collect { case v if v > 1000 =>
-        tracer.record("collect", "root")
-        v
+      }.collect {
+        case v if v > 1000 =>
+          tracer.record("collect", "root")
+          v
       }.map { v =>
         tracer.record("map2", "root")
         println(s"\r\n; map2 root ${SpanLocal.current}")
@@ -233,9 +239,10 @@ with OneInstancePerTest {
         tracer.record("map", "root")
         println(s"\r\n; map root ${SpanLocal.current}")
         throw new IllegalArgumentException("fail")
-      }.recover { case _ =>
-        tracer.record("recover", "root")
-        0
+      }.recover {
+        case _ =>
+          tracer.record("recover", "root")
+          0
       }
 
       When("the future completes")
@@ -257,9 +264,10 @@ with OneInstancePerTest {
       }.map { v =>
         tracer.record("map", "root")
         println(s"\r\n; map root ${SpanLocal.current}")
-      }.recover { case _ =>
-        tracer.record("recover", "root")
-        0
+      }.recover {
+        case _ =>
+          tracer.record("recover", "root")
+          0
       }
 
       When("the future completes")
@@ -289,19 +297,23 @@ with OneInstancePerTest {
           println(
             s"\r\n; ${v.getClass().getName()}; ${Thread.currentThread().getId()} - ${
               System.nanoTime()
-            } map nested ${SpanLocal.current}")
+            } map nested ${SpanLocal.current}"
+          )
           tracer.record("map", "nested")
           throw new IllegalArgumentException("fail")
-        }.recover { case _ =>
-          tracer.record("recover", "nested")
-          println(
-            s"\r\n; ${v.getClass().getName()}; ${Thread.currentThread().getId()} - ${
-              System.nanoTime()
-            } map nested ${SpanLocal.current}")
-          200
+        }.recover {
+          case _ =>
+            tracer.record("recover", "nested")
+            println(
+              s"\r\n; ${v.getClass().getName()}; ${Thread.currentThread().getId()} - ${
+                System.nanoTime()
+              } map nested ${SpanLocal.current}"
+            )
+            200
         }
-      }.map { case _ =>
-        0
+      }.map {
+        case _ =>
+          0
       }
 
       When("the traced future completes")
@@ -355,13 +367,14 @@ with OneInstancePerTest {
         println(s"\r\n; map root ${SpanLocal.current}")
         throw new IllegalArgumentException("fail")
       }.transform(
-      { s =>
-        tracer.record("success", "transform")
-        200
-      }, { t: Throwable =>
-        tracer.record("failed", "transform")
-        new IllegalStateException("fail on transform")
-      })
+        { s =>
+          tracer.record("success", "transform")
+          200
+        }, { t: Throwable =>
+          tracer.record("failed", "transform")
+          new IllegalStateException("fail on transform")
+        }
+      )
 
       When("the future completes")
       Then("the exception is thrown")
@@ -387,13 +400,14 @@ with OneInstancePerTest {
         tracer.record("map", "root")
         println(s"\r\n; map root ${SpanLocal.current}")
       }.transform(
-      { s =>
-        tracer.record("success", "transform")
-        200
-      }, { t: Throwable =>
-        tracer.record("failed", "transform")
-        new IllegalStateException("fail on transform")
-      })
+        { s =>
+          tracer.record("success", "transform")
+          200
+        }, { t: Throwable =>
+          tracer.record("failed", "transform")
+          new IllegalStateException("fail on transform")
+        }
+      )
 
       When("the future completes")
       Await.result(fut, 2 seconds)
@@ -422,10 +436,11 @@ with OneInstancePerTest {
           throw new IllegalArgumentException("fail")
         }
       }
-      fut.onFailure { case _ =>
-        println(s"\r\n; onFailure root ${SpanLocal.current}")
-        tracer.record("onFailure", "root")
-        200
+      fut.onFailure {
+        case _ =>
+          println(s"\r\n; onFailure root ${SpanLocal.current}")
+          tracer.record("onFailure", "root")
+          200
       }
 
       When("the future completes")
@@ -457,9 +472,10 @@ with OneInstancePerTest {
       }
 
       And("the onSuccess records a note")
-      fut.onSuccess { case _ =>
-        println(s"\r\n; onSuccess root ${SpanLocal.current}")
-        tracer.record("onSuccess", "root")
+      fut.onSuccess {
+        case _ =>
+          println(s"\r\n; onSuccess root ${SpanLocal.current}")
+          tracer.record("onSuccess", "root")
       }
 
       When("the future completes")
@@ -488,11 +504,12 @@ with OneInstancePerTest {
         } finally {
           throw new IllegalArgumentException("fail")
         }
-      }.recoverWith { case e: IllegalArgumentException =>
-        tracer.record("recoverWith", "root")
-        Future {
-          0
-        }
+      }.recoverWith {
+        case e: IllegalArgumentException =>
+          tracer.record("recoverWith", "root")
+          Future {
+            0
+          }
       }
 
       When("the future completes")
@@ -517,8 +534,10 @@ with OneInstancePerTest {
       }
 
       And("a for comprehension that operates on each of the futures")
-      val simpleMath = for {one <- fut1
-                            two <- fut2} yield (one, two)
+      val simpleMath = for {
+        one <- fut1
+        two <- fut2
+      } yield (one, two)
 
       When("the for comprehension completes")
       val result = Await.result(simpleMath, 2 seconds)

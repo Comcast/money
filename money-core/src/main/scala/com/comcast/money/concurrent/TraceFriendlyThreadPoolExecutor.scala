@@ -21,7 +21,7 @@ import java.util.concurrent._
 import com.comcast.money.logging.TraceLogging
 import org.slf4j.MDC
 
-import com.comcast.money.internal.{MDCSupport, SpanLocal}
+import com.comcast.money.internal.{ MDCSupport, SpanLocal }
 
 object TraceFriendlyThreadPoolExecutor {
 
@@ -33,7 +33,8 @@ object TraceFriendlyThreadPoolExecutor {
    */
   def newFixedThreadPool(nThreads: Int): ExecutorService = {
     new TraceFriendlyThreadPoolExecutor(
-      nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
+      nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable]
+    )
   }
 
   /**
@@ -51,8 +52,8 @@ object TraceFriendlyThreadPoolExecutor {
  */
 class TraceFriendlyThreadPoolExecutor(corePoolSize: Int, maximumPoolSize: Int, keepAliveTime: Long, unit: TimeUnit,
   workQueue: BlockingQueue[Runnable])
-  extends ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue)
-  with TraceLogging {
+    extends ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue)
+    with TraceLogging {
 
   lazy val mdcSupport = new MDCSupport()
 
