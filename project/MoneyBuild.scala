@@ -210,8 +210,8 @@ object MoneyBuild extends Build {
   def basicSettings =  Defaults.itSettings ++ Seq(
     organization := "com.comcast.money",
     version := "0.8.8-SNAPSHOT",
-    crossScalaVersions := Seq("2.10.4", "2.11.5"),
-    scalaVersion := "2.10.4",
+    crossScalaVersions := Seq("2.10.6", "2.11.7"),
+    scalaVersion := "2.10.6",
     resolvers ++= Seq(
       "spray repo" at "http://repo.spray.io/",
       "Sonatype OSS Releases" at "http://oss.sonatype.org/content/repositories/releases/"
