@@ -15,10 +15,9 @@ import org.apache.http.{HttpHost, HttpRequest, HttpResponse}
 
 import scala.util.Try
 
-
 object TraceFriendlyHttpSupport {
 
-  def wrapSimpleExecute(httpRequest:HttpRequest, tracer:Tracer)(f: => HttpResponse):HttpResponse = {
+  def wrapSimpleExecute(httpRequest: HttpRequest, tracer: Tracer)(f: => HttpResponse): HttpResponse = {
     var responseCode = 0L
     try {
       // Put the X-MoneyTrace header in the request...
@@ -35,14 +34,14 @@ object TraceFriendlyHttpSupport {
     }
   }
 
-  def getResponseCode(response:HttpResponse):Long = Option(response.getStatusLine).map { statusLine =>
+  def getResponseCode(response: HttpResponse): Long = Option(response.getStatusLine).map { statusLine =>
     statusLine.getStatusCode.toLong
   } getOrElse 0L
 
-  def addTraceHeader(httpRequest:HttpRequest) {
+  def addTraceHeader(httpRequest: HttpRequest) {
 
-    if(httpRequest != null) {
-      SpanLocal.current.map {
+    if (httpRequest != null) {
+      SpanLocal.current.foreach {
         span =>
           httpRequest.setHeader("X-MoneyTrace", span.toHttpHeader)
       }
@@ -53,7 +52,7 @@ object TraceFriendlyHttpSupport {
 /**
  * Provides a thin wrapper around HttpClient to allow support tracing
  */
-class TraceFriendlyHttpClient(wrapee:HttpClient) extends HttpClient with java.io.Closeable {
+class TraceFriendlyHttpClient(wrapee: HttpClient) extends HttpClient with java.io.Closeable {
 
   import com.comcast.money.http.client.TraceFriendlyHttpSupport._
 
@@ -63,13 +62,23 @@ class TraceFriendlyHttpClient(wrapee:HttpClient) extends HttpClient with java.io
 
   override def getConnectionManager: ClientConnectionManager = wrapee.getConnectionManager
 
-  override def execute(request: HttpUriRequest): HttpResponse = wrapSimpleExecute(request, tracer) { wrapee.execute(request) }
+  override def execute(request: HttpUriRequest): HttpResponse = wrapSimpleExecute(request, tracer) {
+    wrapee.execute(request)
+  }
 
-  override def execute(request: HttpUriRequest, context: HttpContext): HttpResponse = wrapSimpleExecute(request, tracer) { wrapee.execute(request, context) }
+  override def execute(request: HttpUriRequest, context: HttpContext): HttpResponse = wrapSimpleExecute(request, tracer)
+  {
+    wrapee.execute(request, context)
+  }
 
-  override def execute(target: HttpHost, request: HttpRequest): HttpResponse = wrapSimpleExecute(request, tracer) { wrapee.execute(target, request) }
+  override def execute(target: HttpHost, request: HttpRequest): HttpResponse = wrapSimpleExecute(request, tracer) {
+    wrapee.execute(target, request)
+  }
 
-  override def execute(target: HttpHost, request: HttpRequest, context: HttpContext): HttpResponse = wrapSimpleExecute(request, tracer) { wrapee.execute(target, request, context) }
+  override def execute(target: HttpHost, request: HttpRequest, context: HttpContext): HttpResponse = wrapSimpleExecute(
+    request, tracer) {
+    wrapee.execute(target, request, context)
+  }
 
   /**
    * We are making a big assertion of how the response handler code works; it is expected that they
@@ -82,7 +91,8 @@ class TraceFriendlyHttpClient(wrapee:HttpClient) extends HttpClient with java.io
     wrapee.execute(request, responseHandler)
   }
 
-  override def execute[T](request: HttpUriRequest, responseHandler: ResponseHandler[_ <: T], context: HttpContext): T = {
+  override def execute[T](request: HttpUriRequest, responseHandler: ResponseHandler[_ <: T],
+    context: HttpContext): T = {
     wrapee.execute(request, responseHandler, context)
   }
 
@@ -90,7 +100,8 @@ class TraceFriendlyHttpClient(wrapee:HttpClient) extends HttpClient with java.io
     wrapee.execute(target, request, responseHandler)
   }
 
-  override def execute[T](target: HttpHost, request: HttpRequest, responseHandler: ResponseHandler[_ <: T], context: HttpContext): T = {
+  override def execute[T](target: HttpHost, request: HttpRequest, responseHandler: ResponseHandler[_ <: T],
+    context: HttpContext): T = {
     wrapee.execute(target, request, responseHandler, context)
   }
 
@@ -98,13 +109,13 @@ class TraceFriendlyHttpClient(wrapee:HttpClient) extends HttpClient with java.io
     if (wrapee.isInstanceOf[CloseableHttpClient])
       wrapee.asInstanceOf[CloseableHttpClient].close()
     else if (wrapee.isInstanceOf[Closeable])
-      wrapee.asInstanceOf[Closeable].close()
+           wrapee.asInstanceOf[Closeable].close()
     else if (wrapee.isInstanceOf[AutoCloseable])
-      wrapee.asInstanceOf[AutoCloseable].close()
+           wrapee.asInstanceOf[AutoCloseable].close()
   }
 }
 
-class TraceFriendlyResponseHandler[T](wrapee:ResponseHandler[_ <: T], tracer:Tracer) extends ResponseHandler[T] {
+class TraceFriendlyResponseHandler[T](wrapee: ResponseHandler[_ <: T], tracer: Tracer) extends ResponseHandler[T] {
 
   import com.comcast.money.http.client.TraceFriendlyHttpSupport._
 

@@ -13,7 +13,7 @@ object DateTimeUtil {
   /**
    * The default time provider that uses current system time
    */
-  val SystemMicroTimeProvider:MicroTimeProvider = () => System.nanoTime() / 1000L
+  val SystemMicroTimeProvider: MicroTimeProvider = () => System.nanoTime() / 1000L
 
   /**
    * Allows us to override the time provider, useful for testing purposes
@@ -24,6 +24,5 @@ object DateTimeUtil {
   /**
    * @return The current time UTC in microseconds
    */
-  def microTime:Long = timeProvider()
-  
+  def microTime: Long = timeProvider()
 }

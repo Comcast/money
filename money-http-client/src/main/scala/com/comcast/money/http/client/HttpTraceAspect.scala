@@ -121,7 +121,7 @@ class HttpTraceAspect {
   private def addTraceHeader(httpRequest:HttpUriRequest) {
 
     if(httpRequest != null) {
-      SpanLocal.current.map {
+      SpanLocal.current.foreach {
         span =>
           httpRequest.setHeader("X-MoneyTrace", span.toHttpHeader)
       }

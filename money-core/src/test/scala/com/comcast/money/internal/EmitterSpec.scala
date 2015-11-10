@@ -46,8 +46,7 @@ class EmitterSpec extends AkkaTestJawn with WordSpecLike with MockitoSugar {
       val props = Emitter.props()
       props.actorClass() shouldBe a[Class[Emitter]]
     }
-
- }
+  }
   "Creating an EmitMetric instance" should {
     "not divide the timestamp by 1000" in {
       DateTimeUtil.timeProvider = () => 1000L
@@ -55,5 +54,4 @@ class EmitterSpec extends AkkaTestJawn with WordSpecLike with MockitoSugar {
       em.timestamp shouldEqual 1000L
     }
   }
-
 }

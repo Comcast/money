@@ -8,12 +8,13 @@ import com.comcast.money.internal.EmitterProtocol.{EmitMetricLong, EmitMetricDou
 import com.comcast.money.util.DateTimeUtil
 import com.typesafe.config.Config
 
-
 object EmitterProtocol {
 
   final case class EmitSpan(t: Span) extends EmitData
-  final case class EmitMetricDouble(metricPath: String, value: Double, timestamp: Long = DateTimeUtil.microTime) extends EmitData
-  final case class EmitMetricLong(metricPath: String, value: Long, timestamp: Long = DateTimeUtil.microTime) extends EmitData
+  final case class EmitMetricDouble(metricPath: String, value: Double, timestamp: Long = DateTimeUtil.microTime)
+    extends EmitData
+  final case class EmitMetricLong(metricPath: String, value: Long, timestamp: Long = DateTimeUtil.microTime)
+    extends EmitData
 }
 
 object Emitter {
@@ -44,24 +45,24 @@ class Emitter(emitterBus: EmitterBus) extends Actor with ActorMaker with ActorLo
         emitterBus.subscribe(emitter, Trace)
         emitterBus.subscribe(emitter, Metric)
       } else {
-        subscriptions.foreach(
-          _ match {
-            case "Trace" => emitterBus.subscribe(emitter, Trace)
-            case "Metric" => emitterBus.subscribe(emitter, Metric)
-            case unknownSubscription:String => throw new IllegalStateException(s"Unknown subscription: $unknownSubscription")
-          }
-        )
+        subscriptions.foreach {
+          case "Trace" => emitterBus.subscribe(emitter, Trace)
+          case "Metric" => emitterBus.subscribe(emitter, Metric)
+          case unknownSubscription: String => throw new
+              IllegalStateException(s"Unknown subscription: $unknownSubscription")
+        }
       }
     }
     emitterConfs.foreach(registerEmitter)
   }
 
-
   def receive = {
     case span: EmitSpan =>
       emitterBus.publish(EmitterEvent(Trace, span))
+
     case metricDouble: EmitMetricDouble =>
       emitterBus.publish(EmitterEvent(Metric, metricDouble))
+
     case metricLong: EmitMetricLong =>
       emitterBus.publish(EmitterEvent(Metric, metricLong))
   }

@@ -47,18 +47,18 @@ trait UDPGraphiteNetworkAdapter extends GraphiteNetworkAdapter {
   }
 
   private def socket: DatagramSocket = socketOption match {
-    case Some(s:DatagramSocket) if s.isClosed =>
+    case Some(s: DatagramSocket) if s.isClosed =>
       newSocket()
       socketOption.get
-    case Some(s:DatagramSocket) => s
+    case Some(s: DatagramSocket) => s
     case None => throw new IllegalStateException("Bad Socket")
   }
 
   private def newSocket() = socketOption = Some(new DatagramSocket())
 }
 
-
-class GraphiteMetricEmitter(val conf: Config) extends Actor with ActorLogging with Configurable with UDPGraphiteNetworkAdapter {
+class GraphiteMetricEmitter(val conf: Config)
+  extends Actor with ActorLogging with Configurable with UDPGraphiteNetworkAdapter {
 
   private val GraphiteFormat: String = "%s %s %s\n"
   val appName = Money.applicationName
@@ -75,7 +75,7 @@ class GraphiteMetricEmitter(val conf: Config) extends Actor with ActorLogging wi
   }
 
   //XXX: probably more clever/scala-y way to do this
-  def buildMessage( metricPath: String, value: Double): Array[Byte] = {
+  def buildMessage(metricPath: String, value: Double): Array[Byte] = {
     import GraphiteMetricEmitter._
     val path: String = appName + '.' + localHostName.replace('.', '_') + '.' + metricPath
     val message: String = GraphiteFormat.format(path, value, DateTimeUtils.currentTimeMillis() / 1000L)
@@ -83,7 +83,7 @@ class GraphiteMetricEmitter(val conf: Config) extends Actor with ActorLogging wi
     message.getBytes
   }
 
-  def buildMessage( metricPath: String, value: Long): Array[Byte] = {
+  def buildMessage(metricPath: String, value: Long): Array[Byte] = {
     import GraphiteMetricEmitter._
     val path: String = appName + '.' + localHostName.replace('.', '_') + '.' + metricPath
     val message: String = GraphiteFormat.format(path, value, DateTimeUtils.currentTimeMillis() / 1000L)
@@ -94,5 +94,4 @@ class GraphiteMetricEmitter(val conf: Config) extends Actor with ActorLogging wi
   override def preStart() = open()
 
   override def postStop() = close()
-
 }

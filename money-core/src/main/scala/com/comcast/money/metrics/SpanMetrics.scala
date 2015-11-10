@@ -12,17 +12,17 @@ object SpanMetrics {
 
   JmxReporter.forRegistry(registry).build().start()
 
-  def props(spanName:String) = {
-    val latencyMetric:Histogram = registry.histogram(s"/money/$spanName:latency")
-    val errorMetric:Meter = registry.meter(s"/money/$spanName:error")
+  def props(spanName: String) = {
+    val latencyMetric: Histogram = registry.histogram(s"/money/$spanName:latency")
+    val errorMetric: Meter = registry.meter(s"/money/$spanName:error")
     Props(classOf[SpanMetrics], spanName, latencyMetric, errorMetric)
   }
 }
 
-class SpanMetrics(spanName: String, latencyMetric:Histogram, errorMetric:Meter) extends Actor with ActorLogging {
+class SpanMetrics(spanName: String, latencyMetric: Histogram, errorMetric: Meter) extends Actor with ActorLogging {
 
   def receive = {
-    case span:Span =>
+    case span: Span =>
       if (!span.success)
         errorMetric.mark()
 
@@ -30,7 +30,7 @@ class SpanMetrics(spanName: String, latencyMetric:Histogram, errorMetric:Meter) 
   }
 }
 
-class SpanMetricsCollector(conf:Config) extends Actor with ActorMaker with ActorLogging {
+class SpanMetricsCollector(conf: Config) extends Actor with ActorMaker with ActorLogging {
 
   import com.comcast.money.internal.EmitterProtocol._
 

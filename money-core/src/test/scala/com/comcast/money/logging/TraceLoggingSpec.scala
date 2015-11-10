@@ -12,8 +12,8 @@ class TraceLoggingSpec extends WordSpec with Matchers with MockitoSugar with One
   "TraceLogging" should {
     "capture exceptions into a log" in {
       val testTraceLogging = new TraceLogging {
-        override lazy val shouldLogExceptions:Boolean = true
-        override val logger:Logger = mockLogger
+        override lazy val shouldLogExceptions: Boolean = true
+        override val logger: Logger = mockLogger
       }
 
       val t = mock[Throwable]
@@ -22,8 +22,8 @@ class TraceLoggingSpec extends WordSpec with Matchers with MockitoSugar with One
     }
     "not capture exceptions if log exceptions is not enabled" in {
       val testTraceLogging = new TraceLogging {
-        override lazy val shouldLogExceptions:Boolean = false
-        override val logger:Logger = mockLogger
+        override lazy val shouldLogExceptions: Boolean = false
+        override val logger: Logger = mockLogger
       }
       val t = mock[Throwable]
       testTraceLogging.logException(t)

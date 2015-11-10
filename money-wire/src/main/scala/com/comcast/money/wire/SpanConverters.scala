@@ -25,14 +25,14 @@ object TypeConverter {
 
 object AvroConversions extends SpanAvroConverters {
 
-  implicit class AvroConversionExtensions[A](val a:A) extends AnyVal {
-    def convertTo[B](implicit tc:TypeConverter[A, B]): B = tc.convert(a)
+  implicit class AvroConversionExtensions[A](val a: A) extends AnyVal {
+    def convertTo[B](implicit tc: TypeConverter[A, B]): B = tc.convert(a)
   }
 }
 object JsonConversions extends SpanJsonConverters {
 
-  implicit class JsonConversionExtensions[A](val a:A) extends AnyVal {
-    def convertTo[B](implicit tc:TypeConverter[A, B]): B = tc.convert(a)
+  implicit class JsonConversionExtensions[A](val a: A) extends AnyVal {
+    def convertTo[B](implicit tc: TypeConverter[A, B]): B = tc.convert(a)
   }
 }
 
@@ -44,14 +44,18 @@ trait SpanWireConverters {
     def avroNote(noteValue: avro.NoteValue): avro.Note = new avro.Note(from.name, from.timestamp, noteValue)
 
     from match {
-      case LongNote(name, value, timestamp) => avroNote(new avro.NoteValue(avro.NoteType.Long, value.map(_.toString).getOrElse(null)))
-      case StringNote(name, value, timestamp) => avroNote(new avro.NoteValue(avro.NoteType.String, value.getOrElse(null)))
-      case BooleanNote(name, value, timestamp) => avroNote(new avro.NoteValue(avro.NoteType.Boolean, value.map(_.toString).getOrElse(null)))
-      case DoubleNote(name, value, timestamp) => avroNote(new avro.NoteValue(avro.NoteType.Double, value.map(_.toString).getOrElse(null)))
+      case LongNote(name, value, timestamp) => avroNote(
+        new avro.NoteValue(avro.NoteType.Long, value.map(_.toString).getOrElse(null)))
+      case StringNote(name, value, timestamp) => avroNote(
+        new avro.NoteValue(avro.NoteType.String, value.getOrElse(null)))
+      case BooleanNote(name, value, timestamp) => avroNote(
+        new avro.NoteValue(avro.NoteType.Boolean, value.map(_.toString).getOrElse(null)))
+      case DoubleNote(name, value, timestamp) => avroNote(
+        new avro.NoteValue(avro.NoteType.Double, value.map(_.toString).getOrElse(null)))
     }
   }
 
-  implicit val wireToNote : TypeConverter[avro.Note, Note[_]] = TypeConverter.instance { from: avro.Note =>
+  implicit val wireToNote: TypeConverter[avro.Note, Note[_]] = TypeConverter.instance { from: avro.Note =>
     def toOption[T](str: String)(ft: String => T): Option[T] = {
       if (str == null)
         None: Option[T]
@@ -60,45 +64,49 @@ trait SpanWireConverters {
     }
 
     from.getValue.getType match {
-      case NoteType.Boolean => BooleanNote(from.getName, toOption[Boolean](from.getValue.getData)(_.toBoolean), from.getTimestamp)
+      case NoteType.Boolean => BooleanNote(
+        from.getName, toOption[Boolean](from.getValue.getData)(_.toBoolean), from.getTimestamp)
       case NoteType.Long => LongNote(from.getName, toOption[Long](from.getValue.getData)(_.toLong), from.getTimestamp)
-      case NoteType.String => StringNote(from.getName, toOption[String](from.getValue.getData)(_.toString), from.getTimestamp)
-      case NoteType.Double => DoubleNote(from.getName, toOption[Double](from.getValue.getData)(_.toDouble), from.getTimestamp)
+      case NoteType.String => StringNote(
+        from.getName, toOption[String](from.getValue.getData)(_.toString), from.getTimestamp)
+      case NoteType.Double => DoubleNote(
+        from.getName, toOption[Double](from.getValue.getData)(_.toDouble), from.getTimestamp)
     }
   }
 
-  implicit val spanIdToWire:TypeConverter[SpanId, avro.SpanId] = TypeConverter.instance { spanId =>
+  implicit val spanIdToWire: TypeConverter[SpanId, avro.SpanId] = TypeConverter.instance { spanId =>
     new avro.SpanId(spanId.traceId, spanId.parentSpanId, spanId.spanId)
   }
 
-  implicit val wireToSpanId:TypeConverter[avro.SpanId, SpanId] = TypeConverter.instance { spanId =>
+  implicit val wireToSpanId: TypeConverter[avro.SpanId, SpanId] = TypeConverter.instance { spanId =>
     SpanId(spanId.getTraceId, spanId.getParentId, spanId.getSpanId)
   }
 
-  implicit val spanToWire:TypeConverter[Span, avro.Span] = TypeConverter.instance { span:Span =>
+  implicit val spanToWire: TypeConverter[Span, avro.Span] = TypeConverter.instance { span: Span =>
 
-      new avro.Span(
-        span.spanName,
-        span.appName,
-        span.host,
-        span.duration,
-        span.success,
-        span.startTime,
-        implicitly[TypeConverter[SpanId, avro.SpanId]].convert(span.spanId),
-        span.notes.values.toList.map(implicitly[TypeConverter[Note[_], avro.Note]].convert))
+    new avro.Span(
+      span.spanName,
+      span.appName,
+      span.host,
+      span.duration,
+      span.success,
+      span.startTime,
+      implicitly[TypeConverter[SpanId, avro.SpanId]].convert(span.spanId),
+      span.notes.values.toList.map(implicitly[TypeConverter[Note[_], avro.Note]].convert))
   }
 
-  implicit val wireToSpan:TypeConverter[avro.Span, Span] = TypeConverter.instance { from:avro.Span =>
-      Span(
-        spanId = implicitly[TypeConverter[avro.SpanId,SpanId]].convert(from.getId),
-        spanName = from.getName,
-        appName = from.getAppName,
-        host = from.getHost,
-        startTime = from.getStartTime,
-        success = from.getSuccess,
-        duration = from.getDuration,
-        notes = (for(note:avro.Note <- from.getNotes) yield note.getName -> implicitly[TypeConverter[avro.Note,Note[_]]].convert(note)).toMap
-      )
+  implicit val wireToSpan: TypeConverter[avro.Span, Span] = TypeConverter.instance { from: avro.Span =>
+    Span(
+      spanId = implicitly[TypeConverter[avro.SpanId, SpanId]].convert(from.getId),
+      spanName = from.getName,
+      appName = from.getAppName,
+      host = from.getHost,
+      startTime = from.getStartTime,
+      success = from.getSuccess,
+      duration = from.getDuration,
+      notes = (for (note: avro.Note <- from.getNotes) yield note
+        .getName -> implicitly[TypeConverter[avro.Note, Note[_]]].convert(note)).toMap
+    )
   }
 }
 
@@ -136,7 +144,8 @@ trait SpanJsonConverters extends SpanWireConverters {
 
   def createSpanJsonMapper(): ObjectMapper = {
     // Make sure we don't fail on unknown types
-    val jsonMapper: ObjectMapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+    val jsonMapper: ObjectMapper = new ObjectMapper()
+      .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
     // We need to ignore the getSchema Javabean Properties or else serdes will fail
     jsonMapper.addMixInAnnotations(classOf[avro.Span], classOf[IgnoreSpanProperties]);
@@ -147,11 +156,11 @@ trait SpanJsonConverters extends SpanWireConverters {
     jsonMapper
   }
 
-  implicit val spanToJson:TypeConverter[Span, String] = TypeConverter.instance{ span =>
+  implicit val spanToJson: TypeConverter[Span, String] = TypeConverter.instance { span =>
     mapper.writeValueAsString(implicitly[TypeConverter[Span, avro.Span]].convert(span))
   }
 
-  implicit val jsonToSpan:TypeConverter[String, Span] = TypeConverter.instance{ str =>
+  implicit val jsonToSpan: TypeConverter[String, Span] = TypeConverter.instance { str =>
     implicitly[TypeConverter[avro.Span, Span]].convert(mapper.readValue(str, classOf[avro.Span]))
   }
 }

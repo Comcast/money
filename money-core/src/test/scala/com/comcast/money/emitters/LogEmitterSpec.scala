@@ -19,7 +19,9 @@ class LogEmitterSpec extends AkkaTestJawn with WordSpecLike {
   "A LogEmitter must" must {
     "log request spans" in {
       val underTest = system.actorOf(LogEmitter.props(emitterConf))
-      val sampleData = Span(SpanId(1L), "key", "unknown", "host", 1L, true, 35L, Map("what" -> Note("what", 1L), "when" -> Note("when", 2L), "bob" -> Note("bob", "craig")))
+      val sampleData = Span(
+        SpanId(1L), "key", "unknown", "host", 1L, true, 35L,
+        Map("what" -> Note("what", 1L), "when" -> Note("when", 2L), "bob" -> Note("bob", "craig")))
       val span = EmitSpan(sampleData)
       val expectedLogMessage = LogEmitter.buildMessage(sampleData)
 
@@ -27,9 +29,13 @@ class LogEmitterSpec extends AkkaTestJawn with WordSpecLike {
       expectLogMessageContaining(expectedLogMessage)
     }
     "have a correctly formatted message" in {
-      val sampleData = Span(SpanId(1L), "key", "unknown", "host", 1L, true, 35L, Map("what" -> Note("what", 1L), "when" -> Note("when", 2L), "bob" -> Note("bob", "craig")))
+      val sampleData = Span(
+        SpanId(1L), "key", "unknown", "host", 1L, true, 35L,
+        Map("what" -> Note("what", 1L), "when" -> Note("when", 2L), "bob" -> Note("bob", "craig")))
       val actualMessage = LogEmitter.buildMessage(sampleData)
-      assert(actualMessage === ("Span: [ span-id=1 ][ trace-id=1 ][ parent-id=1 ][ span-name=key ][ app-name=unknown ][ start-time=1 ][ span-duration=35 ][ span-success=true ][ bob=craig ][ what=1 ][ when=2 ]"))
+      assert(
+        actualMessage === ("Span: [ span-id=1 ][ trace-id=1 ][ parent-id=1 ][ span-name=key ][ app-name=unknown ][ " +
+          "start-time=1 ][ span-duration=35 ][ span-success=true ][ bob=craig ][ what=1 ][ when=2 ]"))
     }
     "log metrics" in {
       val underTest = system.actorOf(LogEmitter.props(emitterConf))

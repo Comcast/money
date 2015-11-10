@@ -9,7 +9,8 @@ import com.comcast.money.test.AkkaTestJawn
 import com.comcast.money.util.DateTimeUtil
 import org.scalatest._
 
-class TracerSpec extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen with BeforeAndAfterEach with OneInstancePerTest {
+class TracerSpec
+  extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen with BeforeAndAfterEach with OneInstancePerTest {
 
   override def beforeEach() {
     SpanLocal.clear()
@@ -24,6 +25,7 @@ class TracerSpec extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen wi
           em.value shouldEqual metricValue
       }
     }
+
     def expectEmitterMsg(em: EmitMetricLong): Unit = {
       expectMsgPF() {
         case EmitMetricLong(path, metricValue, timestamp) =>
@@ -36,27 +38,27 @@ class TracerSpec extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen wi
   val spanSupervisor = new TestProbe(system) {
     def expectSpanMsg(tm: SpanCommand) {
       expectMsgPF() {
-      case SpanMessage(spanId, Stop(note,timeStamp)) =>
-        tm shouldBe a[Stop]
-        val tmNote = tm.asInstanceOf[Stop].result
-        note.name shouldEqual tmNote.name
-        note.value shouldEqual tmNote.value
-      case SpanMessage(spanId, Start(innerSpanId, spanName, timeStamp,_)) =>
-        tm shouldBe a[Start]
-        tm.asInstanceOf[Start].spanName shouldEqual spanName
-      case SpanMessage(spanId, StartTimer(name, startTime)) =>
-        tm shouldBe a[StartTimer]
-        val tmStart = tm.asInstanceOf[StartTimer]
-        tmStart.name shouldEqual name
-      case SpanMessage(spanId, StopTimer(name, stopTime)) =>
-        tm shouldBe a[StopTimer]
-        val tmStop = tm.asInstanceOf[StopTimer]
-        tmStop.name shouldEqual name
-      case SpanMessage(spanId, AddNote(note,_)) =>
-        tm shouldBe an[AddNote]
-        val tmNote = tm.asInstanceOf[AddNote]
-        tmNote.note.name shouldEqual note.name
-        tmNote.note.value shouldEqual note.value
+        case SpanMessage(spanId, Stop(note, timeStamp)) =>
+          tm shouldBe a[Stop]
+          val tmNote = tm.asInstanceOf[Stop].result
+          note.name shouldEqual tmNote.name
+          note.value shouldEqual tmNote.value
+        case SpanMessage(spanId, Start(innerSpanId, spanName, timeStamp, _)) =>
+          tm shouldBe a[Start]
+          tm.asInstanceOf[Start].spanName shouldEqual spanName
+        case SpanMessage(spanId, StartTimer(name, startTime)) =>
+          tm shouldBe a[StartTimer]
+          val tmStart = tm.asInstanceOf[StartTimer]
+          tmStart.name shouldEqual name
+        case SpanMessage(spanId, StopTimer(name, stopTime)) =>
+          tm shouldBe a[StopTimer]
+          val tmStop = tm.asInstanceOf[StopTimer]
+          tmStop.name shouldEqual name
+        case SpanMessage(spanId, AddNote(note, _)) =>
+          tm shouldBe an[AddNote]
+          val tmNote = tm.asInstanceOf[AddNote]
+          tmNote.note.name shouldEqual note.name
+          tmNote.note.value shouldEqual note.value
       }
     }
   }
@@ -64,7 +66,7 @@ class TracerSpec extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen wi
   val moneyTracer = new Tracer {
     val spanSupervisorRef = spanSupervisor.ref
   }
-  val moneyMetrics = new Metrics{
+  val moneyMetrics = new Metrics {
     val emitterRef = emitter.ref
   }
 
@@ -176,7 +178,7 @@ class TracerSpec extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen wi
       spanSupervisor.expectSpanMsg(Start(SpanId(1L), "foo"))
 
       Then("the note is sent to the span supervisor")
-      spanSupervisor.expectSpanMsg(AddNote(Note("foo","bar")))
+      spanSupervisor.expectSpanMsg(AddNote(Note("foo", "bar")))
     }
     scenario("sending a note when no trace exists") {
       moneyTracer.record(Note("foo", "bar"))

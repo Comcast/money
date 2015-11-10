@@ -15,12 +15,13 @@ trait Reflections {
    * in the argument's position in the method call will be None.  Otherwise, it will have Some(TracedData)
    *
    * @param method The method invocation that we are inspecting
-   * @return an Array of Option of TracedData annotations indexed by the position of the parameter in the method invocation;
+   * @return an Array of Option of TracedData annotations indexed by the position of the parameter in the method
+   *         invocation;
    *         or an empty array if the method has no arguments
    */
-  def extractTracedDataAnnotations(method:Method):Array[Option[TracedData]] =
-    Option(method.getParameterAnnotations).map { anns:Array[Array[Annotation]] =>
-      for(annArray <- anns) yield traceDataAnnotation(annArray)
+  def extractTracedDataAnnotations(method: Method): Array[Option[TracedData]] =
+    Option(method.getParameterAnnotations).map { anns: Array[Array[Annotation]] =>
+      for (annArray <- anns) yield traceDataAnnotation(annArray)
     }.getOrElse(Array.empty)
 
   /**
@@ -36,11 +37,11 @@ trait Reflections {
    * @param args An array of arguments passed to the method invocation
    * @return A sequence of Option of Tuple(Note, Boolean); or an empty Sequence if there are no method parameters
    */
-  def extractTracedDataValues(method:Method, args:Array[AnyRef]):Seq[Option[(Note[_], Boolean)]] = {
+  def extractTracedDataValues(method: Method, args: Array[AnyRef]): Seq[Option[(Note[_], Boolean)]] = {
 
-    val paramTypes:Array[Class[_]] = method.getParameterTypes
+    val paramTypes: Array[Class[_]] = method.getParameterTypes
     val tracedDataAnnotations = extractTracedDataAnnotations(method)
-    for(i <- 0 until tracedDataAnnotations.length) yield {
+    for (i <- 0 until tracedDataAnnotations.length) yield {
       val arg = args(i)
       tracedDataAnnotations(i).map { ann =>
         paramTypes(i) match {
@@ -59,15 +60,17 @@ trait Reflections {
    * @param args The list of arguments being passed into the method
    * @param tracer The tracer to use to record the notes
    */
-  def recordTracedParameters(method:Method, args:Array[AnyRef], tracer:Tracer):Unit =
+  def recordTracedParameters(method: Method, args: Array[AnyRef], tracer: Tracer): Unit =
     for {tdOpt <- extractTracedDataValues(method, args)
-      tdTuple <- tdOpt} {
+         tdTuple <- tdOpt} {
       tracer.record(tdTuple._1, tdTuple._2)
     }
 
-  private def isBoolean(clazz:Class[_]) = clazz == classOf[Boolean] || clazz == classOf[java.lang.Boolean]
-  private def isDouble(clazz:Class[_]) = clazz == classOf[Double] || clazz == classOf[java.lang.Double]
-  private def isLong(clazz:Class[_]) = clazz == classOf[Long] || clazz == classOf[java.lang.Long]
+  private def isBoolean(clazz: Class[_]) = clazz == classOf[Boolean] || clazz == classOf[java.lang.Boolean]
+
+  private def isDouble(clazz: Class[_]) = clazz == classOf[Double] || clazz == classOf[java.lang.Double]
+
+  private def isLong(clazz: Class[_]) = clazz == classOf[Long] || clazz == classOf[java.lang.Long]
 
   private def traceDataAnnotation(annotations: Array[Annotation]): Option[TracedData] = {
 
@@ -79,13 +82,13 @@ trait Reflections {
     }
   }
 
-  private def asOption[T](arg:AnyRef):Option[T] = {
+  private def asOption[T](arg: AnyRef): Option[T] = {
     if (arg == null) {
-      None:Option[T]
+      None: Option[T]
     } else {
       Option[T](arg.asInstanceOf[T])
     }
   }
 
-  private def asString(arg:AnyRef) = if (arg != null) arg.toString else null
+  private def asString(arg: AnyRef) = if (arg != null) arg.toString else null
 }

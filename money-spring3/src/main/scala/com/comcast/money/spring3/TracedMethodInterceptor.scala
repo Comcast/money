@@ -14,13 +14,13 @@ import org.springframework.aop.support.{AbstractPointcutAdvisor, StaticMethodMat
 import org.springframework.beans.factory.annotation.{Autowired, Qualifier}
 import org.springframework.stereotype.Component
 
-
 /**
  * Intercepts methods to start and stop a trace span around the method invocation
  */
 @Component
-class TracedMethodInterceptor @Autowired() (@Qualifier("springTracer") val tracer:SpringTracer) extends MethodInterceptor
-with Reflections with TraceLogging {
+class TracedMethodInterceptor @Autowired()(@Qualifier("springTracer") val tracer: SpringTracer)
+  extends MethodInterceptor
+  with Reflections with TraceLogging {
 
   val mdcSupport = new MDCSupport()
 
@@ -44,7 +44,7 @@ with Reflections with TraceLogging {
         tracer.stopSpan(result)
       }
     } getOrElse {
-        invocation.proceed()
+      invocation.proceed()
     }
   }
 }
@@ -54,7 +54,7 @@ with Reflections with TraceLogging {
  * are actually advised
  */
 @Component
-class TracedMethodAdvisor @Autowired() (val interceptor:TracedMethodInterceptor) extends AbstractPointcutAdvisor {
+class TracedMethodAdvisor @Autowired()(val interceptor: TracedMethodInterceptor) extends AbstractPointcutAdvisor {
 
   private val pointcut = new StaticMethodMatcherPointcut {
     override def matches(method: Method, targetClass: Class[_]): Boolean = method.isAnnotationPresent(classOf[Traced])

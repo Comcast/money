@@ -33,7 +33,6 @@ class EmitterBus extends EventBus with LookupClassification {
   override protected def compareSubscribers(a: Subscriber, b: Subscriber): Int = a.compareTo(b)
 
   override protected def mapSize(): Int = 3
-
 }
 
 

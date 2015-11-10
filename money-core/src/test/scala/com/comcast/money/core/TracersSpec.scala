@@ -9,7 +9,12 @@ import org.scalatest.mock.MockitoSugar
 
 import scala.collection.mutable
 
-class TracersSpec extends FeatureSpec with MockitoSugar with GivenWhenThen with BeforeAndAfterAll with BeforeAndAfterEach with OneInstancePerTest {
+class TracersSpec extends FeatureSpec
+with MockitoSugar
+with GivenWhenThen
+with BeforeAndAfterAll
+with BeforeAndAfterEach
+with OneInstancePerTest {
 
   val moneyTracer = mock[Tracer]
 
@@ -20,7 +25,7 @@ class TracersSpec extends FeatureSpec with MockitoSugar with GivenWhenThen with 
   }
 
   override def afterAll(): Unit = {
-    DateTimeUtil.timeProvider=DateTimeUtil.SystemMicroTimeProvider
+    DateTimeUtil.timeProvider = DateTimeUtil.SystemMicroTimeProvider
   }
 
   feature("Traced api") {

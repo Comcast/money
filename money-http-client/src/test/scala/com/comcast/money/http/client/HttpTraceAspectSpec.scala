@@ -20,7 +20,13 @@ import org.scalatest.mock.MockitoSugar
 import scala.concurrent.duration._
 
 class HttpTraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getConfig("money.akka")))
-with FeatureSpecLike with Matchers with MockitoSugar with OneInstancePerTest with GivenWhenThen with BeforeAndAfter with BeforeAndAfterAll {
+with FeatureSpecLike
+with Matchers
+with MockitoSugar
+with OneInstancePerTest
+with GivenWhenThen
+with BeforeAndAfter
+with BeforeAndAfterAll {
 
   val mockHttpClient: HttpClient = mock[HttpClient]
   val mockHttpRequest: HttpUriRequest = mock[HttpUriRequest]
@@ -48,7 +54,9 @@ with FeatureSpecLike with Matchers with MockitoSugar with OneInstancePerTest wit
   }
 
   def expectLogMessageContaining(contains: String, wait: FiniteDuration = 2.seconds) {
-    awaitCond(LogRecord.contains("log")(_.contains(contains)), wait, 100 milliseconds, s"Expected log message containing string $contains not found after $wait")
+    awaitCond(
+      LogRecord.contains("log")(_.contains(contains)), wait, 100 milliseconds,
+      s"Expected log message containing string $contains not found after $wait")
   }
 
   // Used by some tests that cannot be adequately integration tested
@@ -69,7 +77,7 @@ with FeatureSpecLike with Matchers with MockitoSugar with OneInstancePerTest wit
     doReturn("test-response").when(mockHttpResponseHandler).handleResponse(mockHttpResponse)
   }
 
-  after{
+  after {
     SpanLocal.clear()
   }
 
@@ -111,7 +119,6 @@ with FeatureSpecLike with Matchers with MockitoSugar with OneInstancePerTest wit
       expectLogMessageContaining("http-call-duration")
       expectLogMessageContaining("http-call-with-body-duration")
       expectLogMessageContaining("http-process-response-duration")
-
     }
     scenario("an exception is thrown while consuming the response body") {
       Given("a method exists with the trace annotation")

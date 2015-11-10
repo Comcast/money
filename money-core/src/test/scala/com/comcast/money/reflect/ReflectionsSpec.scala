@@ -10,16 +10,17 @@ import org.scalatest.{Matchers, OneInstancePerTest, WordSpec}
 
 class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneInstancePerTest {
 
-  val mockTracer:Tracer = mock[Tracer]
+  val mockTracer: Tracer = mock[Tracer]
 
   val testReflections = new Reflections {
-    val tracer:Tracer = mockTracer
+    val tracer: Tracer = mockTracer
   }
 
   val samples = new Samples()
   val clazz = samples.getClass
   val methodWithoutArguments = clazz.getMethod("methodWithoutArguments")
-  val methodWithTracedData = clazz.getMethod("methodWithTracedData", classOf[String], classOf[Long], classOf[Double], classOf[Boolean], classOf[Double])
+  val methodWithTracedData = clazz.getMethod(
+    "methodWithTracedData", classOf[String], classOf[Long], classOf[Double], classOf[Boolean], classOf[Double])
   val methodWithMultipleAnnotations = clazz.getMethod("methodWithMultipleAnnotations", classOf[String])
   val methodWithNoTracedDataArguments = clazz.getMethod("methodWithNoTracedDataArguments", classOf[String])
   val methodWithTracedDataPropagate = clazz.getMethod("methodWithTracedDataPropagate", classOf[String])
@@ -64,7 +65,7 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
       tds shouldBe empty
     }
     "return the notes when multiple traced data params are present" in {
-      val args:Array[AnyRef] = Array("str", Long.box(100L), Double.box(3.14), Boolean.box(true), Double.box(2.22))
+      val args: Array[AnyRef] = Array("str", Long.box(100L), Double.box(3.14), Boolean.box(true), Double.box(2.22))
       val tds = testReflections.extractTracedDataValues(methodWithTracedData, args)
 
       tds.size shouldBe 5
@@ -96,7 +97,7 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
       tds(4) shouldBe None
     }
     "return notes with None values when nulls are passed in for arguments" in {
-      val args:Array[AnyRef] = Array(null, null, null, null, Double.box(3.14))
+      val args: Array[AnyRef] = Array(null, null, null, null, Double.box(3.14))
       val tds = testReflections.extractTracedDataValues(methodWithTracedData, args)
 
       tds.size shouldBe 5
@@ -126,7 +127,7 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
       tds(4) shouldBe None
     }
     "return notes for traced params that have other annotations present" in {
-      val args:Array[AnyRef] = Array("str")
+      val args: Array[AnyRef] = Array("str")
       val tds = testReflections.extractTracedDataValues(methodWithMultipleAnnotations, args)
 
       val strNote = tds(0).get._1
@@ -137,12 +138,12 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
   }
   "Recording traced parameter values" should {
     "record nothing when method is called with no arguments" in {
-      val args:Array[AnyRef] = Array.empty
+      val args: Array[AnyRef] = Array.empty
       testReflections.recordTracedParameters(methodWithoutArguments, args, mockTracer)
       verifyZeroInteractions(mockTracer)
     }
     "record traced data parameters" in {
-      val args:Array[AnyRef] = Array("str", Long.box(100L), Double.box(3.14), Boolean.box(true), Double.box(2.22))
+      val args: Array[AnyRef] = Array("str", Long.box(100L), Double.box(3.14), Boolean.box(true), Double.box(2.22))
       testReflections.recordTracedParameters(methodWithTracedData, args, mockTracer)
 
       val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
@@ -172,7 +173,7 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
       propCaptor.getAllValues.get(2) shouldBe false
     }
     "record None for traced data parameters that are null" in {
-      val args:Array[AnyRef] = Array(null, null, null, null, Double.box(3.14))
+      val args: Array[AnyRef] = Array(null, null, null, null, Double.box(3.14))
       testReflections.recordTracedParameters(methodWithTracedData, args, mockTracer)
 
       val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
@@ -202,7 +203,7 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
       propCaptor.getAllValues.get(3) shouldBe false
     }
     "record with propagate traced parameters flagged with propagate" in {
-      val args:Array[AnyRef] = Array("str")
+      val args: Array[AnyRef] = Array("str")
       testReflections.recordTracedParameters(methodWithTracedDataPropagate, args, mockTracer)
 
       val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
@@ -216,7 +217,7 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
       prop shouldBe true
     }
     "propagate even on null values" in {
-      val args:Array[AnyRef] = Array(null)
+      val args: Array[AnyRef] = Array(null)
       testReflections.recordTracedParameters(methodWithTracedDataPropagate, args, mockTracer)
 
       val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
@@ -234,13 +235,13 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
   class Samples {
     def methodWithoutArguments(): Unit = {}
 
-    def methodWithTracedData(@TracedData("STRING") str:String, @TracedData("LONG") lng:Long,
-      @TracedData("DOUBLE")dbl:Double, @TracedData("BOOLEAN")bln:Boolean, nn:Double): Unit = {}
+    def methodWithTracedData(@TracedData("STRING") str: String, @TracedData("LONG") lng: Long,
+      @TracedData("DOUBLE") dbl: Double, @TracedData("BOOLEAN") bln: Boolean, nn: Double): Unit = {}
 
-    def methodWithMultipleAnnotations(@TracedData("STRING") @NotNull str:String): Unit = {}
+    def methodWithMultipleAnnotations(@TracedData("STRING") @NotNull str: String): Unit = {}
 
-    def methodWithNoTracedDataArguments(@NotNull str:String):Unit = {}
+    def methodWithNoTracedDataArguments(@NotNull str: String): Unit = {}
 
-    def methodWithTracedDataPropagate(@TracedData(value="STRING", propagate=true) str:String):Unit = {}
+    def methodWithTracedDataPropagate(@TracedData(value = "STRING", propagate = true) str: String): Unit = {}
   }
 }

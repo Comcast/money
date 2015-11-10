@@ -27,14 +27,14 @@ class MDCSupport(enabled: Boolean = Money.mdcEnabled) {
     }
   }
 
-  def propogateMDC(submittingThreadsContext: Option[Map[_,_]]): Unit = if (enabled) {
+  def propogateMDC(submittingThreadsContext: Option[Map[_, _]]): Unit = if (enabled) {
     submittingThreadsContext match {
       case Some(context: Map[_, _]) => MDC.setContextMap(context)
       case None => MDC.clear()
     }
   }
 
-  def setSpanNameMDC(spanName:Option[String]) =
+  def setSpanNameMDC(spanName: Option[String]) =
     if (enabled) {
       spanName match {
         case Some(name) => MDC.put(SpanNameKey, name)
@@ -42,5 +42,5 @@ class MDCSupport(enabled: Boolean = Money.mdcEnabled) {
       }
     }
 
-  def getSpanNameMDC:Option[String] = Option(MDC.get(SpanNameKey))
+  def getSpanNameMDC: Option[String] = Option(MDC.get(SpanNameKey))
 }

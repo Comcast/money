@@ -6,11 +6,9 @@ import com.comcast.money.core.{SpanId, Tracer}
 import com.comcast.money.internal.SpanLocal
 import org.apache.http.client.methods.{CloseableHttpResponse, HttpUriRequest}
 import org.apache.http.client.{HttpClient, ResponseHandler}
-import org.apache.http.conn.ClientConnectionManager
 import org.apache.http.impl.client.CloseableHttpClient
-import org.apache.http.params.HttpParams
 import org.apache.http.protocol.HttpContext
-import org.apache.http.{HttpHost, HttpRequest, HttpResponse, StatusLine}
+import org.apache.http.{HttpHost, HttpResponse, StatusLine}
 import org.mockito.Mockito._
 import org.scalatest._
 import org.scalatest.mock.MockitoSugar

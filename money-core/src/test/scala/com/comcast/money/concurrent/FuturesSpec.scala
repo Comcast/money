@@ -13,7 +13,12 @@ import scala.concurrent.{Future, Await}
 import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
 
-class FuturesSpec extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen with Matchers with BeforeAndAfterEach with OneInstancePerTest {
+class FuturesSpec extends AkkaTestJawn
+with FeatureSpecLike
+with GivenWhenThen
+with Matchers
+with BeforeAndAfterEach
+with OneInstancePerTest {
 
   import Futures._
 
@@ -38,7 +43,9 @@ class FuturesSpec extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen w
         }.flatMap { case Some(v) =>
           tracer.record("flatMap", "nested")
           println(s"\r\n; flatMap nested ${SpanLocal.current}")
-          Future {v}
+          Future {
+            v
+          }
         }.map { case _ =>
           tracer.record("map", "nested")
           println(s"\r\n; map nested ${SpanLocal.current}")
@@ -108,7 +115,9 @@ class FuturesSpec extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen w
       When("the future is executed")
       Await.result(fut, 2 seconds)
 
-      Then("the trace contains the items recorded from the main future, map, and the note recorded after the filter is applied")
+      Then(
+        "the trace contains the items recorded from the main future, map, and the note recorded after the filter is " +
+          "applied")
       expectLogMessageContaining("[ begin=root ][ map=root ][ map2=root ]")
     }
 
@@ -261,12 +270,18 @@ class FuturesSpec extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen w
           println(s"\r\n; ${Thread.currentThread().getId()} - ${System.nanoTime()} begin nested ${SpanLocal.current}")
           300
         }.map { v =>
-          println(s"\r\n; ${v.getClass().getName()}; ${Thread.currentThread().getId()} - ${System.nanoTime()} map nested ${SpanLocal.current}")
+          println(
+            s"\r\n; ${v.getClass().getName()}; ${Thread.currentThread().getId()} - ${
+              System.nanoTime()
+            } map nested ${SpanLocal.current}")
           tracer.record("map", "nested")
           throw new IllegalArgumentException("fail")
         }.recover { case _ =>
           tracer.record("recover", "nested")
-          println(s"\r\n; ${v.getClass().getName()}; ${Thread.currentThread().getId()} - ${System.nanoTime()} map nested ${SpanLocal.current}")
+          println(
+            s"\r\n; ${v.getClass().getName()}; ${Thread.currentThread().getId()} - ${
+              System.nanoTime()
+            } map nested ${SpanLocal.current}")
           200
         }
       }.map { case _ =>
@@ -323,7 +338,8 @@ class FuturesSpec extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen w
         tracer.record("map", "root")
         println(s"\r\n; map root ${SpanLocal.current}")
         throw new IllegalArgumentException("fail")
-      }.transform({ s =>
+      }.transform(
+      { s =>
         tracer.record("success", "transform")
         200
       }, { t: Throwable =>
@@ -354,7 +370,8 @@ class FuturesSpec extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen w
       }.map { v =>
         tracer.record("map", "root")
         println(s"\r\n; map root ${SpanLocal.current}")
-      }.transform({ s =>
+      }.transform(
+      { s =>
         tracer.record("success", "transform")
         200
       }, { t: Throwable =>
@@ -457,7 +474,9 @@ class FuturesSpec extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen w
         }
       }.recoverWith { case e: IllegalArgumentException =>
         tracer.record("recoverWith", "root")
-        Future {0}
+        Future {
+          0
+        }
       }
 
       When("the future completes")
@@ -756,7 +775,9 @@ class FuturesSpec extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen w
         tracer.record("root", "one")
         SpanLocal.current
       }.flatMap { rootSpanId =>
-        wrapTrace { wrapMe() } map { _ =>
+        wrapTrace {
+          wrapMe()
+        } map { _ =>
           tracer.record("wrapped", "two")
           (rootSpanId, SpanLocal.current)
         }
@@ -794,5 +815,7 @@ class FuturesSpec extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen w
     SpanLocal.current
   }
 
-  def wrapMe(): Future[Int] = Future { 100 }
+  def wrapMe(): Future[Int] = Future {
+    100
+  }
 }

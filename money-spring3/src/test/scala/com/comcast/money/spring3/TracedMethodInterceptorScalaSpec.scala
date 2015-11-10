@@ -16,10 +16,10 @@ import org.springframework.test.context.{ContextConfiguration, TestContextManage
 class TracedMethodInterceptorScalaSpec extends WordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   @Autowired
-  private var sampleScalaBean:SampleScalaBean = _
+  private var sampleScalaBean: SampleScalaBean = _
 
   @Autowired
-  private var springTracer:SpringTracer = _
+  private var springTracer: SpringTracer = _
 
   new TestContextManager(classOf[TracedMethodInterceptorScalaSpec]).prepareTestInstance(this)
 
@@ -115,7 +115,7 @@ class TracedMethodInterceptorScalaSpec extends WordSpec with Matchers with Mocki
 class SampleScalaBean {
 
   @Autowired
-  private var springTracer:SpringTracer = _
+  private var springTracer: SpringTracer = _
 
   @Traced("SampleTrace") def doSomethingGood {
     springTracer.record("foo", "bar")
@@ -147,19 +147,21 @@ class SampleScalaBean {
   }
 
   @Traced("SampleTrace")
-  def doSomethingWithTracedParamsAndNonTracedParams(@TracedData("STRING") @NotNull str: String, @NotNull nn: String): Unit = {
+  def doSomethingWithTracedParamsAndNonTracedParams(@TracedData("STRING") @NotNull str: String,
+    @NotNull nn: String): Unit = {
 
     return
   }
 
   @Traced("SampleTrace")
-  def doSomethingWithTracedParamsPropagated(@TracedData(value="STRING", propagate = true) @NotNull str: String, @NotNull nn: String): Unit = {
+  def doSomethingWithTracedParamsPropagated(@TracedData(value = "STRING", propagate = true) @NotNull str: String,
+    @NotNull nn: String): Unit = {
 
     return
   }
 
   @Traced("SampleTrace")
-  def doSomethingWithIllegalTracedParams(@TracedData("WHAT") lst:List[Byte]): Unit = {
+  def doSomethingWithIllegalTracedParams(@TracedData("WHAT") lst: List[Byte]): Unit = {
 
     return
   }

@@ -20,32 +20,38 @@ class ThreadPoolTaskExecutorAspect {
       Try(clazz.getDeclaredField(fieldName)).toOption.orElse(getField(clazz.getSuperclass, fieldName))
   }
 
-  def getFieldValue[T](instance:AnyRef, fieldName: String) :T = {
-    getField(instance.getClass, fieldName).map( f => {
-      f.setAccessible(true)
-      f.get(instance).asInstanceOf[T]
-    }).getOrElse(null.asInstanceOf[T])
+  def getFieldValue[T](instance: AnyRef, fieldName: String): T = {
+    getField(instance.getClass, fieldName).map(
+      f => {
+        f.setAccessible(true)
+        f.get(instance).asInstanceOf[T]
+      }).getOrElse(null.asInstanceOf[T])
   }
 
-  def setFieldValue[T](instance:AnyRef, fieldName: String, value: T) = {
-    getField(instance.getClass, fieldName).map( f => {
-      f.setAccessible(true)
-      f.set(instance, value)
-    })
+  def setFieldValue[T](instance: AnyRef, fieldName: String, value: T) = {
+    getField(instance.getClass, fieldName).map(
+      f => {
+        f.setAccessible(true)
+        f.set(instance, value)
+      })
   }
 
-  @Pointcut("execution(* org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor+.initializeExecutor(java.util.concurrent.ThreadFactory, java.util.concurrent.RejectedExecutionHandler)) && args(threadFactory, rejectedExecutionHandler)")
-  def initializeExecutor(threadFactory: ThreadFactory, rejectedExecutionHandler: RejectedExecutionHandler) = { }
+  @Pointcut(
+    "execution(* org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor+.initializeExecutor(java.util" +
+      ".concurrent.ThreadFactory, java.util.concurrent.RejectedExecutionHandler)) && args(threadFactory, " +
+      "rejectedExecutionHandler)")
+  def initializeExecutor(threadFactory: ThreadFactory, rejectedExecutionHandler: RejectedExecutionHandler) = {}
 
   @Around("initializeExecutor(threadFactory, rejectedExecutionHandler)")
-  def aroundInitializeExector(joinPoint: ProceedingJoinPoint, threadFactory: ThreadFactory, rejectedExecutionHandler: RejectedExecutionHandler) : AnyRef = {
+  def aroundInitializeExector(joinPoint: ProceedingJoinPoint, threadFactory: ThreadFactory,
+    rejectedExecutionHandler: RejectedExecutionHandler): AnyRef = {
     val self = joinPoint.getThis.asInstanceOf[ThreadPoolTaskExecutor]
 
-    val queueCapacity:Int = getFieldValue(self,"queueCapacity")
-    val corePoolSize:Int = getFieldValue(self,"corePoolSize")
-    val maxPoolSize:Int = getFieldValue(self,"maxPoolSize")
-    val keepAliveSeconds:Int = getFieldValue(self,"keepAliveSeconds")
-    val allowCoreThreadTimeOut:Boolean = getFieldValue(self,"allowCoreThreadTimeOut")
+    val queueCapacity: Int = getFieldValue(self, "queueCapacity")
+    val corePoolSize: Int = getFieldValue(self, "corePoolSize")
+    val maxPoolSize: Int = getFieldValue(self, "maxPoolSize")
+    val keepAliveSeconds: Int = getFieldValue(self, "keepAliveSeconds")
+    val allowCoreThreadTimeOut: Boolean = getFieldValue(self, "allowCoreThreadTimeOut")
 
     val queue: BlockingQueue[Runnable] =
       if (queueCapacity > 0) {
@@ -55,7 +61,8 @@ class ThreadPoolTaskExecutorAspect {
         new SynchronousQueue[Runnable]
       }
 
-    val executor: ThreadPoolExecutor = new TraceFriendlyThreadPoolExecutor(corePoolSize, maxPoolSize, keepAliveSeconds, TimeUnit.SECONDS, queue, threadFactory, rejectedExecutionHandler)
+    val executor: ThreadPoolExecutor = new TraceFriendlyThreadPoolExecutor(
+      corePoolSize, maxPoolSize, keepAliveSeconds, TimeUnit.SECONDS, queue, threadFactory, rejectedExecutionHandler)
     if (allowCoreThreadTimeOut) {
       executor.allowCoreThreadTimeOut(true)
     }
