@@ -37,7 +37,8 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
       verify(mockFilterChain).doFilter(mockRequest, mockResponse)
     }
     "set the trace context to the trace header if present" in {
-      when(mockRequest.getHeader("X-MoneyTrace")).thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentSpanId, existingSpanId.spanId))
+      when(mockRequest.getHeader("X-MoneyTrace"))
+        .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentSpanId, existingSpanId.spanId))
 
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
 
@@ -51,12 +52,16 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
       SpanLocal.current shouldBe None
     }
     "adds Money header to response" in {
-      when(mockRequest.getHeader("X-MoneyTrace")).thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentSpanId, existingSpanId.spanId))
+      when(mockRequest.getHeader("X-MoneyTrace"))
+        .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentSpanId, existingSpanId.spanId))
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-      verify(mockResponse).addHeader("X-MoneyTrace", MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentSpanId, existingSpanId.spanId))
+      verify(mockResponse).addHeader(
+        "X-MoneyTrace",
+        MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentSpanId, existingSpanId.spanId))
     }
     "doesn't add Money header to response if response is null" in {
-      when(mockRequest.getHeader("X-MoneyTrace")).thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentSpanId, existingSpanId.spanId))
+      when(mockRequest.getHeader("X-MoneyTrace"))
+        .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentSpanId, existingSpanId.spanId))
       underTest.doFilter(mockRequest, null, mockFilterChain)
       verifyZeroInteractions(mockResponse)
     }

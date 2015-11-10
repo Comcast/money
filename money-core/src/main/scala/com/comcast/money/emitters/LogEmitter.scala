@@ -28,14 +28,15 @@ object LogEmitter {
     append("span-success", t.success)
     t.notes.toList.sortBy(_._1).foreach {
       case (name, note) => note match {
-        case n:Note[_] if n.value.isEmpty => append(n.name, NULL)
-        case n:Note[_] if n.value.isDefined => append(n.name, n.value.get.toString)
+        case n: Note[_] if n.value.isEmpty => append(n.name, NULL)
+        case n: Note[_] if n.value.isDefined => append(n.name, n.value.get.toString)
       }
     }
     builder.toString()
   }
 
-  private def append[T](key: String, value: T)(implicit builder: StringBuilder): StringBuilder = builder.append(logTemplate.format(key, value))
+  private def append[T](key: String, value: T)(implicit builder: StringBuilder): StringBuilder = builder
+    .append(logTemplate.format(key, value))
 }
 
 import com.comcast.money.internal.EmitterProtocol._

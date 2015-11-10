@@ -7,7 +7,6 @@ import com.comcast.money.concurrent.TraceFriendlyThreadPoolExecutor
 import org.scalatest._
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 
-
 class ThreadPoolTaskExecutorAspectSpec extends WordSpec with Matchers {
 
   class MyThreadPoolTaskExecutor extends ThreadPoolTaskExecutor
@@ -35,7 +34,8 @@ class ThreadPoolTaskExecutorAspectSpec extends WordSpec with Matchers {
       executor.afterPropertiesSet()
 
       executor.getThreadPoolExecutor shouldBe a[TraceFriendlyThreadPoolExecutor]
-      executor.getThreadPoolExecutor.asInstanceOf[TraceFriendlyThreadPoolExecutor].allowsCoreThreadTimeOut() shouldBe true
+      executor.getThreadPoolExecutor.asInstanceOf[TraceFriendlyThreadPoolExecutor]
+        .allowsCoreThreadTimeOut() shouldBe true
     }
 
     "getField stops at object" in {
@@ -47,7 +47,7 @@ class ThreadPoolTaskExecutorAspectSpec extends WordSpec with Matchers {
       val aspect = new ThreadPoolTaskExecutorAspect()
       val executor = new ThreadPoolTaskExecutor
       executor.setQueueCapacity(100)
-      val value : Int = aspect.getFieldValue(executor, "queueCapacity")
+      val value: Int = aspect.getFieldValue(executor, "queueCapacity")
       value shouldBe 100
     }
   }

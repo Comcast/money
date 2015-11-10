@@ -10,7 +10,12 @@ import org.slf4j.MDC
 import scala.concurrent.duration._
 import scala.concurrent.{Await, ExecutionContext, Future}
 
-class TraceFriendlyExecutionContextExecutorSpec extends WordSpec with Matchers with MockitoSugar with OneInstancePerTest with ConcurrentSupport with BeforeAndAfterEach {
+class TraceFriendlyExecutionContextExecutorSpec extends WordSpec
+with Matchers
+with MockitoSugar
+with OneInstancePerTest
+with ConcurrentSupport
+with BeforeAndAfterEach {
 
   override def beforeEach() = {
     SpanLocal.clear()
@@ -71,7 +76,6 @@ class TraceFriendlyExecutionContextExecutorSpec extends WordSpec with Matchers w
       }
       MDC.get("FINGERPRINT") shouldEqual "print"
       Await.result(future, 100 millis) shouldEqual "print"
-
     }
 
     "Child MDC should not escape to parent " in {
@@ -81,8 +85,6 @@ class TraceFriendlyExecutionContextExecutorSpec extends WordSpec with Matchers w
       }
       MDC.get("FINGERPRINT") shouldBe null
       Await.result(future, 100 millis) shouldEqual "print"
-
     }
-
   }
 }

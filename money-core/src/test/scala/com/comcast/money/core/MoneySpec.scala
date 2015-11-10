@@ -32,7 +32,8 @@ class MoneySpec extends WordSpec with Matchers {
       Money.applicationName shouldEqual "unknown"
     }
     "when disabled implementation should be empty" in {
-      val moneyFactory = Money.MoneyFactory(ConfigFactory.parseString("money.enabled=false\nmoney.tracer.enabled=true\nmoney.mdc.enabled=true"))
+      val moneyFactory = Money.MoneyFactory(
+        ConfigFactory.parseString("money.enabled=false\nmoney.tracer.enabled=true\nmoney.mdc.enabled=true"))
       val tracer = moneyFactory.tracer
       val metrics = moneyFactory.metrics
       assert(metrics.emitterRef === null)
@@ -63,14 +64,12 @@ class MoneySpec extends WordSpec with Matchers {
       val conf = Money.resolveConf()
       assert(conf.getString("money.bizzare-setting") == "bozo")
       assert(conf.getBoolean("money.enabled") == false)
-
     }
     "should resolve system property if no environment override " in {
       sys.props += ("MONEY_ENV" -> "found_it")
       val conf = Money.resolveConf()
       assert(conf.getString("money.bizzare-setting") == "bozo")
       assert(conf.getBoolean("money.enabled") == false)
-
     }
     "should resolve environment property if env override and sys property exist " in {
       setEnv(Map("MONEY_ENV" -> "found_it"))
@@ -78,7 +77,6 @@ class MoneySpec extends WordSpec with Matchers {
       val conf = Money.resolveConf()
       assert(conf.getString("money.bizzare-setting") == "bozo")
       assert(conf.getBoolean("money.enabled") == false)
-
     }
     "should resolve host property if host override and sys property exist " in {
       setEnv(Map("MONEY_ENV" -> "found_it"))
@@ -86,7 +84,6 @@ class MoneySpec extends WordSpec with Matchers {
       val conf = Money.resolveConf()
       assert(conf.getString("money.bizzare-setting") == "host_bozo")
       assert(conf.getBoolean("money.enabled") == false)
-
     }
     "should not resolve host property if host override but sys property for different host " in {
       setEnv(Map("MONEY_ENV" -> "found_it"))
@@ -99,7 +96,8 @@ class MoneySpec extends WordSpec with Matchers {
       Money.mdcEnabled shouldBe true
     }
     "mdc enabled should be false if configured" in {
-      val moneyFactory = Money.MoneyFactory(ConfigFactory.parseString("money.enabled=false\nmoney.tracer.enabled=true\nmoney.mdc.enabled=false"))
+      val moneyFactory = Money.MoneyFactory(
+        ConfigFactory.parseString("money.enabled=false\nmoney.tracer.enabled=true\nmoney.mdc.enabled=false"))
       moneyFactory.isMdcEnabled shouldBe false
     }
     "logging exceptions flag should exist" in {
@@ -157,7 +155,8 @@ class MoneySpec extends WordSpec with Matchers {
               val field = cl.getDeclaredField("m")
               field.setAccessible(true)
               val map = field.get(env).asInstanceOf[java.util.Map[String, String]]
-              // map.clear() // Not sure why this was in the code. It means we need to set all required environment variables.
+              // map.clear() // Not sure why this was in the code. It means we need to set all required environment
+              // variables.
               map.putAll(newenv)
             }
           })

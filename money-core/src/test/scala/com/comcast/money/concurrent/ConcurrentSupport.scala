@@ -12,16 +12,16 @@ trait ConcurrentSupport {
   }
 
   val testRunnable: Runnable = new Runnable with SpanAware {
-    override def run():Unit = captureCurrentSpan()
+    override def run(): Unit = captureCurrentSpan()
   }
 }
 
 trait SpanAware {
-  private var savedSpanId:Option[SpanId] = _
+  private var savedSpanId: Option[SpanId] = _
 
-  def spanId:Option[SpanId] = savedSpanId
+  def spanId: Option[SpanId] = savedSpanId
 
-  def captureCurrentSpan():Option[SpanId] = {
+  def captureCurrentSpan(): Option[SpanId] = {
     savedSpanId = SpanLocal.current
     savedSpanId
   }

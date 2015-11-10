@@ -8,7 +8,8 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatest.{Matchers, OneInstancePerTest, WordSpecLike}
 import org.slf4j.MDC
 
-class TraceFriendlyThreadPoolExecutorSpec extends WordSpecLike with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest {
+class TraceFriendlyThreadPoolExecutorSpec
+  extends WordSpecLike with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest {
 
   val executor: ExecutorService = TraceFriendlyThreadPoolExecutor.newCachedThreadPool
 
@@ -55,7 +56,8 @@ class TraceFriendlyThreadPoolExecutorSpec extends WordSpecLike with MockitoSugar
     }
   }
   "TraceFriendlyThreadPoolExecutor fixedThreadPool" should {
-    val threadPool: TraceFriendlyThreadPoolExecutor = TraceFriendlyThreadPoolExecutor.newFixedThreadPool(1).asInstanceOf[TraceFriendlyThreadPoolExecutor]
+    val threadPool: TraceFriendlyThreadPoolExecutor = TraceFriendlyThreadPoolExecutor.newFixedThreadPool(1)
+      .asInstanceOf[TraceFriendlyThreadPoolExecutor]
 
     "created the pool with the specified number of threads" in {
       threadPool.getCorePoolSize shouldEqual 1

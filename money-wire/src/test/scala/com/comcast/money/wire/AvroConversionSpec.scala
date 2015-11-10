@@ -9,8 +9,10 @@ class AvroConversionSpec extends WordSpec with Matchers with Inspectors {
 
   "Avro Conversion" should {
     "roundtrip" in {
-      val orig = Span(SpanId(1L), "key", "app", "host", 1L, true, 35L,
-        Map("what" -> Note("what", 1L, 100L),
+      val orig = Span(
+        SpanId(1L), "key", "app", "host", 1L, true, 35L,
+        Map(
+          "what" -> Note("what", 1L, 100L),
           "when" -> Note("when", 2L, 200L),
           "bob" -> Note("bob", "craig", 300L),
           "none" -> LongNote("none", None),

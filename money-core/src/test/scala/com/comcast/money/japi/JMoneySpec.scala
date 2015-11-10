@@ -2,7 +2,6 @@ package com.comcast.money.japi
 
 import com.comcast.money.japi.JMoney.TraceSpan
 import com.comcast.money.test.AkkaTestJawn
-import org.joda.time.DateTime
 import org.scalatest.{Matchers, OneInstancePerTest, WordSpecLike}
 
 class JMoneySpec extends AkkaTestJawn with WordSpecLike with OneInstancePerTest with Matchers {
@@ -14,7 +13,7 @@ class JMoneySpec extends AkkaTestJawn with WordSpecLike with OneInstancePerTest 
       expectLogMessageContaining("java-span")
     }
     "support closeable" in {
-      val span:TraceSpan = JMoney.newSpan("closeable")
+      val span: TraceSpan = JMoney.newSpan("closeable")
       span.close()
       expectLogMessageContaining("closeable")
     }
@@ -26,7 +25,7 @@ class JMoneySpec extends AkkaTestJawn with WordSpecLike with OneInstancePerTest 
     }
     "record propagate-able long values" in {
       JMoney.startSpan("parent")
-      JMoney.record("the-long", java.lang.Long.valueOf("1"),true)
+      JMoney.record("the-long", java.lang.Long.valueOf("1"), true)
       JMoney.startSpan("child")
       JMoney.stopSpan()
       JMoney.stopSpan()
@@ -41,7 +40,7 @@ class JMoneySpec extends AkkaTestJawn with WordSpecLike with OneInstancePerTest 
     }
     "record propagate-able boolean values" in {
       JMoney.startSpan("parent")
-      JMoney.record("the-bool", true,true)
+      JMoney.record("the-bool", true, true)
       JMoney.startSpan("child")
       JMoney.stopSpan()
       JMoney.stopSpan()
@@ -56,7 +55,7 @@ class JMoneySpec extends AkkaTestJawn with WordSpecLike with OneInstancePerTest 
     }
     "record propagate-able double values" in {
       JMoney.startSpan("parent")
-      JMoney.record("the-double", java.lang.Double.valueOf("3.14"),true)
+      JMoney.record("the-double", java.lang.Double.valueOf("3.14"), true)
       JMoney.startSpan("child")
       JMoney.stopSpan()
       JMoney.stopSpan()
@@ -71,7 +70,7 @@ class JMoneySpec extends AkkaTestJawn with WordSpecLike with OneInstancePerTest 
     }
     "record propagate-able string values" in {
       JMoney.startSpan("parent")
-      JMoney.record("the-string", "yo",true)
+      JMoney.record("the-string", "yo", true)
       JMoney.startSpan("child")
       JMoney.stopSpan()
       JMoney.stopSpan()
@@ -92,32 +91,32 @@ class JMoneySpec extends AkkaTestJawn with WordSpecLike with OneInstancePerTest 
       expectLogMessageContaining("stamp-this")
     }
     "record a long as an Object" in {
-      val lng:java.lang.Long = 100L;
-      val obj:AnyRef = lng;
+      val lng: java.lang.Long = 100L;
+      val obj: AnyRef = lng;
       JMoney.startSpan("lng")
       JMoney.record("long", obj)
       JMoney.stopSpan()
       expectLogMessageContaining("long=100")
     }
     "record a boolean as an Object" in {
-      val boo:java.lang.Boolean = true;
-      val obj:AnyRef = boo;
+      val boo: java.lang.Boolean = true;
+      val obj: AnyRef = boo;
       JMoney.startSpan("boo")
       JMoney.record("bool", obj)
       JMoney.stopSpan()
       expectLogMessageContaining("bool=true")
     }
     "record a double as an Object" in {
-      val dbl:java.lang.Double = 3.14;
-      val obj:AnyRef = dbl;
+      val dbl: java.lang.Double = 3.14;
+      val obj: AnyRef = dbl;
       JMoney.startSpan("dbl")
       JMoney.record("double", obj)
       JMoney.stopSpan()
       expectLogMessageContaining("double=3.14")
     }
     "record a string as an Object" in {
-      val str:java.lang.String = "hello";
-      val obj:AnyRef = str;
+      val str: java.lang.String = "hello";
+      val obj: AnyRef = str;
       JMoney.startSpan("str")
       JMoney.record("string", obj)
       JMoney.stopSpan()
@@ -131,7 +130,7 @@ class JMoneySpec extends AkkaTestJawn with WordSpecLike with OneInstancePerTest 
       expectLogMessageContaining("list=List(1)")
     }
     "record null as a string Note with None" in {
-      val obj:AnyRef = null
+      val obj: AnyRef = null
       JMoney.startSpan("null")
       JMoney.record("nill", obj)
       JMoney.stopSpan()

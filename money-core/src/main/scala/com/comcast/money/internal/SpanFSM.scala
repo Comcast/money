@@ -1,6 +1,5 @@
 package com.comcast.money.internal
 
-import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 
 import akka.actor._
@@ -19,7 +18,8 @@ object SpanFSMProtocol {
 
   sealed trait SpanCommand
 
-  case class Start(spanId: SpanId, spanName: String,  timeStamp: Long = DateTimeUtil.microTime, parentSpanId: Option[SpanId] = None) extends SpanCommand
+  case class Start(spanId: SpanId, spanName: String, timeStamp: Long = DateTimeUtil.microTime,
+    parentSpanId: Option[SpanId] = None) extends SpanCommand
 
   case class AddNote(note: Note[_], propogate: Boolean = false) extends SpanCommand
 
@@ -29,18 +29,21 @@ object SpanFSMProtocol {
 
   case class PropagateNotesRequest(sendTo: ActorRef) extends SpanCommand
 
-  case class PropagateNotesResponse(notes:Map[String, NoteWrapper]) extends SpanCommand
+  case class PropagateNotesResponse(notes: Map[String, NoteWrapper]) extends SpanCommand
 
   case object Query extends SpanCommand
 
-  case class Stop(result:Note[Boolean], timeStamp: Long = DateTimeUtil.microTime) extends SpanCommand
+  case class Stop(result: Note[Boolean], timeStamp: Long = DateTimeUtil.microTime) extends SpanCommand
 
 }
 
 object SpanFSM {
 
-  lazy val spanTimeout = FiniteDuration(Money.config.getDuration("money.span-timeout", TimeUnit.MILLISECONDS), MILLISECONDS)
-  lazy val stoppedSpanTimeout = FiniteDuration(Money.config.getDuration("money.stopped-span-timeout", TimeUnit.MILLISECONDS), MILLISECONDS)
+  lazy val spanTimeout = FiniteDuration(
+    Money.config.getDuration("money.span-timeout", TimeUnit.MILLISECONDS), MILLISECONDS)
+
+  lazy val stoppedSpanTimeout = FiniteDuration(
+    Money.config.getDuration("money.stopped-span-timeout", TimeUnit.MILLISECONDS), MILLISECONDS)
 
   // span support
   trait Timings {
@@ -76,21 +79,24 @@ object SpanFSM {
   case object Empty extends Data
 
   case class SpanContext(spanId: SpanId,
-                         spanName: String,
-                         startTime: Long = DateTimeUtil.microTime,
-                         notes: mutable.Map[String, NoteWrapper] = mutable.Map.empty,
-                         timers: mutable.Map[String, Long] = mutable.Map.empty) extends Timings with EmitData with Data {
+    spanName: String,
+    startTime: Long = DateTimeUtil.microTime,
+    notes: mutable.Map[String, NoteWrapper] = mutable.Map.empty,
+    timers: mutable.Map[String, Long] = mutable.Map.empty) extends Timings with EmitData with Data {
 
     private var spanSuccess = true
     private var spanDuration = 0L
 
-    def success:Boolean = this.spanSuccess
-    def setSuccess(result:Boolean):Unit = this.spanSuccess = result
-    def duration:Long = this.spanDuration
-    def setDuration(length:Long):Unit = this.spanDuration = length
+    def success: Boolean = this.spanSuccess
+
+    def setSuccess(result: Boolean): Unit = this.spanSuccess = result
+
+    def duration: Long = this.spanDuration
+
+    def setDuration(length: Long): Unit = this.spanDuration = length
   }
 
-  case class NoteWrapper(note:Note[_], propagate: Boolean = false)
+  case class NoteWrapper(note: Note[_], propagate: Boolean = false)
 
   def props(emitterSupervisor: ActorRef): Props = {
     Props(classOf[SpanFSM], emitterSupervisor, spanTimeout, stoppedSpanTimeout)
@@ -99,7 +105,8 @@ object SpanFSM {
 
 import com.comcast.money.internal.SpanFSM._
 
-class SpanFSM(val emitterSupervisor: ActorRef, val openSpanTimeout: FiniteDuration, val stoppedSpanTimeout: FiniteDuration)
+class SpanFSM(val emitterSupervisor: ActorRef, val openSpanTimeout: FiniteDuration,
+  val stoppedSpanTimeout: FiniteDuration)
   extends Actor with FSM[State, Data] with ActorLogging {
 
   def this(emitterSupervisor: ActorRef) = this(emitterSupervisor, 1 minute, 1 second)
@@ -111,7 +118,7 @@ class SpanFSM(val emitterSupervisor: ActorRef, val openSpanTimeout: FiniteDurati
   MoneyMetrics(context.system).activateSpan()
 
   when(Idle) {
-    case Event(Start(spanId: SpanId, spanName: String,  timeStamp: Long, parentSpanId:Option[SpanId]), Empty) =>
+    case Event(Start(spanId: SpanId, spanName: String, timeStamp: Long, parentSpanId: Option[SpanId]), Empty) =>
       log.debug("Idle -> Start")
       parentSpanId foreach { id => sender ! SpanMessage(id, PropagateNotesRequest(self)) }
       goto(Started) using SpanContext(spanId, spanName, timeStamp)
@@ -228,7 +235,9 @@ class SpanFSM(val emitterSupervisor: ActorRef, val openSpanTimeout: FiniteDurati
   }
 
   def createSpan(spanData: SpanContext): Span = {
-    Span(spanData.spanId, spanData.spanName, Money.applicationName, Money.hostName, spanData.startTime, spanData.success, spanData.duration, spanData.notes.map(x=>x._1->x._2.note).toMap)
+    Span(
+      spanData.spanId, spanData.spanName, Money.applicationName, Money.hostName, spanData.startTime, spanData.success,
+      spanData.duration, spanData.notes.map(x => x._1 -> x._2.note).toMap)
   }
 }
 

@@ -12,8 +12,8 @@ import org.aspectj.lang.{JoinPoint, ProceedingJoinPoint}
 @Aspect
 class TraceAspect extends Reflections with TraceLogging {
 
-  val tracer:Tracer = Money.tracer
-  val mdcSupport:MDCSupport = new MDCSupport()
+  val tracer: Tracer = Money.tracer
+  val mdcSupport: MDCSupport = new MDCSupport()
 
   @Pointcut("execution(@com.comcast.money.annotations.Traced * *(..)) && @annotation(traceAnnotation)")
   def traced(traceAnnotation: Traced) = {}
@@ -53,7 +53,7 @@ class TraceAspect extends Reflections with TraceLogging {
     }
   }
 
-  private def traceMethodArguments(joinPoint: JoinPoint):Unit = {
+  private def traceMethodArguments(joinPoint: JoinPoint): Unit = {
     if (joinPoint.getArgs != null && joinPoint.getArgs.length > 0) {
       joinPoint.getStaticPart.getSignature match {
         case signature: MethodSignature if signature.getMethod.getAnnotations != null =>

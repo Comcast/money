@@ -2,8 +2,6 @@ package com.comcast.money.core
 
 import org.scalatest.{Matchers, WordSpecLike}
 
-import scala.util.Success
-
 class SpanIdSpec extends WordSpecLike with Matchers {
 
   "A SpanId" when {

@@ -7,7 +7,8 @@ import scala.concurrent.{ExecutionContext, ExecutionContextExecutor}
 
 import org.slf4j.MDC
 
-class TraceFriendlyExecutionContextExecutor(wrapped:ExecutionContext) extends ExecutionContextExecutor with TraceLogging  {
+class TraceFriendlyExecutionContextExecutor(wrapped: ExecutionContext)
+  extends ExecutionContextExecutor with TraceLogging {
 
   lazy val mdcSupport = new MDCSupport()
 
@@ -15,24 +16,25 @@ class TraceFriendlyExecutionContextExecutor(wrapped:ExecutionContext) extends Ex
     val inheritedTraceId = SpanLocal.current
     val submittingThreadsContext = MDC.getCopyOfContextMap
 
-    wrapped.execute(new Runnable {
-      override def run = {
-
-        mdcSupport.propogateMDC(Option(submittingThreadsContext))
-        SpanLocal.clear()
-        inheritedTraceId.map(SpanLocal.push)
-        try {
-          task.run
-        } catch {
-          case t:Throwable =>
-            logException(t)
-            throw t
-        } finally {
+    wrapped.execute(
+      new Runnable {
+        override def run = {
+          mdcSupport.propogateMDC(Option(submittingThreadsContext))
           SpanLocal.clear()
-          MDC.clear()
+          inheritedTraceId.map(SpanLocal.push)
+          try {
+            task.run
+          } catch {
+            case t: Throwable =>
+              logException(t)
+              throw t
+          } finally {
+            SpanLocal.clear()
+            MDC.clear()
+          }
         }
       }
-    })
+    )
   }
 
   override def reportFailure(t: Throwable): Unit = wrapped.reportFailure(t)
@@ -40,8 +42,9 @@ class TraceFriendlyExecutionContextExecutor(wrapped:ExecutionContext) extends Ex
 
 object TraceFriendlyExecutionContextExecutor {
   object Implicits {
-    implicit lazy val global:TraceFriendlyExecutionContextExecutor = new TraceFriendlyExecutionContextExecutor(scala.concurrent.ExecutionContext.global)
+    implicit lazy val global: TraceFriendlyExecutionContextExecutor = new
+        TraceFriendlyExecutionContextExecutor(scala.concurrent.ExecutionContext.global)
   }
 
-  def apply(ec:ExecutionContext) = new TraceFriendlyExecutionContextExecutor(ec)
+  def apply(ec: ExecutionContext) = new TraceFriendlyExecutionContextExecutor(ec)
 }

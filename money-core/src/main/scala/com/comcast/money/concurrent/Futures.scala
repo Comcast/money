@@ -15,7 +15,7 @@ import scala.util.{Failure, Success, Try}
 
 object Futures {
 
-  lazy val spanSupervisorRef:ActorRef = Money.tracer.spanSupervisorRef
+  lazy val spanSupervisorRef: ActorRef = Money.tracer.spanSupervisorRef
 
   /**
    * Starts and stops a new trace span around a future and any chained methods attached to the future
@@ -32,15 +32,18 @@ object Futures {
     val spanId = newChildSpan()
 
     // Return a new future, providing the trace context which now holds the span id that the future should use
-    new TracedFuture[T](spanId, Future({
-      spanSupervisorRef ! SpanMessage(spanId, Start(spanId, name))
-      SpanLocal.push(spanId)
-      f
-    }),ec)
+    new TracedFuture[T](
+      spanId, Future(
+      {
+        spanSupervisorRef ! SpanMessage(spanId, Start(spanId, name))
+        SpanLocal.push(spanId)
+        f
+      }), ec)
   }
 
   /**
-   * Executes the future and any chained methods attached to the future inside of an existing trace context if one is present
+   * Executes the future and any chained methods attached to the future inside of an existing trace context if one is
+   * present
    * @param f The function body that will be run in a future
    * @param ec The execution context to run the future in
    * @tparam T The return type of the function body
@@ -50,17 +53,20 @@ object Futures {
 
     SpanLocal.current match {
       case Some(spanId) =>
-        new TracedFuture[T](spanId, Future({
-          SpanLocal.push(spanId)
-          f
-        }), ec)
+        new TracedFuture[T](
+          spanId, Future(
+          {
+            SpanLocal.push(spanId)
+            f
+          }), ec)
       case None =>
         Future(f)
     }
   }
 
   /**
-   * Wraps a block that returns a future inside of a traced future, allowing chained methods to use tracing if an existing
+   * Wraps a block that returns a future inside of a traced future, allowing chained methods to use tracing if an
+   * existing
    * trace context is present.  If no trace span is present, then the future will run normally
    * @param f The function body that creates a future
    * @param ec The execution context that the future an tracing will be run in
@@ -87,8 +93,8 @@ object Futures {
 object TracedFuture {
 
   // creates a function body wrapping the function provided, but propagates the span id before running the function
-  def wrapMap[T,S](spanId:SpanId, f:T => S)(implicit executor: ExecutionContext): T => S = {
-    t:T =>
+  def wrapMap[T, S](spanId: SpanId, f: T => S)(implicit executor: ExecutionContext): T => S = {
+    t: T =>
       try {
         SpanLocal.push(spanId)
         f(t)
@@ -98,8 +104,8 @@ object TracedFuture {
   }
 
   // creates a function body wrapping the function provided, but propagates the span id before running the function
-  def wrapFlatMap[T,S](spanId:SpanId, f: T => Future[S])(implicit executor: ExecutionContext): T => Future[S] = {
-    t:T =>
+  def wrapFlatMap[T, S](spanId: SpanId, f: T => Future[S])(implicit executor: ExecutionContext): T => Future[S] = {
+    t: T =>
       try {
         SpanLocal.push(spanId)
         f(t)
@@ -109,8 +115,8 @@ object TracedFuture {
   }
 
   // creates a function body wrapping the function provided, but propagates the span id before running the function
-  def wrapComplete[T,U](spanId:SpanId, f:Try[T] => U):Try[T] => U = {
-    t:Try[T] =>
+  def wrapComplete[T, U](spanId: SpanId, f: Try[T] => U): Try[T] => U = {
+    t: Try[T] =>
       try {
         SpanLocal.push(spanId)
         f(t)
@@ -120,8 +126,8 @@ object TracedFuture {
   }
 
   // creates a function body wrapping the function provided, but propagates the span id before running the function
-  def wrapFailure(spanId:SpanId, f: Throwable => Throwable):Throwable => Throwable = {
-    t:Throwable =>
+  def wrapFailure(spanId: SpanId, f: Throwable => Throwable): Throwable => Throwable = {
+    t: Throwable =>
       try {
         SpanLocal.push(spanId)
         f(t)
@@ -130,8 +136,9 @@ object TracedFuture {
       }
   }
 
-  // creates a partial function body wrapping the function provided, but propagates the span id before running the function
-  def wrapPartialFunction[S,U](spanId:SpanId, pf: PartialFunction[S,U]):PartialFunction[S,U] = {
+  // creates a partial function body wrapping the function provided, but propagates the span id before running the
+  // function
+  def wrapPartialFunction[S, U](spanId: SpanId, pf: PartialFunction[S, U]): PartialFunction[S, U] = {
     case v =>
       try {
         SpanLocal.push(spanId)
@@ -143,8 +150,10 @@ object TracedFuture {
 }
 
 /**
- * Main class that wraps a Scala Future.  This class exists to override and wrap every method that exists on a Scala Future.
- * This allows us to propagate the same trace context to be used not only by the main future, but any futures that are built
+ * Main class that wraps a Scala Future.  This class exists to override and wrap every method that exists on a Scala
+ * Future.
+ * This allows us to propagate the same trace context to be used not only by the main future, but any futures that
+ * are built
  * using methods like map and flatMap off of the main future.
  *
  * This class maintains state in order to determine who is responsible ultimately for stopping a trace span
@@ -152,7 +161,9 @@ object TracedFuture {
  * @param wrapped A Future that will be wrapped by this future
  * @tparam T The return type of the main future
  */
-class TracedFuture[T](spanId:SpanId, wrapped:Future[T], executor:ExecutionContext) extends Future[T] with TraceLogging { self =>
+class TracedFuture[T](spanId: SpanId, wrapped: Future[T], executor: ExecutionContext)
+  extends Future[T] with TraceLogging {
+  self =>
 
   // This is critical, we have to tie an on complete every time we construct a new Traced Future
   // so that we will stop the span.  Remember, stopping the span doesn't stop it immediately, it hangs
@@ -177,7 +188,8 @@ class TracedFuture[T](spanId:SpanId, wrapped:Future[T], executor:ExecutionContex
   }
 
   /**
-   * All of the following functions wrap all of the functions that come from the Future trait.  What we do is essentially
+   * All of the following functions wrap all of the functions that come from the Future trait.  What we do is
+   * essentially
    * wrap any functions that come in on these methods with an appropriate wrapper function.  Each
    * wrapper function will do a SpanLocal.push with the correct span id, and then execute the intended
    * function body.
@@ -195,16 +207,21 @@ class TracedFuture[T](spanId:SpanId, wrapped:Future[T], executor:ExecutionContex
   }
 
   override def transform[S](s: T => S, f: Throwable => Throwable)(implicit executor: ExecutionContext): Future[S] = {
-    new TracedFuture[S](spanId, wrapped.transform(TracedFuture.wrapMap(spanId, s), TracedFuture.wrapFailure(spanId, f)), executor)
+    new TracedFuture[S](
+      spanId, wrapped.transform(TracedFuture.wrapMap(spanId, s), TracedFuture.wrapFailure(spanId, f)), executor)
   }
 
   override def foreach[U](f: T => U)(implicit executor: ExecutionContext): Unit = {
-    onComplete { _ foreach f }
+    onComplete {
+      _ foreach f
+    }
   }
 
-  override def onFailure[U](callback: PartialFunction[Throwable, U])(implicit executor: ExecutionContext): Unit = onComplete {
+  override def onFailure[U](callback: PartialFunction[Throwable, U])
+    (implicit executor: ExecutionContext): Unit = onComplete {
     case Failure(t) =>
-      callback.applyOrElse[Throwable, Any](t, Predef.conforms[Throwable]) // Exploiting the cached function to avoid MatchError
+      callback.applyOrElse[Throwable, Any](t, Predef.conforms[Throwable]) // Exploiting the cached function to avoid
+    // MatchError
     case _ =>
   }
 
@@ -225,14 +242,16 @@ class TracedFuture[T](spanId:SpanId, wrapped:Future[T], executor:ExecutionContex
 
   override def collect[S](pf: PartialFunction[T, S])(implicit executor: ExecutionContext): Future[S] =
     map {
-      r => pf.applyOrElse(r, (t: T) => throw new NoSuchElementException("Future.collect partial function is not defined at: " + t))
+      r => pf.applyOrElse(
+        r, (t: T) => throw new NoSuchElementException("Future.collect partial function is not defined at: " + t))
     }
 
   override def recover[U >: T](pf: PartialFunction[Throwable, U])(implicit executor: ExecutionContext): Future[U] = {
     new TracedFuture[U](spanId, wrapped.recover(TracedFuture.wrapPartialFunction(spanId, pf)), executor)
   }
 
-  override def recoverWith[U >: T](pf: PartialFunction[Throwable, Future[U]])(implicit executor: ExecutionContext): Future[U] = {
+  override def recoverWith[U >: T](pf: PartialFunction[Throwable, Future[U]])
+    (implicit executor: ExecutionContext): Future[U] = {
     new TracedFuture[U](spanId, wrapped.recoverWith(TracedFuture.wrapPartialFunction(spanId, pf)), executor)
   }
 
@@ -247,7 +266,7 @@ class TracedFuture[T](spanId:SpanId, wrapped:Future[T], executor:ExecutionContex
    */
   override def zip[U](that: Future[U]): Future[(T, U)] = {
 
-    new TracedFuture[(T,U)](spanId, wrapped.zip(that), executor)
+    new TracedFuture[(T, U)](spanId, wrapped.zip(that), executor)
   }
 
   override def fallbackTo[U >: T](that: Future[U]): Future[U] = {

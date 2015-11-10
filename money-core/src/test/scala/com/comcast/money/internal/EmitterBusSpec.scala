@@ -12,7 +12,10 @@ class EmitterBusSpec extends AkkaTestJawn with WordSpecLike with MockitoSugar {
 
   "An EmitterBus" when {
     val underTest = new EmitterBus()
-    val testData = Span(SpanId(1L), "happy span", "app", "host", 1L, true, 3L, Map("when" -> Note("when", 1L), "who" -> Note("who", 2L), "bob" -> Note("bob", "1.2"), "apple" -> Note("apple", "pie")))
+    val testData = Span(
+      SpanId(1L), "happy span", "app", "host", 1L, true, 3L, Map(
+        "when" -> Note("when", 1L), "who" -> Note("who", 2L), "bob" -> Note("bob", "1.2"),
+        "apple" -> Note("apple", "pie")))
 
     "calling classify" should {
       "return EmitterGroup" in {

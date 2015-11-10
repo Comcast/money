@@ -15,12 +15,13 @@ object GraphiteEmitter {
   }
 }
 
-class GraphiteEmitter(conf:Config) extends Actor with ActorMaker with ActorLogging {
+class GraphiteEmitter(conf: Config) extends Actor with ActorMaker with ActorLogging {
 
   private val GraphiteTracingDataPath: String = "request-tracing-data"
 
   private val emitterPoolSize = conf.getInt("emitterPoolSize")
-  private val router = makeActor(GraphiteMetricEmitter.props(conf).withRouter(RoundRobinRouter(nrOfInstances = emitterPoolSize)), "graphite-router")
+  private val router = makeActor(
+    GraphiteMetricEmitter.props(conf).withRouter(RoundRobinRouter(nrOfInstances = emitterPoolSize)), "graphite-router")
 
   def receive = {
 
@@ -32,10 +33,10 @@ class GraphiteEmitter(conf:Config) extends Actor with ActorMaker with ActorLoggi
           case None =>
             log.debug("Emitting to Graphite timing {}, {}", name, note.timestamp)
             router ! EmitMetricLong(genPath(t.spanName, name, GraphiteTracingDataPath), note.timestamp, note.timestamp)
-          case Some(value:Double) =>
+          case Some(value: Double) =>
             log.debug("Emitting to Graphite Data {}, {}", name, value)
             router ! EmitMetricDouble(genPath(t.spanName, note.name, GraphiteTracingDataPath), value, note.timestamp)
-          case Some(value:Long) =>
+          case Some(value: Long) =>
             log.debug("Emitting to Graphite Data {}, {}", name, value)
             router ! EmitMetricLong(genPath(t.spanName, note.name, GraphiteTracingDataPath), value, note.timestamp)
           case _ => //not a timing and data is not assignable to Double so just dropping it for now
@@ -43,5 +44,6 @@ class GraphiteEmitter(conf:Config) extends Actor with ActorMaker with ActorLoggi
       }
   }
 
-  private def genPath(recordKey: String, measurementKey: String, path: String) = path + "." + recordKey.replace('.', '_').replace(" ", "_") + "." + measurementKey.replace('.', '_').replace(" ", "_")
+  private def genPath(recordKey: String, measurementKey: String, path: String) = path + "." + recordKey
+    .replace('.', '_').replace(" ", "_") + "." + measurementKey.replace('.', '_').replace(" ", "_")
 }

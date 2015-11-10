@@ -37,7 +37,10 @@ class GraphiteEmitterSpec extends AkkaTestJawn with WordSpecLike with BeforeAndA
     "sent a SpanData" should {
       "emit a metric for all \"timings\"" in {
         val graphiteEmitter = TestActorRef(new GraphiteEmitter(conf) with TestProbeMaker)
-        val span = Span(SpanId(1L), "happy span", "unknown", "localhost", 1L, true, 35L, Map("when" -> Note("when", 1.5), "who" -> LongNote("who", None, 45), "bob" -> Note("bob", "1.2"), "apple" -> Note("apple", "pie")))
+        val span = Span(
+          SpanId(1L), "happy span", "unknown", "localhost", 1L, true, 35L, Map(
+            "when" -> Note("when", 1.5), "who" -> LongNote("who", None, 45), "bob" -> Note("bob", "1.2"),
+            "apple" -> Note("apple", "pie")))
         graphiteEmitter ! EmitSpan(span)
         val msgs = child(graphiteEmitter, "graphite-router").receiveN(3)
 
@@ -47,7 +50,9 @@ class GraphiteEmitterSpec extends AkkaTestJawn with WordSpecLike with BeforeAndA
       }
       "emit a metric for all data" in {
         val graphiteEmitter = TestActorRef(new GraphiteEmitter(conf) with TestProbeMaker)
-        val span = Span(SpanId(1L), "happy span", "unknown", "localhost", 1L, true, 35L, Map("bob" -> Note("bob", 12.1), "apple" -> Note("apple", "pie"), "cherry" -> Note("cherry", 1.032)))
+        val span = Span(
+          SpanId(1L), "happy span", "unknown", "localhost", 1L, true, 35L, Map(
+            "bob" -> Note("bob", 12.1), "apple" -> Note("apple", "pie"), "cherry" -> Note("cherry", 1.032)))
         graphiteEmitter ! EmitSpan(span)
         val msgs = child(graphiteEmitter, "graphite-router").receiveN(3)
 
@@ -58,7 +63,8 @@ class GraphiteEmitterSpec extends AkkaTestJawn with WordSpecLike with BeforeAndA
       }
       "emit a metric for longs" in {
         val graphiteEmitter = TestActorRef(new GraphiteEmitter(conf) with TestProbeMaker)
-        val span = Span(SpanId(1L), "happy span", "unknown", "localhost", 1L, true, 35L, Map("long" -> Note("long", 15L)))
+        val span = Span(
+          SpanId(1L), "happy span", "unknown", "localhost", 1L, true, 35L, Map("long" -> Note("long", 15L)))
         graphiteEmitter ! EmitSpan(span)
         val msgs = child(graphiteEmitter, "graphite-router").receiveN(2)
 

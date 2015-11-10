@@ -1,6 +1,5 @@
 package com.comcast.money.akka
 
-import com.comcast.money.akka.BinaryExponentialBackOff
 import org.scalatest.WordSpec
 
 import scala.annotation.tailrec
@@ -17,7 +16,6 @@ class BinaryExponentialBackOffSpec extends WordSpec {
       nextBackOff(backOff.nextBackOff, cnt - 1)
     }
   }
-
 
   def validBackOffs(slotTime: FiniteDuration, slot: Int): mutable.Set[FiniteDuration] = {
     val max = math.pow(2, slot) - 1
@@ -44,7 +42,9 @@ class BinaryExponentialBackOffSpec extends WordSpec {
       "be 0,1,2 or 3 x slotTime" in {
         for (a <- 1 to 400) {
           val newBackOff = backOff.nextBackOff.nextBackOff
-          assert(newBackOff.waitTime == Duration.Zero || newBackOff.waitTime.equals(backOff.slotTime) || newBackOff.waitTime.equals(backOff.slotTime * 2) || newBackOff.waitTime.equals(backOff.slotTime * 3))
+          assert(
+            newBackOff.waitTime == Duration.Zero || newBackOff.waitTime.equals(backOff.slotTime) || newBackOff.waitTime
+              .equals(backOff.slotTime * 2) || newBackOff.waitTime.equals(backOff.slotTime * 3))
         }
       }
     }
@@ -56,7 +56,6 @@ class BinaryExponentialBackOffSpec extends WordSpec {
             val newBackOff = nextBackOff(backOff, slot)
             assert(validOnes.contains(newBackOff.waitTime))
             assert(newBackOff.isStarted)
-
           }
         }
       }

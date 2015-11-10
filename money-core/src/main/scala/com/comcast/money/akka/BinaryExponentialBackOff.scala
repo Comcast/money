@@ -3,7 +3,9 @@ package com.comcast.money.akka
 import scala.concurrent.duration.{Duration, FiniteDuration}
 import scala.util.Random
 
-case class BinaryExponentialBackOff(slotTime: FiniteDuration, ceiling: Int = 10, stayAtCeiling: Boolean = false, slot: Int = 1, rand: Random = new Random(), waitTime: FiniteDuration = Duration.Zero, retries: Int = 0, resets: Int = 0, totalRetries: Long = 0) {
+case class BinaryExponentialBackOff(slotTime: FiniteDuration, ceiling: Int = 10, stayAtCeiling: Boolean = false,
+  slot: Int = 1, rand: Random = new Random(), waitTime: FiniteDuration = Duration.Zero, retries: Int = 0,
+  resets: Int = 0, totalRetries: Long = 0) {
   def isStarted = retries > 0
 
   def reset(): BinaryExponentialBackOff = {
@@ -23,12 +25,10 @@ case class BinaryExponentialBackOff(slotTime: FiniteDuration, ceiling: Int = 10,
       }
       case 2 => rand.nextInt(4).toLong
       case _ => {
-        val max = math.round(math.pow(2, slot)) -1
+        val max = math.round(math.pow(2, slot)) - 1
         val randomDouble = rand.nextDouble
         math.round(randomDouble * max)
-
       }
-
     }
 
     def backOffTime: FiniteDuration = slotTime * backOffFactor

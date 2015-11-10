@@ -18,17 +18,17 @@ object SpanSupervisor {
 }
 
 class SpanSupervisor(emitterSupervisorRef: ActorRef) extends Actor
-  with ActorMaker with ActorLogging {
+with ActorMaker with ActorLogging {
 
   import SpanSupervisorProtocol._
 
   def receive = {
 
-    case SpanMessage(spanId: SpanId, message: Start)  =>
+    case SpanMessage(spanId: SpanId, message: Start) =>
       val spanFSMRef = makeActor(SpanFSM.props(emitterSupervisorRef), spanId.toString)
       spanFSMRef ! message
 
-    case SpanMessage(spanId: SpanId, message: SpanCommand)  =>
+    case SpanMessage(spanId: SpanId, message: SpanCommand) =>
       context.child(spanId.toString) match {
         case Some(spanFSMRef) =>
           spanFSMRef forward message

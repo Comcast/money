@@ -59,7 +59,8 @@ object Money {
     case None => None
   }
 
-  private def discoverEnvVariable(variableName: String): Option[String] = Try(defaultConfig.getString(variableName)) match {
+  private def discoverEnvVariable(variableName: String): Option[String] = Try(
+    defaultConfig.getString(variableName)) match {
 
     case Success(varName) => sys.env.get(varName) match {
       case Some(env) => Some(env)
@@ -101,7 +102,6 @@ object Money {
       case false =>
         logger.warn("Money is NOT enabled")
         (createDisabledTracer(), createDisabledMetrics())
-
     }
 
     private def createTracer(actorSystem: ActorSystem, emitterRef: ActorRef): Tracer = new Tracer() {
@@ -120,21 +120,21 @@ object Money {
 
       override def time(key: String) = {}
 
-      override def record(key:String, measure:Double):Unit = {}
+      override def record(key: String, measure: Double): Unit = {}
 
-      override def record(key:String, measure:Double, propogate:Boolean):Unit = {}
+      override def record(key: String, measure: Double, propogate: Boolean): Unit = {}
 
-      override def record(key:String, measure:String):Unit = {}
+      override def record(key: String, measure: String): Unit = {}
 
-      override def record(key:String, measure:String, propogate: Boolean):Unit = {}
+      override def record(key: String, measure: String, propogate: Boolean): Unit = {}
 
-      override def record(key:String, measure:Long):Unit = {}
+      override def record(key: String, measure: Long): Unit = {}
 
-      override def record(key:String, measure:Long, propogate: Boolean):Unit = {}
+      override def record(key: String, measure: Long, propogate: Boolean): Unit = {}
 
-      override def record(key:String, measure:Boolean):Unit = {}
+      override def record(key: String, measure: Boolean): Unit = {}
 
-      override def record(key:String, measure:Boolean, propogate:Boolean):Unit = {}
+      override def record(key: String, measure: Boolean, propogate: Boolean): Unit = {}
 
       override def stopSpan(result: Note[Boolean] = Result.success) = {}
 

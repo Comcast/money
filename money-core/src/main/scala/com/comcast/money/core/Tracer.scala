@@ -13,21 +13,22 @@ import scala.util.{Random, Try}
 
 object ProbabilisticlyUniqueLong {
   val r: Random = new Random()
-  def apply() = r.nextLong()
 
+  def apply() = r.nextLong()
 }
 
 object GUID {
   def apply() = UUID.randomUUID().toString
 }
 
-case class SpanId(traceId: String, parentSpanId: Long, spanId: Long)  {
+case class SpanId(traceId: String, parentSpanId: Long, spanId: Long) {
 
   private val HttpHeaderFormat = "trace-id=%s;parent-id=%s;span-id=%s"
   private val StringFormat = "SpanId~%s~%s~%s"
 
-  override def toString = StringFormat.format(traceId,parentSpanId,spanId)
-  def toHttpHeader = HttpHeaderFormat.format(traceId,parentSpanId,spanId)
+  override def toString = StringFormat.format(traceId, parentSpanId, spanId)
+
+  def toHttpHeader = HttpHeaderFormat.format(traceId, parentSpanId, spanId)
 }
 
 object SpanId {
@@ -51,14 +52,14 @@ object SpanId {
   }
 
   //for testing
-  def apply(spanId:Long): SpanId = SpanId(spanId.toString, spanId, spanId)
+  def apply(spanId: Long): SpanId = SpanId(spanId.toString, spanId, spanId)
 
-  def apply(originSpanId: String, parentSpanId: Long): SpanId =  {
+  def apply(originSpanId: String, parentSpanId: Long): SpanId = {
     val spanId = ProbabilisticlyUniqueLong()
     SpanId(originSpanId, parentSpanId, spanId)
   }
 
-  def fromHttpHeader(httpHeader:String) = Try {
+  def fromHttpHeader(httpHeader: String) = Try {
     val parts = httpHeader.split(';')
     val traceId = parts(0).split('=')(1)
     val parentId = parts(1).split('=')(1)
@@ -73,7 +74,7 @@ object SpanId {
  */
 trait Tracer extends Closeable {
 
-  val spanSupervisorRef:ActorRef
+  val spanSupervisorRef: ActorRef
 
   /**
    * Creates a new span if one is not present; or creates a child span for the existing Span if one is present
@@ -91,7 +92,7 @@ trait Tracer extends Closeable {
    * }}}
    * @param key an identifier for the span
    */
-  def startSpan(key:String) = {
+  def startSpan(key: String) = {
     SpanLocal.current match {
       case Some(parentSpanId) =>
         val subSpanId = SpanId(parentSpanId.traceId, parentSpanId.spanId)
@@ -115,7 +116,7 @@ trait Tracer extends Closeable {
    * }}}
    * @param key the identifier for the timestamp being captured
    */
-  def time(key:String) = withSpanId { spanId =>
+  def time(key: String) = withSpanId { spanId =>
     spanSupervisorRef ! SpanMessage(spanId, AddNote(LongNote(key, Some(DateTimeUtil.microTime))))
   }
 
@@ -133,27 +134,27 @@ trait Tracer extends Closeable {
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
-  def record(key:String, measure:Double):Unit = withSpanId { spanId =>
+  def record(key: String, measure: Double): Unit = withSpanId { spanId =>
     spanSupervisorRef ! SpanMessage(spanId, AddNote(DoubleNote(key, Option(measure))))
   }
 
   /**
-     * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
-     * will be added to the Span with the key and data element provided
-     * {{{
-     *   import com.comcast.money.core.Money._
-     *   def recordMe() {
-     *     ...
-     *     tracer.record("that", "thang")
-     *     ...
-     *  }
-     * }}}
-     * @param key the identifier for the data being captured
-     * @param measure the value being captured
-     * @param propogate propogate to children
-     */
-  def record(key:String, measure:Double, propogate: Boolean):Unit = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(DoubleNote(key, Option(measure)),propogate))
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * will be added to the Span with the key and data element provided
+   * {{{
+   *   import com.comcast.money.core.Money._
+   *   def recordMe() {
+   *     ...
+   *     tracer.record("that", "thang")
+   *     ...
+   *  }
+   * }}}
+   * @param key the identifier for the data being captured
+   * @param measure the value being captured
+   * @param propogate propogate to children
+   */
+  def record(key: String, measure: Double, propogate: Boolean): Unit = withSpanId { spanId =>
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(DoubleNote(key, Option(measure)), propogate))
   }
 
   /**
@@ -170,28 +171,28 @@ trait Tracer extends Closeable {
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
-  def record(key:String, measure:String):Unit = withSpanId { spanId =>
+  def record(key: String, measure: String): Unit = withSpanId { spanId =>
     spanSupervisorRef ! SpanMessage(spanId, AddNote(StringNote(key, Option(measure))))
   }
 
   /**
-    * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
-    * will be added to the Span with the key and data element provided
-    * {{{
-    *   import com.comcast.money.core.Money._
-    *   def recordMe() {
-    *     ...
-    *     tracer.record("that", "thang")
-    *     ...
-    *  }
-    * }}}
-    * @param key the identifier for the data being captured
-    * @param measure the value being captured
-    * @param propogate propogate to children
-    */
-   def record(key:String, measure:String, propogate: Boolean):Unit = withSpanId { spanId =>
-     spanSupervisorRef ! SpanMessage(spanId, AddNote(StringNote(key, Option(measure)), propogate))
-   }
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * will be added to the Span with the key and data element provided
+   * {{{
+   *   import com.comcast.money.core.Money._
+   *   def recordMe() {
+   *     ...
+   *     tracer.record("that", "thang")
+   *     ...
+   *  }
+   * }}}
+   * @param key the identifier for the data being captured
+   * @param measure the value being captured
+   * @param propogate propogate to children
+   */
+  def record(key: String, measure: String, propogate: Boolean): Unit = withSpanId { spanId =>
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(StringNote(key, Option(measure)), propogate))
+  }
 
   /**
    * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
@@ -207,28 +208,28 @@ trait Tracer extends Closeable {
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
-  def record(key:String, measure:Long):Unit = withSpanId { spanId =>
+  def record(key: String, measure: Long): Unit = withSpanId { spanId =>
     spanSupervisorRef ! SpanMessage(spanId, AddNote(LongNote(key, Option(measure))))
   }
 
   /**
-     * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
-     * will be added to the Span with the key and data element provided
-     * {{{
-     *   import com.comcast.money.core.Money._
-     *   def recordMe() {
-     *     ...
-     *     tracer.record("that", "thang")
-     *     ...
-     *  }
-     * }}}
-     * @param key the identifier for the data being captured
-     * @param measure the value being captured
-     * @param propogate propogate to children
-     */
-    def record(key:String, measure:Long, propogate: Boolean):Unit = withSpanId { spanId =>
-      spanSupervisorRef ! SpanMessage(spanId, AddNote(LongNote(key, Option(measure)), propogate))
-    }
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * will be added to the Span with the key and data element provided
+   * {{{
+   *   import com.comcast.money.core.Money._
+   *   def recordMe() {
+   *     ...
+   *     tracer.record("that", "thang")
+   *     ...
+   *  }
+   * }}}
+   * @param key the identifier for the data being captured
+   * @param measure the value being captured
+   * @param propogate propogate to children
+   */
+  def record(key: String, measure: Long, propogate: Boolean): Unit = withSpanId { spanId =>
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(LongNote(key, Option(measure)), propogate))
+  }
 
   /**
    * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
@@ -244,7 +245,7 @@ trait Tracer extends Closeable {
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
-  def record(key:String, measure:Boolean):Unit = withSpanId { spanId =>
+  def record(key: String, measure: Boolean): Unit = withSpanId { spanId =>
     spanSupervisorRef ! SpanMessage(spanId, AddNote(BooleanNote(key, Option(measure))))
   }
 
@@ -263,7 +264,7 @@ trait Tracer extends Closeable {
    * @param measure the value being captured
    * @param propogate propogate to children
    */
-  def record(key:String, measure:Boolean, propogate: Boolean):Unit = withSpanId { spanId =>
+  def record(key: String, measure: Boolean, propogate: Boolean): Unit = withSpanId { spanId =>
     spanSupervisorRef ! SpanMessage(spanId, AddNote(BooleanNote(key, Option(measure)), propogate))
   }
 
@@ -280,7 +281,7 @@ trait Tracer extends Closeable {
    * }}}
    * @param note the [[com.comcast.money.core.Note]] to be added
    */
-  def record(note:Note[_]) = withSpanId { spanId =>
+  def record(note: Note[_]) = withSpanId { spanId =>
     spanSupervisorRef ! SpanMessage(spanId, AddNote(note))
   }
 
@@ -297,7 +298,7 @@ trait Tracer extends Closeable {
    * }}}
    * @param note the [[com.comcast.money.core.Note]] to be added
    */
-  def record(note:Note[_], propogate: Boolean) = withSpanId { spanId =>
+  def record(note: Note[_], propogate: Boolean) = withSpanId { spanId =>
     spanSupervisorRef ! SpanMessage(spanId, AddNote(note, propogate))
   }
 
@@ -316,7 +317,7 @@ trait Tracer extends Closeable {
    * }}}
    * @param result The result of the span, this will be Result.success or Result.failed
    */
-  def stopSpan(result:Note[Boolean] = Result.success) = withSpanId { spanId =>
+  def stopSpan(result: Note[Boolean] = Result.success) = withSpanId { spanId =>
     SpanLocal.pop()
     spanSupervisorRef ! SpanMessage(spanId, Stop(result, DateTimeUtil.microTime))
   }
@@ -337,12 +338,13 @@ trait Tracer extends Closeable {
    * }}}
    * @param key the identifier for the timer
    */
-  def startTimer(key:String) = withSpanId { spanId =>
+  def startTimer(key: String) = withSpanId { spanId =>
     spanSupervisorRef ! SpanMessage(spanId, StartTimer(key))
   }
 
   /**
-   * Stops the timer on the current Span for the key provided.  This method assumes that a timer was started for the key, ususally used
+   * Stops the timer on the current Span for the key provided.  This method assumes that a timer was started for the
+   * key, ususally used
    * in conjunction with `startTimer`
    * {{{
    * import com.comcast.money.core.Money._
@@ -358,18 +360,18 @@ trait Tracer extends Closeable {
    * }}}
    * @param key the identifier for the timer
    */
-  def stopTimer(key:String) = withSpanId { spanId =>
+  def stopTimer(key: String) = withSpanId { spanId =>
     spanSupervisorRef ! SpanMessage(spanId, StopTimer(key))
   }
 
   override def close() = stopSpan()
 
-  private def start(key:String, spanId:SpanId, parentSpanIdOpt: Option[SpanId]=None):Unit = {
+  private def start(key: String, spanId: SpanId, parentSpanIdOpt: Option[SpanId] = None): Unit = {
     SpanLocal.push(spanId)
-    spanSupervisorRef ! SpanMessage(spanId, Start(spanId, key, parentSpanId=parentSpanIdOpt))
+    spanSupervisorRef ! SpanMessage(spanId, Start(spanId, key, parentSpanId = parentSpanIdOpt))
   }
 
-  private def withSpanId(func:SpanId => Unit):Unit = {
+  private def withSpanId(func: SpanId => Unit): Unit = {
     SpanLocal.current.map(func)
   }
 }

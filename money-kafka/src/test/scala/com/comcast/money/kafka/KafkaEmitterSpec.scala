@@ -14,20 +14,26 @@ import org.scalatest.{BeforeAndAfterAll, Matchers, WordSpecLike}
 trait MockProducerMaker extends ProducerMaker {
 
   val mockProducer = mock(classOf[Producer[Array[Byte], Array[Byte]]])
-  def makeProducer(conf:Config):Producer[Array[Byte], Array[Byte]] = mockProducer
+
+  def makeProducer(conf: Config): Producer[Array[Byte], Array[Byte]] = mockProducer
 }
 
-class TestKafkaEmitter(conf:Config) extends KafkaEmitter(conf) {
+class TestKafkaEmitter(conf: Config) extends KafkaEmitter(conf) {
 
   var producerWasMade = false
   val mockProducer = mock(classOf[Producer[Array[Byte], Array[Byte]]])
-  override def makeProducer(conf:Config):Producer[Array[Byte], Array[Byte]] = {
+
+  override def makeProducer(conf: Config): Producer[Array[Byte], Array[Byte]] = {
     producerWasMade = true
     mockProducer
   }
 }
 
-class KafkaEmitterSpec extends TestKit(ActorSystem("test", core.Money.config.getConfig("money.akka"))) with WordSpecLike with Matchers with MockitoSugar with BeforeAndAfterAll {
+class KafkaEmitterSpec extends TestKit(ActorSystem("test", core.Money.config.getConfig("money.akka")))
+with WordSpecLike
+with Matchers
+with MockitoSugar
+with BeforeAndAfterAll {
 
   trait KafkaFixture {
     val testConfig = mock[Config]
@@ -36,7 +42,9 @@ class KafkaEmitterSpec extends TestKit(ActorSystem("test", core.Money.config.get
     val testEmitter = TestActorRef(Props(classOf[TestKafkaEmitter], testConfig))
     val underlyingActor = testEmitter.underlyingActor.asInstanceOf[TestKafkaEmitter]
     val testProducer = underlyingActor.mockProducer
-    val sampleData = core.Span(core.SpanId(1L), "key", "app", "host", 1L, true, 35L, Map("what" -> core.Note("what", 1L), "when" -> core.Note("when", 2L), "bob" -> core.Note("bob", "craig")))
+    val sampleData = core.Span(
+      core.SpanId(1L), "key", "app", "host", 1L, true, 35L,
+      Map("what" -> core.Note("what", 1L), "when" -> core.Note("when", 2L), "bob" -> core.Note("bob", "craig")))
   }
 
   override def afterAll() {
@@ -51,7 +59,7 @@ class KafkaEmitterSpec extends TestKit(ActorSystem("test", core.Money.config.get
       val span = EmitSpan(sampleData)
       testEmitter ! span
 
-      val captor = ArgumentCaptor.forClass(classOf[KeyedMessage[Array[Byte],Array[Byte]]])
+      val captor = ArgumentCaptor.forClass(classOf[KeyedMessage[Array[Byte], Array[Byte]]])
       verify(testProducer).send(captor.capture())
     }
   }

@@ -9,15 +9,14 @@ import com.comcast.money.internal.EmitterProtocol.EmitSpan
 import com.typesafe.config.Config
 import kafka.producer.{KeyedMessage, Producer, ProducerConfig}
 
-
 // We use the producer maker so that we can mock this out
 trait ProducerMaker {
-  def makeProducer(conf:Config):Producer[Array[Byte], Array[Byte]]
+  def makeProducer(conf: Config): Producer[Array[Byte], Array[Byte]]
 }
 
 trait ConfigDrivenProducerMaker extends ProducerMaker {
 
-  def makeProducer(conf:Config):Producer[Array[Byte], Array[Byte]] = {
+  def makeProducer(conf: Config): Producer[Array[Byte], Array[Byte]] = {
 
     val props = new Properties()
 

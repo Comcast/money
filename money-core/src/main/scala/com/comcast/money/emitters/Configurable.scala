@@ -5,5 +5,4 @@ import com.typesafe.config.Config
 trait Configurable {
 
   val conf: Config
-
 }

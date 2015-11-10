@@ -38,7 +38,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
       Given("A Start")
       span ! Start(SpanId(1L), "happy span", parentSpanId = Some(SpanId(2L)))
       Then("it should sent a PropagateNotesReq to its parent")
-      expectMsg(SpanMessage(SpanId(2L),PropagateNotesRequest(span)))
+      expectMsg(SpanMessage(SpanId(2L), PropagateNotesRequest(span)))
 
       When("it receives a PropagateNotesReq ")
       val notesPropogationProbe = TestProbe()
@@ -47,16 +47,24 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
       span ! PropagateNotesRequest(notesPropogationProbe.ref)
 
       Then("it should send its propogate-able notes")
-      notesPropogationProbe.expectMsg(PropagateNotesResponse(Map("where"->NoteWrapper(Note("where", "Philly", 2L),true))))
+      notesPropogationProbe
+        .expectMsg(PropagateNotesResponse(Map("where" -> NoteWrapper(Note("where", "Philly", 2L), true))))
 
       When("it receives timing data messages and finally a Stop")
-      span ! PropagateNotesResponse(Map("huh"->NoteWrapper(Note("huh", "Baltimore", 2L)), "whowhat"->NoteWrapper(Note("whowhat", "Wilmington", 2L))))
+      span ! PropagateNotesResponse(
+        Map(
+          "huh" -> NoteWrapper(Note("huh", "Baltimore", 2L)),
+          "whowhat" -> NoteWrapper(Note("whowhat", "Wilmington", 2L))))
 
       span ! Stop(Note("span-success", true, 3L), 3L)
 
       Then("it should emit a span record")
-      expectMsg(EmitSpan(Span(SpanId(1L), "happy span", Money.applicationName, Money.hostName, 1L, true, 2L, Map("whowhat"->Note("whowhat", "Wilmington", 2L), "huh" -> Note("huh", "Baltimore", 2L), "where"->Note("where", "Philly", 2L),"who" -> Note("who", "tom", 2L)))))
-
+      expectMsg(
+        EmitSpan(
+          Span(
+            SpanId(1L), "happy span", Money.applicationName, Money.hostName, 1L, true, 2L, Map(
+              "whowhat" -> Note("whowhat", "Wilmington", 2L), "huh" -> Note("huh", "Baltimore", 2L),
+              "where" -> Note("where", "Philly", 2L), "who" -> Note("who", "tom", 2L)))))
     }
 
     "accept data after a stop" in {
@@ -74,11 +82,16 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
       span ! PropagateNotesRequest(notesPropogationProbe.ref)
 
       Then("it should send its propogate-able notes")
-      notesPropogationProbe.expectMsg(PropagateNotesResponse(Map("where"->NoteWrapper(Note("where", "Philly", 2L),true))))
+      notesPropogationProbe
+        .expectMsg(PropagateNotesResponse(Map("where" -> NoteWrapper(Note("where", "Philly", 2L), true))))
 
       Then("after a second it should Emit")
       Thread.sleep(1100) //force TimeOut Event while Stopped
-      expectMsg(EmitSpan(Span(SpanId(1L), "happy span", Money.applicationName, Money.hostName, 1L, true, 1L, Map("where"->Note("where", "Philly", 2L), "who" -> Note("who", "tom", 3L)))))
+      expectMsg(
+        EmitSpan(
+          Span(
+            SpanId(1L), "happy span", Money.applicationName, Money.hostName, 1L, true, 1L,
+            Map("where" -> Note("where", "Philly", 2L), "who" -> Note("who", "tom", 3L)))))
 
       Then("it should ignore further messages")
       span ! AddNote(Note("what", "monkey", 3L))
@@ -141,7 +154,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
       ctx.notes should contain key "timer-test"
 
       And("the note for the timer contains the difference between the start and end time")
-      ctx.notes should contain("timer-test",NoteWrapper( Note("timer-test", 3L, 1)))
+      ctx.notes should contain("timer-test", NoteWrapper(Note("timer-test", 3L, 1)))
 
       println(ctx.notes)
     }

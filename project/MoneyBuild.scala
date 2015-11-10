@@ -194,7 +194,7 @@ object MoneyBuild extends Build {
       )
       .dependsOn(moneyCore)
 
-  def projectSettings = basicSettings ++ site.includeScaladoc() ++ Seq(
+  def projectSettings = basicSettings ++ Seq(
     ScoverageKeys.coverageHighlighting := true,
     ScoverageKeys.coverageMinimum := 90,
     ScoverageKeys.coverageFailOnMinimum := true
@@ -204,7 +204,7 @@ object MoneyBuild extends Build {
     javaOptions in Test <++= weaverOptions in Aspectj // adds javaagent:aspectjweaver to java options, including test
   )
 
-  def basicSettings =  Defaults.itSettings ++ site.settings ++ Seq(
+  def basicSettings =  Defaults.itSettings ++ Seq(
     organization := "com.comcast.money",
     version := "0.8.8-SNAPSHOT",
     crossScalaVersions := Seq("2.10.4", "2.11.5"),

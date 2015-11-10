@@ -13,11 +13,11 @@ object LogRecord {
 
   def clear() = messages.clear()
 
-  def add(log:String, message:String) = messages.addBinding(log, message)
+  def add(log: String, message: String) = messages.addBinding(log, message)
 
-  def contains(log:String)(cond:String => Boolean) = messages.entryExists(log, cond)
+  def contains(log: String)(cond: String => Boolean) = messages.entryExists(log, cond)
 
-  def log(name:String):Set[String] = messages.getOrElse(name, mutable.Set.empty)
+  def log(name: String): Set[String] = messages.getOrElse(name, mutable.Set.empty)
 }
 
 /**

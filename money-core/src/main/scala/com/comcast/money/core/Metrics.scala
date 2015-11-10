@@ -8,14 +8,14 @@ import com.comcast.money.internal.EmitterProtocol.{EmitMetricLong, EmitMetricDou
  */
 trait Metrics {
 
-  val emitterRef:ActorRef
+  val emitterRef: ActorRef
 
   /**
    * Emits an individual metric.  This does not consider any trace context, but simply emits the metric value
    * @param path The path for the metric, or name for the metric
    * @param value The value for the metric being emitted
    */
-  def sendMetric(path: String, value: Double):Unit = {
+  def sendMetric(path: String, value: Double): Unit = {
     emitterRef ! EmitMetricDouble(path, value)
   }
 

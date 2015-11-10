@@ -15,10 +15,12 @@ object SpanLocal {
   private[this] val threadLocalCtx = new ThreadLocal[SpanStack]
 
   private lazy val mdcSupport = new MDCSupport()
+
   import mdcSupport._
 
   /**
-   * @return Some([[com.comcast.money.core.SpanId]] that is the current span id for this thread; or [[scala.None]] if there is no span for this thread
+   * @return Some([[com.comcast.money.core.SpanId]] that is the current span id for this thread; or [[scala.None]] if
+   *         there is no span for this thread
    */
   def current: Option[SpanId] = {
     Option(threadLocalCtx.get).flatMap {
@@ -27,7 +29,8 @@ object SpanLocal {
   }
 
   /**
-   * Appends the [[com.comcast.money.core.SpanId]] provided to the thread's stack.  The new SpanId is considered "active", and will also
+   * Appends the [[com.comcast.money.core.SpanId]] provided to the thread's stack.  The new SpanId is considered
+   * "active", and will also
    * be the new current SpanId used in future span requests
    *
    * @param spanId The [[com.comcast.money.core.SpanId]] that will be the new span
@@ -48,7 +51,8 @@ object SpanLocal {
   /**
    * Removes the span id from the current thread.  If there were previous span ids (parent span ids),
    * the current span id will be set to the parent span id
-   * @return Some[[com.comcast.money.core.SpanId]] containing the span id that was removed from the thread; or [[scala.None]] if there is no
+   * @return Some[[com.comcast.money.core.SpanId]] containing the span id that was removed from the thread; or
+   *         [[scala.None]] if there is no
    *         current [[com.comcast.money.core.SpanId]] for the thread
    */
   def pop(): Option[SpanId] = {

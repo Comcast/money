@@ -16,7 +16,8 @@ object TraceFriendlyThreadPoolExecutor {
    * @return a bounded threadpool
    */
   def newFixedThreadPool(nThreads: Int): ExecutorService = {
-    new TraceFriendlyThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
+    new TraceFriendlyThreadPoolExecutor(
+      nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
   }
 
   /**
@@ -32,38 +33,43 @@ object TraceFriendlyThreadPoolExecutor {
  * This class must be used as the Executor when supporting Tracing in an application.  Ensures that the
  * trace context is propagated from the calling thread to the worker thread in the pool
  */
-class TraceFriendlyThreadPoolExecutor(corePoolSize: Int, maximumPoolSize: Int, keepAliveTime: Long, unit: TimeUnit, workQueue: BlockingQueue[Runnable])
+class TraceFriendlyThreadPoolExecutor(corePoolSize: Int, maximumPoolSize: Int, keepAliveTime: Long, unit: TimeUnit,
+  workQueue: BlockingQueue[Runnable])
   extends ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue)
   with TraceLogging {
 
   lazy val mdcSupport = new MDCSupport()
 
-  def this(corePoolSize: Int, maximumPoolSize: Int, keepAliveTime: Long, unit: TimeUnit, workQueue: BlockingQueue[Runnable], threadFactory:ThreadFactory, rejectedExecutionHandler: RejectedExecutionHandler) = {
+  def this(corePoolSize: Int, maximumPoolSize: Int, keepAliveTime: Long, unit: TimeUnit,
+    workQueue: BlockingQueue[Runnable], threadFactory: ThreadFactory,
+    rejectedExecutionHandler: RejectedExecutionHandler) = {
     this(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue)
     setThreadFactory(threadFactory)
     setRejectedExecutionHandler(rejectedExecutionHandler)
   }
 
-  override def execute(command:Runnable) = {
+  override def execute(command: Runnable) = {
     val inheritedTraceId = SpanLocal.current
     val submittingThreadsContext = MDC.getCopyOfContextMap
 
-    super.execute(new Runnable {
-      override def run = {
-        mdcSupport.propogateMDC(Option(submittingThreadsContext))
-        SpanLocal.clear()
-        inheritedTraceId.map(SpanLocal.push)
-        try {
-          command.run()
-        } catch {
-          case t:Throwable =>
-            logException(t)
-            throw t
-        } finally {
+    super.execute(
+      new Runnable {
+        override def run = {
+          mdcSupport.propogateMDC(Option(submittingThreadsContext))
           SpanLocal.clear()
-          MDC.clear()
+          inheritedTraceId.map(SpanLocal.push)
+          try {
+            command.run()
+          } catch {
+            case t: Throwable =>
+              logException(t)
+              throw t
+          } finally {
+            SpanLocal.clear()
+            MDC.clear()
+          }
         }
       }
-    })
+    )
   }
 }

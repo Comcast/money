@@ -16,7 +16,6 @@ class SpanSupervisorSpec extends AkkaTestJawn with WordSpecLike {
   val testFingerprint = SpanId(1L)
   val testMessage = "MSG TEST"
 
-
   "A SpanSupervisor" when {
     val spanSupervisor = TestActorRef(Props(new SpanSupervisor(testEmitter) with TestProbeMaker))
 
