@@ -97,7 +97,7 @@ object SpanFSM {
   case object Empty extends Data
 
   case class SpanContext(
-    spanId: SpanId,
+      spanId: SpanId,
       spanName: String,
       startTime: Long = DateTimeUtil.microTime,
       notes: mutable.Map[String, NoteWrapper] = mutable.Map.empty,
