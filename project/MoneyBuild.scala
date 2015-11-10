@@ -1,10 +1,13 @@
 import com.typesafe.sbt.SbtAspectj.AspectjKeys._
 import com.typesafe.sbt.SbtAspectj._
-import com.typesafe.sbt.SbtSite._
 import sbt.Keys._
 import sbt._
 import sbtavro.SbtAvro._
 import scoverage.ScoverageSbtPlugin._
+import de.heikoseeberger.sbtheader.HeaderPlugin
+import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
+import de.heikoseeberger.sbtheader.HeaderKey._
+import de.heikoseeberger.sbtheader.license.Apache2_0
 
 import scala.sys.SystemProperties
 
@@ -248,8 +251,13 @@ object MoneyBuild extends Build {
       val x = links.collect { case Some(d) => d }.toMap
       println("links: " + x)
       x
-    }
-  )
+    },
+    headers := Map(
+      "scala" -> Apache2_0("2012-2015", "Comcast Cable Communications Management, LLC"),
+      "java" -> Apache2_0("2012-2015", "Comcast Cable Communications Management, LLC"),
+      "conf" -> Apache2_0("2012-2015", "Comcast Cable Communications Management, LLC", "#")
+    )
+  ) ++ HeaderPlugin.settingsFor(IntegrationTest) ++ AutomateHeaderPlugin.automateFor(Compile, Test, IntegrationTest)
 
   object Dependencies {
     val akkaVersion = "2.2.3"

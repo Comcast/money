@@ -14,3 +14,5 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-site" % "0.8.1")
 
 addSbtPlugin("com.cavorite" % "sbt-avro" % "0.3.2")
 
+addSbtPlugin("de.heikoseeberger" % "sbt-header" % "1.5.0")
+
