@@ -18,12 +18,12 @@ package com.comcast.money.core
 
 import java.net.InetAddress
 
-import akka.actor.{ActorRef, ActorSystem}
+import akka.actor.{ ActorRef, ActorSystem }
 import com.comcast.money.internal._
-import com.typesafe.config.{Config, ConfigFactory}
-import org.slf4j.{MDC, LoggerFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
+import org.slf4j.{ MDC, LoggerFactory }
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 object Money {
 
@@ -76,17 +76,18 @@ object Money {
   }
 
   private def discoverEnvVariable(variableName: String): Option[String] = Try(
-    defaultConfig.getString(variableName)) match {
+    defaultConfig.getString(variableName)
+  ) match {
 
-    case Success(varName) => sys.env.get(varName) match {
-      case Some(env) => Some(env)
-      case None => sys.props.get(varName)
+      case Success(varName) => sys.env.get(varName) match {
+        case Some(env) => Some(env)
+        case None => sys.props.get(varName)
+      }
+
+      case Failure(e) =>
+        logger.warn(s"$variableName value not set.")
+        None
     }
-
-    case Failure(e) =>
-      logger.warn(s"$variableName value not set.")
-      None
-  }
 
   private[money] case class MoneyFactory(config: Config) {
 

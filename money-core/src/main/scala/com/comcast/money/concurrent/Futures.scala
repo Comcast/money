@@ -18,16 +18,16 @@ package com.comcast.money.concurrent
 
 import akka.actor.ActorRef
 import com.comcast.money.core.Money.tracer
-import com.comcast.money.core.{Money, Result, SpanId}
+import com.comcast.money.core.{ Money, Result, SpanId }
 import com.comcast.money.internal.SpanFSMProtocol.Start
 import com.comcast.money.internal.SpanLocal
 import com.comcast.money.internal.SpanSupervisorProtocol.SpanMessage
 import com.comcast.money.logging.TraceLogging
 
 import scala.concurrent.duration.Duration
-import scala.concurrent.{CanAwait, ExecutionContext, Future}
+import scala.concurrent.{ CanAwait, ExecutionContext, Future }
 import scala.reflect.ClassTag
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 object Futures {
 
@@ -54,7 +54,9 @@ object Futures {
         spanSupervisorRef ! SpanMessage(spanId, Start(spanId, name))
         SpanLocal.push(spanId)
         f
-      }), ec)
+      }
+    ), ec
+    )
   }
 
   /**
@@ -74,7 +76,9 @@ object Futures {
           {
             SpanLocal.push(spanId)
             f
-          }), ec)
+          }
+        ), ec
+        )
       case None =>
         Future(f)
     }
@@ -178,7 +182,7 @@ object TracedFuture {
  * @tparam T The return type of the main future
  */
 class TracedFuture[T](spanId: SpanId, wrapped: Future[T], executor: ExecutionContext)
-  extends Future[T] with TraceLogging {
+    extends Future[T] with TraceLogging {
   self =>
 
   // This is critical, we have to tie an on complete every time we construct a new Traced Future
@@ -224,7 +228,8 @@ class TracedFuture[T](spanId: SpanId, wrapped: Future[T], executor: ExecutionCon
 
   override def transform[S](s: T => S, f: Throwable => Throwable)(implicit executor: ExecutionContext): Future[S] = {
     new TracedFuture[S](
-      spanId, wrapped.transform(TracedFuture.wrapMap(spanId, s), TracedFuture.wrapFailure(spanId, f)), executor)
+      spanId, wrapped.transform(TracedFuture.wrapMap(spanId, s), TracedFuture.wrapFailure(spanId, f)), executor
+    )
   }
 
   override def foreach[U](f: T => U)(implicit executor: ExecutionContext): Unit = {
@@ -233,8 +238,7 @@ class TracedFuture[T](spanId: SpanId, wrapped: Future[T], executor: ExecutionCon
     }
   }
 
-  override def onFailure[U](callback: PartialFunction[Throwable, U])
-    (implicit executor: ExecutionContext): Unit = onComplete {
+  override def onFailure[U](callback: PartialFunction[Throwable, U])(implicit executor: ExecutionContext): Unit = onComplete {
     case Failure(t) =>
       callback.applyOrElse[Throwable, Any](t, Predef.conforms[Throwable]) // Exploiting the cached function to avoid
     // MatchError
@@ -258,16 +262,17 @@ class TracedFuture[T](spanId: SpanId, wrapped: Future[T], executor: ExecutionCon
 
   override def collect[S](pf: PartialFunction[T, S])(implicit executor: ExecutionContext): Future[S] =
     map {
-      r => pf.applyOrElse(
-        r, (t: T) => throw new NoSuchElementException("Future.collect partial function is not defined at: " + t))
+      r =>
+        pf.applyOrElse(
+          r, (t: T) => throw new NoSuchElementException("Future.collect partial function is not defined at: " + t)
+        )
     }
 
   override def recover[U >: T](pf: PartialFunction[Throwable, U])(implicit executor: ExecutionContext): Future[U] = {
     new TracedFuture[U](spanId, wrapped.recover(TracedFuture.wrapPartialFunction(spanId, pf)), executor)
   }
 
-  override def recoverWith[U >: T](pf: PartialFunction[Throwable, Future[U]])
-    (implicit executor: ExecutionContext): Future[U] = {
+  override def recoverWith[U >: T](pf: PartialFunction[Throwable, Future[U]])(implicit executor: ExecutionContext): Future[U] = {
     new TracedFuture[U](spanId, wrapped.recoverWith(TracedFuture.wrapPartialFunction(spanId, pf)), executor)
   }
 

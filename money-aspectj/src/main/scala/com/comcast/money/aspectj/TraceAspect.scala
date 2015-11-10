@@ -16,14 +16,14 @@
 
 package com.comcast.money.aspectj
 
-import com.comcast.money.annotations.{Timed, Traced}
+import com.comcast.money.annotations.{ Timed, Traced }
 import com.comcast.money.core._
 import com.comcast.money.internal.MDCSupport
 import com.comcast.money.logging.TraceLogging
 import com.comcast.money.reflect.Reflections
-import org.aspectj.lang.annotation.{Around, Aspect, Pointcut}
+import org.aspectj.lang.annotation.{ Around, Aspect, Pointcut }
 import org.aspectj.lang.reflect.MethodSignature
-import org.aspectj.lang.{JoinPoint, ProceedingJoinPoint}
+import org.aspectj.lang.{ JoinPoint, ProceedingJoinPoint }
 
 @Aspect
 class TraceAspect extends Reflections with TraceLogging {

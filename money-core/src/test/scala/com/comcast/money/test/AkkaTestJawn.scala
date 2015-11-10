@@ -17,7 +17,7 @@
 package com.comcast.money.test
 
 import akka.actor._
-import akka.testkit.{TestActorRef, TestKit, TestProbe}
+import akka.testkit.{ TestActorRef, TestKit, TestProbe }
 import com.comcast.money.core.Money
 import com.comcast.money.emitters.LogRecord
 import com.comcast.money.akka.ActorMaker
@@ -26,7 +26,7 @@ import org.scalatest._
 import scala.concurrent.duration._
 
 class AkkaTestJawn extends TestKit(ActorSystem("money", Money.config.getConfig("money")))
-with Suite with BeforeAndAfterAll with Matchers {
+    with Suite with BeforeAndAfterAll with Matchers {
 
   override def afterAll() {
     TestKit.shutdownActorSystem(system)
@@ -79,12 +79,14 @@ with Suite with BeforeAndAfterAll with Matchers {
       LogRecord.contains("log")(_.contains(contains)), wait, 100 milliseconds,
       s"Expected log message containing string $contains not found after $wait; messages=${
         LogRecord.log("log")
-      }")
+      }"
+    )
   }
 
   def expectLogMessageContainingStrings(strings: Seq[String], wait: FiniteDuration = 2.seconds) {
     awaitCond(
       LogRecord.contains("log")(s => strings.forall(s.contains)), wait, 100 milliseconds,
-      s"Expected log message containing $strings not found after $wait; messages=${LogRecord.log("log")}")
+      s"Expected log message containing $strings not found after $wait; messages=${LogRecord.log("log")}"
+    )
   }
 }

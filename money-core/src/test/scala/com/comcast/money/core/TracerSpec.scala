@@ -17,7 +17,7 @@
 package com.comcast.money.core
 
 import akka.testkit.TestProbe
-import com.comcast.money.internal.EmitterProtocol.{EmitMetricLong, EmitMetricDouble}
+import com.comcast.money.internal.EmitterProtocol.{ EmitMetricLong, EmitMetricDouble }
 import com.comcast.money.internal.SpanFSMProtocol._
 import com.comcast.money.internal.SpanLocal
 import com.comcast.money.internal.SpanSupervisorProtocol.SpanMessage
@@ -26,7 +26,7 @@ import com.comcast.money.util.DateTimeUtil
 import org.scalatest._
 
 class TracerSpec
-  extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen with BeforeAndAfterEach with OneInstancePerTest {
+    extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen with BeforeAndAfterEach with OneInstancePerTest {
 
   override def beforeEach() {
     SpanLocal.clear()

@@ -27,4 +27,4 @@ case class Span(
   success: Boolean,
   duration: Long,
   notes: Map[String, Note[_]]
-  )
+)

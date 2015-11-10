@@ -22,11 +22,11 @@ import akka.testkit._
 import akka.util.Timeout
 import com.comcast.money.core._
 import com.comcast.money.internal.EmitterProtocol.EmitSpan
-import com.comcast.money.internal.SpanFSM.{NoteWrapper, SpanContext}
+import com.comcast.money.internal.SpanFSM.{ NoteWrapper, SpanContext }
 import com.comcast.money.internal.SpanSupervisorProtocol.SpanMessage
 import com.comcast.money.test.AkkaTestJawn
 import com.comcast.money.util.DateTimeUtil
-import org.scalatest.{BeforeAndAfter, GivenWhenThen, WordSpecLike}
+import org.scalatest.{ BeforeAndAfter, GivenWhenThen, WordSpecLike }
 
 import scala.collection.mutable
 import scala.concurrent.Await
@@ -70,7 +70,9 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
       span ! PropagateNotesResponse(
         Map(
           "huh" -> NoteWrapper(Note("huh", "Baltimore", 2L)),
-          "whowhat" -> NoteWrapper(Note("whowhat", "Wilmington", 2L))))
+          "whowhat" -> NoteWrapper(Note("whowhat", "Wilmington", 2L))
+        )
+      )
 
       span ! Stop(Note("span-success", true, 3L), 3L)
 
@@ -80,7 +82,11 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
           Span(
             SpanId(1L), "happy span", Money.applicationName, Money.hostName, 1L, true, 2L, Map(
               "whowhat" -> Note("whowhat", "Wilmington", 2L), "huh" -> Note("huh", "Baltimore", 2L),
-              "where" -> Note("where", "Philly", 2L), "who" -> Note("who", "tom", 2L)))))
+              "where" -> Note("where", "Philly", 2L), "who" -> Note("who", "tom", 2L)
+            )
+          )
+        )
+      )
     }
 
     "accept data after a stop" in {
@@ -107,7 +113,10 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
         EmitSpan(
           Span(
             SpanId(1L), "happy span", Money.applicationName, Money.hostName, 1L, true, 1L,
-            Map("where" -> Note("where", "Philly", 2L), "who" -> Note("who", "tom", 3L)))))
+            Map("where" -> Note("where", "Philly", 2L), "who" -> Note("who", "tom", 3L))
+          )
+        )
+      )
 
       Then("it should ignore further messages")
       span ! AddNote(Note("what", "monkey", 3L))

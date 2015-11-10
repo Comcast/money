@@ -19,7 +19,7 @@ package com.comcast.money.internal
 import akka.actor._
 import com.comcast.money.core.SpanId
 import com.comcast.money.akka.ActorMaker
-import com.comcast.money.internal.SpanFSMProtocol.{PropagateNotesRequest, SpanCommand, Start}
+import com.comcast.money.internal.SpanFSMProtocol.{ PropagateNotesRequest, SpanCommand, Start }
 
 object SpanSupervisorProtocol {
 
@@ -34,7 +34,7 @@ object SpanSupervisor {
 }
 
 class SpanSupervisor(emitterSupervisorRef: ActorRef) extends Actor
-with ActorMaker with ActorLogging {
+    with ActorMaker with ActorLogging {
 
   import SpanSupervisorProtocol._
 

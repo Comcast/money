@@ -17,20 +17,19 @@
 package com.comcast.money.http.client
 
 import com.comcast.money.annotations.Traced
-import com.comcast.money.core.{Money, Tracer}
+import com.comcast.money.core.{ Money, Tracer }
 import com.comcast.money.internal.SpanLocal
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.HttpUriRequest
 import org.aspectj.lang.ProceedingJoinPoint
-import org.aspectj.lang.annotation.{Around, Aspect, Before, Pointcut}
-
+import org.aspectj.lang.annotation.{ Around, Aspect, Before, Pointcut }
 
 @Aspect
 class HttpTraceAspect {
 
   import HttpTraceConfig._
 
-  def tracer:Tracer = Money.tracer
+  def tracer: Tracer = Money.tracer
 
   @Pointcut("execution(@com.comcast.money.annotations.Traced * *(..)) && @annotation(traceAnnotation)")
   def traced(traceAnnotation: Traced) = {}
@@ -60,8 +59,7 @@ class HttpTraceAspect {
       val httpResponse: AnyRef = joinPoint.proceed
       statusCode = getStatusCode(httpResponse)
       httpResponse
-    }
-    finally {
+    } finally {
       tracer.record(HttpResponseCodeTraceKey, statusCode)
       endHttpExecute(traceAnnotation.value)
     }
@@ -71,20 +69,18 @@ class HttpTraceAspect {
   def adviseReceiveEntityBody(joinPoint: ProceedingJoinPoint, traceAnnotation: Traced): AnyRef = {
     try {
       joinPoint.proceed
-    }
-    catch {
+    } catch {
       case ex: Throwable => {
         tracer.record(HttpResponseCodeTraceKey, 0)
         throw ex
       }
-    }
-    finally {
+    } finally {
       endConsumeHttpEntity(traceAnnotation.value)
     }
   }
 
   @Before(value = "httpClientExecuteToResponseHandler(httpRequest) && cflow(traced(traceAnnotation))", argNames = "httpRequest, traceAnnotation")
-  def adviseHttpClientExecuteToResponseHandler(httpRequest:HttpUriRequest, traceAnnotation: Traced) {
+  def adviseHttpClientExecuteToResponseHandler(httpRequest: HttpUriRequest, traceAnnotation: Traced) {
     beginHttpExecute(traceAnnotation.value)
     addTraceHeader(httpRequest)
   }
@@ -97,8 +93,7 @@ class HttpTraceAspect {
       tracer.record(HttpResponseCodeTraceKey, getStatusCode(httpResponse))
       statusCodeIsNotSet = false
       joinPoint.proceed
-    }
-    catch {
+    } catch {
       case ex: Throwable => {
         if (statusCodeIsNotSet) {
           tracer.record(HttpResponseCodeTraceKey, 0)
@@ -134,9 +129,9 @@ class HttpTraceAspect {
     statusCode
   }
 
-  private def addTraceHeader(httpRequest:HttpUriRequest) {
+  private def addTraceHeader(httpRequest: HttpUriRequest) {
 
-    if(httpRequest != null) {
+    if (httpRequest != null) {
       SpanLocal.current.foreach {
         span =>
           httpRequest.setHeader("X-MoneyTrace", span.toHttpHeader)

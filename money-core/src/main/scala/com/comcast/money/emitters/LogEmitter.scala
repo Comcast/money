@@ -16,7 +16,7 @@
 
 package com.comcast.money.emitters
 
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.{ Actor, ActorLogging, Props }
 import com.comcast.money.core._
 import com.typesafe.config.Config
 import org.slf4j.MDC

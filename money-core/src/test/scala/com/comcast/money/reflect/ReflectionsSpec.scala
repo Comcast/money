@@ -22,7 +22,7 @@ import com.sun.istack.internal.NotNull
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{Matchers, OneInstancePerTest, WordSpec}
+import org.scalatest.{ Matchers, OneInstancePerTest, WordSpec }
 
 class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneInstancePerTest {
 
@@ -36,7 +36,8 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
   val clazz = samples.getClass
   val methodWithoutArguments = clazz.getMethod("methodWithoutArguments")
   val methodWithTracedData = clazz.getMethod(
-    "methodWithTracedData", classOf[String], classOf[Long], classOf[Double], classOf[Boolean], classOf[Double])
+    "methodWithTracedData", classOf[String], classOf[Long], classOf[Double], classOf[Boolean], classOf[Double]
+  )
   val methodWithMultipleAnnotations = clazz.getMethod("methodWithMultipleAnnotations", classOf[String])
   val methodWithNoTracedDataArguments = clazz.getMethod("methodWithNoTracedDataArguments", classOf[String])
   val methodWithTracedDataPropagate = clazz.getMethod("methodWithTracedDataPropagate", classOf[String])
@@ -254,7 +255,7 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
     def methodWithTracedData(@TracedData("STRING") str: String, @TracedData("LONG") lng: Long,
       @TracedData("DOUBLE") dbl: Double, @TracedData("BOOLEAN") bln: Boolean, nn: Double): Unit = {}
 
-    def methodWithMultipleAnnotations(@TracedData("STRING") @NotNull str: String): Unit = {}
+    def methodWithMultipleAnnotations(@TracedData("STRING")@NotNull str: String): Unit = {}
 
     def methodWithNoTracedDataArguments(@NotNull str: String): Unit = {}
 

@@ -16,7 +16,7 @@
 
 package com.comcast.money.emitters
 
-import org.scalatest.{BeforeAndAfter, Matchers, OneInstancePerTest, WordSpec}
+import org.scalatest.{ BeforeAndAfter, Matchers, OneInstancePerTest, WordSpec }
 
 class LogRecordSpec extends WordSpec with Matchers with OneInstancePerTest with BeforeAndAfter {
 

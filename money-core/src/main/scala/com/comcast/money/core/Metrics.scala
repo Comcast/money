@@ -17,7 +17,7 @@
 package com.comcast.money.core
 
 import _root_.akka.actor.ActorRef
-import com.comcast.money.internal.EmitterProtocol.{EmitMetricLong, EmitMetricDouble}
+import com.comcast.money.internal.EmitterProtocol.{ EmitMetricLong, EmitMetricDouble }
 
 /**
  * API to be used for emitting raw metrics

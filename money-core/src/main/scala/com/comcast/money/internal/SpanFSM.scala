@@ -56,10 +56,12 @@ object SpanFSMProtocol {
 object SpanFSM {
 
   lazy val spanTimeout = FiniteDuration(
-    Money.config.getDuration("money.span-timeout", TimeUnit.MILLISECONDS), MILLISECONDS)
+    Money.config.getDuration("money.span-timeout", TimeUnit.MILLISECONDS), MILLISECONDS
+  )
 
   lazy val stoppedSpanTimeout = FiniteDuration(
-    Money.config.getDuration("money.stopped-span-timeout", TimeUnit.MILLISECONDS), MILLISECONDS)
+    Money.config.getDuration("money.stopped-span-timeout", TimeUnit.MILLISECONDS), MILLISECONDS
+  )
 
   // span support
   trait Timings {
@@ -94,11 +96,13 @@ object SpanFSM {
 
   case object Empty extends Data
 
-  case class SpanContext(spanId: SpanId,
-    spanName: String,
-    startTime: Long = DateTimeUtil.microTime,
-    notes: mutable.Map[String, NoteWrapper] = mutable.Map.empty,
-    timers: mutable.Map[String, Long] = mutable.Map.empty) extends Timings with EmitData with Data {
+  case class SpanContext(
+    spanId: SpanId,
+      spanName: String,
+      startTime: Long = DateTimeUtil.microTime,
+      notes: mutable.Map[String, NoteWrapper] = mutable.Map.empty,
+      timers: mutable.Map[String, Long] = mutable.Map.empty
+  ) extends Timings with EmitData with Data {
 
     private var spanSuccess = true
     private var spanDuration = 0L
@@ -123,7 +127,7 @@ import com.comcast.money.internal.SpanFSM._
 
 class SpanFSM(val emitterSupervisor: ActorRef, val openSpanTimeout: FiniteDuration,
   val stoppedSpanTimeout: FiniteDuration)
-  extends Actor with FSM[State, Data] with ActorLogging {
+    extends Actor with FSM[State, Data] with ActorLogging {
 
   def this(emitterSupervisor: ActorRef) = this(emitterSupervisor, 1 minute, 1 second)
 
@@ -253,6 +257,7 @@ class SpanFSM(val emitterSupervisor: ActorRef, val openSpanTimeout: FiniteDurati
   def createSpan(spanData: SpanContext): Span = {
     Span(
       spanData.spanId, spanData.spanName, Money.applicationName, Money.hostName, spanData.startTime, spanData.success,
-      spanData.duration, spanData.notes.map(x => x._1 -> x._2.note).toMap)
+      spanData.duration, spanData.notes.map(x => x._1 -> x._2.note).toMap
+    )
   }
 }

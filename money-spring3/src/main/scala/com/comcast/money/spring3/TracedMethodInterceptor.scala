@@ -24,19 +24,19 @@ import com.comcast.money.internal.MDCSupport
 import com.comcast.money.logging.TraceLogging
 import com.comcast.money.reflect.Reflections
 import org.aopalliance.aop.Advice
-import org.aopalliance.intercept.{MethodInterceptor, MethodInvocation}
+import org.aopalliance.intercept.{ MethodInterceptor, MethodInvocation }
 import org.springframework.aop.Pointcut
-import org.springframework.aop.support.{AbstractPointcutAdvisor, StaticMethodMatcherPointcut}
-import org.springframework.beans.factory.annotation.{Autowired, Qualifier}
+import org.springframework.aop.support.{ AbstractPointcutAdvisor, StaticMethodMatcherPointcut }
+import org.springframework.beans.factory.annotation.{ Autowired, Qualifier }
 import org.springframework.stereotype.Component
 
 /**
  * Intercepts methods to start and stop a trace span around the method invocation
  */
 @Component
-class TracedMethodInterceptor @Autowired()(@Qualifier("springTracer") val tracer: SpringTracer)
-  extends MethodInterceptor
-  with Reflections with TraceLogging {
+class TracedMethodInterceptor @Autowired() (@Qualifier("springTracer") val tracer: SpringTracer)
+    extends MethodInterceptor
+    with Reflections with TraceLogging {
 
   val mdcSupport = new MDCSupport()
 
@@ -70,7 +70,7 @@ class TracedMethodInterceptor @Autowired()(@Qualifier("springTracer") val tracer
  * are actually advised
  */
 @Component
-class TracedMethodAdvisor @Autowired()(val interceptor: TracedMethodInterceptor) extends AbstractPointcutAdvisor {
+class TracedMethodAdvisor @Autowired() (val interceptor: TracedMethodInterceptor) extends AbstractPointcutAdvisor {
 
   private val pointcut = new StaticMethodMatcherPointcut {
     override def matches(method: Method, targetClass: Class[_]): Boolean = method.isAnnotationPresent(classOf[Traced])

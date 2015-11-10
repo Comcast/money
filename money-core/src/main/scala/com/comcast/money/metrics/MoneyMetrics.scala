@@ -18,8 +18,8 @@ package com.comcast.money.metrics
 
 import java.util.concurrent.TimeUnit
 
-import akka.actor.{ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider}
-import com.codahale.metrics.{Timer, Counter, JmxReporter, MetricRegistry}
+import akka.actor.{ ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
+import com.codahale.metrics.{ Timer, Counter, JmxReporter, MetricRegistry }
 
 class MoneyMetricsImpl(activeSpans: Counter, timedOutSpans: Counter, spanDurations: Timer) extends Extension {
 
@@ -37,8 +37,8 @@ class MoneyMetricsImpl(activeSpans: Counter, timedOutSpans: Counter, spanDuratio
 }
 
 object MoneyMetrics
-  extends ExtensionId[MoneyMetricsImpl]
-  with ExtensionIdProvider {
+    extends ExtensionId[MoneyMetricsImpl]
+    with ExtensionIdProvider {
 
   val registry: MetricRegistry = new MetricRegistry()
   // register metrics
@@ -57,6 +57,5 @@ object MoneyMetrics
 
   //This method will be called by Akka
   // to instantiate our Extension
-  override def createExtension(system: ExtendedActorSystem) = new
-      MoneyMetricsImpl(activeSpans, timedOutSpans, spanDurations)
+  override def createExtension(system: ExtendedActorSystem) = new MoneyMetricsImpl(activeSpans, timedOutSpans, spanDurations)
 }

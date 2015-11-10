@@ -18,7 +18,7 @@ package com.comcast.money.aspectj
 
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
-import com.comcast.money.annotations.{TracedData, Timed, Traced}
+import com.comcast.money.annotations.{ TracedData, Timed, Traced }
 import com.comcast.money.core.Money
 import com.comcast.money.emitters.LogRecord
 import com.comcast.money.internal.MDCSupport
@@ -29,9 +29,8 @@ import org.scalatest.mock.MockitoSugar
 
 import scala.concurrent.duration._
 
-
 class TraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getConfig("money.akka")))
-with WordSpecLike with GivenWhenThen with OneInstancePerTest with BeforeAndAfterEach with Matchers with MockitoSugar {
+    with WordSpecLike with GivenWhenThen with OneInstancePerTest with BeforeAndAfterEach with Matchers with MockitoSugar {
 
   @Traced("methodWithArguments")
   def methodWithArguments(@TracedData("foo") foo: String, @TracedData("CUSTOM_NAME") bar: String) = {
@@ -56,7 +55,7 @@ with WordSpecLike with GivenWhenThen with OneInstancePerTest with BeforeAndAfter
   }
 
   @Traced("methodWithArgumentsPropagated")
-  def methodWithArgumentsPropagated(@TracedData(value="PROPAGATE", propagate=true) foo: String, @TracedData("CUSTOM_NAME") bar: String) = {
+  def methodWithArgumentsPropagated(@TracedData(value = "PROPAGATE", propagate = true) foo: String, @TracedData("CUSTOM_NAME") bar: String) = {
     Thread.sleep(50)
     methodWithoutArguments()
   }
@@ -76,7 +75,7 @@ with WordSpecLike with GivenWhenThen with OneInstancePerTest with BeforeAndAfter
 
   val mockMdcSupport = mock[MDCSupport]
   object testTraceAspect extends TraceAspect {
-    override val mdcSupport:MDCSupport = mockMdcSupport
+    override val mdcSupport: MDCSupport = mockMdcSupport
   }
 
   override def beforeEach() = {
