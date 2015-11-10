@@ -14,17 +14,9 @@ Add a dependency as follows for maven:
     <dependency>
         <groupId>com.comcast.money</groupId>
         <artifactId>money-core</artifactId>
-        <version>0.8.2</version>
+        <version>0.8.8</version>
     </dependency>
-```
-
-And here is a dependency for SBT:
-
-```scala
-    resolvers += "CIM Nexus Repository" at "http://repo.dev.cim.comcast.net/nexus/content/repositories/releases"
-
-    libraryDependencies += "com.comcast.money" %% "money-core" % "0.8.2"
-```
+``` 
 
 ## User Guide
-[Money Documentation](https://github.comcast.com/tvx/money/wiki)
+[Money Documentation](https://github.com/Comcast/money/wiki)
