@@ -63,4 +63,21 @@ public @interface Traced {
      * @return The value that is to be the measurement key for the trace
      */
     String value();
+
+    /**
+     * Allows the developer to specify an array of exception types to ignore.  If any of these exceptions
+     * are encountered, then the span will close with a result of success=true.  Any exceptions not matching
+     * the exceptions in this array will still close the exception with success=false
+     * <pre>
+     *     {@code
+     *     {@literal @}Traced(value="my.custom.trace.key", ignoredExceptions={ IllegalArgumentException.class })
+     *      public void measureMePlease() {
+     *         // do something useful here
+     *      }
+     *     }
+     * </pre>
+     *
+     * @return The array of exception classes that will be ignored
+     */
+    Class[] ignoredExceptions() default {};
 }

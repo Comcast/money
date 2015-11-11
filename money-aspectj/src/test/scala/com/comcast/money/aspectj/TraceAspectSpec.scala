@@ -55,9 +55,28 @@ class TraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getConfi
   }
 
   @Traced("methodWithArgumentsPropagated")
-  def methodWithArgumentsPropagated(@TracedData(value = "PROPAGATE", propagate = true) foo: String, @TracedData("CUSTOM_NAME") bar: String) = {
+  def methodWithArgumentsPropagated(
+    @TracedData(value = "PROPAGATE", propagate = true) foo: String,
+    @TracedData("CUSTOM_NAME") bar: String
+  ) = {
     Thread.sleep(50)
     methodWithoutArguments()
+  }
+
+  @Traced(
+    value = "methodWithIgnoredException",
+    ignoredExceptions = Array(classOf[IllegalArgumentException])
+  )
+  def methodWithIgnoredException() = {
+    throw new IllegalArgumentException("ignored")
+  }
+
+  @Traced(
+    value = "methodWithNonMatchingIgnoredException",
+    ignoredExceptions = Array(classOf[IllegalArgumentException])
+  )
+  def methodWithNonMatchingIgnoredException() = {
+    throw new RuntimeException("not-ignored")
   }
 
   @Timed("methodWithTiming")
@@ -66,11 +85,17 @@ class TraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getConfi
   }
 
   def expectLogMessageContaining(contains: String, wait: FiniteDuration = 2.seconds) {
-    awaitCond(LogRecord.contains("log")(_.contains(contains)), wait, 100 milliseconds, s"Expected log message containing string $contains not found after $wait")
+    awaitCond(
+      LogRecord.contains("log")(_.contains(contains)), wait, 100 milliseconds,
+      s"Expected log message containing string $contains not found after $wait"
+    )
   }
 
   def expectLogMessageContainingStrings(strings: Seq[String], wait: FiniteDuration = 2.seconds) {
-    awaitCond(LogRecord.contains("log")(s => strings.forall(s.contains)), wait, 100 milliseconds, s"Expected log message containing $strings not found after $wait")
+    awaitCond(
+      LogRecord.contains("log")(s => strings.forall(s.contains)), wait, 100 milliseconds,
+      s"Expected log message containing $strings not found after $wait"
+    )
   }
 
   val mockMdcSupport = mock[MDCSupport]
@@ -106,6 +131,34 @@ class TraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getConfi
         Then("the method execution is logged")
         expectLogMessageContaining("methodThrowingException")
 
+        And("a span-success is logged with a value of true")
+        expectLogMessageContaining("span-success=true")
+      }
+      "complete the trace with success for methods that throw ignored exceptions" in {
+        Given("a method that throws an ignored exception")
+
+        When("the method is invoked")
+        an[IllegalArgumentException] should be thrownBy {
+          methodWithIgnoredException()
+        }
+
+        Then("the method execution is logged")
+        expectLogMessageContaining("methodWithIgnoredException")
+
+        And("a span-success is logged with a value of true")
+        expectLogMessageContaining("span-success=true")
+      }
+      "complete the trace with failure for methods that throw exceptions that are not in ignored list" in {
+        Given("a method that throws an ignored exception")
+
+        When("the method is invoked")
+        a[RuntimeException] should be thrownBy {
+          methodWithNonMatchingIgnoredException()
+        }
+
+        Then("the method execution is logged")
+        expectLogMessageContaining("methodWithNonMatchingIgnoredException")
+
         And("a span-success is logged with a value of false")
         expectLogMessageContaining("span-success=false")
       }
@@ -123,7 +176,9 @@ class TraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getConfi
         And("the values of the arguments that have the TracedData annotation are logged")
         expectLogMessageContaining("hello")
 
-        And("the values of the arguments that have a custom name for the TracedData annotation log using the custom name")
+        And(
+          "the values of the arguments that have a custom name for the TracedData annotation log using the custom name"
+        )
         expectLogMessageContaining("CUSTOM_NAME=bob")
       }
       "record parameters whose value is null" in {
