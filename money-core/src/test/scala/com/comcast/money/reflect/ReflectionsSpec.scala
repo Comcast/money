@@ -16,7 +16,7 @@
 
 package com.comcast.money.reflect
 
-import com.comcast.money.annotations.{Traced, TracedData}
+import com.comcast.money.annotations.{ Traced, TracedData }
 import com.comcast.money.core._
 import com.sun.istack.internal.NotNull
 import org.mockito.ArgumentCaptor
