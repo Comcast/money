@@ -1,5 +1,7 @@
 package com.comcast.money.samples.springmvc.controllers;
 
+import java.lang.IllegalArgumentException;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,11 +24,15 @@ public class SampleController {
     @Autowired
     private AsyncRootService rootService;
 
-    @Traced("SAMPLE_CONTROLLER")
+    @Traced(value="SAMPLE_CONTROLLER", ignoredExceptions={IllegalArgumentException.class})
     @RequestMapping(method = RequestMethod.GET, value = "/{name}")
     public String hello(@TracedData(value="CONTROLLER_INPUT", propagate=true) @PathVariable("name") String name) throws Exception {
 
         logger.warn("Call to sample controller with name " + name);
+
+        if ("ignore".equals(name)) {
+            throw new IllegalArgumentException("this should be ignored, check the log file for span-success=true")
+        }
         return rootService.doSomething(name).get();
     }
 }

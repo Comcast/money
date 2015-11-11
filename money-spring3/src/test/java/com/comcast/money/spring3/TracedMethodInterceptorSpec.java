@@ -146,6 +146,12 @@ public class TracedMethodInterceptorSpec {
         verifyZeroInteractions(springTracer);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testTracingIgnoresException() {
+        sampleTraceBean.doSomethingButIgnoreException();
+        verifySpanResultsIn(true);
+    }
+
     private void verifySpanResultsIn(Boolean result) {
 
         verify(springTracer).stopSpan(spanResultCaptor.capture());

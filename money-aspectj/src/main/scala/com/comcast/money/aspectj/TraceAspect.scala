@@ -49,7 +49,7 @@ class TraceAspect extends Reflections with TraceLogging {
       joinPoint.proceed
     } catch {
       case t: Throwable =>
-        result = Result.failed
+        result = if (exceptionMatches(t, traceAnnotation.ignoredExceptions())) Result.success else Result.failed
         logException(t)
         throw t
     } finally {

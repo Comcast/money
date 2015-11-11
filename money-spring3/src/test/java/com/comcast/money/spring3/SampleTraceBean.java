@@ -51,6 +51,16 @@ public class SampleTraceBean {
         return;
     }
 
+    @Traced(
+        value="SampleTrace",
+        ignoredExceptions = { IllegalArgumentException.class }
+    )
+    public void doSomethingButIgnoreException() {
+
+        springTracer.record("foo", "bar", false);
+        throw new IllegalArgumentException("fail");
+    }
+
     public void doSomethingNotTraced() {
     }
 }

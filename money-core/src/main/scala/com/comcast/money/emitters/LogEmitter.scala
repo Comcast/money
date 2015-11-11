@@ -16,7 +16,7 @@
 
 package com.comcast.money.emitters
 
-import akka.actor.{Actor, ActorLogging, Props}
+import akka.actor.{ Actor, ActorLogging, Props }
 import akka.event.Logging
 import akka.event.Logging.LogLevel
 import com.comcast.money.core._
@@ -38,7 +38,6 @@ object LogEmitter {
       case _ => Props(classOf[LogEmitter], conf)
     }.get
 
-
   def buildMessage(t: Span): String = {
     implicit val builder = new StringBuilder()
     builder.append("Span: ")
@@ -59,7 +58,7 @@ object LogEmitter {
     builder.toString()
   }
 
-  def logLevel(conf:Config): LogLevel =
+  def logLevel(conf: Config): LogLevel =
     if (conf.hasPath("log-level"))
       Logging.levelFor(conf.getString("log-level")).getOrElse(Logging.WarningLevel)
     else

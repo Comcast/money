@@ -19,7 +19,7 @@ package com.comcast.money.reflect
 import java.lang.annotation.Annotation
 import java.lang.reflect.Method
 
-import com.comcast.money.annotations.TracedData
+import com.comcast.money.annotations.{ Traced, TracedData }
 import com.comcast.money.core._
 
 trait Reflections {
@@ -83,6 +83,12 @@ trait Reflections {
     } {
       tracer.record(tdTuple._1, tdTuple._2)
     }
+
+  def exceptionMatches(t: Throwable, exceptionList: Array[Class[_]]) =
+    exceptionList.exists(isInstance(t))
+
+  private def isInstance[T](t: Throwable): Class[_] => Boolean =
+    clazz => clazz.isInstance(t)
 
   private def isBoolean(clazz: Class[_]) = clazz == classOf[Boolean] || clazz == classOf[java.lang.Boolean]
 

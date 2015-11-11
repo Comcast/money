@@ -16,7 +16,7 @@
 
 package com.comcast.money.reflect
 
-import com.comcast.money.annotations.TracedData
+import com.comcast.money.annotations.{ Traced, TracedData }
 import com.comcast.money.core._
 import com.sun.istack.internal.NotNull
 import org.mockito.ArgumentCaptor
@@ -42,6 +42,18 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
   val methodWithNoTracedDataArguments = clazz.getMethod("methodWithNoTracedDataArguments", classOf[String])
   val methodWithTracedDataPropagate = clazz.getMethod("methodWithTracedDataPropagate", classOf[String])
 
+  "Caclulating result on failure" should {
+    "return success if an exception matches a type in the ignored list" in {
+      val matchingException = new IllegalArgumentException("ignored")
+      val result = testReflections.exceptionMatches(matchingException, Array(classOf[IllegalArgumentException]))
+      result shouldBe true
+    }
+    "return failure if an exception does not match a type in the ignored list" in {
+      val matchingException = new RuntimeException("not-ignored")
+      val result = testReflections.exceptionMatches(matchingException, Array(classOf[IllegalArgumentException]))
+      result shouldBe false
+    }
+  }
   "Extracting Traced Data Annotations" should {
     "return an empty array if there are no arguments" in {
       val anns = testReflections.extractTracedDataAnnotations(methodWithoutArguments)
