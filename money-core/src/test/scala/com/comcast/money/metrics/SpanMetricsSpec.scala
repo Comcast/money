@@ -74,14 +74,18 @@ class SpanMetricsSpec extends AkkaTestJawn with FeatureSpecLike with Matchers wi
       // TODO: Test Fixture This!
       val latencyMetric = mock[Histogram]
       val errorMetric = mock[Meter]
+      val callMetric = mock[Meter]
       val span = Span(SpanId(1L), "test.span", "app", "host", 1L, true, 200L, Map())
 
       When("the span metrics is received")
-      val spanMetrics = TestActorRef(new SpanMetrics("test.span", latencyMetric, errorMetric))
+      val spanMetrics = TestActorRef(new SpanMetrics("test.span", latencyMetric, errorMetric, callMetric))
       spanMetrics ! span
 
       Then("the latency metric is incremented")
       verify(latencyMetric).update(200L)
+
+      And("the call rate metric is incremented")
+      verify(callMetric).mark()
 
       And("the error metric is not updated")
       verifyZeroInteractions(errorMetric)
@@ -89,6 +93,7 @@ class SpanMetricsSpec extends AkkaTestJawn with FeatureSpecLike with Matchers wi
     scenario("the span is an error") {
       val latencyMetric = mock[Histogram]
       val errorMetric = mock[Meter]
+      val callMetric = mock[Meter]
       val span = Span(
         SpanId(1L), "test.span", "app", "host", 1L, false, 200L, Map(
           "span-success" -> Note("span-success", false), "span-duration" -> Note("span-duration", 200.0)
@@ -96,11 +101,14 @@ class SpanMetricsSpec extends AkkaTestJawn with FeatureSpecLike with Matchers wi
       )
 
       When("the span metrics is received")
-      val spanMetrics = TestActorRef(new SpanMetrics("test.span", latencyMetric, errorMetric))
+      val spanMetrics = TestActorRef(new SpanMetrics("test.span", latencyMetric, errorMetric, callMetric))
       spanMetrics ! span
 
       Then("the latency metric is incremented")
       verify(latencyMetric).update(200L)
+
+      And("the call rate metric is incremented")
+      verify(callMetric).mark()
 
       And("the error metric is also updated")
       verify(errorMetric).mark()
@@ -108,16 +116,20 @@ class SpanMetricsSpec extends AkkaTestJawn with FeatureSpecLike with Matchers wi
     scenario("the result is not present") {
       val latencyMetric = mock[Histogram]
       val errorMetric = mock[Meter]
+      val callMetric = mock[Meter]
       val span = Span(
         SpanId(1L), "test.span", "app", "host", 1L, true, 200L, Map("span-duration" -> Note("span-duration", 200.0))
       )
 
       When("the span metrics is received")
-      val spanMetrics = TestActorRef(new SpanMetrics("test.span", latencyMetric, errorMetric))
+      val spanMetrics = TestActorRef(new SpanMetrics("test.span", latencyMetric, errorMetric, callMetric))
       spanMetrics ! span
 
       Then("the latency metric is incremented")
       verify(latencyMetric).update(200L)
+
+      And("the call rate metric is incremented")
+      verify(callMetric).mark()
 
       And("the error metric is not updated")
       verifyZeroInteractions(errorMetric)
