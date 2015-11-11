@@ -30,10 +30,16 @@ object MoneyBuild extends Build {
 
   lazy val moneyBasic =
     Project("money-basic", file("./money-basic"))
+    .configs( IntegrationTest )
     .settings(basicSettings: _*)
     .settings(
       libraryDependencies ++= Seq(
-        slf4j
+        slf4j,
+        log4jbinding,
+        typesafeConfig,
+        junit,
+        scalaTest,
+        mockito
       )
     )
 

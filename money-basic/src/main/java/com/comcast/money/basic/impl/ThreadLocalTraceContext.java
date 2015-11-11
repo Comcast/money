@@ -14,7 +14,11 @@ public class ThreadLocalTraceContext implements TraceContext {
     }
 
     public SpanId current() {
-        return stack().peek();
+        if (!stack().isEmpty()) {
+            return stack().peek();
+        } else {
+            return null;
+        }
     }
 
     public void push(SpanId spanId) {

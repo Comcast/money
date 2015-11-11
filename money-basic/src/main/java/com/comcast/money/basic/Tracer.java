@@ -4,6 +4,8 @@ public interface Tracer {
 
     void startSpan(String spanName);
 
+    void startSpan(String spanName, boolean propagate);
+
     void stopSpan(boolean result);
 
     void stopSpan();

@@ -5,10 +5,16 @@ import java.util.logging.Level;
 
 import org.slf4j.Logger;
 
+import com.comcast.money.basic.Note;
 import com.comcast.money.basic.SpanData;
 import com.comcast.money.basic.SpanEmitter;
+import com.comcast.money.basic.SpanId;
 
 public class LogEmitter implements SpanEmitter {
+
+    private static final String HEADER_FORMAT = "Span: [ span-id=%s ][ trace-id=%s ][ parent-id=%s ][ span-name=%s ][ app-name=%s ][ start-time=%s ][ span-duration=%s ][ span-success=%s ]";
+    private static final String NOTE_FORMAT = "[ %s=%s ]";
+    private static final String NULL = "NULL";
 
     private final ExecutorService executorService;
     private final Logger logger;
@@ -25,6 +31,8 @@ public class LogEmitter implements SpanEmitter {
         executorService.submit(new Runnable() {
             @Override
             public void run() {
+                System.out.println("\r\n!!! logging data");
+                System.out.println(toLogEntry(spanData));
                 if (logLevel == Level.SEVERE) {
                     logger.error(toLogEntry(spanData));
                 } else if (logLevel == Level.WARNING) {
@@ -42,7 +50,24 @@ public class LogEmitter implements SpanEmitter {
     }
 
     private String toLogEntry(SpanData spanData) {
-        // TODO: implement log formatting
-        return "";
+        SpanId id = spanData.getSpanId();
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format(HEADER_FORMAT, id.getSelfId(), id.getTraceId(), id.getParentId(), spanData.getName(), "app", spanData.getStartTime(), spanData.getDuration(), spanData.isSuccess()));
+
+        if (spanData.getNotes() != null) {
+            for(Note<?> note : spanData.getNotes().values()) {
+                sb.append(String.format(NOTE_FORMAT, note.getName(), valueOrNull(note.getValue())));
+            }
+        }
+
+        return sb.toString();
+    }
+
+    private Object valueOrNull(Object value) {
+        if (value == null) {
+            return NULL;
+        } else {
+            return value;
+        }
     }
 }

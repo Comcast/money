@@ -19,18 +19,22 @@ public class DefaultTracer implements Tracer {
     @Override
     public void startSpan(String spanName) {
 
+        startSpan(spanName, false);
+    }
+
+    @Override
+    public void startSpan(String spanName, boolean propagate) {
+
         SpanId current = traceContext.current();
         SpanId newSpanId;
-        boolean parentInContext = false;
 
         if (current != null) {
             newSpanId = current.newChild();
-            parentInContext = true;
         } else {
             newSpanId = new SpanId();
         }
         traceContext.push(newSpanId);
-        spanService.start(newSpanId, parentInContext);
+        spanService.start(newSpanId, current, spanName, propagate);
     }
 
     @Override

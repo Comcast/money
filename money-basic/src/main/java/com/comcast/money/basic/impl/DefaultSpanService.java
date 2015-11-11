@@ -3,7 +3,7 @@ package com.comcast.money.basic.impl;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
@@ -22,31 +22,47 @@ public class DefaultSpanService implements SpanService {
     private final ConcurrentMap<SpanId, Span> spans = new ConcurrentHashMap<SpanId, Span>();
     private final ExecutorService executorService;
     private final SpanEmitter spanEmitter;
-    private final ScheduledThreadPoolExecutor scheduler;
+    private final ScheduledExecutorService scheduler;
+    private final SpanReaper spanReaper;
+    private final long spanTimeout;
 
-    public DefaultSpanService(ExecutorService executorService, SpanEmitter spanEmitter, ScheduledThreadPoolExecutor scheduler) {
+    public DefaultSpanService(ExecutorService executorService, SpanEmitter spanEmitter, ScheduledExecutorService scheduler) {
         this.executorService = executorService;
         this.spanEmitter = spanEmitter;
         this.scheduler = scheduler;
+        this.spanTimeout = 10000L; // TODO: make configurable
+
+        // TODO: make these values configurable
+        long reaperInterval = 100L;
+        this.spanReaper = new SpanReaper();
+
+        // Schedules the cleanup of spans that expired
+        scheduler.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                spanReaper.reap();
+            }
+        }, 100L, reaperInterval, TimeUnit.MILLISECONDS);
     }
 
     @Override
-    public void start(SpanId spanId, boolean parentInContext) {
+    public void start(SpanId spanId, SpanId parentSpanId, String spanName, boolean propagate) {
         if (spans.containsKey(spanId)) {
             logger.warn("Cannot start span with id {}; it already exists.", spanId);
         } else {
-            final Span span = spans.putIfAbsent(spanId, new DefaultSpan(spanId, spanEmitter));
-            span.begin(System.nanoTime() / 1000);
+            Span newSpan = new DefaultSpan(spanId, spanName, spanEmitter, spanTimeout);
+            Span existingSpan = spans.putIfAbsent(spanId, newSpan);
+            if (existingSpan != null) {
+                newSpan = existingSpan;
+            }
 
-            // TODO: make the timeout configurable, here it is hardcoded to 10 seconds
-            scheduler.schedule(new Runnable() {
-                @Override
-                public void run() {
-                    Long endTime = System.currentTimeMillis();
-                    boolean result = false;
-                    span.end(endTime, result);
-                }
-            }, 10, TimeUnit.SECONDS);
+            if (parentSpanId != null) {
+                final Span parentSpan = spans.get(parentSpanId);
+                newSpan.begin(System.currentTimeMillis(), parentSpan, propagate);
+            } else {
+                newSpan.begin(System.currentTimeMillis(), null, false);
+            }
+            spanReaper.watch(newSpan);
         }
     }
 
@@ -60,6 +76,7 @@ public class DefaultSpanService implements SpanService {
                     logger.warn("Cannot stop span with id {}; it does not exist.", spanId);
                 } else {
                     Span span = spans.remove(spanId);
+                    spanReaper.unwatch(span);
                     span.end(stopTime, result);
                 }
             }
