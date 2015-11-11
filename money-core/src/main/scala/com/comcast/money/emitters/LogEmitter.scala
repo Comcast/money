@@ -20,6 +20,7 @@ import akka.actor.{ Actor, ActorLogging, Props }
 import akka.event.Logging
 import akka.event.Logging.LogLevel
 import com.comcast.money.core._
+import com.comcast.money.sampling.Sampling
 import com.typesafe.config.Config
 import org.slf4j.MDC
 
@@ -73,9 +74,10 @@ import com.comcast.money.internal.EmitterProtocol._
 class LogEmitter(val conf: Config) extends Actor with ActorLogging with Configurable {
 
   private val level = LogEmitter.logLevel(conf)
+  private val sampler = Sampling.sampler(conf)
 
   def receive = {
-    case EmitSpan(t: Span) =>
+    case EmitSpan(t: Span) if sampler.sample(t) =>
       record(LogEmitter.buildMessage(t))
     case metric: EmitMetricDouble =>
       record(s"${metric.metricPath}=${metric.value}")

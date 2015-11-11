@@ -29,19 +29,22 @@ object SpanMetrics {
   JmxReporter.forRegistry(registry).build().start()
 
   def props(spanName: String) = {
-    val latencyMetric: Histogram = registry.histogram(s"/money/$spanName:latency")
-    val errorMetric: Meter = registry.meter(s"/money/$spanName:error")
-    Props(classOf[SpanMetrics], spanName, latencyMetric, errorMetric)
+    val latency: Histogram = registry.histogram(s"/money/$spanName:latency")
+    val errorRate: Meter = registry.meter(s"/money/$spanName:errorRate")
+    val callRate: Meter = registry.meter(s"/money/$spanName:callRate")
+    Props(classOf[SpanMetrics], spanName, latency, errorRate, callRate)
   }
 }
 
-class SpanMetrics(spanName: String, latencyMetric: Histogram, errorMetric: Meter) extends Actor with ActorLogging {
+class SpanMetrics(spanName: String, latencyMetric: Histogram, errorMetric: Meter, rateMetric: Meter)
+    extends Actor with ActorLogging {
 
   def receive = {
     case span: Span =>
       if (!span.success)
         errorMetric.mark()
 
+      rateMetric.mark()
       latencyMetric.update(span.duration)
   }
 }
