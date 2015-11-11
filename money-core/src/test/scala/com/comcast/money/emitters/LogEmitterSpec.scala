@@ -16,6 +16,7 @@
 
 package com.comcast.money.emitters
 
+import akka.event.Logging
 import com.comcast.money.core.{ Note, Span, SpanId, StringNote }
 import com.comcast.money.internal.EmitterProtocol.{ EmitMetricDouble, EmitSpan }
 import com.comcast.money.test.AkkaTestJawn
@@ -27,6 +28,7 @@ class LogEmitterSpec extends AkkaTestJawn with WordSpecLike {
   val emitterConf = ConfigFactory.parseString(
     """
           {
+            log-level="INFO"
             emitter="com.comcast.money.emitters.LogRecorder"
           }
     """
@@ -66,6 +68,41 @@ class LogEmitterSpec extends AkkaTestJawn with WordSpecLike {
       val expectedLogMessage = LogEmitter.buildMessage(sampleData)
 
       expectedLogMessage should include("[ empty=NULL ]")
+    }
+    "parse log level" in {
+      LogEmitter.logLevel(emitterConf) shouldBe Logging.InfoLevel
+    }
+    "default the log level to warn if the log level is not found" in {
+      val conf = ConfigFactory.parseString(
+        """
+          {
+            log-level="FOO"
+            emitter="com.comcast.money.emitters.LogRecorder"
+          }
+        """
+      )
+      LogEmitter.logLevel(conf) shouldBe Logging.WarningLevel
+    }
+    "default the log level to warn if the log level is not set" in {
+      val conf = ConfigFactory.parseString(
+        """
+          {
+            emitter="com.comcast.money.emitters.LogRecorder"
+          }
+        """
+      )
+      LogEmitter.logLevel(conf) shouldBe Logging.WarningLevel
+    }
+    "assume a default LogEmitter if the emitter class is not configured" in {
+      val conf = ConfigFactory.parseString(
+        """
+          {
+            log-level="FOO"
+          }
+        """
+      )
+      val props = LogEmitter.props(conf)
+      props.actorClass() shouldBe classOf[LogEmitter]
     }
   }
 }
