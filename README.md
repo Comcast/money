@@ -76,8 +76,6 @@ to process data and perform analytics faster
 I can see rocks starting to fly here, and I understand.  Money was not built in its present incarnation to support
 systems which generate 10s of millions of events per second.  Money was built to use distributed tracing as a foundation 
 for operational analytics.  
-
-*It...just...wasn't.*
   
 We were much more interested in creating a standard set of metrics that we could use as a basis to perform operational analytics.
 As such, for us, every event does matter as we can build aggregates very easy (even success).
@@ -86,6 +84,8 @@ We have been able to instrument systems that do generate many millions of events
 not have the same considerations that went into the Dapper design.  Being able to process our base metrics gets us 
 closer to real-time understanding of processing; distributing the calculations to the origin systems gave us a lot of 
 flexibility and speed in processing the data at rest.
+
+> We are committed to support sampling and are evaluating designs...ideas are welcome.  Look for basic sampling to be added shortly
 
 ### We do not provide a backend like Zipkin
 Zipkin comes with an entire infrastructure built around Scribe and Cassandra that actually allows you to see data.  This

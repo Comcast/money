@@ -210,7 +210,7 @@ object MoneyBuild extends Build {
 
   def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings ++ Seq(
     organization := "com.comcast.money",
-    version := "0.8.8-SNAPSHOT",
+    version := "0.8.9-SNAPSHOT",
     crossScalaVersions := Seq("2.10.6", "2.11.7"),
     scalaVersion := "2.10.6",
     resolvers ++= Seq(

@@ -16,20 +16,28 @@
 
 package com.comcast.money.emitters
 
-import akka.actor.{ Actor, ActorLogging, Props }
+import akka.actor.{Actor, ActorLogging, Props}
+import akka.event.Logging
+import akka.event.Logging.LogLevel
 import com.comcast.money.core._
 import com.typesafe.config.Config
 import org.slf4j.MDC
+
+import scala.util.Try
 
 object LogEmitter {
 
   val logTemplate = "[ %s=%s ]"
   val NULL = "NULL"
 
-  def props(conf: Config): Props = {
-    val logEmitterClass = conf.getString("emitter")
-    Props(Class.forName(logEmitterClass), conf)
-  }
+  def props(conf: Config): Props =
+    Try {
+      val emitter = conf.getString("emitter")
+      Props(Class.forName(emitter), conf)
+    }.recover {
+      case _ => Props(classOf[LogEmitter], conf)
+    }.get
+
 
   def buildMessage(t: Span): String = {
     implicit val builder = new StringBuilder()
@@ -51,6 +59,12 @@ object LogEmitter {
     builder.toString()
   }
 
+  def logLevel(conf:Config): LogLevel =
+    if (conf.hasPath("log-level"))
+      Logging.levelFor(conf.getString("log-level")).getOrElse(Logging.WarningLevel)
+    else
+      Logging.WarningLevel
+
   private def append[T](key: String, value: T)(implicit builder: StringBuilder): StringBuilder = builder
     .append(logTemplate.format(key, value))
 }
@@ -58,6 +72,9 @@ object LogEmitter {
 import com.comcast.money.internal.EmitterProtocol._
 
 class LogEmitter(val conf: Config) extends Actor with ActorLogging with Configurable {
+
+  private val level = LogEmitter.logLevel(conf)
+
   def receive = {
     case EmitSpan(t: Span) =>
       record(LogEmitter.buildMessage(t))
@@ -67,6 +84,6 @@ class LogEmitter(val conf: Config) extends Actor with ActorLogging with Configur
 
   def record(message: String) = {
     MDC.clear()
-    log.warning(message)
+    log.log(level, message)
   }
 }
