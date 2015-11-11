@@ -53,7 +53,7 @@ class TracedMethodInterceptor @Autowired() (@Qualifier("springTracer") val trace
       } catch {
         case t: Throwable =>
           logException(t)
-          result = Result.failed
+          result = if (exceptionMatches(t, annotation.ignoredExceptions())) Result.success else Result.failed
           throw t
       } finally {
         mdcSupport.setSpanNameMDC(oldSpanName)
