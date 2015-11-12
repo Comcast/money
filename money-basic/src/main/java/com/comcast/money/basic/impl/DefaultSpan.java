@@ -12,55 +12,57 @@ import com.comcast.money.basic.SpanData;
 import com.comcast.money.basic.SpanEmitter;
 import com.comcast.money.basic.SpanId;
 
+import static com.comcast.money.basic.TimeUtils.thisInstant;
+
 public class DefaultSpan implements Span {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultSpan.class);
+
+    private enum State {
+        Initial, Open, Stopped, Closed
+    }
 
     private final SpanId spanId;
     private final SpanEmitter spanEmitter;
     private final Long timeout;
     private final String spanName;
-    private Long startTimeNano;
+    private final Long closeDelay;
+
+    private Long startInstant;
     private Long startTime = 0L;
-    private Long stopTime;
+    private Long stoppedTime;
     private Long duration = 0L;
     private boolean success = true;
     private Map<String, Long> timers = new HashMap<String, Long>();
     private Map<String, Note<?>> notes = new HashMap<String, Note<?>>();
-    private boolean closed = false;
+    private State state = State.Initial;
 
-    public DefaultSpan(SpanId spanId, String spanName, SpanEmitter spanEmitter, Long timeout) {
+    public DefaultSpan(SpanId spanId, String spanName, SpanEmitter spanEmitter, Long timeout, Long closeDelay) {
         this.spanId = spanId;
         this.spanEmitter = spanEmitter;
         this.timeout = timeout;
         this.spanName = spanName;
+        this.closeDelay = closeDelay;
     }
 
     @Override
-    public void begin(Long startTime, Span parentSpan, boolean propagate) {
+    public void start(Long startTime, Span parentSpan, boolean propagate) {
         this.startTime = startTime;
-        this.startTimeNano = System.nanoTime() / 1000;
+        startInstant = thisInstant();
 
         if (propagate && parentSpan != null) {
             notes.putAll(parentSpan.data().getNotes());
         }
+        state = State.Open;
     }
 
     @Override
-    public synchronized void end(Long endTime, boolean result) {
-        // TODO: need to implement a timeout after getting an end signal, we need to go into a "Closing" state
-        // and continue to allow all calls until we are done...
-        // TODO: also, need to add (isOpen) checks to all calls; that said, we only emit once, and
-        // anything that comes in after we are closed ultimately gets dropped on the floor
-        this.stopTime = endTime;
-        this.duration = (System.nanoTime() / 1000) - this.startTimeNano;
+    public synchronized void stop(Long endTime, boolean result) {
+        System.out.println("...stop()..." + state);
+        stoppedTime = endTime;
+        duration = thisInstant() - startInstant;
         success = result;
-        if (!closed) {
-            spanEmitter.emit(data());
-            closed = true;
-        } else {
-            logger.warn("Received end request to span that was already closed, spanId='{}'", spanId);
-        }
+        state = State.Stopped;
     }
 
     @Override
@@ -85,24 +87,46 @@ public class DefaultSpan implements Span {
 
     @Override
     public SpanData data() {
-        return new SpanData(notes, startTime, stopTime, success, spanId, spanName, duration);
+        return new SpanData(notes, startTime, stoppedTime, success, spanId, spanName, duration);
     }
 
     @Override
     public void timedOut() {
 
-        if (!closed) {
+        if (state != State.Closed) {
             System.out.println("\r\n\r\n!!!TIMEOUT!!!");
             logger.warn("span {} timed out", spanName);
-            end(System.currentTimeMillis(), false);
+
+            // stop then immediately close
+            stop(System.currentTimeMillis(), false);
+            close();
         }
     }
 
     @Override
-    public boolean isExpired() {
+    public boolean isTimedOut() {
         Long expireTime = startTime + timeout;
-        System.out.println("checking if expired for span; expireTime = " + expireTime + "; now = " + System.currentTimeMillis());
-        return (startTime + timeout) < System.currentTimeMillis();
+        System.out.println("checking if timed out for span " + spanName + "; expireTime = " + expireTime + "; now = " + System.currentTimeMillis());
+        return System.currentTimeMillis() > expireTime;
+    }
+
+    @Override
+    public void close() {
+        System.out.println("...close()..." + state);
+        if (state != State.Closed) {
+            spanEmitter.emit(data());
+            state = State.Closed;
+        } else {
+            logger.warn("Received end request to span that was already closed, spanId='{}'", spanId);
+        }
+    }
+
+    @Override
+    public boolean shouldClose() {
+        // we should close if the time we have been stopped exceeds the close delay
+        long stoppageTime = System.currentTimeMillis() - stoppedTime;
+        System.out.println("shouldClose...stoppageTime = " + stoppageTime + "; closeDelay = " + closeDelay);
+        return state == State.Closed || (stoppageTime > closeDelay);
     }
 
     @Override
@@ -113,7 +137,6 @@ public class DefaultSpan implements Span {
         DefaultSpan that = (DefaultSpan) o;
 
         return spanId.equals(that.spanId);
-
     }
 
     @Override

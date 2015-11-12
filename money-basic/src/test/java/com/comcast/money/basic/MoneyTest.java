@@ -13,11 +13,11 @@ public class MoneyTest {
         Money.tracer.startSpan("bar");
         Money.tracer.startSpan("childOfBar");
 
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 2; i++) {
             Thread t = new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    for (int j = 0; j < 100; j++) {
+                    for (int j = 0; j < 2; j++) {
                         try {
                             Money.tracer.startSpan("foo");
                             Money.tracer.record("hey", "there");

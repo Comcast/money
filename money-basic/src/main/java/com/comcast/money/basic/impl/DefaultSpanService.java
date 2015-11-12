@@ -15,6 +15,8 @@ import com.comcast.money.basic.SpanEmitter;
 import com.comcast.money.basic.SpanId;
 import com.comcast.money.basic.SpanService;
 
+import static com.comcast.money.basic.TimeUtils.thisInstant;
+
 public class DefaultSpanService implements SpanService {
 
     private static final Logger logger = LoggerFactory.getLogger(DefaultSpanService.class);
@@ -25,19 +27,20 @@ public class DefaultSpanService implements SpanService {
     private final ScheduledExecutorService scheduler;
     private final SpanReaper spanReaper;
     private final long spanTimeout;
+    private final long reaperInterval;
 
     public DefaultSpanService(ExecutorService executorService, SpanEmitter spanEmitter, ScheduledExecutorService scheduler) {
         this.executorService = executorService;
         this.spanEmitter = spanEmitter;
         this.scheduler = scheduler;
-        this.spanTimeout = 10000L; // TODO: make configurable
+        this.spanTimeout = 1000L; // TODO: make configurable
 
         // TODO: make these values configurable
-        long reaperInterval = 100L;
+        this.reaperInterval = 100L;
         this.spanReaper = new SpanReaper();
 
         // Schedules the cleanup of spans that expired
-        scheduler.scheduleAtFixedRate(new Runnable() {
+        this.scheduler.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
                 spanReaper.reap();
@@ -50,17 +53,18 @@ public class DefaultSpanService implements SpanService {
         if (spans.containsKey(spanId)) {
             logger.warn("Cannot start span with id {}; it already exists.", spanId);
         } else {
-            Span newSpan = new DefaultSpan(spanId, spanName, spanEmitter, spanTimeout);
+            Span newSpan = new DefaultSpan(spanId, spanName, spanEmitter, spanTimeout, reaperInterval);
             Span existingSpan = spans.putIfAbsent(spanId, newSpan);
             if (existingSpan != null) {
+                logger.warn("Span with id {} was already found, possible concurrency issue!", spanId);
                 newSpan = existingSpan;
             }
 
             if (parentSpanId != null) {
                 final Span parentSpan = spans.get(parentSpanId);
-                newSpan.begin(System.currentTimeMillis(), parentSpan, propagate);
+                newSpan.start(System.currentTimeMillis(), parentSpan, propagate);
             } else {
-                newSpan.begin(System.currentTimeMillis(), null, false);
+                newSpan.start(System.currentTimeMillis(), null, false);
             }
             spanReaper.watch(newSpan);
         }
@@ -68,7 +72,7 @@ public class DefaultSpanService implements SpanService {
 
     @Override
     public void stop(final SpanId spanId, final boolean result) {
-        final Long stopTime = System.nanoTime() / 1000;
+        final Long stopTime = System.currentTimeMillis();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
@@ -77,7 +81,7 @@ public class DefaultSpanService implements SpanService {
                 } else {
                     Span span = spans.remove(spanId);
                     spanReaper.unwatch(span);
-                    span.end(stopTime, result);
+                    span.stop(stopTime, result);
                 }
             }
         });
@@ -100,7 +104,7 @@ public class DefaultSpanService implements SpanService {
 
     @Override
     public void startTimer(final SpanId spanId, final String timerKey) {
-        final Long startTime = System.nanoTime() / 1000;
+        final Long startTime = thisInstant();
         executorService.submit(new Runnable() {
             @Override
             public void run() {
@@ -116,7 +120,7 @@ public class DefaultSpanService implements SpanService {
 
     @Override
     public void stopTimer(final SpanId spanId, final String timerKey) {
-        final Long endTime = System.nanoTime() / 1000;
+        final Long endTime = thisInstant();
         executorService.submit(new Runnable() {
             @Override
             public void run() {

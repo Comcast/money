@@ -11,37 +11,58 @@ public class SpanReaper {
 
     private static final Logger logger = LoggerFactory.getLogger(SpanReaper.class);
 
-    private final LinkedBlockingQueue<Span> spans = new LinkedBlockingQueue<Span>();
+    private final LinkedBlockingQueue<Span> activeSpans = new LinkedBlockingQueue<Span>();
+    private final LinkedBlockingQueue<Span> closingSpans = new LinkedBlockingQueue<Span>();
 
     public SpanReaper() {
 
     }
 
     /**
-     * Called, typically on a timer, to reap the spans who have expired
+     * Called, typically on a timer, to reap the activeSpans who have expired and
+     * to close spans that are closing
      */
     public void reap() {
+
+        System.out.println("...reaping...");
+        // first pass is to finalize all activeSpans that should be closed
+        // we start at the top of the queue since those are the oldest, if they are closed
+        // then we can remove them from the queue
+        while(!closingSpans.isEmpty() && closingSpans.peek().shouldClose()) {
+            Span closedSpan = closingSpans.poll();
+            closedSpan.close();
+        }
 
         // because this is a LinkedBlockingQueue, we can assert that the queue is ordered FIFO,
         // so the oldest appear at the top of the queue...if the items at the top of the queue
         // are not expired, then it follows that those later down in the list are also not expired
-        while(!spans.isEmpty() && spans.peek().isExpired()) {
-            Span expired = spans.poll();
+        while(!activeSpans.isEmpty() && activeSpans.peek().isTimedOut()) {
+            Span expired = activeSpans.poll();
             expired.timedOut();
         }
     }
 
+    /**
+     * Starts watching a span for timeout
+     * @param span The Span to watch
+     */
     public void watch(Span span) {
-        spans.offer(span);
+        activeSpans.offer(span);
     }
 
-    // TODO: QUESTION - what are the pros/cons to unwatching vs not immediately removing and waiting for reap to clear out the queue
-    // the proposal would be to have the "end" call simple mark the span as "Closing", and it would go into a "Closed"
-    // state once we are <reaper interval> millis past the last message that was received...WHY?...this would
-    // give us the ability to hang around for a short time prior to emitting; which is how spans act today.
+    /**
+     * Stops watching a span for timeout, queues it for closing
+     * @param span The Span to stop watching
+     */
     public void unwatch(Span span) {
-        if (!spans.remove(span)) {
+
+        // Remove the span from the active span list...
+        if (!activeSpans.remove(span)) {
             logger.warn("attempt was made to unwatch a span; but the span was not found");
         }
+
+        // Add the span to the closing spans list for cleanup on the next reap...
+        System.out.println("...unwatching span " + span.data().getName());
+        closingSpans.add(span);
     }
 }
