@@ -1,6 +1,14 @@
 package com.comcast.money.basic;
 
+import com.typesafe.config.Config;
+
 public interface SpanEmitter {
+
+    /**
+     * Callback to allow an emitter to configure itself
+     * @param emitterConf
+     */
+    void configure(Config emitterConf);
 
     /**
      * Handles span data, this should be non-blocking

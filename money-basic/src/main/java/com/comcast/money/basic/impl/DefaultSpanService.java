@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,15 +29,16 @@ public class DefaultSpanService implements SpanService {
     private final SpanReaper spanReaper;
     private final long spanTimeout;
     private final long reaperInterval;
+    private final long stoppedSpanTimeout;
 
-    public DefaultSpanService(ExecutorService executorService, SpanEmitter spanEmitter, ScheduledExecutorService scheduler) {
+    public DefaultSpanService(ExecutorService executorService, SpanEmitter spanEmitter, ScheduledExecutorService scheduler, Config config) {
         this.executorService = executorService;
         this.spanEmitter = spanEmitter;
         this.scheduler = scheduler;
-        this.spanTimeout = 1000L; // TODO: make configurable
+        this.spanTimeout = config.getDuration("money.span-timeout", TimeUnit.MILLISECONDS);
+        this.reaperInterval = config.getDuration("money.reaper-interval", TimeUnit.MILLISECONDS);
+        this.stoppedSpanTimeout = config.getDuration("money.stopped-span-timeout", TimeUnit.MILLISECONDS);
 
-        // TODO: make these values configurable
-        this.reaperInterval = 100L;
         this.spanReaper = new SpanReaper();
 
         // Schedules the cleanup of spans that expired
@@ -53,7 +55,7 @@ public class DefaultSpanService implements SpanService {
         if (spans.containsKey(spanId)) {
             logger.warn("Cannot start span with id {}; it already exists.", spanId);
         } else {
-            Span newSpan = new DefaultSpan(spanId, spanName, spanEmitter, spanTimeout, reaperInterval);
+            Span newSpan = new DefaultSpan(spanId, spanName, spanEmitter, spanTimeout, stoppedSpanTimeout);
             Span existingSpan = spans.putIfAbsent(spanId, newSpan);
             if (existingSpan != null) {
                 logger.warn("Span with id {} was already found, possible concurrency issue!", spanId);

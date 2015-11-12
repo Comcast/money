@@ -1,37 +1,74 @@
 package com.comcast.money.basic;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.logging.Level;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 
 import com.comcast.money.basic.impl.DefaultSpanService;
 import com.comcast.money.basic.impl.DefaultTracer;
-import com.comcast.money.basic.impl.LogEmitter;
-import com.comcast.money.basic.impl.SpanEmitterRouter;
 import com.comcast.money.basic.impl.ThreadLocalTraceContext;
 
 public class Money {
 
-    public static Tracer tracer;
-    private static ExecutorService moneyExecutor = Executors.newFixedThreadPool(50); // TODO: configurable
-    private static ScheduledExecutorService moneyScheduler = Executors.newScheduledThreadPool(2);
+    public final static Config config = ConfigFactory.load();
+    public final static Tracer tracer;
+    private final static ExecutorService moneyExecutor;
+    private final static ScheduledExecutorService moneyScheduler;
 
     static {
-        Logger logger = LoggerFactory.getLogger("money");
-        LogEmitter logEmitter = new LogEmitter(moneyExecutor, logger, Level.INFO);
+        moneyExecutor = Executors.newFixedThreadPool(config.getInt("money.executor.thread-count"));
+        moneyScheduler = Executors.newScheduledThreadPool(config.getInt("money.scheduler.thread-count"));
 
-        List<SpanEmitter> emitters = new ArrayList<SpanEmitter>();
-        emitters.add(logEmitter);
+        if (config.getBoolean("money.enabled")) {
+            SpanEmitter emitter = SpanEmitters.load(config, moneyExecutor);
+            SpanService spanService = new DefaultSpanService(moneyExecutor, emitter, moneyScheduler, config);
+            tracer = new DefaultTracer(new ThreadLocalTraceContext(), spanService);
+        } else {
+            // NO-OP
+            tracer = new Tracer() {
+                @Override
+                public void startSpan(String spanName) {
+                }
 
-        SpanEmitterRouter router = new SpanEmitterRouter(emitters);
+                @Override
+                public void startSpan(String spanName, boolean propagate) {
+                }
 
-        SpanService spanService = new DefaultSpanService(moneyExecutor, router, moneyScheduler);
-        tracer = new DefaultTracer(new ThreadLocalTraceContext(), spanService);
+                @Override
+                public void stopSpan(boolean result) {
+                }
+
+                @Override
+                public void stopSpan() {
+                }
+
+                @Override
+                public void record(String key, String value) {
+                }
+
+                @Override
+                public void record(String key, Boolean value) {
+                }
+
+                @Override
+                public void record(String key, Double value) {
+                }
+
+                @Override
+                public void record(String key, Long value) {
+                }
+
+                @Override
+                public void startTimer(String timerKey) {
+                }
+
+                @Override
+                public void stopTimer(String timerKey) {
+                }
+            };
+        }
     }
 }
