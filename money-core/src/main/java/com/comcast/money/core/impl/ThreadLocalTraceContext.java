@@ -2,18 +2,18 @@ package com.comcast.money.core.impl;
 
 import java.util.Stack;
 
-import com.comcast.money.core.SpanId;
+import com.comcast.money.core.Span;
 import com.comcast.money.core.TraceContext;
 
 public class ThreadLocalTraceContext implements TraceContext {
 
-    private static InheritableThreadLocal<Stack<SpanId>> threadLocalCtx = new InheritableThreadLocal<Stack<SpanId>>();
+    private static InheritableThreadLocal<Stack<Span>> threadLocalCtx = new InheritableThreadLocal<Stack<Span>>();
 
     static {
-        threadLocalCtx.set(new Stack<SpanId>());
+        threadLocalCtx.set(new Stack<Span>());
     }
 
-    public SpanId current() {
+    public Span current() {
         if (!stack().isEmpty()) {
             return stack().peek();
         } else {
@@ -21,11 +21,11 @@ public class ThreadLocalTraceContext implements TraceContext {
         }
     }
 
-    public void push(SpanId spanId) {
-        stack().push(spanId);
+    public void push(Span span) {
+        stack().push(span);
     }
 
-    public SpanId pop() {
+    public Span pop() {
         return stack().pop();
     }
 
@@ -33,7 +33,7 @@ public class ThreadLocalTraceContext implements TraceContext {
         stack().clear();
     }
 
-    private Stack<SpanId> stack() {
+    private Stack<Span> stack() {
         return threadLocalCtx.get();
     }
 }

@@ -3,12 +3,13 @@ package com.comcast.money.core;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
-import com.comcast.money.core.impl.DefaultSpanService;
 import com.comcast.money.core.impl.DefaultTracer;
+import com.comcast.money.core.impl.SpanReaper;
 import com.comcast.money.core.impl.ThreadLocalTraceContext;
 
 public class Money {
@@ -21,11 +22,14 @@ public class Money {
     static {
         moneyExecutor = Executors.newFixedThreadPool(config.getInt("money.executor.thread-count"));
         moneyScheduler = Executors.newScheduledThreadPool(config.getInt("money.scheduler.thread-count"));
+        long spanTimeout = config.getDuration("money.span-timeout", TimeUnit.MILLISECONDS);
+        long stoppedSpanTimeout = config.getDuration("money.stopped-span-timeout", TimeUnit.MILLISECONDS);
+        long reaperInterval = config.getDuration("money.reaper-interval", TimeUnit.MILLISECONDS);
 
         if (config.getBoolean("money.enabled")) {
             SpanEmitter emitter = SpanEmitters.load(config, moneyExecutor);
-            SpanService spanService = new DefaultSpanService(moneyExecutor, emitter, moneyScheduler, config);
-            tracer = new DefaultTracer(new ThreadLocalTraceContext(), spanService);
+            SpanReaper reaper = new SpanReaper(moneyScheduler, reaperInterval);
+            tracer = new DefaultTracer(new ThreadLocalTraceContext(), emitter, reaper, spanTimeout, stoppedSpanTimeout);
         } else {
             // NO-OP
             tracer = new Tracer() {

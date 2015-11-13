@@ -1,19 +1,26 @@
 package com.comcast.money.core.impl;
 
 import com.comcast.money.core.Note;
+import com.comcast.money.core.Span;
+import com.comcast.money.core.SpanEmitter;
 import com.comcast.money.core.SpanId;
-import com.comcast.money.core.SpanService;
 import com.comcast.money.core.TraceContext;
 import com.comcast.money.core.Tracer;
 
 public class DefaultTracer implements Tracer {
 
     private final TraceContext traceContext;
-    private final SpanService spanService;
+    private final SpanEmitter spanEmitter;
+    private final SpanReaper spanReaper;
+    private final long spanTimeout;
+    private final long stoppedSpanTimeout;
 
-    public DefaultTracer(TraceContext traceContext, SpanService spanService) {
+    public DefaultTracer(TraceContext traceContext, SpanEmitter spanEmitter, SpanReaper spanReaper, long spanTimeout, long stoppedSpanTimeout) {
         this.traceContext = traceContext;
-        this.spanService = spanService;
+        this.spanEmitter = spanEmitter;
+        this.spanTimeout = spanTimeout;
+        this.stoppedSpanTimeout = stoppedSpanTimeout;
+        this.spanReaper = spanReaper;
     }
 
     @Override
@@ -25,24 +32,26 @@ public class DefaultTracer implements Tracer {
     @Override
     public void startSpan(String spanName, boolean propagate) {
 
-        SpanId current = traceContext.current();
-        SpanId newSpanId;
+        Span current = traceContext.current();
+        Span newSpan;
 
         if (current != null) {
-            newSpanId = current.newChild();
+            newSpan = current.newChild(spanName, propagate);
         } else {
-            newSpanId = new SpanId();
+            newSpan = new DefaultSpan(new SpanId(), spanName, spanEmitter, spanTimeout, stoppedSpanTimeout);
         }
-        traceContext.push(newSpanId);
-        spanService.start(newSpanId, current, spanName, propagate);
+        newSpan.start();
+        traceContext.push(newSpan);
+        spanReaper.watch(newSpan);
     }
 
     @Override
     public void stopSpan(boolean result) {
 
-        SpanId current = traceContext.pop();
+        Span current = traceContext.pop();
         if (current != null) {
-            spanService.stop(current, result);
+            current.stop(result);
+            spanReaper.unwatch(current);
         }
     }
 
@@ -53,49 +62,49 @@ public class DefaultTracer implements Tracer {
 
     @Override
     public void record(String key, String value) {
-        SpanId current = traceContext.current();
+        Span current = traceContext.current();
         if (current != null) {
-            spanService.record(current, new Note<String>(key, value));
+            current.record(new Note<String>(key, value));
         }
     }
 
     @Override
     public void record(String key, Boolean value) {
-        SpanId current = traceContext.current();
+        Span current = traceContext.current();
         if (current != null) {
-            spanService.record(current, new Note<Boolean>(key, value));
+            current.record(new Note<Boolean>(key, value));
         }
     }
 
     @Override
     public void record(String key, Double value) {
-        SpanId current = traceContext.current();
+        Span current = traceContext.current();
         if (current != null) {
-            spanService.record(current, new Note<Double>(key, value));
+            current.record(new Note<Double>(key, value));
         }
     }
 
     @Override
     public void record(String key, Long value) {
-        SpanId current = traceContext.current();
+        Span current = traceContext.current();
         if (current != null) {
-            spanService.record(current, new Note<Long>(key, value));
+            current.record(new Note<Long>(key, value));
         }
     }
 
     @Override
     public void startTimer(String timerKey) {
-        SpanId current = traceContext.current();
+        Span current = traceContext.current();
         if (current != null) {
-            spanService.startTimer(current, timerKey);
+            current.startTimer(timerKey);
         }
     }
 
     @Override
     public void stopTimer(String timerKey) {
-        SpanId current = traceContext.current();
+        Span current = traceContext.current();
         if (current != null) {
-            spanService.stopTimer(current, timerKey);
+            current.stopTimer(timerKey);
         }
     }
 }

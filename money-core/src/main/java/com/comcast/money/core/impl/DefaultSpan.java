@@ -45,21 +45,24 @@ public class DefaultSpan implements Span {
         this.closeDelay = closeDelay;
     }
 
-    @Override
-    public void start(Long startTime, Span parentSpan, boolean propagate) {
-        this.startTime = startTime;
-        startInstant = thisInstant();
-
-        if (propagate && parentSpan != null) {
-            notes.putAll(parentSpan.data().getNotes());
+    public DefaultSpan(SpanId spanId, String spanName, SpanEmitter spanEmitter, Long timeout, Long closeDelay, SpanData parentData) {
+        this(spanId, spanName, spanEmitter, timeout, closeDelay);
+        if (parentData != null) {
+            notes.putAll(parentData.getNotes());
         }
-        state = State.Open;
     }
 
     @Override
-    public synchronized void stop(Long endTime, boolean result) {
+    public void start() {
+        this.startTime = System.currentTimeMillis();
+        this.startInstant = thisInstant();
+        this.state = State.Open;
+    }
+
+    @Override
+    public synchronized void stop(boolean result) {
         System.out.println("...stop()..." + state);
-        stoppedTime = endTime;
+        stoppedTime = System.currentTimeMillis();
         duration = thisInstant() - startInstant;
         success = result;
         state = State.Stopped;
@@ -71,16 +74,16 @@ public class DefaultSpan implements Span {
     }
 
     @Override
-    public synchronized void startTimer(String timerKey, Long startTime) {
-        timers.put(timerKey, startTime);
+    public synchronized void startTimer(String timerKey) {
+        timers.put(timerKey, thisInstant());
     }
 
     @Override
-    public synchronized void stopTimer(String timerKey, Long endTime) {
+    public synchronized void stopTimer(String timerKey) {
         Long startTime = timers.remove(timerKey);
         Long duration = 0L;
         if (startTime != null) {
-            duration = startTime - endTime;
+            duration = startTime - thisInstant();
         }
         notes.put(timerKey, new Note<Long>(timerKey, duration));
     }
@@ -98,7 +101,7 @@ public class DefaultSpan implements Span {
             logger.warn("span {} timed out", spanName);
 
             // stop then immediately close
-            stop(System.currentTimeMillis(), false);
+            stop(false);
             close();
         }
     }
@@ -127,6 +130,20 @@ public class DefaultSpan implements Span {
         long stoppageTime = System.currentTimeMillis() - stoppedTime;
         System.out.println("shouldClose...stoppageTime = " + stoppageTime + "; closeDelay = " + closeDelay);
         return state == State.Closed || (stoppageTime > closeDelay);
+    }
+
+    @Override
+    public Span newChild(String childName, boolean propagate) {
+        SpanId childId = spanId.newChild();
+        Span child;
+
+        if (propagate) {
+            child = new DefaultSpan(childId, childName, spanEmitter, timeout, closeDelay, data());
+        } else {
+            child = new DefaultSpan(childId, childName, spanEmitter, timeout, closeDelay);
+        }
+
+        return child;
     }
 
     @Override

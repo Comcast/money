@@ -2,11 +2,11 @@ package com.comcast.money.core;
 
 public interface TraceContext {
 
-    void push(SpanId spanId);
+    void push(Span span);
 
-    SpanId pop();
+    Span pop();
 
     void clear();
 
-    SpanId current();
+    Span current();
 }

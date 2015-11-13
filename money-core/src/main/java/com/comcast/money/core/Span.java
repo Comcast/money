@@ -6,24 +6,20 @@ package com.comcast.money.core;
 public interface Span {
 
     /**
-     * Starts the Span.  All messages received before a span is started are ignored.
-     *
-     * @param startTime The time in MILLISECONDS when the span started
-     * @param parentSpan The parent Span of the current span
-     * @param propagate An indicator of whether we should propagate the observed notes of the parent to
-     *                  the child span.
+     * Signals the span that it has started
      */
-    void start(Long startTime, Span parentSpan, boolean propagate);
+    void start();
 
     /**
      * Ends a span, moving it to a Stopped state
-     * @param stopTime The time when the span ended in MILLISECONDS
      * @param result The result of the span (success or failure)
      */
-    void stop(Long stopTime, boolean result);
+    void stop(boolean result);
 
     /**
-     * Different than end, this will shut down the span and have it emit it's data
+     * Different than stop, this will shut down the span and have it emit it's data
+     *
+     * A span is considered "done" after it is closed
      */
     void close();
 
@@ -37,17 +33,15 @@ public interface Span {
      * Starts a timer
      *
      * @param timerKey The name of the timer, this will be used for the name of the note that is emitted
-     * @param startTime The time the timer started, this is an instant in MICROSECONDS
      */
-    void startTimer(String timerKey, Long startTime);
+    void startTimer(String timerKey);
 
     /**
      * Stops a timer
      *
      * @param timerKey The name of the timer to stop
-     * @param endTime The end of the timer, this is an instant in MICROSECONDS
      */
-    void stopTimer(String timerKey, Long endTime);
+    void stopTimer(String timerKey);
 
     /**
      * Times out a span; used when a span has been open for too long.
@@ -61,7 +55,6 @@ public interface Span {
      */
     SpanData data();
 
-    // TODO: I worry about these concerns, should a Span be aware of when it timed out and if it should close, or someone else?
     /**
      * @return True if this span has timed out
      */
@@ -71,4 +64,12 @@ public interface Span {
      * @return True if this span should be closed
      */
     boolean shouldClose();
+
+    /**
+     * Creates a new child from this span
+     * @param childName The name of the child to create
+     * @param propagate True if the notes from the parent should be passed to the child
+     * @return A new Span that is a child of this
+     */
+    Span newChild(String childName, boolean propagate);
 }
