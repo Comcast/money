@@ -3,7 +3,6 @@ package com.comcast.money.core;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -14,22 +13,23 @@ import com.comcast.money.core.impl.ThreadLocalTraceContext;
 
 public class Money {
 
-    public final static Config config = ConfigFactory.load();
+    public final static Config config;
+    public final static MoneySettings settings;
     public final static Tracer tracer;
     private final static ExecutorService moneyExecutor;
     private final static ScheduledExecutorService moneyScheduler;
 
     static {
-        moneyExecutor = Executors.newFixedThreadPool(config.getInt("money.executor.thread-count"));
-        moneyScheduler = Executors.newScheduledThreadPool(config.getInt("money.scheduler.thread-count"));
-        long spanTimeout = config.getDuration("money.span-timeout", TimeUnit.MILLISECONDS);
-        long stoppedSpanTimeout = config.getDuration("money.stopped-span-timeout", TimeUnit.MILLISECONDS);
-        long reaperInterval = config.getDuration("money.reaper-interval", TimeUnit.MILLISECONDS);
+        config = ConfigFactory.load();
+        settings = new MoneySettings(config);
 
-        if (config.getBoolean("money.enabled")) {
+        moneyExecutor = Executors.newFixedThreadPool(settings.getExecutorSettings().getThreadCount());
+        moneyScheduler = Executors.newScheduledThreadPool(settings.getSchedulerSettings().getThreadCount());
+
+        if (settings.isEnabled()) {
             SpanEmitter emitter = SpanEmitters.load(config, moneyExecutor);
-            SpanReaper reaper = new SpanReaper(moneyScheduler, reaperInterval);
-            tracer = new DefaultTracer(new ThreadLocalTraceContext(), emitter, reaper, spanTimeout, stoppedSpanTimeout);
+            SpanReaper reaper = new SpanReaper(moneyScheduler, settings.getReaperInterval());
+            tracer = new DefaultTracer(new ThreadLocalTraceContext(), emitter, reaper, settings.getSpanTimeout(), settings.getStoppedSpanTimeout());
         } else {
             // NO-OP
             tracer = new Tracer() {
