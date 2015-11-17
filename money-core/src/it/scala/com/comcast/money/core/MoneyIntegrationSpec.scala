@@ -1,31 +1,41 @@
+/*
+ * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.comcast.money.core
 
-import com.typesafe.config.Config
-import org.scalatest.{Matchers, WordSpec}
+import org.scalatest.{BeforeAndAfterEach, Matchers, WordSpecLike}
 
-import scala.collection._
-import scala.concurrent.{Future, Await}
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 
-class MoneyIntegrationSpec extends WordSpec with Matchers {
+trait MoneyIntegrationSpec extends WordSpecLike with Matchers with BeforeAndAfterEach {
+  import scala.collection.JavaConversions._
 
-  class LogRecorder extends SpanEmitter {
-    val messages = new mutable.ArrayBuffer[SpanData]()
-
-    override def configure(emitterConf: Config): Unit = {}
-
-    override def emit(spanData: SpanData): Unit = {
-      messages.append(spanData)
-    }
-
-    def reset(): Unit = messages.clear()
-
-    def expectSpan(within: Duration, spanCheck: PartialFunction[SpanData, Boolean]) =
-      Await.result[Boolean](Future {
-        while(!messages.exists(spanCheck)) {
-          Thread.sleep(10)
-        }
-        true
-      }, within)
+  override def beforeEach() = {
+    LogRecorder.reset()
   }
+
+  def expectSpan(f: SpanData => Boolean, within: Duration = 500 milliseconds) =
+    LogRecorder.expectSpan(within, f)
+
+  def expectSpanNamed(name: String, within: Duration = 500 milliseconds) =
+    expectSpan(_.getName == name, within)
+
+  def expectSpanResult(result: Boolean, within: Duration = 500 milliseconds) =
+    expectSpan(_.isSuccess == result, within)
+
+  def expectSpanWithNote(f: Note[_] => Boolean, within: Duration = 500 milliseconds) =
+    expectSpan(_.getNotes.values.exists(f), within)
 }

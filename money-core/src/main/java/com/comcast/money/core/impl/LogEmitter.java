@@ -1,3 +1,19 @@
+/*
+ * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.comcast.money.core.impl;
 
 import java.util.logging.Level;
@@ -6,16 +22,10 @@ import com.typesafe.config.Config;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.comcast.money.core.Note;
 import com.comcast.money.core.SpanData;
 import com.comcast.money.core.SpanEmitter;
-import com.comcast.money.core.SpanId;
 
 public class LogEmitter implements SpanEmitter {
-
-    private static final String HEADER_FORMAT = "Span: [ span-id=%s ][ trace-id=%s ][ parent-id=%s ][ span-name=%s ][ app-name=%s ][ start-time=%s ][ span-duration=%s ][ span-success=%s ]";
-    private static final String NOTE_FORMAT = "[ %s=%s ]";
-    private static final String NULL = "NULL";
 
     private Logger logger;
     private Level logLevel;
@@ -23,17 +33,17 @@ public class LogEmitter implements SpanEmitter {
     @Override
     public void emit(final SpanData spanData) {
         System.out.println("\r\n!!! logging data");
-        System.out.println(toLogEntry(spanData));
+        System.out.println(spanData);
         if (logLevel == Level.SEVERE) {
-            logger.error(toLogEntry(spanData));
+            logger.error(spanData.toString());
         } else if (logLevel == Level.WARNING) {
-            logger.warn(toLogEntry(spanData));
+            logger.warn(spanData.toString());
         } else if (logLevel == Level.INFO) {
-            logger.info(toLogEntry(spanData));
+            logger.info(spanData.toString());
         } else if (logLevel == Level.FINE) {
-            logger.debug(toLogEntry(spanData));
+            logger.debug(spanData.toString());
         } else if (logLevel != Level.OFF) {
-            logger.trace(toLogEntry(spanData));
+            logger.trace(spanData.toString());
         }
         // we do not log if the Level is set to OFF
     }
@@ -46,27 +56,5 @@ public class LogEmitter implements SpanEmitter {
 
         logLevel = Level.parse(level);
         logger = LoggerFactory.getLogger(name);
-    }
-
-    private String toLogEntry(SpanData spanData) {
-        SpanId id = spanData.getSpanId();
-        StringBuilder sb = new StringBuilder();
-        sb.append(String.format(HEADER_FORMAT, id.getSelfId(), id.getTraceId(), id.getParentId(), spanData.getName(), "app", spanData.getStartTime(), spanData.getDuration(), spanData.isSuccess()));
-
-        if (spanData.getNotes() != null) {
-            for(Note<?> note : spanData.getNotes().values()) {
-                sb.append(String.format(NOTE_FORMAT, note.getName(), valueOrNull(note.getValue())));
-            }
-        }
-
-        return sb.toString();
-    }
-
-    private Object valueOrNull(Object value) {
-        if (value == null) {
-            return NULL;
-        } else {
-            return value;
-        }
     }
 }

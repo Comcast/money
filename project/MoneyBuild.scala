@@ -3,7 +3,6 @@ import com.typesafe.sbt.SbtAspectj._
 import com.typesafe.sbt.SbtScalariform
 import sbt.Keys._
 import sbt._
-import sbtavro.SbtAvro._
 import scoverage.ScoverageSbtPlugin._
 import de.heikoseeberger.sbtheader.HeaderPlugin
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
@@ -23,7 +22,7 @@ object MoneyBuild extends Build {
     publishLocal := {},
     publish := {}
   )
-  .aggregate(moneyCore)
+  .aggregate(moneyCore,moneyAspectj)
 
   lazy val moneyCore =
     Project("money-core", file("./money-core"))
@@ -40,6 +39,22 @@ object MoneyBuild extends Build {
         )
       )
 
+  lazy val moneyAspectj =
+    Project("money-aspectj", file("./money-aspectj"))
+      .configs( IntegrationTest )
+      .settings(aspectjProjectSettings: _*)
+      .settings(
+        libraryDependencies ++= Seq(
+          slf4j,
+          log4jbinding,
+          typesafeConfig,
+          junit,
+          scalaTest,
+          mockito,
+          assertj
+        )
+      ).dependsOn(moneyCore % "compile->compile;it->it;test->test")
+
   def projectSettings = basicSettings ++ Seq(
     ScoverageKeys.coverageHighlighting := true,
     ScoverageKeys.coverageMinimum := 90,
@@ -47,7 +62,7 @@ object MoneyBuild extends Build {
   )
 
   def aspectjProjectSettings = projectSettings ++ aspectjSettings ++ Seq(
-    javaOptions in Test <++= weaverOptions in Aspectj // adds javaagent:aspectjweaver to java options, including test
+    javaOptions in IntegrationTest <++= weaverOptions in Aspectj // adds javaagent:aspectjweaver to java options, including test
   )
 
   def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings ++ Seq(
@@ -64,7 +79,8 @@ object MoneyBuild extends Build {
       "-target", "1.6",
       "-Xlint:unchecked",
       "-Xlint:deprecation",
-      "-Xlint:-options"),
+      "-Xlint:-options",
+      "-g"),
     javacOptions in doc := Seq("-source", "1.6"),
     scalacOptions ++= Seq(
       "-unchecked",
@@ -142,13 +158,13 @@ object MoneyBuild extends Build {
     .exclude("org.apache.zookeeper", "zookeeper")
 
     // Test
-    val mockito = "org.mockito" % "mockito-core" % "1.9.5" % "test"
+    val mockito = "org.mockito" % "mockito-core" % "1.9.5" % "it,test"
     val scalaTest = "org.scalatest" %% "scalatest" % "2.2.3" % "it,test"
     val junit = "junit" % "junit" % "4.11" % "test"
     val junitInterface = "com.novocode" % "junit-interface" % "0.11" % "test->default"
     val springTest = ("org.springframework" % "spring-test" % "3.2.6.RELEASE")
       .exclude("commons-logging", "commons-logging")
     val springOckito = "org.kubek2k" % "springockito" % "1.0.9" % "test"
-    val assertj = "org.assertj" % "assertj-core" % "1.7.1" % "it,test"
+    val assertj = "org.assertj" % "assertj-core" % "2.2.0" % "it,test"
   }
 }
