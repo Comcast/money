@@ -40,6 +40,13 @@ public class DefaultTracer implements Tracer {
     }
 
     @Override
+    public void setTraceContext(SpanId spanId) {
+
+        Span newSpan = new DefaultSpan(new SpanId(), "unknown", spanEmitter, spanTimeout, stoppedSpanTimeout);
+        traceContext.push(newSpan);
+    }
+
+    @Override
     public void startSpan(String spanName) {
 
         startSpan(spanName, false);

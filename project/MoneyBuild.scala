@@ -55,6 +55,20 @@ object MoneyBuild extends Build {
         )
       ).dependsOn(moneyCore % "compile->compile;it->it;test->test")
 
+  lazy val moneyJavaServlet =
+    Project("money-java-servlet", file("./money-java-servlet"))
+      .configs( IntegrationTest )
+      .settings(projectSettings: _*)
+      .settings(
+        libraryDependencies ++= Seq(
+          javaxServlet,
+          junit,
+          scalaTest,
+          mockito
+        )
+      )
+      .dependsOn(moneyCore)
+
   def projectSettings = basicSettings ++ Seq(
     ScoverageKeys.coverageHighlighting := true,
     ScoverageKeys.coverageMinimum := 90,
@@ -123,7 +137,7 @@ object MoneyBuild extends Build {
     // Apache http client
     val apacheHttpClient = "org.apache.httpcomponents" % "httpclient" % apacheHttpClientVersion
 
-    // Javax servlet - note: the group id and artfacit id have changed in 3.0
+    // Javax servlet - note: the group id and artifact id have changed in 3.0
     val javaxServlet = "javax.servlet" % "servlet-api" % "2.5"
 
     // Kafka, exclude dependencies that we will not need, should work for 2.10 and 2.11

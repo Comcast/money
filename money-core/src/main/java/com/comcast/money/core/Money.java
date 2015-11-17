@@ -32,13 +32,14 @@ public class Money {
     public final static Config config;
     public final static MoneySettings settings;
     public final static Tracer tracer;
+    public final static TraceContext traceContext;
     private final static ExecutorService moneyExecutor;
     private final static ScheduledExecutorService moneyScheduler;
 
     static {
         config = ConfigFactory.load();
         settings = new MoneySettings(config);
-
+        traceContext = new ThreadLocalTraceContext();
         moneyExecutor = Executors.newFixedThreadPool(settings.getExecutorSettings().getThreadCount());
         moneyScheduler = Executors.newScheduledThreadPool(settings.getSchedulerSettings().getThreadCount());
         System.out.println("\r\nLOADING MONEY");
@@ -46,11 +47,16 @@ public class Money {
         if (settings.isEnabled()) {
             SpanEmitter emitter = SpanEmitters.load(config, moneyExecutor);
             SpanReaper reaper = new SpanReaper(moneyScheduler, settings.getReaperInterval());
-            tracer = new DefaultTracer(new ThreadLocalTraceContext(), emitter, reaper, settings.getSpanTimeout(), settings.getStoppedSpanTimeout());
+            tracer = new DefaultTracer(traceContext, emitter, reaper, settings.getSpanTimeout(), settings.getStoppedSpanTimeout());
         } else {
             System.out.println("money disabled!!!!");
             // NO-OP
             tracer = new Tracer() {
+
+                @Override
+                public void setTraceContext(SpanId spanId) {
+                }
+
                 @Override
                 public void startSpan(String spanName) {
                 }

@@ -18,6 +18,8 @@ package com.comcast.money.core;
 
 public interface Tracer {
 
+    void setTraceContext(SpanId spanId);
+
     void startSpan(String spanName);
 
     void startSpan(String spanName, boolean propagate);

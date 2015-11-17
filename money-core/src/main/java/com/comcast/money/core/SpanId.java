@@ -25,11 +25,20 @@ import java.util.UUID;
 public class SpanId {
 
     private static final Random rand = new Random();
-    private static final String stringFormat = "SpanId~%s~%s~%s";
+    private static final String STRING_FORMAT = "SpanId~%s~%s~%s";
 
     private final String traceId;
     private final Long parentId;
     private final Long selfId;
+
+    public static SpanId fromHttpHeader(String httpHeader) {
+        String[] parts = httpHeader.split(";");
+        String traceId = parts[0].split("=")[1];
+        String parentId = parts[1].split("=")[1];
+        String selfId = parts[2].split("=")[1];
+
+        return new SpanId(traceId, Long.parseLong(parentId), Long.parseLong(selfId));
+    }
 
     public SpanId() {
         this(UUID.randomUUID().toString());
@@ -67,7 +76,7 @@ public class SpanId {
 
     @Override
     public String toString() {
-        return String.format(stringFormat, traceId, parentId, selfId);
+        return String.format(STRING_FORMAT, traceId, parentId, selfId);
     }
 
     @Override
