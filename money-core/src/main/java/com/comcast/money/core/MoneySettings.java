@@ -54,6 +54,22 @@ public class MoneySettings {
         }
     }
 
+    public static class MdcSettings {
+        private final boolean enabled;
+
+        public MdcSettings(Config config) {
+            this.enabled = config.getBoolean("enabled");
+        }
+
+        public MdcSettings(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+    }
+
     private final String appName;
     private final boolean enabled;
     private final long spanTimeout;
@@ -61,6 +77,7 @@ public class MoneySettings {
     private final long reaperInterval;
     private final ExecutorSettings executorSettings;
     private final SchedulerSettings schedulerSettings;
+    private final MdcSettings mdcSettings;
 
     public MoneySettings(Config config) {
         this(
@@ -70,11 +87,14 @@ public class MoneySettings {
                 config.getDuration("money.stopped-span-timeout", TimeUnit.MILLISECONDS),
                 config.getDuration("money.reaper-interval", TimeUnit.MILLISECONDS),
                 new ExecutorSettings(config.getConfig("money.executor")),
-                new SchedulerSettings(config.getConfig("money.scheduler"))
+                new SchedulerSettings(config.getConfig("money.scheduler")),
+                new MdcSettings(config.getConfig("money.mdc"))
         );
     }
 
-    public MoneySettings(String appName, boolean enabled, long spanTimeout, long stoppedSpanTimeout, long reaperInterval, ExecutorSettings executorSettings, SchedulerSettings schedulerSettings) {
+    public MoneySettings(String appName, boolean enabled, long spanTimeout, long stoppedSpanTimeout,
+            long reaperInterval, ExecutorSettings executorSettings, SchedulerSettings schedulerSettings,
+            MdcSettings mdcSettings) {
         this.appName = appName;
         this.enabled = enabled;
         this.spanTimeout = spanTimeout;
@@ -82,6 +102,7 @@ public class MoneySettings {
         this.reaperInterval = reaperInterval;
         this.executorSettings = executorSettings;
         this.schedulerSettings = schedulerSettings;
+        this.mdcSettings = mdcSettings;
     }
 
     public String getAppName() {
@@ -110,5 +131,9 @@ public class MoneySettings {
 
     public SchedulerSettings getSchedulerSettings() {
         return schedulerSettings;
+    }
+
+    public MdcSettings getMdcSettings() {
+        return mdcSettings;
     }
 }

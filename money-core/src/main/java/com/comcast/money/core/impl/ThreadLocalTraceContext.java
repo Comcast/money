@@ -29,6 +29,12 @@ public class ThreadLocalTraceContext implements TraceContext {
         threadLocalCtx.set(new Stack<Span>());
     }
 
+    private final MDCSupport mdcSupport;
+
+    public ThreadLocalTraceContext(MDCSupport mdcSupport) {
+        this.mdcSupport = mdcSupport;
+    }
+
     public Span current() {
         if (!stack().isEmpty()) {
             return stack().peek();
@@ -38,15 +44,25 @@ public class ThreadLocalTraceContext implements TraceContext {
     }
 
     public void push(Span span) {
+
         stack().push(span);
+        mdcSupport.setSpanMDC(span);
     }
 
     public Span pop() {
-        return stack().pop();
+
+        Span result = stack().pop();
+
+        // reset the mdc to the prior item in the thread, if null mdc will be cleared
+        mdcSupport.setSpanMDC(current());
+
+        return result;
     }
 
     public void clear() {
+
         stack().clear();
+        mdcSupport.setSpanMDC(null);
     }
 
     private Stack<Span> stack() {

@@ -24,6 +24,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
 import com.comcast.money.core.impl.DefaultTracer;
+import com.comcast.money.core.impl.MDCSupport;
 import com.comcast.money.core.impl.SpanReaper;
 import com.comcast.money.core.impl.ThreadLocalTraceContext;
 
@@ -39,7 +40,7 @@ public class Money {
     static {
         config = ConfigFactory.load();
         settings = new MoneySettings(config);
-        traceContext = new ThreadLocalTraceContext();
+        traceContext = new ThreadLocalTraceContext(new MDCSupport(settings.getMdcSettings().isEnabled()));
         moneyExecutor = Executors.newFixedThreadPool(settings.getExecutorSettings().getThreadCount());
         moneyScheduler = Executors.newScheduledThreadPool(settings.getSchedulerSettings().getThreadCount());
         System.out.println("\r\nLOADING MONEY");
