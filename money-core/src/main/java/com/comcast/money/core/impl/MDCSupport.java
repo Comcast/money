@@ -20,7 +20,7 @@ public class MDCSupport {
         this.enabled = enabled;
     }
 
-    public void setSpanMDC(Span span) {
+    public void setSpan(Span span) {
         if (enabled) {
             if (span == null) {
                 MDC.remove(MONEY_TRACE_KEY);
@@ -35,7 +35,7 @@ public class MDCSupport {
         }
     }
 
-    public void propagateMDC(Map contextMap) {
+    public void propagate(Map contextMap) {
         if (enabled) {
             if (contextMap == null) {
                 MDC.clear();
@@ -43,5 +43,13 @@ public class MDCSupport {
                 MDC.setContextMap(contextMap);
             }
         }
+    }
+
+    public void clear() {
+        MDC.clear();
+    }
+
+    public String getSpanName() {
+        return MDC.get(SPAN_NAME_KEY);
     }
 }

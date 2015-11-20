@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.comcast.money.aspectj;
+package com.comcast.money.reflect;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -28,9 +28,9 @@ import com.comcast.money.annotations.TracedData;
 import com.comcast.money.core.Note;
 import com.comcast.money.core.Tracer;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.Matchers.*;
-import static org.mockito.Mockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TracedDataParameterTest {

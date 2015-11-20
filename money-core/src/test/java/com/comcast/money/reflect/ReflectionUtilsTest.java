@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.comcast.money.aspectj;
+package com.comcast.money.reflect;
 
 import java.lang.reflect.Method;
 import java.util.List;

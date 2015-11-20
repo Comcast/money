@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.comcast.money.aspectj;
+package com.comcast.money.reflect;
 
 import com.comcast.money.annotations.TracedData;
 import com.comcast.money.core.Note;

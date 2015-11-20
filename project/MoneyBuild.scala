@@ -35,7 +35,8 @@ object MoneyBuild extends Build {
           typesafeConfig,
           junit,
           scalaTest,
-          mockito
+          mockito,
+          assertj
         )
       )
 
@@ -65,6 +66,25 @@ object MoneyBuild extends Build {
           junit,
           scalaTest,
           mockito
+        )
+      )
+      .dependsOn(moneyCore)
+
+  lazy val moneySpring3 =
+    Project("money-spring3", file("./money-spring3"))
+      .configs( IntegrationTest )
+      .settings(projectSettings: _*)
+      .settings(
+        libraryDependencies ++= Seq(
+          mockito,
+          springContext3,
+          springAop3,
+          junit,
+          junitInterface,
+          springTest,
+          mockito,
+          springOckito,
+          assertj
         )
       )
       .dependsOn(moneyCore)

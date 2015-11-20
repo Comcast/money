@@ -20,9 +20,9 @@ public interface Tracer {
 
     void setTraceContext(SpanId spanId);
 
-    void startSpan(String spanName);
+    Span startSpan(String spanName);
 
-    void startSpan(String spanName, boolean propagate);
+    Span startSpan(String spanName, boolean propagate);
 
     void stopSpan(boolean result);
 
@@ -37,6 +37,14 @@ public interface Tracer {
     void record(String key, Long value);
 
     void record(Note<?> note);
+
+    void record(String key, String value, boolean propagate);
+
+    void record(String key, Boolean value, boolean propagate);
+
+    void record(String key, Double value, boolean propagate);
+
+    void record(String key, Long value, boolean propagate);
 
     void startTimer(String timerKey);
 

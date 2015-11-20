@@ -21,15 +21,21 @@ public class Note<T> {
     private final String name;
     private final T value;
     private final Long timestamp;
+    private final boolean propagate;
 
     public Note(String name, T value) {
-        this(name, value, System.currentTimeMillis());
+        this(name, value, System.currentTimeMillis(), false);
     }
 
-    public Note(String name, T value, Long timestamp) {
+    public Note(String name, T value, boolean propagate) {
+        this(name, value, System.currentTimeMillis(), propagate);
+    }
+
+    public Note(String name, T value, Long timestamp, boolean propagate) {
         this.name = name;
         this.value = value;
         this.timestamp = timestamp;
+        this.propagate = propagate;
     }
 
     public String getName() {
@@ -42,5 +48,9 @@ public class Note<T> {
 
     public Long getTimestamp() {
         return timestamp;
+    }
+
+    public boolean isPropagate() {
+        return propagate;
     }
 }

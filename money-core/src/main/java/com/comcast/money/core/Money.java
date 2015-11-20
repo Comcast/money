@@ -59,11 +59,13 @@ public class Money {
                 }
 
                 @Override
-                public void startSpan(String spanName) {
+                public Span startSpan(String spanName) {
+                    return null;
                 }
 
                 @Override
-                public void startSpan(String spanName, boolean propagate) {
+                public Span startSpan(String spanName, boolean propagate) {
+                    return null;
                 }
 
                 @Override
@@ -100,6 +102,26 @@ public class Money {
 
                 @Override
                 public void stopTimer(String timerKey) {
+                }
+
+                @Override
+                public void record(String key, String value, boolean propagate) {
+
+                }
+
+                @Override
+                public void record(String key, Boolean value, boolean propagate) {
+
+                }
+
+                @Override
+                public void record(String key, Double value, boolean propagate) {
+
+                }
+
+                @Override
+                public void record(String key, Long value, boolean propagate) {
+
                 }
             };
         }

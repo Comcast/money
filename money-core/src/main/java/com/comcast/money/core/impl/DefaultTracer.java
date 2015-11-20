@@ -47,13 +47,13 @@ public class DefaultTracer implements Tracer {
     }
 
     @Override
-    public void startSpan(String spanName) {
+    public Span startSpan(String spanName) {
 
-        startSpan(spanName, false);
+        return startSpan(spanName, false);
     }
 
     @Override
-    public void startSpan(String spanName, boolean propagate) {
+    public Span startSpan(String spanName, boolean propagate) {
 
         Span current = traceContext.current();
         Span newSpan;
@@ -66,6 +66,8 @@ public class DefaultTracer implements Tracer {
         newSpan.start();
         traceContext.push(newSpan);
         spanReaper.watch(newSpan);
+
+        return newSpan;
     }
 
     @Override
@@ -136,6 +138,38 @@ public class DefaultTracer implements Tracer {
         Span current = traceContext.current();
         if (current != null) {
             current.stopTimer(timerKey);
+        }
+    }
+
+    @Override
+    public void record(String key, String value, boolean propagate) {
+        Span current = traceContext.current();
+        if (current != null) {
+            current.record(new Note<String>(key, value, propagate));
+        }
+    }
+
+    @Override
+    public void record(String key, Boolean value, boolean propagate) {
+        Span current = traceContext.current();
+        if (current != null) {
+            current.record(new Note<Boolean>(key, value, propagate));
+        }
+    }
+
+    @Override
+    public void record(String key, Double value, boolean propagate) {
+        Span current = traceContext.current();
+        if (current != null) {
+            current.record(new Note<Double>(key, value, propagate));
+        }
+    }
+
+    @Override
+    public void record(String key, Long value, boolean propagate) {
+        Span current = traceContext.current();
+        if (current != null) {
+            current.record(new Note<Long>(key, value, propagate));
         }
     }
 }
