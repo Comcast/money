@@ -123,7 +123,7 @@ Add a dependency as follows for maven:
     <dependency>
         <groupId>com.comcast.money</groupId>
         <artifactId>money-core</artifactId>
-        <version>0.8.8</version>
+        <version>0.8.9</version>
     </dependency>
 ``` 
 
