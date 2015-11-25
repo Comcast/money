@@ -3,7 +3,6 @@ import com.typesafe.sbt.SbtAspectj._
 import com.typesafe.sbt.SbtScalariform
 import sbt.Keys._
 import sbt._
-import scoverage.ScoverageSbtPlugin._
 import de.heikoseeberger.sbtheader.HeaderPlugin
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import de.heikoseeberger.sbtheader.HeaderKey._
@@ -34,6 +33,7 @@ object MoneyBuild extends Build {
           log4jbinding,
           typesafeConfig,
           junit,
+          junitInterface,
           scalaTest,
           mockito,
           assertj
@@ -50,6 +50,7 @@ object MoneyBuild extends Build {
           log4jbinding,
           typesafeConfig,
           junit,
+          junitInterface,
           scalaTest,
           mockito,
           assertj
@@ -64,6 +65,7 @@ object MoneyBuild extends Build {
         libraryDependencies ++= Seq(
           javaxServlet,
           junit,
+          junitInterface,
           scalaTest,
           mockito
         )
@@ -89,11 +91,7 @@ object MoneyBuild extends Build {
       )
       .dependsOn(moneyCore)
 
-  def projectSettings = basicSettings ++ Seq(
-    ScoverageKeys.coverageHighlighting := true,
-    ScoverageKeys.coverageMinimum := 90,
-    ScoverageKeys.coverageFailOnMinimum := true
-  )
+  def projectSettings = basicSettings
 
   def aspectjProjectSettings = projectSettings ++ aspectjSettings ++ Seq(
     javaOptions in IntegrationTest <++= weaverOptions in Aspectj // adds javaagent:aspectjweaver to java options, including test
@@ -123,7 +121,9 @@ object MoneyBuild extends Build {
       "-language:existentials",
       "-language:postfixOps",
       "-language:reflectiveCalls"),
-    testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF", "-u", "target/scalatest-reports"),
+    testOptions in Test := Seq(Tests.Filter(s => s.endsWith("Test") || s.endsWith("Spec")), Tests.Argument(TestFrameworks.JUnit, "-q", "-v")),
+    testOptions in IntegrationTest := Seq(Tests.Filter(s => s.endsWith("Test") || s.endsWith("Spec")), Tests.Argument(TestFrameworks.JUnit, "-q", "-v")),
+    testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
     fork := true,
     publishMavenStyle := true,
     headers := Map(
@@ -195,10 +195,10 @@ object MoneyBuild extends Build {
     val mockito = "org.mockito" % "mockito-core" % "1.9.5" % "it,test"
     val scalaTest = "org.scalatest" %% "scalatest" % "2.2.3" % "it,test"
     val junit = "junit" % "junit" % "4.11" % "test"
-    val junitInterface = "com.novocode" % "junit-interface" % "0.11" % "test->default"
+    val junitInterface = "com.novocode" % "junit-interface" % "0.11" % "it,test"
     val springTest = ("org.springframework" % "spring-test" % "3.2.6.RELEASE")
       .exclude("commons-logging", "commons-logging")
-    val springOckito = "org.kubek2k" % "springockito" % "1.0.9" % "test"
+    val springOckito = "org.kubek2k" % "springockito" % "1.0.9" % "it,test"
     val assertj = "org.assertj" % "assertj-core" % "2.2.0" % "it,test"
   }
 }
