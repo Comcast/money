@@ -78,9 +78,25 @@ object MoneyBuild extends Build {
       .settings(projectSettings: _*)
       .settings(
         libraryDependencies ++= Seq(
-          mockito,
           springContext3,
           springAop3,
+          junit,
+          junitInterface,
+          springTest,
+          mockito,
+          springOckito,
+          assertj
+        )
+      )
+      .dependsOn(moneyCore)
+
+  lazy val moneyHttpClient =
+    Project("money-http-client", file("./money-http-client"))
+      .configs( IntegrationTest )
+      .settings(projectSettings: _*)
+      .settings(
+        libraryDependencies ++= Seq(
+          apacheHttpClient,
           junit,
           junitInterface,
           springTest,
