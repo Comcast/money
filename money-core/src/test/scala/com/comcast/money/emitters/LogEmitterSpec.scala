@@ -16,14 +16,22 @@
 
 package com.comcast.money.emitters
 
+import akka.actor.Props
 import akka.event.Logging
+import akka.testkit.TestActorRef
 import com.comcast.money.core.{ Note, Span, SpanId, StringNote }
 import com.comcast.money.internal.EmitterProtocol.{ EmitMetricDouble, EmitSpan }
 import com.comcast.money.test.AkkaTestJawn
-import com.typesafe.config.ConfigFactory
-import org.scalatest.WordSpecLike
+import com.typesafe.config.{ Config, ConfigFactory }
+import org.mockito.Mockito._
+import org.mockito.Matchers._
+import org.scalatest.mock.MockitoSugar
+import org.scalatest.{ BeforeAndAfterEach, WordSpecLike }
+import org.slf4j.Logger
 
-class LogEmitterSpec extends AkkaTestJawn with WordSpecLike {
+import scala.concurrent.duration._
+
+class LogEmitterSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfterEach with MockitoSugar {
 
   val emitterConf = ConfigFactory.parseString(
     """
@@ -33,6 +41,18 @@ class LogEmitterSpec extends AkkaTestJawn with WordSpecLike {
           }
     """
   )
+
+  val mockLogger = mock[Logger]
+  class TestLogEmitter(conf: Config) extends LogEmitter(conf) {
+
+    override def record(message: String) = {
+      mockLogger.info(message)
+    }
+  }
+
+  override def beforeEach(): Unit = {
+    LogRecord.clear()
+  }
 
   "A LogEmitter must" must {
     "log request spans" in {
@@ -57,6 +77,35 @@ class LogEmitterSpec extends AkkaTestJawn with WordSpecLike {
         actualMessage === ("Span: [ span-id=1 ][ trace-id=1 ][ parent-id=1 ][ span-name=key ][ app-name=unknown ][ " +
           "start-time=1 ][ span-duration=35 ][ span-success=true ][ bob=craig ][ what=1 ][ when=2 ]")
       )
+    }
+    "sample spans" in within(1 second) {
+      val conf = ConfigFactory.parseString(
+        """
+          {
+            log-level="INFO"
+            emitter="com.comcast.money.emitters.LogRecorder"
+            sampling {
+              enabled = true
+              class-name = "com.comcast.money.sampling.EveryNSampler"
+              every = 2
+            }
+          }
+        """
+      )
+      val sampledEmitter = TestActorRef(new TestLogEmitter(conf))
+      val sampleData = Span(
+        SpanId(1L), "key", "unknown", "host", 1L, true, 35L,
+        Map("what" -> Note("what", 1L), "when" -> Note("when", 2L), "bob" -> Note("bob", "craig"))
+      )
+      val span = EmitSpan(sampleData)
+
+      // first span is not recorded because we are sampling every other
+      sampledEmitter ! span
+      verifyZeroInteractions(mockLogger)
+
+      // next span is recorded
+      sampledEmitter ! span
+      verify(mockLogger).info(anyString())
     }
     "log metrics" in {
       val underTest = system.actorOf(LogEmitter.props(emitterConf))
