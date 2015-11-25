@@ -142,8 +142,6 @@ object MoneyBuild extends Build {
             chillAvro,
             chillBijection,
             commonsIo,
-            curator,
-            zkClient,
             akkaTestkit(v),
             scalaTest,
             mockito
@@ -210,7 +208,7 @@ object MoneyBuild extends Build {
 
   def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings ++ Seq(
     organization := "com.comcast.money",
-    version := "0.8.9",
+    version := "0.8.10-SNAPSHOT",
     crossScalaVersions := Seq("2.10.6", "2.11.7"),
     scalaVersion := "2.10.6",
     resolvers ++= Seq(
@@ -295,7 +293,7 @@ object MoneyBuild extends Build {
     val javaxServlet = "javax.servlet" % "servlet-api" % "2.5"
 
     // Kafka, exclude dependencies that we will not need, should work for 2.10 and 2.11
-    val kafka = ("org.apache.kafka" % "kafka_2.10" % "0.8.1.1")
+    val kafka = ("org.apache.kafka" %% "kafka" % "0.8.2.2")
     .exclude("javax.jms", "jms")
     .exclude("com.sun.jdmk", "jmxtools")
     .exclude("com.sun.jmx", "jmxri")
@@ -318,12 +316,6 @@ object MoneyBuild extends Build {
 
     val springAop3 = "org.springframework" % "spring-aop" % "3.2.6.RELEASE"
     val springContext = "org.springframework" % "spring-context" % "4.1.1.RELEASE"
-
-    val curator = ("org.apache.curator" % "curator-test" % "2.4.0")
-    .exclude("org.slf4j", "slf4j-log4j12")
-
-    val zkClient = ("com.101tec" % "zkclient" % "0.4")
-    .exclude("org.apache.zookeeper", "zookeeper")
 
     // Test
     val mockito = "org.mockito" % "mockito-core" % "1.9.5" % "test"
