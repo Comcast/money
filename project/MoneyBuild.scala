@@ -3,8 +3,6 @@ import com.typesafe.sbt.SbtAspectj._
 import com.typesafe.sbt.SbtScalariform
 import sbt.Keys._
 import sbt._
-import sbtavro.SbtAvro._
-import scoverage.ScoverageSbtPlugin._
 import de.heikoseeberger.sbtheader.HeaderPlugin
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
 import de.heikoseeberger.sbtheader.HeaderKey._
@@ -13,10 +11,7 @@ import de.heikoseeberger.sbtheader.license.Apache2_0
 import scala.sys.SystemProperties
 
 object MoneyBuild extends Build {
-  import MavenSettings._
   import MoneyBuild.Dependencies._
-
-  lazy val copyApiDocsTask = taskKey[Unit]("Copies the scala docs from each project to the doc tree")
 
   lazy val props = new SystemProperties()
 
@@ -26,191 +21,101 @@ object MoneyBuild extends Build {
     publishLocal := {},
     publish := {}
   )
-  .aggregate(moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
+  .aggregate(moneyCore,moneyAspectj)
 
   lazy val moneyCore =
     Project("money-core", file("./money-core"))
-    .configs( IntegrationTest )
-    .settings(projectSettings: _*)
-    .settings(
-      libraryDependencies <++= (scalaVersion) { v: String =>
-        Seq(
-          akkaActor(v),
-          akkaSlf4j(v),
-          akkaTestkit(v),
+      .configs( IntegrationTest )
+      .settings(projectSettings: _*)
+      .settings(
+        libraryDependencies ++= Seq(
           slf4j,
           log4jbinding,
           typesafeConfig,
-          jodaTime,
-          metricsCore,
+          junit,
+          junitInterface,
           scalaTest,
-          mockito
+          mockito,
+          assertj
         )
-      }
-    )
+      )
 
   lazy val moneyAspectj =
     Project("money-aspectj", file("./money-aspectj"))
-    .configs( IntegrationTest )
-    .settings(aspectjProjectSettings: _*)
-    .settings(
-      libraryDependencies <++= (scalaVersion) { v: String =>
-        Seq(
-          akkaActor(v),
-          akkaSlf4j(v),
-          akkaTestkit(v),
-          typesafeConfig,
-          scalaTest,
-          mockito
-        )
-      }
-    )
-    .dependsOn(moneyCore)
-
-  lazy val moneyHttpClient =
-    Project("money-http-client", file("./money-http-client"))
       .configs( IntegrationTest )
       .settings(aspectjProjectSettings: _*)
       .settings(
-        libraryDependencies <++= (scalaVersion){v: String =>
-          Seq(
-            akkaActor(v),
-            akkaSlf4j(v),
-            akkaTestkit(v),
-            apacheHttpClient,
-            scalaTest,
-            mockito
-          )
-        }
-      )
-      .dependsOn(moneyCore,moneyAspectj)
+        libraryDependencies ++= Seq(
+          slf4j,
+          log4jbinding,
+          typesafeConfig,
+          junit,
+          junitInterface,
+          scalaTest,
+          mockito,
+          assertj
+        )
+      ).dependsOn(moneyCore % "compile->compile;it->it;test->test")
 
   lazy val moneyJavaServlet =
     Project("money-java-servlet", file("./money-java-servlet"))
       .configs( IntegrationTest )
       .settings(projectSettings: _*)
       .settings(
-        libraryDependencies <++= (scalaVersion){v: String =>
-          Seq(
-            akkaActor(v),
-            akkaSlf4j(v),
-            javaxServlet,
-            akkaTestkit(v),
-            scalaTest,
-            mockito
-          )
-        }
-      )
-      .dependsOn(moneyCore)
-
-  lazy val moneyWire =
-    Project("money-wire", file("./money-wire"))
-      .configs( IntegrationTest )
-      .settings(projectSettings: _*)
-      .settings(sbtavro.SbtAvro.avroSettings : _*)
-      .settings(
-        libraryDependencies <++= (scalaVersion){v: String =>
-          Seq(
-            json4sNative,
-            json4sJackson,
-            scalaTest,
-            mockito
-          )
-        },
-        fork := false,
-        javacOptions in doc := Seq("-source", "1.6"),
-        // Configure the desired Avro version.  sbt-avro automatically injects a libraryDependency.
-        (version in avroConfig) := "1.7.6",
-        // Look for *.avsc etc. files in src/test/avro
-        (sourceDirectory in avroConfig) <<= (sourceDirectory in Compile)(_ / "avro"),
-        (stringType in avroConfig) := "String"
-      ).dependsOn(moneyCore)
-
-  lazy val moneyKafka =
-    Project("money-kafka", file("./money-kafka"))
-      .configs( IntegrationTest )
-      .settings(projectSettings: _*)
-      .settings(
-        libraryDependencies <++= (scalaVersion){v: String =>
-          Seq(
-            akkaActor(v),
-            akkaSlf4j(v),
-            kafka,
-            bijectionCore,
-            bijectionAvro,
-            chill,
-            chillAvro,
-            chillBijection,
-            commonsIo,
-            curator,
-            zkClient,
-            akkaTestkit(v),
-            scalaTest,
-            mockito
-          )
-        }
-      )
-      .dependsOn(moneyCore, moneyWire)
-
-  lazy val moneySpring =
-    Project("money-spring", file("./money-spring"))
-      .configs(IntegrationTest)
-      .settings(aspectjProjectSettings: _*)
-      .settings(
-        libraryDependencies <++= (scalaVersion) { v: String =>
-          Seq(
-            akkaActor(v),
-            akkaSlf4j(v),
-            akkaTestkit(v),
-            typesafeConfig,
-            scalaTest,
-            mockito,
-            springContext
-          )
-        }
+        libraryDependencies ++= Seq(
+          javaxServlet,
+          junit,
+          junitInterface,
+          scalaTest,
+          mockito
+        )
       )
       .dependsOn(moneyCore)
 
   lazy val moneySpring3 =
     Project("money-spring3", file("./money-spring3"))
-      .configs(IntegrationTest)
+      .configs( IntegrationTest )
       .settings(projectSettings: _*)
       .settings(
-        libraryDependencies <++= (scalaVersion) { v: String =>
-          Seq(
-            akkaActor(v),
-            akkaSlf4j(v),
-            akkaTestkit(v),
-            typesafeConfig,
-            scalaTest,
-            mockito,
-            springContext3,
-            springAop3,
-            junit,
-            junitInterface,
-            springTest,
-            mockito,
-            springOckito,
-            assertj
-          )
-        },
-        testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
+        libraryDependencies ++= Seq(
+          springContext3,
+          springAop3,
+          junit,
+          junitInterface,
+          springTest,
+          mockito,
+          springOckito,
+          assertj
+        )
       )
       .dependsOn(moneyCore)
 
-  def projectSettings = basicSettings ++ Seq(
-    ScoverageKeys.coverageHighlighting := true,
-    ScoverageKeys.coverageMinimum := 90,
-    ScoverageKeys.coverageFailOnMinimum := true
-  )
+  lazy val moneyHttpClient =
+    Project("money-http-client", file("./money-http-client"))
+      .configs( IntegrationTest )
+      .settings(projectSettings: _*)
+      .settings(
+        libraryDependencies ++= Seq(
+          apacheHttpClient,
+          junit,
+          junitInterface,
+          springTest,
+          mockito,
+          springOckito,
+          assertj
+        )
+      )
+      .dependsOn(moneyCore)
+
+  def projectSettings = basicSettings
 
   def aspectjProjectSettings = projectSettings ++ aspectjSettings ++ Seq(
-    javaOptions in Test <++= weaverOptions in Aspectj // adds javaagent:aspectjweaver to java options, including test
+    javaOptions in IntegrationTest <++= weaverOptions in Aspectj // adds javaagent:aspectjweaver to java options, including test
   )
 
   def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings ++ Seq(
     organization := "com.comcast.money",
-    version := "0.8.9-SNAPSHOT",
+    version := "0.9.0-SNAPSHOT",
     crossScalaVersions := Seq("2.10.6", "2.11.7"),
     scalaVersion := "2.10.6",
     resolvers ++= Seq(
@@ -222,7 +127,8 @@ object MoneyBuild extends Build {
       "-target", "1.6",
       "-Xlint:unchecked",
       "-Xlint:deprecation",
-      "-Xlint:-options"),
+      "-Xlint:-options",
+      "-g"),
     javacOptions in doc := Seq("-source", "1.6"),
     scalacOptions ++= Seq(
       "-unchecked",
@@ -231,28 +137,11 @@ object MoneyBuild extends Build {
       "-language:existentials",
       "-language:postfixOps",
       "-language:reflectiveCalls"),
-    testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF", "-u", "target/scalatest-reports"),
+    testOptions in Test := Seq(Tests.Filter(s => s.endsWith("Test") || s.endsWith("Spec")), Tests.Argument(TestFrameworks.JUnit, "-q", "-v")),
+    testOptions in IntegrationTest := Seq(Tests.Filter(s => s.endsWith("Test") || s.endsWith("Spec")), Tests.Argument(TestFrameworks.JUnit, "-q", "-v")),
+    testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
     fork := true,
     publishMavenStyle := true,
-    publishTo <<= (version) { version => mvnResolver(version) },
-    credentials ++= mvnCredentials(version.value),
-    autoAPIMappings := true,
-    apiMappings ++= {
-      def findManagedDependency(organization: String, name: String): Option[File] = {
-        (for {
-          entry <- (fullClasspath in Compile).value
-          module <- entry.get(moduleID.key) if module.organization == organization && module.name.startsWith(name)
-        } yield entry.data).headOption
-      }
-      val links: Seq[Option[(File, URL)]] = Seq(
-        findManagedDependency("org.scala-lang", "scala-library").map(d => d -> url(s"http://www.scala-lang.org/api/2.10.4/")),
-        findManagedDependency("com.typesafe.akka", "akka-actor").map(d => d -> url(s"http://doc.akka.io/api/akka/$akkaVersion/")),
-        findManagedDependency("com.typesafe", "config").map(d => d -> url("http://typesafehub.github.io/config/latest/api/"))
-      )
-      val x = links.collect { case Some(d) => d }.toMap
-      println("links: " + x)
-      x
-    },
     headers := Map(
       "scala" -> Apache2_0("2012-2015", "Comcast Cable Communications Management, LLC"),
       "java" -> Apache2_0("2012-2015", "Comcast Cable Communications Management, LLC"),
@@ -261,19 +150,12 @@ object MoneyBuild extends Build {
   ) ++ HeaderPlugin.settingsFor(IntegrationTest) ++ AutomateHeaderPlugin.automateFor(Compile, Test, IntegrationTest)
 
   object Dependencies {
-    val akkaVersion = "2.2.3"
     val codahaleVersion = "3.0.2"
     val apacheHttpClientVersion = "4.3.5"
 
     // Logging, SlF4J must equal the same version used by akka
     val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
     val log4jbinding = "org.slf4j" % "slf4j-log4j12" % "1.7.5" % "it,test"
-
-    // Akka
-    def akkaActor(scalaVersion: String) = "com.typesafe.akka" %% "akka-actor" % getAkkaVersion(scalaVersion)
-    def akkaSlf4j(scalaVersion: String) = "com.typesafe.akka" %% "akka-slf4j" % getAkkaVersion(scalaVersion) % "runtime"
-    def akkaTestkit(scalaVersion: String) = "com.typesafe.akka" %% "akka-testkit" % getAkkaVersion(scalaVersion) %
-      "it,test"
 
     // Joda
     val jodaTime = "joda-time" % "joda-time" % "2.1"
@@ -291,7 +173,7 @@ object MoneyBuild extends Build {
     // Apache http client
     val apacheHttpClient = "org.apache.httpcomponents" % "httpclient" % apacheHttpClientVersion
 
-    // Javax servlet - note: the group id and artfacit id have changed in 3.0
+    // Javax servlet - note: the group id and artifact id have changed in 3.0
     val javaxServlet = "javax.servlet" % "servlet-api" % "2.5"
 
     // Kafka, exclude dependencies that we will not need, should work for 2.10 and 2.11
@@ -326,20 +208,13 @@ object MoneyBuild extends Build {
     .exclude("org.apache.zookeeper", "zookeeper")
 
     // Test
-    val mockito = "org.mockito" % "mockito-core" % "1.9.5" % "test"
+    val mockito = "org.mockito" % "mockito-core" % "1.9.5" % "it,test"
     val scalaTest = "org.scalatest" %% "scalatest" % "2.2.3" % "it,test"
     val junit = "junit" % "junit" % "4.11" % "test"
-    val junitInterface = "com.novocode" % "junit-interface" % "0.11" % "test->default"
+    val junitInterface = "com.novocode" % "junit-interface" % "0.11" % "it,test"
     val springTest = ("org.springframework" % "spring-test" % "3.2.6.RELEASE")
       .exclude("commons-logging", "commons-logging")
-    val springOckito = "org.kubek2k" % "springockito" % "1.0.9" % "test"
-    val assertj = "org.assertj" % "assertj-core" % "1.7.1" % "it,test"
-
-    def getAkkaVersion(scalaVersion: String) = {
-      scalaVersion match {
-        case version if version.startsWith("2.10") => "2.2.3"
-        case version if version.startsWith("2.11") => "2.3.4"
-      }
-    }
+    val springOckito = "org.kubek2k" % "springockito" % "1.0.9" % "it,test"
+    val assertj = "org.assertj" % "assertj-core" % "2.2.0" % "it,test"
   }
 }
