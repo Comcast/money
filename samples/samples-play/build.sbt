@@ -19,7 +19,7 @@ libraryDependencies ++= Seq(
   ws
 )
 
-libraryDependencies += "com.comcast.money" %% "money-core" % "0.8.9"
+libraryDependencies += "com.comcast.money" %% "money-core" % "0.8.10"
 
 fork in run := true
 
