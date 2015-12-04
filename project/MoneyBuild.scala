@@ -231,7 +231,43 @@ object MoneyBuild extends Build {
     testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF", "-u", "target/scalatest-reports"),
     fork := true,
     publishMavenStyle := true,
-    publishTo := Some(Resolver.mavenLocal),
+    publishTo := {
+      val nexus = "https://oss.sonatype.org/"
+      if (isSnapshot.value)
+        Some("snapshots" at nexus + "content/repositories/snapshots")
+      else
+        Some("releases"  at nexus + "service/local/staging/deploy/maven2")
+    },
+    pomIncludeRepository := { _ => false },
+    pomExtra := (
+      <name>com.comcast:money</name>
+      <description>A distributed tracing framework</description>
+      <url>https://github.com/Comcast/money</url>
+        <licenses>
+          <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+            <distribution>repo</distribution>
+            <comments>A business-friendly OSS license</comments>
+          </license>
+        </licenses>
+        <scm>
+          <url>git@github.com:Comcast/money.git</url>
+          <connection>scm:git:git@github.com:Comcast/money.git</connection>
+        </scm>
+        <developers>
+          <developer>
+            <id>paulcleary</id>
+            <name>Paul Clery</name>
+            <url>https://github.com/paulcleary</url>
+          </developer>
+          <developer>
+            <id>kristomasette</id>
+            <name>Kristofer Tomasette</name>
+            <url>https://github.com/kristomasette</url>
+          </developer>
+        </developers>),
+    publishArtifact in Test := false,
     autoAPIMappings := true,
     apiMappings ++= {
       def findManagedDependency(organization: String, name: String): Option[File] = {
