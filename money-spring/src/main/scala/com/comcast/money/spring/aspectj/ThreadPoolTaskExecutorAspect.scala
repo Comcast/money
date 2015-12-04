@@ -55,9 +55,7 @@ class ThreadPoolTaskExecutorAspect {
   }
 
   @Pointcut(
-    "execution(* org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor+.initializeExecutor(java.util" +
-      ".concurrent.ThreadFactory, java.util.concurrent.RejectedExecutionHandler)) && args(threadFactory, " +
-      "rejectedExecutionHandler)"
+    "execution(* org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor+.initializeExecutor(java.util.concurrent.ThreadFactory, java.util.concurrent.RejectedExecutionHandler)) && args(threadFactory,rejectedExecutionHandler)"
   )
   def initializeExecutor(threadFactory: ThreadFactory, rejectedExecutionHandler: RejectedExecutionHandler) = {}
 

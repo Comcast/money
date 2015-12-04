@@ -1,3 +1,13 @@
+## Development Status
+We are actively working on version 0.9 that will offer several improvements over both the API and module 
+implementations.  0.8.x is being used in several projects currently, and we will continue to enhance
+0.8.x for the forseeable future while 0.9 work takes place.
+
+If you want to work on 0.9, feel free to reach out!
+
+### Availability
+We have requests in to deploy to a public repo, that should be avaiable shortly
+
 ## Money: Distributed Tracing Made Simple
 ### Money makes it simple to trace across threads and systems
 Money is a modular distributed tracing platform that can be seamlessly incorporated into modern applications.  *It's 
@@ -105,11 +115,11 @@ for a single Span
 ## Should I use Money?
 This depends on the scale of your implementation.  Money _tries_ to serve a wide range of implementations.
 
-Certainly, if you want to implement an application that is serving millions of requests per hour (or less), Money 
+Certainly, if you want to implement an application that is serving 1000s or 10000s of request per second per JVM, Money 
 should work for you.  You can easily funnel data into your log aggregator or other reporting system and start
 getting the benefits immediately.
 
-If your implementation is in the order of 100s of millions of requests per second, then things will get difficult 
+If your implementation is in the order of 50000+ RPS with lots of spans, then things will get difficult 
 as you will have to manage a lot of data.  Spooling span events to disk and sending them as you can is one approach.
 You can use FluentD, Heka, PipeD or something else to eventually get the data off of disk.  Theoretically it is possible,
 but without sampling, Money is generating a ton of data.  If you are not using that data for analytics, you can 

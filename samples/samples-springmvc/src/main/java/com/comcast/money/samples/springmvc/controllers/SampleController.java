@@ -31,7 +31,7 @@ public class SampleController {
         logger.warn("Call to sample controller with name " + name);
 
         if ("ignore".equals(name)) {
-            throw new IllegalArgumentException("this should be ignored, check the log file for span-success=true")
+            throw new IllegalArgumentException("this should be ignored, check the log file for span-success=true");
         }
         return rootService.doSomething(name).get();
     }

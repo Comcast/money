@@ -13,7 +13,6 @@ import de.heikoseeberger.sbtheader.license.Apache2_0
 import scala.sys.SystemProperties
 
 object MoneyBuild extends Build {
-  import MavenSettings._
   import MoneyBuild.Dependencies._
 
   lazy val copyApiDocsTask = taskKey[Unit]("Copies the scala docs from each project to the doc tree")
@@ -232,8 +231,7 @@ object MoneyBuild extends Build {
     testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF", "-u", "target/scalatest-reports"),
     fork := true,
     publishMavenStyle := true,
-    publishTo <<= (version) { version => mvnResolver(version) },
-    credentials ++= mvnCredentials(version.value),
+    publishTo := Some(Resolver.mavenLocal),
     autoAPIMappings := true,
     apiMappings ++= {
       def findManagedDependency(organization: String, name: String): Option[File] = {
