@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
-import scala.beans.BeanDescription;
 
 import com.comcast.money.japi.TraceFriendlyExecutors;
 import com.comcast.money.spring3.TracedMethodInterceptor;
