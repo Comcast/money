@@ -1,0 +1,12 @@
+language: scala
+jdk: oraclejdk7
+
+scala:
+  - 2.10.6
+  - 2.11.7
+
+script:
+  -  sbt ++$TRAVIS_SCALA_VERSION clean coverage test it:test coverageAggregate
+
+after_success:
+  - pip install --user codecov && codecov
