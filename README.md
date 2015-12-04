@@ -8,6 +8,10 @@ If you want to work on 0.9, feel free to reach out!
 ### Availability
 We have requests in to deploy to a public repo, that should be avaiable shortly
 
+## Distributed Tracing Reads
+[Distributed Trace For Video Systems](http://www.nctatechnicalpapers.com/Paper/2015/2015-distributed-trace-for-video-systems/download)
+written by Michael Bevilacqua-Linn discusses our experiences at Comcast implementing distributed traces.
+
 ## Money: Distributed Tracing Made Simple
 ### Money makes it simple to trace across threads and systems
 Money is a modular distributed tracing platform that can be seamlessly incorporated into modern applications.  *It's 
