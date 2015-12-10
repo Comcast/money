@@ -40,15 +40,6 @@ object MoneyMetrics
     extends ExtensionId[MoneyMetricsImpl]
     with ExtensionIdProvider {
 
-  val registry: MetricRegistry = new MetricRegistry()
-  // register metrics
-  val activeSpans = registry.counter("active.spans")
-  val timedOutSpans = registry.counter("timed.out.spans")
-  val spanDurations = registry.timer("span.duration")
-
-  val jmxReporter = JmxReporter.forRegistry(registry).build()
-  jmxReporter.start()
-
   //The lookup method is required by ExtensionIdProvider,
   // so we return ourselves here, this allows us
   // to configure our extension to be loaded when
@@ -57,5 +48,14 @@ object MoneyMetrics
 
   //This method will be called by Akka
   // to instantiate our Extension
-  override def createExtension(system: ExtendedActorSystem) = new MoneyMetricsImpl(activeSpans, timedOutSpans, spanDurations)
+  override def createExtension(system: ExtendedActorSystem) = {
+
+    val registry = MetricRegistryFactory.metricRegistry(system.settings.config)
+    // register metrics
+    val activeSpans = registry.counter("active.spans")
+    val timedOutSpans = registry.counter("timed.out.spans")
+    val spanDurations = registry.timer("span.duration")
+
+    new MoneyMetricsImpl(activeSpans, timedOutSpans, spanDurations)
+  }
 }

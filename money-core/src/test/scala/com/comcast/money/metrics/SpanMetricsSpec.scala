@@ -123,11 +123,4 @@ class SpanMetricsSpec extends AkkaTestJawn with FeatureSpecLike with Matchers wi
       verifyZeroInteractions(errorMetric)
     }
   }
-
-  feature("Span Metrics Object") {
-    scenario("registry") {
-      val reg = SpanMetrics.registry
-      reg shouldBe a[MetricRegistry]
-    }
-  }
 }

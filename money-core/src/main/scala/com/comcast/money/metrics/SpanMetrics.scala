@@ -24,11 +24,7 @@ import com.typesafe.config.Config
 
 object SpanMetrics {
 
-  val registry: MetricRegistry = new MetricRegistry
-
-  JmxReporter.forRegistry(registry).build().start()
-
-  def props(spanName: String) = {
+  def props(spanName: String, registry: MetricRegistry) = {
     val latencyMetric: Histogram = registry.histogram(s"/money/$spanName:latency")
     val errorMetric: Meter = registry.meter(s"/money/$spanName:error")
     Props(classOf[SpanMetrics], spanName, latencyMetric, errorMetric)
@@ -56,9 +52,10 @@ class SpanMetricsCollector(conf: Config) extends Actor with ActorMaker with Acto
         case Some(spanMetrics) =>
           spanMetrics forward t
         case None =>
+          val metricRegistry = MetricRegistryFactory.metricRegistry(conf)
           val escapedName = t.spanName.replace(' ', '.')
           log.debug(s"Creating span metrics for span $escapedName")
-          makeActor(SpanMetrics.props(escapedName), escapedName) forward t
+          makeActor(SpanMetrics.props(escapedName, metricRegistry), escapedName) forward t
       }
   }
 }

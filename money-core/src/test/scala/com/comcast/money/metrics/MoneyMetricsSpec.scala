@@ -48,15 +48,4 @@ class MoneyMetricsSpec extends WordSpec with Matchers with MockitoSugar with One
       verify(timedOutSpans).inc()
     }
   }
-
-  "MoneyMetrics Extension" should {
-    "initialize all metrics" in {
-      val eas = mock[ExtendedActorSystem]
-      val mm = MoneyMetrics.lookup().createExtension(eas)
-
-      MoneyMetrics.registry.getCounters.get("active.spans") shouldNot be(null)
-      MoneyMetrics.registry.getCounters.get("timed.out.spans") shouldNot be(null)
-      MoneyMetrics.registry.getTimers.get("span.duration") shouldNot be(null)
-    }
-  }
 }

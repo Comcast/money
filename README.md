@@ -1,12 +1,12 @@
 ## Development Status
 We are actively working on version 0.9 that will offer several improvements over both the API and module 
 implementations.  0.8.x is being used in several projects currently, and we will continue to enhance
-0.8.x for the forseeable future while 0.9 work takes place.
+0.8.x for the foreseeable future while 0.9 work takes place.
 
 If you want to work on 0.9, feel free to reach out!
 
 ### Availability
-We have requests in to deploy to a public repo, that should be avaiable shortly
+We have requests in to deploy to a public repo, that should be available shortly
 
 ## Distributed Tracing Reads
 [Distributed Trace For Video Systems](http://www.nctatechnicalpapers.com/Paper/2015/2015-distributed-trace-for-video-systems/download)
@@ -114,7 +114,7 @@ key insight into traces and performance using standard open source tools; here a
 - Splunk / LogStash - we use log aggregators to perform metrics across systems at rest.  The nice thing about log 
 aggregators is that you can not only see your metrics, but you can also look at all of the log entries that happend 
 for a single Span
-- Graphite / Prometheus - we use common analytic systems for monitoring and alterting on Money data
+- Graphite / Prometheus - we use common analytic systems for monitoring and altering on Money data
 
 ## Should I use Money?
 This depends on the scale of your implementation.  Money _tries_ to serve a wide range of implementations.
