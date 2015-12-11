@@ -19,6 +19,7 @@ package com.comcast.money.metrics
 import com.typesafe.config.Config
 import akka.actor.{ ActorSystem }
 import com.codahale.metrics.{ MetricRegistry, JmxReporter }
+import org.slf4j.LoggerFactory
 import scala.util.{ Try, Success, Failure }
 
 /*
@@ -35,11 +36,12 @@ import scala.util.{ Try, Success, Failure }
  * by a Java client custom factory.
  */
 object MetricRegistryFactory {
+  private val logger = LoggerFactory.getLogger("com.comcast.money.metrics.MetricRegistryFactory")
 
   def metricRegistry(config: Config): MetricRegistry = {
     Try({
       // Try to create an instance of the custom factory, configured via 'metricRegistryFactory'
-      val realFactory = Class.forName(config.getString("metricRegistryFactory"))
+      lazy val realFactory = Class.forName(config.getString("metrics-registry.class-name"))
         .newInstance.asInstanceOf[MetricRegistryFactory]
 
       // Ask the custom factory for an MetricRegistry - and pass in our configuration so that an implementation
@@ -47,10 +49,11 @@ object MetricRegistryFactory {
       realFactory.metricRegistry(config)
     }) match {
       case Success(metricRegistry) => metricRegistry
-      case Failure(ex) => {
-        // Something went wrong while using the custom factory. Therefore creating the MetricRegistry
-        // on our own and registering it to JMX (previous default behavior)
-        new DefaultMetricRegistryFactory().metricRegistry(config)
+      case Failure(e) => {
+        // Something went wrong while using the custom factory.
+        logger.error("Unable to create actual factory instance", e)
+
+        throw e
       }
     }
   }

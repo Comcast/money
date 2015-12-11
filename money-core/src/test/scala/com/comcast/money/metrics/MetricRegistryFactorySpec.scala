@@ -24,9 +24,10 @@ import org.scalatest._
 import Matchers._
 
 object MockMetricRegistryFactory extends MetricRegistryFactory with MockitoSugar {
-  val mockRegistry = mock[MetricRegistry]
+  lazy val mockRegistry = mock[MetricRegistry]
 
   def metricRegistry(config: Config): MetricRegistry = ???
+
 }
 class MockMetricRegistryFactory extends MetricRegistryFactory {
   def metricRegistry(config: Config): MetricRegistry = MockMetricRegistryFactory.mockRegistry
@@ -40,7 +41,7 @@ class MetricRegistryFactorySpec extends WordSpecLike with BeforeAndAfter with Mo
     "use the DefaultMetricRegistryFactory" should {
       "creating MetricRegistries" in {
 
-        doReturn("com.comcast.money.metrics.DefaultMetricRegistryFactory").when(conf).getString("metricRegistryFactory")
+        doReturn("com.comcast.money.metrics.DefaultMetricRegistryFactory").when(conf).getString("metrics-registry.class-name")
 
         val registry = MetricRegistryFactory.metricRegistry(conf)
 
@@ -52,18 +53,18 @@ class MetricRegistryFactorySpec extends WordSpecLike with BeforeAndAfter with Mo
   "fall back to the DefaultMetricRegistryFactory" should {
     "when the config is broken" in {
 
-      doReturn("lorem ipsum").when(conf).getString("metricRegistryFactory")
+      doReturn("lorem ipsum").when(conf).getString("metrics-registry.class-name")
 
-      val registry = MetricRegistryFactory.metricRegistry(conf)
-
-      registry shouldNot be(null)
+      intercept[ClassNotFoundException] {
+        val registry = MetricRegistryFactory.metricRegistry(conf)
+      }
     }
   }
 
   "use the MockMetricRegistryFactory" should {
     "when configured so" in {
 
-      doReturn("com.comcast.money.metrics.MockMetricRegistryFactory").when(conf).getString("metricRegistryFactory")
+      doReturn("com.comcast.money.metrics.MockMetricRegistryFactory").when(conf).getString("metrics-registry.class-name")
 
       val registry1 = MetricRegistryFactory.metricRegistry(conf)
       val registry2 = MetricRegistryFactory.metricRegistry(conf)
