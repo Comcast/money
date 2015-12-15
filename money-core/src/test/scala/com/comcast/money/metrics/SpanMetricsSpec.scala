@@ -29,6 +29,8 @@ import org.scalatest.{ FeatureSpecLike, GivenWhenThen, Matchers }
 class SpanMetricsSpec extends AkkaTestJawn with FeatureSpecLike with Matchers with GivenWhenThen with MockitoSugar {
 
   val conf = mock[Config]
+  doReturn("com.comcast.money.metrics.MockMetricRegistryFactory").when(conf).getString("metrics-registry.class-name")
+
   feature("Span Metrics Collector") {
     scenario("A span arrives for a new span name that we haven't seen yet") {
       Given("a span metrics collector is registered")
@@ -121,13 +123,6 @@ class SpanMetricsSpec extends AkkaTestJawn with FeatureSpecLike with Matchers wi
 
       And("the error metric is not updated")
       verifyZeroInteractions(errorMetric)
-    }
-  }
-
-  feature("Span Metrics Object") {
-    scenario("registry") {
-      val reg = SpanMetrics.registry
-      reg shouldBe a[MetricRegistry]
     }
   }
 }
