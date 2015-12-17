@@ -137,7 +137,7 @@ Add a dependency as follows for maven:
     <dependency>
         <groupId>com.comcast.money</groupId>
         <artifactId>money-core</artifactId>
-        <version>0.8.10</version>
+        <version>0.8.11</version>
     </dependency>
 ``` 
 
