@@ -16,11 +16,11 @@
 
 package com.comcast.money.metrics
 
-import com.codahale.metrics.{JmxReporter, MetricRegistry}
 import com.typesafe.config.Config
+import akka.actor.{ ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
+import com.codahale.metrics.{ MetricRegistry, JmxReporter }
 import org.slf4j.LoggerFactory
-
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Try, Success, Failure }
 
 /*
  * Simple factory that tries to delegate to an implementation of this trait itself and announced via
@@ -35,18 +35,19 @@ import scala.util.{Failure, Success, Try}
  * Note: This trait should be kept as simple as possible so that the resulting interface can also be implemented
  * by a Java client custom factory.
  */
-object MetricRegistryFactory {
-  private val logger = LoggerFactory.getLogger("com.comcast.money.metrics.MetricRegistryFactory")
 
-  def metricRegistry(config: Config): MetricRegistry = {
+class MetricRegistryExtensionImpl(config: Config) extends Extension {
+  private val logger = LoggerFactory.getLogger("com.comcast.money.metrics.MetricRegistryExtension")
+
+  val metricRegistry: MetricRegistry = {
     Try({
       // Try to create an instance of the custom factory, configured via 'metricRegistryFactory'
       lazy val realFactory = Class.forName(config.getString("metrics-registry.class-name"))
         .newInstance.asInstanceOf[MetricRegistryFactory]
 
-      // Ask the custom factory for an MetricRegistry - and pass in our configuration so that an implementation
+      // Ask the custom factory for an MetricRegistry - and pass in the configuration so that an implementation
       // can add their settings in the application.conf, too.
-      realFactory.metricRegistry(config)
+      realFactory.metricRegistry(config.getConfig("metrics-registry.configuration"))
     }) match {
       case Success(metricRegistry) => metricRegistry
       case Failure(e) => {
@@ -57,6 +58,23 @@ object MetricRegistryFactory {
       }
     }
   }
+}
+
+object MetricRegistryExtension extends ExtensionId[MetricRegistryExtensionImpl] with ExtensionIdProvider {
+  //The lookup method is required by ExtensionIdProvider,
+  // so we return ourselves here, this allows us
+  // to configure our extension to be loaded when
+  // the ActorSystem starts up
+  override def lookup = MetricRegistryExtension
+
+  //This method will be called by Akka
+  // to instantiate our Extension
+  override def createExtension(system: ExtendedActorSystem) = new MetricRegistryExtensionImpl(system.settings.config)
+
+  /**
+   * Java API: retrieve the extension for the given system.
+   */
+  override def get(system: ActorSystem): MetricRegistryExtensionImpl = super.get(system)
 }
 
 class DefaultMetricRegistryFactory extends MetricRegistryFactory {
