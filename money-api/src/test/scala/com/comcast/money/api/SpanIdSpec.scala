@@ -45,6 +45,11 @@ class SpanIdSpec extends WordSpec with Matchers {
       Long.box(spanId.selfId) should not be null
     }
 
+    "set the self id to the parent id when neither is specified" in {
+      val spanId: SpanId = new SpanId()
+      assert(spanId.parentId === spanId.selfId)
+    }
+
     "generate a string matching SpanId~%s~%s~%s" in {
       val format = "SpanId~%s~%s~%s"
       val expected = format.format("foo", 1L, 2L)

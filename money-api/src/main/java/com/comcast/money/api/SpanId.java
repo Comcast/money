@@ -36,7 +36,14 @@ public class SpanId {
     }
 
     public SpanId(String traceId) {
-        this(traceId, rand.nextLong());
+
+        if (traceId == null) {
+            this.traceId = UUID.randomUUID().toString();
+        } else {
+            this.traceId = traceId;
+        }
+        this.parentId = rand.nextLong();
+        this.selfId = this.parentId;
     }
 
     public SpanId(String traceId, long parentId) {
