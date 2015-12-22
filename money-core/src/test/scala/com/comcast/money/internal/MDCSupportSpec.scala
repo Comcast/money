@@ -16,7 +16,7 @@
 
 package com.comcast.money.internal
 
-import com.comcast.money.core.SpanId
+import com.comcast.money.api.SpanId
 import org.scalatest.{ BeforeAndAfterEach, Matchers, OneInstancePerTest, WordSpec }
 import org.slf4j.MDC
 
@@ -25,7 +25,7 @@ import scala.collection.mutable
 class MDCSupportSpec extends WordSpec with Matchers with BeforeAndAfterEach with OneInstancePerTest {
 
   val testMDCSupport = new MDCSupport
-  val spanId = SpanId()
+  val spanId = new SpanId()
 
   override def beforeEach() = {
     SpanLocal.clear()

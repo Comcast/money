@@ -17,8 +17,9 @@
 package com.comcast.money.concurrent
 
 import akka.actor.ActorRef
+import com.comcast.money.api.SpanId
 import com.comcast.money.core.Money.tracer
-import com.comcast.money.core.{ Money, Result, SpanId }
+import com.comcast.money.core.{ Money, Result }
 import com.comcast.money.internal.SpanFSMProtocol.Start
 import com.comcast.money.internal.SpanLocal
 import com.comcast.money.internal.SpanSupervisorProtocol.SpanMessage
@@ -104,9 +105,9 @@ object Futures {
 
   private def newChildSpan(): SpanId = SpanLocal.current match {
     case None =>
-      SpanId()
+      new SpanId()
     case Some(existingSpanId) =>
-      SpanId(existingSpanId.traceId, existingSpanId.selfId)
+      existingSpanId.newChild()
   }
 }
 
@@ -252,7 +253,7 @@ class TracedFuture[T](spanId: SpanId, wrapped: Future[T], executor: ExecutionCon
   }
 
   override def failed: Future[Throwable] = {
-    new TracedFuture[Throwable](spanId.copy(), wrapped.failed, executor)
+    new TracedFuture[Throwable](spanId, wrapped.failed, executor)
   }
 
   override def filter(pred: T => Boolean)(implicit executor: ExecutionContext): Future[T] =

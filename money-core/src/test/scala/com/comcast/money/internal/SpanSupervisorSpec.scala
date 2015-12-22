@@ -17,11 +17,12 @@
 package com.comcast.money.internal
 
 import akka.actor._
-import akka.testkit.{ TestProbe, EventFilter, TestActorRef }
-import com.comcast.money.test.AkkaTestJawn
-import com.comcast.money.core.{ LongNote, Note, SpanId }
+import akka.testkit.{ EventFilter, TestActorRef, TestProbe }
+import com.comcast.money.api.SpanId
+import com.comcast.money.core.{ LongNote, Note }
 import com.comcast.money.internal.SpanFSMProtocol._
 import com.comcast.money.internal.SpanSupervisorProtocol.SpanMessage
+import com.comcast.money.test.AkkaTestJawn
 import org.scalatest.WordSpecLike
 
 import scala.concurrent.duration._
@@ -29,7 +30,7 @@ import scala.concurrent.duration._
 class SpanSupervisorSpec extends AkkaTestJawn with WordSpecLike {
 
   val testEmitter = TestActorRef[Emitter](Emitter.props(), "emitter")
-  val testFingerprint = SpanId(1L)
+  val testFingerprint = new SpanId("foo", 1L)
   val testMessage = "MSG TEST"
 
   "A SpanSupervisor" when {
@@ -56,14 +57,14 @@ class SpanSupervisorSpec extends AkkaTestJawn with WordSpecLike {
     "sending span data to a non-existing request span" should {
       "log a message that data was sent to a non-existing span" in {
         EventFilter.warning(pattern = "Attempted to message non-existent SpanFSM*", occurrences = 1) intercept {
-          spanSupervisor ! SpanMessage(SpanId(2L), AddNote(Note("ben")))
+          spanSupervisor ! SpanMessage(new SpanId("foo", 2L), AddNote(Note("ben")))
         }
       }
     }
     "sending a Propagate command" should {
       "not log a message if the span doesn't exist" in {
         val probe = TestProbe()
-        spanSupervisor ! SpanMessage(SpanId(2L), PropagateNotesRequest(probe.ref))
+        spanSupervisor ! SpanMessage(new SpanId("foo", 2L), PropagateNotesRequest(probe.ref))
 
         probe.expectNoMsg(1.seconds)
       }

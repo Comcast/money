@@ -16,6 +16,7 @@
 
 package com.comcast.money.concurrent
 
+import com.comcast.money.api.SpanId
 import com.comcast.money.core.Money.tracer
 import com.comcast.money.core.SpanId
 import com.comcast.money.core.Tracers
@@ -67,7 +68,7 @@ class FuturesSpec extends AkkaTestJawn
           case _ =>
             tracer.record("map", "nested")
             println(s"\r\n; map nested ${SpanLocal.current}")
-            SpanLocal.current.get.copy()
+            SpanLocal.current.get
         }
       }.flatMap { child =>
         tracer.record("flatMap", "root")
@@ -77,7 +78,7 @@ class FuturesSpec extends AkkaTestJawn
         case s =>
           tracer.record("map", "root")
           println(s"\r\n; map root ${SpanLocal.current}")
-          (SpanLocal.current.get.copy(), s)
+          (SpanLocal.current.get, s)
       }
 
       When("the future completes execution")

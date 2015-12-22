@@ -16,9 +16,11 @@
 
 package com.comcast.money.internal
 
-import com.comcast.money.core.{ SpanId, Money }
-import org.slf4j.MDC
 import java.util.Map
+
+import com.comcast.money.api.SpanId
+import com.comcast.money.core.Money
+import org.slf4j.MDC
 
 object MDCSupport {
 

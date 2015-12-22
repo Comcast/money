@@ -16,7 +16,7 @@
 
 package com.comcast.money.concurrent
 
-import com.comcast.money.core.SpanId
+import com.comcast.money.api.SpanId
 import com.comcast.money.internal.SpanLocal
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
@@ -44,7 +44,7 @@ class TraceFriendlyExecutionContextExecutorSpec extends WordSpec
 
   "TraceFriendlyExecutionContext" should {
     "propagate the current trace local value" in {
-      val originalSpanId = SpanId("1", 2L, 3L)
+      val originalSpanId = new SpanId("1", 2L, 3L)
       SpanLocal.push(originalSpanId)
 
       val future = Future {
@@ -65,8 +65,8 @@ class TraceFriendlyExecutionContextExecutorSpec extends WordSpec
       futureResult shouldEqual None
     }
     "propagate only the latest span id value" in {
-      val spanId1 = SpanId()
-      val spanId2 = SpanId()
+      val spanId1 = new SpanId()
+      val spanId2 = new SpanId()
       SpanLocal.push(spanId1)
       SpanLocal.push(spanId2)
 

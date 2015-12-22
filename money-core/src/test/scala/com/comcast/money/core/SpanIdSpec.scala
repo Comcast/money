@@ -16,49 +16,22 @@
 
 package com.comcast.money.core
 
+import com.comcast.money.api.SpanId
 import org.scalatest.{ Matchers, WordSpecLike }
 
 class SpanIdSpec extends WordSpecLike with Matchers {
 
   "A SpanId" when {
-    "created w/ no parameters" should {
-      "generate a spanId and use it for parentId" in {
-        val spanId: SpanId = SpanId()
-        assert(spanId.parentId === spanId.selfId)
-      }
-    }
     "created w/ an origin and parent" should {
-      "generate a spanId" in {
-        val spanId: SpanId = SpanId("1", 2L)
-        assert(spanId.traceId === "1")
-        assert(spanId.parentId === 2L)
-      }
-      "created" should {
-        "an akka friendly toString value" in {
-          val spanId: SpanId = SpanId("1", 2L)
-          assert(spanId.toString startsWith "SpanId~1~2")
-        }
-      }
-      "created from a string" should {
-        "contain the parts that were provided in the string" in {
-          val spanIdAttempt = SpanId("SpanId~1~2~3")
-          spanIdAttempt.isSuccess shouldBe true
-          spanIdAttempt.get shouldEqual SpanId("1", 2, 3)
-        }
-        "return a failure if the string could not be parsed" in {
-          val spanIdAttempt = SpanId("can't parse this, dooo do do do, do do, do do")
-          spanIdAttempt.isFailure shouldBe true
-        }
-      }
       "creating an http header" should {
         "format correctly" in {
-          val spanId = SpanId("1", 2, 3)
+          val spanId = new SpanId("1", 2, 3)
           SpanId.toHttpHeader(spanId) shouldEqual "trace-id=1;parent-id=2;span-id=3"
         }
       }
       "parsing an http header" should {
         "produce the proper span id" in {
-          val spanId = SpanId("1", 2, 3)
+          val spanId = new SpanId("1", 2, 3)
           SpanId.fromHttpHeader(SpanId.toHttpHeader(spanId)) should be a 'success
         }
         "fail if the header is not formatted properly" in {

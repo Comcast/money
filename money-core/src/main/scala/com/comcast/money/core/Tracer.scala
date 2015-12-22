@@ -20,6 +20,7 @@ import java.io.Closeable
 import java.util.UUID
 
 import akka.actor._
+import com.comcast.money.api.SpanId
 import com.comcast.money.internal.SpanFSMProtocol._
 import com.comcast.money.internal.SpanLocal
 import com.comcast.money.internal.SpanSupervisorProtocol._
@@ -37,43 +38,9 @@ object GUID {
   def apply() = UUID.randomUUID().toString
 }
 
-case class SpanId(traceId: String, parentId: Long, selfId: Long) {
-
-  private val HttpHeaderFormat = "trace-id=%s;parent-id=%s;span-id=%s"
-  private val StringFormat = "SpanId~%s~%s~%s"
-
-  override def toString = StringFormat.format(traceId, parentId, selfId)
-}
-
 object SpanId {
 
   private val HttpHeaderFormat = "trace-id=%s;parent-id=%s;span-id=%s"
-
-  /**
-   * Given a string representation of a span id, parses and returns the span id
-   * @param spanId The string representation of a SpanId
-   * @return a parsed SpanId in a Try.  Will return a Failure if the span id could not be parsed
-   */
-  def apply(spanId: String): Try[SpanId] = Try {
-    // TODO: should have a better SerDe for this
-    val parts = spanId.split('~')
-
-    // last three form the span id
-    SpanId(parts(1), parts(2).toLong, parts(3).toLong)
-  }
-
-  def apply(): SpanId = {
-    val spanId = ProbabilisticlyUniqueLong()
-    SpanId(GUID(), spanId, spanId)
-  }
-
-  //for testing
-  def apply(spanId: Long): SpanId = SpanId(spanId.toString, spanId, spanId)
-
-  def apply(originSpanId: String, parentSpanId: Long): SpanId = {
-    val spanId = ProbabilisticlyUniqueLong()
-    SpanId(originSpanId, parentSpanId, spanId)
-  }
 
   def fromHttpHeader(httpHeader: String) = Try {
     val parts = httpHeader.split(';')
@@ -81,7 +48,7 @@ object SpanId {
     val parentId = parts(1).split('=')(1)
     val selfId = parts(2).split('=')(1)
 
-    SpanId(traceId, parentId.toLong, selfId.toLong)
+    new SpanId(traceId, parentId.toLong, selfId.toLong)
   }
 
   def toHttpHeader(spanId: SpanId): String =
@@ -114,10 +81,10 @@ trait Tracer extends Closeable {
   def startSpan(key: String) = {
     SpanLocal.current match {
       case Some(parentSpanId) =>
-        val subSpanId = SpanId(parentSpanId.traceId, parentSpanId.selfId)
+        val subSpanId = parentSpanId.newChild()
         start(key, subSpanId, Some(parentSpanId))
       case None =>
-        val newSpanId = SpanId()
+        val newSpanId = new SpanId()
         start(key, newSpanId)
     }
   }

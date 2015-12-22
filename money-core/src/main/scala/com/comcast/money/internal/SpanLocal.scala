@@ -16,7 +16,7 @@
 
 package com.comcast.money.internal
 
-import com.comcast.money.core.SpanId
+import com.comcast.money.api.SpanId
 
 import scala.collection._
 

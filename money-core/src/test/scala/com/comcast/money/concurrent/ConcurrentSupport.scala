@@ -18,7 +18,7 @@ package com.comcast.money.concurrent
 
 import java.util.concurrent.Callable
 
-import com.comcast.money.core.SpanId
+import com.comcast.money.api.SpanId
 import com.comcast.money.internal.SpanLocal
 
 trait ConcurrentSupport {

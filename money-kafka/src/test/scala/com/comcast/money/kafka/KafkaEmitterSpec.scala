@@ -18,6 +18,7 @@ package com.comcast.money.kafka
 
 import akka.actor.{ ActorSystem, Props }
 import akka.testkit.{ TestActorRef, TestKit }
+import com.comcast.money.api
 import com.comcast.money.core
 import com.comcast.money.internal.EmitterProtocol.EmitSpan
 import com.typesafe.config.Config
@@ -59,7 +60,7 @@ class KafkaEmitterSpec extends TestKit(ActorSystem("test", core.Money.config.get
     val underlyingActor = testEmitter.underlyingActor.asInstanceOf[TestKafkaEmitter]
     val testProducer = underlyingActor.mockProducer
     val sampleData = core.Span(
-      core.SpanId(1L), "key", "app", "host", 1L, true, 35L,
+      new api.SpanId("foo", 1L), "key", "app", "host", 1L, true, 35L,
       Map("what" -> core.Note("what", 1L), "when" -> core.Note("when", 2L), "bob" -> core.Note("bob", "craig"))
     )
   }

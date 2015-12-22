@@ -16,6 +16,7 @@
 
 package com.comcast.money.core
 
+import com.comcast.money.api.SpanId
 import com.comcast.money.core.Tracers._
 import com.comcast.money.internal.SpanLocal
 import com.comcast.money.util.DateTimeUtil
@@ -73,7 +74,7 @@ class TracersSpec extends FeatureSpec
   feature("Timed api") {
     scenario("Trace context exists") {
       When("a method is executed using the timed swag")
-      SpanLocal.push(SpanId())
+      SpanLocal.push(new SpanId())
       timed("bob", moneyTracer) {
         Thread.sleep(1)
       }
@@ -84,7 +85,7 @@ class TracersSpec extends FeatureSpec
     }
     scenario("The function being timed throws an exception") {
       When("a method is executed using the timed swag and it throws an exception")
-      SpanLocal.push(SpanId())
+      SpanLocal.push(new SpanId())
       intercept[RuntimeException] {
         timed("fail", moneyTracer) {
           throw new RuntimeException("we failed")

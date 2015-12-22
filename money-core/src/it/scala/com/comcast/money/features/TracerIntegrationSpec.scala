@@ -19,7 +19,8 @@ package com.comcast.money.features
 import java.lang.{Class => JavaClass}
 
 import akka.testkit.TestKit.{awaitCond => testKitAwaitCond}
-import com.comcast.money.core.{Money, SpanId}
+import com.comcast.money.api.SpanId
+import com.comcast.money.core.Money
 import com.comcast.money.emitters.GraphiteMetricEmitter._
 import com.comcast.money.emitters.LogRecord
 import com.comcast.money.graphite.TestGraphiteServer
@@ -126,7 +127,7 @@ class TracerIntegrationSpec extends FeatureSpec with Matchers with GivenWhenThen
 
       When("Span data is added")
       moneyTracer.startSpan("some_fun_span")
-      val spanId = SpanLocal.current.get.copy()
+      val spanId = SpanLocal.current.get
       moneyTracer.time("test")
       moneyTracer.record("bob", "craig")
       moneyTracer.record("tom", new java.lang.Long(1))
@@ -158,7 +159,7 @@ class TracerIntegrationSpec extends FeatureSpec with Matchers with GivenWhenThen
 
       When("Span propagatable data is added")
       moneyTracer.startSpan("parent")
-      val parentSpanId = SpanLocal.current.get.copy()
+      val parentSpanId = SpanLocal.current.get
       moneyTracer.time("test")
       moneyTracer.record("bob", "craig", true)
       moneyTracer.record("tom", new java.lang.Long(1))
@@ -167,7 +168,7 @@ class TracerIntegrationSpec extends FeatureSpec with Matchers with GivenWhenThen
 
       And("a Child span is created")
       moneyTracer.startSpan("child")
-      val childSpanid = SpanLocal.current.get.copy()
+      val childSpanid = SpanLocal.current.get
       moneyTracer.record("Jerry", "Spinosa")
       moneyTracer.stopSpan()
       moneyTracer.stopSpan()
