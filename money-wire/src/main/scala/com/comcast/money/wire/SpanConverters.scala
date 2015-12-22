@@ -98,7 +98,7 @@ trait SpanWireConverters {
   }
 
   implicit val spanIdToWire: TypeConverter[SpanId, avro.SpanId] = TypeConverter.instance { spanId =>
-    new avro.SpanId(spanId.traceId, spanId.parentSpanId, spanId.spanId)
+    new avro.SpanId(spanId.traceId, spanId.parentId, spanId.selfId)
   }
 
   implicit val wireToSpanId: TypeConverter[avro.SpanId, SpanId] = TypeConverter.instance { spanId =>

@@ -24,14 +24,14 @@ class SpanIdSpec extends WordSpecLike with Matchers {
     "created w/ no parameters" should {
       "generate a spanId and use it for parentId" in {
         val spanId: SpanId = SpanId()
-        assert(spanId.parentSpanId === spanId.spanId)
+        assert(spanId.parentId === spanId.selfId)
       }
     }
     "created w/ an origin and parent" should {
       "generate a spanId" in {
         val spanId: SpanId = SpanId("1", 2L)
         assert(spanId.traceId === "1")
-        assert(spanId.parentSpanId === 2L)
+        assert(spanId.parentId === 2L)
       }
       "created" should {
         "an akka friendly toString value" in {

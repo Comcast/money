@@ -24,7 +24,7 @@ object MDCSupport {
 
   val LogFormat = "[ span-id=%s ][ trace-id=%s ][ parent-id=%s ]"
 
-  def format(spanId: SpanId) = LogFormat.format(spanId.spanId, spanId.traceId, spanId.parentSpanId)
+  def format(spanId: SpanId) = LogFormat.format(spanId.selfId, spanId.traceId, spanId.parentId)
 }
 
 /**

@@ -100,7 +100,7 @@ class TracerSpec
       spanSupervisor.expectSpanMsg(AddNote(Note("adam", "sneakers")))
       spanSupervisor.expectSpanMsg(Stop(Result.success))
       And("the current spanId and parentSpanId should all be the same")
-      spanId.parentSpanId should be(spanId.spanId)
+      spanId.parentId should be(spanId.selfId)
       And("SpanLocal should be empty after span completes")
       SpanLocal.current.isEmpty shouldBe true
     }
@@ -117,7 +117,7 @@ class TracerSpec
       spanSupervisor.expectSpanMsg(AddNote(Note("adam", "sneakers")))
       spanSupervisor.expectSpanMsg(Stop(Result.success))
       And("the current spanId and parentSpanId should be the same")
-      traceId.parentSpanId should be(traceId.spanId)
+      traceId.parentId should be(traceId.selfId)
       And("SpanLocal should be empty after trace completes")
       SpanLocal.current.isEmpty shouldBe true
     }
@@ -131,7 +131,7 @@ class TracerSpec
       Then("the current span should not be the same as the parentSpan")
       currentSpan should not be parentSpan
       And("the current span's parentSpanId should be teh parentSpan.spanId")
-      currentSpan.parentSpanId should be(parentSpan.spanId)
+      currentSpan.parentId should be(parentSpan.selfId)
       And("the current span's traceId should be the same as the parentSpan.originSpanId")
       currentSpan.traceId should be(parentSpan.traceId)
     }

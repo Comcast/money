@@ -37,14 +37,14 @@ object GUID {
   def apply() = UUID.randomUUID().toString
 }
 
-case class SpanId(traceId: String, parentSpanId: Long, spanId: Long) {
+case class SpanId(traceId: String, parentId: Long, selfId: Long) {
 
   private val HttpHeaderFormat = "trace-id=%s;parent-id=%s;span-id=%s"
   private val StringFormat = "SpanId~%s~%s~%s"
 
-  override def toString = StringFormat.format(traceId, parentSpanId, spanId)
+  override def toString = StringFormat.format(traceId, parentId, selfId)
 
-  def toHttpHeader = HttpHeaderFormat.format(traceId, parentSpanId, spanId)
+  def toHttpHeader = HttpHeaderFormat.format(traceId, parentId, selfId)
 }
 
 object SpanId {
@@ -111,7 +111,7 @@ trait Tracer extends Closeable {
   def startSpan(key: String) = {
     SpanLocal.current match {
       case Some(parentSpanId) =>
-        val subSpanId = SpanId(parentSpanId.traceId, parentSpanId.spanId)
+        val subSpanId = SpanId(parentSpanId.traceId, parentSpanId.selfId)
         start(key, subSpanId, Some(parentSpanId))
       case None =>
         val newSpanId = SpanId()

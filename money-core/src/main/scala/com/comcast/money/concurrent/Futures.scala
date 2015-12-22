@@ -106,7 +106,7 @@ object Futures {
     case None =>
       SpanId()
     case Some(existingSpanId) =>
-      SpanId(existingSpanId.traceId, existingSpanId.spanId)
+      SpanId(existingSpanId.traceId, existingSpanId.selfId)
   }
 }
 

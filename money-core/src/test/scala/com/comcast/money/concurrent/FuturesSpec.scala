@@ -84,7 +84,7 @@ class FuturesSpec extends AkkaTestJawn
       val (rootSpanId, nestedSpanId) = Await.result(fut, 2 seconds)
 
       Then("the parent of the nested trace is the root trace")
-      nestedSpanId.parentSpanId shouldEqual rootSpanId.spanId
+      nestedSpanId.parentId shouldEqual rootSpanId.selfId
 
       And("the root trace has notes for begin, flatMap, and map")
       expectLogMessageContaining("[ begin=root ][ flatMap=root ][ map=root ]")
@@ -543,7 +543,7 @@ class FuturesSpec extends AkkaTestJawn
       val result = Await.result(simpleMath, 2 seconds)
 
       Then("the two futures are not linked through a parent id")
-      result._2.parentSpanId shouldNot be(result._1.spanId)
+      result._2.parentId shouldNot be(result._1.selfId)
 
       And("the first span contains the note it recorded")
       expectLogMessageContaining("[ in=one ]")
@@ -573,7 +573,7 @@ class FuturesSpec extends AkkaTestJawn
       val (firstSpanId, secondSpanId) = Await.result(combined, 2 seconds)
 
       Then("the two futures are not lined through a parent")
-      secondSpanId.parentSpanId shouldNot be(firstSpanId.spanId)
+      secondSpanId.parentId shouldNot be(firstSpanId.selfId)
 
       And("the first span contains the message it recorded")
       expectLogMessageContaining("[ in=one ]")
@@ -759,7 +759,7 @@ class FuturesSpec extends AkkaTestJawn
       val (rootSpanId, continuedSpanId) = Await.result(fut, 2 seconds)
 
       Then("the parent id of the traced method is the span id of the root traced future")
-      continuedSpanId.parentSpanId shouldEqual rootSpanId.spanId
+      continuedSpanId.parentId shouldEqual rootSpanId.selfId
 
       And("the trace span for the future has all notes it recorded")
       expectLogMessageContaining("[ begin=root ][ map=root ]")

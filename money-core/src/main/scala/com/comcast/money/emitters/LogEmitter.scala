@@ -41,9 +41,9 @@ object LogEmitter {
   def buildMessage(t: Span): String = {
     implicit val builder = new StringBuilder()
     builder.append("Span: ")
-    append("span-id", t.spanId.spanId)
+    append("span-id", t.spanId.selfId)
     append("trace-id", t.spanId.traceId)
-    append("parent-id", t.spanId.parentSpanId)
+    append("parent-id", t.spanId.parentId)
     append("span-name", t.spanName)
     append("app-name", Money.applicationName)
     append("start-time", t.startTime)
