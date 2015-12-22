@@ -25,7 +25,20 @@ object MoneyBuild extends Build {
     publishLocal := {},
     publish := {}
   )
-  .aggregate(moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
+  .aggregate(moneyApi, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
+
+  lazy val moneyApi =
+    Project("money-api", file("./money-api"))
+      .configs( IntegrationTest )
+      .settings(projectSettings: _*)
+      .settings(
+        libraryDependencies ++= {
+        Seq(
+          scalaTest,
+          mockito
+        )
+      }
+      )
 
   lazy val moneyCore =
     Project("money-core", file("./money-core"))
