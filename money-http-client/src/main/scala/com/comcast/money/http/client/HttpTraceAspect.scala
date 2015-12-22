@@ -17,7 +17,7 @@
 package com.comcast.money.http.client
 
 import com.comcast.money.annotations.Traced
-import com.comcast.money.core.{ SpanId, Money, Tracer }
+import com.comcast.money.core.{ SpanIdHttpFormatter, Money, Tracer }
 import com.comcast.money.internal.SpanLocal
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.HttpUriRequest
@@ -134,7 +134,7 @@ class HttpTraceAspect {
     if (httpRequest != null) {
       SpanLocal.current.foreach {
         span =>
-          httpRequest.setHeader("X-MoneyTrace", SpanId.toHttpHeader(span))
+          httpRequest.setHeader("X-MoneyTrace", SpanIdHttpFormatter.toHttpHeader(span))
       }
     }
   }

@@ -19,7 +19,7 @@ package com.comcast.money.http.client
 import java.io.Closeable
 
 import com.comcast.money.api.SpanId
-import com.comcast.money.core.{ SpanId => CoreSpanId, Tracer }
+import com.comcast.money.core.{ SpanIdHttpFormatter => CoreSpanId, Tracer }
 import com.comcast.money.internal.SpanLocal
 import org.apache.http.client.methods.{ CloseableHttpResponse, HttpUriRequest }
 import org.apache.http.client.{ HttpClient, ResponseHandler }

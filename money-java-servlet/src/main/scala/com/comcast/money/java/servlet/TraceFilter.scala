@@ -19,7 +19,7 @@ package com.comcast.money.java.servlet
 import javax.servlet._
 import javax.servlet.http.{ HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse }
 
-import com.comcast.money.core.SpanId
+import com.comcast.money.core.SpanIdHttpFormatter
 import com.comcast.money.internal.SpanLocal
 import org.slf4j.LoggerFactory
 
@@ -44,7 +44,7 @@ class TraceFilter extends Filter {
     val httpRequest = new HttpServletRequestWrapper(request.asInstanceOf[HttpServletRequest])
     val incomingTraceId = Option(httpRequest.getHeader(MoneyTraceHeader)) map { incTrcaceId =>
       // attempt to parse the incoming trace id (its a Try)
-      SpanId.fromHttpHeader(incTrcaceId) match {
+      SpanIdHttpFormatter.fromHttpHeader(incTrcaceId) match {
         case Success(spanId) => SpanLocal.push(spanId)
         case Failure(ex) => logger.warn("Unable to parse money trace for request header '{}'", incTrcaceId)
       }

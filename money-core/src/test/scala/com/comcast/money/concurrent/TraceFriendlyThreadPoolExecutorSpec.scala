@@ -19,7 +19,6 @@ package com.comcast.money.concurrent
 import java.util.concurrent.{ Callable, ExecutorService }
 
 import com.comcast.money.api.SpanId
-import com.comcast.money.core.SpanId
 import com.comcast.money.internal.SpanLocal
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ Matchers, OneInstancePerTest, WordSpecLike }

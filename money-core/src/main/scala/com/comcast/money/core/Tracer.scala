@@ -38,7 +38,7 @@ object GUID {
   def apply() = UUID.randomUUID().toString
 }
 
-object SpanId {
+object SpanIdHttpFormatter {
 
   private val HttpHeaderFormat = "trace-id=%s;parent-id=%s;span-id=%s"
 

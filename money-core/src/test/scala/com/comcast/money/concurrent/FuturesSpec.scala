@@ -18,7 +18,6 @@ package com.comcast.money.concurrent
 
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.Money.tracer
-import com.comcast.money.core.SpanId
 import com.comcast.money.core.Tracers
 import com.comcast.money.emitters.LogRecord
 import com.comcast.money.internal.SpanLocal
@@ -26,9 +25,9 @@ import com.comcast.money.test.AkkaTestJawn
 import com.comcast.money.util.DateTimeUtil
 import org.scalatest._
 
-import scala.concurrent.{ Future, Await }
-import scala.concurrent.duration._
 import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
+import scala.concurrent.{Await, Future}
 
 class FuturesSpec extends AkkaTestJawn
     with FeatureSpecLike

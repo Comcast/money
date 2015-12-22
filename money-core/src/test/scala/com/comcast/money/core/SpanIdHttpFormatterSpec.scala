@@ -19,23 +19,23 @@ package com.comcast.money.core
 import com.comcast.money.api.SpanId
 import org.scalatest.{ Matchers, WordSpecLike }
 
-class SpanIdSpec extends WordSpecLike with Matchers {
+class SpanIdHttpFormatterSpec extends WordSpecLike with Matchers {
 
   "A SpanId" when {
     "created w/ an origin and parent" should {
       "creating an http header" should {
         "format correctly" in {
           val spanId = new SpanId("1", 2, 3)
-          SpanId.toHttpHeader(spanId) shouldEqual "trace-id=1;parent-id=2;span-id=3"
+          SpanIdHttpFormatter.toHttpHeader(spanId) shouldEqual "trace-id=1;parent-id=2;span-id=3"
         }
       }
       "parsing an http header" should {
         "produce the proper span id" in {
           val spanId = new SpanId("1", 2, 3)
-          SpanId.fromHttpHeader(SpanId.toHttpHeader(spanId)) should be a 'success
+          SpanIdHttpFormatter.fromHttpHeader(SpanIdHttpFormatter.toHttpHeader(spanId)) should be a 'success
         }
         "fail if the header is not formatted properly" in {
-          SpanId.fromHttpHeader("foo") should be a 'failure
+          SpanIdHttpFormatter.fromHttpHeader("foo") should be a 'failure
         }
       }
     }
