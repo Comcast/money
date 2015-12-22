@@ -43,11 +43,11 @@ case class SpanId(traceId: String, parentId: Long, selfId: Long) {
   private val StringFormat = "SpanId~%s~%s~%s"
 
   override def toString = StringFormat.format(traceId, parentId, selfId)
-
-  def toHttpHeader = HttpHeaderFormat.format(traceId, parentId, selfId)
 }
 
 object SpanId {
+
+  private val HttpHeaderFormat = "trace-id=%s;parent-id=%s;span-id=%s"
 
   /**
    * Given a string representation of a span id, parses and returns the span id
@@ -83,6 +83,9 @@ object SpanId {
 
     SpanId(traceId, parentId.toLong, selfId.toLong)
   }
+
+  def toHttpHeader(spanId: SpanId): String =
+    HttpHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId)
 }
 
 /**

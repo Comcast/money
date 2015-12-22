@@ -18,7 +18,7 @@ package com.comcast.money.http.client
 
 import java.io.Closeable
 
-import com.comcast.money.core.{ Tracer, Money }
+import com.comcast.money.core.{ SpanId, Tracer, Money }
 import com.comcast.money.core.Tracers._
 import com.comcast.money.internal.SpanLocal
 import org.apache.http.client.methods.HttpUriRequest
@@ -59,7 +59,7 @@ object TraceFriendlyHttpSupport {
     if (httpRequest != null) {
       SpanLocal.current.foreach {
         span =>
-          httpRequest.setHeader("X-MoneyTrace", span.toHttpHeader)
+          httpRequest.setHeader("X-MoneyTrace", SpanId.toHttpHeader(span))
       }
     }
   }

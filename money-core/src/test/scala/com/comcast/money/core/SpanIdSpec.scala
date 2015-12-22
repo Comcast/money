@@ -53,13 +53,13 @@ class SpanIdSpec extends WordSpecLike with Matchers {
       "creating an http header" should {
         "format correctly" in {
           val spanId = SpanId("1", 2, 3)
-          spanId.toHttpHeader shouldEqual "trace-id=1;parent-id=2;span-id=3"
+          SpanId.toHttpHeader(spanId) shouldEqual "trace-id=1;parent-id=2;span-id=3"
         }
       }
       "parsing an http header" should {
         "produce the proper span id" in {
           val spanId = SpanId("1", 2, 3)
-          SpanId.fromHttpHeader(spanId.toHttpHeader) should be a 'success
+          SpanId.fromHttpHeader(SpanId.toHttpHeader(spanId)) should be a 'success
         }
         "fail if the header is not formatted properly" in {
           SpanId.fromHttpHeader("foo") should be a 'failure
