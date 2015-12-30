@@ -59,7 +59,7 @@ object MoneyBuild extends Build {
           mockito
         )
       }
-    )
+    ).dependsOn(moneyApi)
 
   lazy val moneyAspectj =
     Project("money-aspectj", file("./money-aspectj"))

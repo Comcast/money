@@ -17,6 +17,7 @@
 package com.comcast.money.core
 
 import akka.testkit.TestProbe
+import com.comcast.money.api.SpanId
 import com.comcast.money.internal.EmitterProtocol.{ EmitMetricLong, EmitMetricDouble }
 import com.comcast.money.internal.SpanFSMProtocol._
 import com.comcast.money.internal.SpanLocal
@@ -90,48 +91,48 @@ class TracerSpec
 
     scenario("Span captured with no Span context") {
       moneyTracer.startSpan("bob")
-      val spanId = SpanLocal.current.get.copy()
+      val spanId = SpanLocal.current.get
       moneyTracer.time("mike")
       moneyTracer.record("adam", "sneakers")
       moneyTracer.stopSpan()
       Then("Span messages should be sent to the spanSupervisor")
-      spanSupervisor.expectSpanMsg(Start(SpanId(1L), "bob"))
+      spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "bob"))
       spanSupervisor.expectSpanMsg(AddNote(LongNote("mike", Some(999L))))
       spanSupervisor.expectSpanMsg(AddNote(Note("adam", "sneakers")))
       spanSupervisor.expectSpanMsg(Stop(Result.success))
       And("the current spanId and parentSpanId should all be the same")
-      spanId.parentSpanId should be(spanId.spanId)
+      spanId.parentId should be(spanId.selfId)
       And("SpanLocal should be empty after span completes")
       SpanLocal.current.isEmpty shouldBe true
     }
 
     scenario("Trace captured with no Trace context with close instead of stopTrace") {
       moneyTracer.startSpan("bob")
-      val traceId = SpanLocal.current.get.copy()
+      val traceId = SpanLocal.current.get
       moneyTracer.time("mike")
       moneyTracer.record("adam", "sneakers")
       moneyTracer.close()
       Then("Trace messages should be sent to the traceSupervisor")
-      spanSupervisor.expectSpanMsg(Start(SpanId(1L), "bob"))
+      spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "bob"))
       spanSupervisor.expectSpanMsg(AddNote(LongNote("mike", Some(999L))))
       spanSupervisor.expectSpanMsg(AddNote(Note("adam", "sneakers")))
       spanSupervisor.expectSpanMsg(Stop(Result.success))
       And("the current spanId and parentSpanId should be the same")
-      traceId.parentSpanId should be(traceId.spanId)
+      traceId.parentId should be(traceId.selfId)
       And("SpanLocal should be empty after trace completes")
       SpanLocal.current.isEmpty shouldBe true
     }
 
     scenario("A subspan is created") {
       moneyTracer.startSpan("bob")
-      val parentSpan = SpanLocal.current.get.copy()
+      val parentSpan = SpanLocal.current.get
       moneyTracer.startSpan("henry")
-      val currentSpan = SpanLocal.current.get.copy()
+      val currentSpan = SpanLocal.current.get
 
       Then("the current span should not be the same as the parentSpan")
       currentSpan should not be parentSpan
       And("the current span's parentSpanId should be teh parentSpan.spanId")
-      currentSpan.parentSpanId should be(parentSpan.spanId)
+      currentSpan.parentId should be(parentSpan.selfId)
       And("the current span's traceId should be the same as the parentSpan.originSpanId")
       currentSpan.traceId should be(parentSpan.traceId)
     }
@@ -141,7 +142,7 @@ class TracerSpec
       moneyTracer.startTimer("timer-test")
 
       Then("the start message is sent to the span supervisor")
-      spanSupervisor.expectSpanMsg(Start(SpanId(1L), "bob"))
+      spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "bob"))
       spanSupervisor.expectSpanMsg(StartTimer("timer-test"))
     }
     scenario("a Span has a timer started and stopped") {
@@ -150,7 +151,7 @@ class TracerSpec
       moneyTracer.stopTimer("timer-test")
 
       Then("the stop message is sent to the span supervisor")
-      spanSupervisor.expectSpanMsg(Start(SpanId(1L), "bob"))
+      spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "bob"))
       spanSupervisor.expectSpanMsg(StartTimer("timer-test"))
       spanSupervisor.expectSpanMsg(StopTimer("timer-test"))
     }
@@ -171,7 +172,7 @@ class TracerSpec
     scenario("stopping a span with a failed result") {
       moneyTracer.startSpan("foo")
       moneyTracer.stopSpan(Result.failed)
-      spanSupervisor.expectSpanMsg(Start(SpanId(1L), "foo"))
+      spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "foo"))
 
       Then("the failed result is sent along with the stop message")
       spanSupervisor.expectSpanMsg(Stop(Note("span-success", false)))
@@ -179,7 +180,7 @@ class TracerSpec
     scenario("stopping a span with a success result") {
       moneyTracer.startSpan("foo")
       moneyTracer.stopSpan(Result.success)
-      spanSupervisor.expectSpanMsg(Start(SpanId(1L), "foo"))
+      spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "foo"))
 
       Then("the failed result is sent along with the stop message")
       spanSupervisor.expectSpanMsg(Stop(Note("span-success", true)))
@@ -191,7 +192,7 @@ class TracerSpec
       moneyTracer.record(Note("foo", "bar"))
       moneyTracer.stopSpan(Result.success)
 
-      spanSupervisor.expectSpanMsg(Start(SpanId(1L), "foo"))
+      spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "foo"))
 
       Then("the note is sent to the span supervisor")
       spanSupervisor.expectSpanMsg(AddNote(Note("foo", "bar")))

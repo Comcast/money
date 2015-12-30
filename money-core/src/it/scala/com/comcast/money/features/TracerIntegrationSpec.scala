@@ -19,7 +19,8 @@ package com.comcast.money.features
 import java.lang.{Class => JavaClass}
 
 import akka.testkit.TestKit.{awaitCond => testKitAwaitCond}
-import com.comcast.money.core.{Money, SpanId}
+import com.comcast.money.api.SpanId
+import com.comcast.money.core.Money
 import com.comcast.money.emitters.GraphiteMetricEmitter._
 import com.comcast.money.emitters.LogRecord
 import com.comcast.money.graphite.TestGraphiteServer
@@ -126,7 +127,7 @@ class TracerIntegrationSpec extends FeatureSpec with Matchers with GivenWhenThen
 
       When("Span data is added")
       moneyTracer.startSpan("some_fun_span")
-      val spanId = SpanLocal.current.get.copy()
+      val spanId = SpanLocal.current.get
       moneyTracer.time("test")
       moneyTracer.record("bob", "craig")
       moneyTracer.record("tom", new java.lang.Long(1))
@@ -138,7 +139,7 @@ class TracerIntegrationSpec extends FeatureSpec with Matchers with GivenWhenThen
 
       Then("a log message should be written")
       awaitCond(messages.size == 1)
-      messages should contain(s"Span: [ span-id=${spanId.spanId} ][ trace-id=${spanId.traceId} ][ parent-id=${spanId.parentSpanId} ][ span-name=some_fun_span ][ app-name=unknown ][ start-time=1000000 ][ span-duration=0 ][ span-success=true ][ bob=craig ][ larry=5.5 ][ marty=foo ][ test=1000000 ][ tom=1 ]")
+      messages should contain(s"Span: [ span-id=${spanId.selfId} ][ trace-id=${spanId.traceId} ][ parent-id=${spanId.parentId} ][ span-name=some_fun_span ][ app-name=unknown ][ start-time=1000000 ][ span-duration=0 ][ span-success=true ][ bob=craig ][ larry=5.5 ][ marty=foo ][ test=1000000 ][ tom=1 ]")
 
       And("four metrics should be sent to Graphite")
       packets.size should equal(4)
@@ -158,7 +159,7 @@ class TracerIntegrationSpec extends FeatureSpec with Matchers with GivenWhenThen
 
       When("Span propagatable data is added")
       moneyTracer.startSpan("parent")
-      val parentSpanId = SpanLocal.current.get.copy()
+      val parentSpanId = SpanLocal.current.get
       moneyTracer.time("test")
       moneyTracer.record("bob", "craig", true)
       moneyTracer.record("tom", new java.lang.Long(1))
@@ -167,7 +168,7 @@ class TracerIntegrationSpec extends FeatureSpec with Matchers with GivenWhenThen
 
       And("a Child span is created")
       moneyTracer.startSpan("child")
-      val childSpanid = SpanLocal.current.get.copy()
+      val childSpanid = SpanLocal.current.get
       moneyTracer.record("Jerry", "Spinosa")
       moneyTracer.stopSpan()
       moneyTracer.stopSpan()
@@ -176,11 +177,11 @@ class TracerIntegrationSpec extends FeatureSpec with Matchers with GivenWhenThen
 
       Then("a log message should be written for the parent span")
       awaitCond(messages.size == 2)
-      messages should contain(s"Span: [ span-id=${parentSpanId.spanId} ][ trace-id=${parentSpanId.traceId} ][ parent-id=${parentSpanId.parentSpanId} ][ span-name=parent ][ app-name=unknown ][ start-time=1000000 ][ span-duration=0 ][ span-success=true ][ bob=craig ][ larry=5.5 ][ marty=4 ][ test=1000000 ][ tom=1 ]")
+      messages should contain(s"Span: [ span-id=${parentSpanId.selfId} ][ trace-id=${parentSpanId.traceId} ][ parent-id=${parentSpanId.parentId} ][ span-name=parent ][ app-name=unknown ][ start-time=1000000 ][ span-duration=0 ][ span-success=true ][ bob=craig ][ larry=5.5 ][ marty=4 ][ test=1000000 ][ tom=1 ]")
 
       And("A log message should be written for hte child with the popagated note")
 
-      messages should contain(s"Span: [ span-id=${childSpanid.spanId} ][ trace-id=${childSpanid.traceId} ][ parent-id=${childSpanid.parentSpanId} ][ span-name=child ][ app-name=unknown ][ start-time=1000000 ][ span-duration=0 ][ span-success=true ][ Jerry=Spinosa ][ bob=craig ]")
+      messages should contain(s"Span: [ span-id=${childSpanid.selfId} ][ trace-id=${childSpanid.traceId} ][ parent-id=${childSpanid.parentId} ][ span-name=child ][ app-name=unknown ][ start-time=1000000 ][ span-duration=0 ][ span-success=true ][ Jerry=Spinosa ][ bob=craig ]")
 
     }
 
@@ -216,10 +217,10 @@ class TracerIntegrationSpec extends FeatureSpec with Matchers with GivenWhenThen
       awaitCond(messages.size == 2)
 
       Then("a log message should be written for the first Span")
-      messages should contain(s"Span: [ span-id=${spanIds._1.spanId} ][ trace-id=${spanIds._1.traceId} ][ parent-id=${spanIds._1.parentSpanId} ][ span-name=happy ][ app-name=unknown ][ start-time=1000000 ][ span-duration=0 ][ span-success=true ][ apple=5.102 ][ time=1000000 ]")
+      messages should contain(s"Span: [ span-id=${spanIds._1.selfId} ][ trace-id=${spanIds._1.traceId} ][ parent-id=${spanIds._1.parentId} ][ span-name=happy ][ app-name=unknown ][ start-time=1000000 ][ span-duration=0 ][ span-success=true ][ apple=5.102 ][ time=1000000 ]")
 
       Then("a log message should be written for the second Span")
-      messages should contain(s"Span: [ span-id=${spanIds._2.spanId} ][ trace-id=${spanIds._2.traceId} ][ parent-id=${spanIds._2.parentSpanId} ][ span-name=sad ][ app-name=unknown ][ start-time=1000000 ][ span-duration=0 ][ span-success=true ][ pear=10.102 ][ time=1000000 ]")
+      messages should contain(s"Span: [ span-id=${spanIds._2.selfId} ][ trace-id=${spanIds._2.traceId} ][ parent-id=${spanIds._2.parentId} ][ span-name=sad ][ app-name=unknown ][ start-time=1000000 ][ span-duration=0 ][ span-success=true ][ pear=10.102 ][ time=1000000 ]")
 
       Then("six packets should have been sent to Graphite")
       packets.size should equal(6)

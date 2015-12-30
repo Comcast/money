@@ -18,7 +18,8 @@ package com.comcast.money.http.client
 
 import java.io.Closeable
 
-import com.comcast.money.core.{ SpanId, Tracer }
+import com.comcast.money.api.SpanId
+import com.comcast.money.core.{ SpanIdHttpFormatter => CoreSpanId, Tracer }
 import com.comcast.money.internal.SpanLocal
 import org.apache.http.client.methods.{ CloseableHttpResponse, HttpUriRequest }
 import org.apache.http.client.{ HttpClient, ResponseHandler }
@@ -38,7 +39,7 @@ class TraceFriendlyHttpClientSpec extends WordSpec
   val statusLine = mock[StatusLine]
   val httpHost = new HttpHost("localhost")
   val httpContext = mock[HttpContext]
-  val spanId = SpanId()
+  val spanId = new SpanId()
 
   when(httpResponse.getStatusLine).thenReturn(statusLine)
   when(statusLine.getStatusCode).thenReturn(200)
@@ -66,7 +67,7 @@ class TraceFriendlyHttpClientSpec extends WordSpec
     verify(underTest.tracer).startTimer(HttpTraceConfig.HttpResponseTimeTraceKey)
     verify(underTest.tracer).stopTimer(HttpTraceConfig.HttpResponseTimeTraceKey)
     verify(underTest.tracer).record("responseCode", 200L)
-    verify(httpUriRequest).setHeader("X-MoneyTrace", spanId.toHttpHeader)
+    verify(httpUriRequest).setHeader("X-MoneyTrace", CoreSpanId.toHttpHeader(spanId))
   }
 
   "TraceFriendlyHttpClient" should {

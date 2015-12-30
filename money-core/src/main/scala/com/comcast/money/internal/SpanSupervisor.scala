@@ -17,8 +17,8 @@
 package com.comcast.money.internal
 
 import akka.actor._
-import com.comcast.money.core.SpanId
 import com.comcast.money.akka.ActorMaker
+import com.comcast.money.api.SpanId
 import com.comcast.money.internal.SpanFSMProtocol.{ PropagateNotesRequest, SpanCommand, Start }
 
 object SpanSupervisorProtocol {

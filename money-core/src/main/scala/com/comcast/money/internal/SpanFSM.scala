@@ -19,6 +19,7 @@ package com.comcast.money.internal
 import java.util.concurrent.TimeUnit
 
 import akka.actor._
+import com.comcast.money.api.SpanId
 import com.comcast.money.core._
 import com.comcast.money.internal.EmitterBus.EmitData
 import com.comcast.money.internal.EmitterProtocol.EmitSpan

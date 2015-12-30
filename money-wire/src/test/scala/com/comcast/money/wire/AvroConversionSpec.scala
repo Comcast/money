@@ -16,7 +16,8 @@
 
 package com.comcast.money.wire
 
-import com.comcast.money.core.{ LongNote, Note, Span, SpanId }
+import com.comcast.money.api.SpanId
+import com.comcast.money.core.{ LongNote, Note, Span }
 import org.scalatest.{ Inspectors, Matchers, WordSpec }
 
 class AvroConversionSpec extends WordSpec with Matchers with Inspectors {
@@ -26,7 +27,7 @@ class AvroConversionSpec extends WordSpec with Matchers with Inspectors {
   "Avro Conversion" should {
     "roundtrip" in {
       val orig = Span(
-        SpanId(1L), "key", "app", "host", 1L, true, 35L,
+        new SpanId("foo", 1L), "key", "app", "host", 1L, true, 35L,
         Map(
           "what" -> Note("what", 1L, 100L),
           "when" -> Note("when", 2L, 200L),

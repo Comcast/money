@@ -20,6 +20,7 @@ import akka.actor.Props
 import akka.pattern.ask
 import akka.testkit._
 import akka.util.Timeout
+import com.comcast.money.api.SpanId
 import com.comcast.money.core._
 import com.comcast.money.internal.EmitterProtocol.EmitSpan
 import com.comcast.money.internal.SpanFSM.{ NoteWrapper, SpanContext }
@@ -52,9 +53,9 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
     "accept data and then emit" in {
       val span = system.actorOf(Props(classOf[SpanFSM], testActor))
       Given("A Start")
-      span ! Start(SpanId(1L), "happy span", parentSpanId = Some(SpanId(2L)))
+      span ! Start(new SpanId("foo", 1L, 1L), "happy span", parentSpanId = Some(new SpanId("foo", 2L, 2L)))
       Then("it should sent a PropagateNotesReq to its parent")
-      expectMsg(SpanMessage(SpanId(2L), PropagateNotesRequest(span)))
+      expectMsg(SpanMessage(new SpanId("foo", 2L, 2L), PropagateNotesRequest(span)))
 
       When("it receives a PropagateNotesReq ")
       val notesPropogationProbe = TestProbe()
@@ -80,7 +81,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
       expectMsg(
         EmitSpan(
           Span(
-            SpanId(1L), "happy span", Money.applicationName, Money.hostName, 1L, true, 2L, Map(
+            new SpanId("foo", 1L, 1L), "happy span", Money.applicationName, Money.hostName, 1L, true, 2L, Map(
               "whowhat" -> Note("whowhat", "Wilmington", 2L), "huh" -> Note("huh", "Baltimore", 2L),
               "where" -> Note("where", "Philly", 2L), "who" -> Note("who", "tom", 2L)
             )
@@ -92,7 +93,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
     "accept data after a stop" in {
       val span = system.actorOf(Props(classOf[SpanFSM], testActor))
       Given("a Start and Stop")
-      span ! Start(SpanId(1L), "happy span")
+      span ! Start(new SpanId("foo", 1L, 1L), "happy span")
       span ! Stop(Result.success, 2L)
 
       When("timing and data are sent")
@@ -112,7 +113,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
       expectMsg(
         EmitSpan(
           Span(
-            SpanId(1L), "happy span", Money.applicationName, Money.hostName, 1L, true, 1L,
+            new SpanId("foo", 1L, 1L), "happy span", Money.applicationName, Money.hostName, 1L, true, 1L,
             Map("where" -> Note("where", "Philly", 2L), "who" -> Note("who", "tom", 3L))
           )
         )
@@ -126,7 +127,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
     "timeout and not emit if it never receives a Stop" in {
       Given("A Start")
       val span = system.actorOf(Props(classOf[SpanFSM], testActor, 1 second, 1 second))
-      span ! Start(SpanId(1L), "happy span")
+      span ! Start(new SpanId("foo", 1L, 1L), "happy span")
       When("No further messages for over a second")
       Thread.sleep(1100)
       Then("it stops and does not emit a SpanData ")
@@ -136,7 +137,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
     "log a warning for an unexpected event" in {
       Given("A Start")
       val span = system.actorOf(Props(classOf[SpanFSM], testActor, 1 second, 1 second))
-      span ! Start(SpanId(1L), "happy span")
+      span ! Start(new SpanId("foo", 1L, 1L), "happy span")
       When("an unexpected event is sent to the request span")
 
       Then("a log message is captured")
@@ -149,7 +150,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
 
       Given("A span has started")
       val span = system.actorOf(Props(classOf[SpanFSM], testActor, 1 second, 1 second))
-      span ! Start(SpanId(1L), "happy span")
+      span ! Start(new SpanId("foo", 1L, 1L), "happy span")
 
       When("a StartTimer message is sent")
       span ! StartTimer("timer-test", 1L)
@@ -165,7 +166,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
 
       Given("A span has started")
       val span = system.actorOf(Props(classOf[SpanFSM], testActor, 1 second, 1 second))
-      span ! Start(SpanId(1L), "happy span")
+      span ! Start(new SpanId("foo", 1L, 1L), "happy span")
 
       And("a timer has been started")
       span ! StartTimer("timer-test", 1L)
@@ -188,7 +189,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
 
       Given("A span has started")
       val span = TestActorRef(Props(classOf[SpanFSM], testActor, 1 second, 1 second))
-      span ! Start(SpanId(1L), "happy span")
+      span ! Start(new SpanId("foo", 1L, 1L), "happy span")
 
       And("a timer has been started")
       span ! StartTimer("timer-test", 1L)
@@ -211,7 +212,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
 
       Given("a span has started")
       val span = TestActorRef(Props(classOf[SpanFSM], testActor, 1 second, 1 second))
-      span ! Start(SpanId(1L), "happy span")
+      span ! Start(new SpanId("foo", 1L, 1L), "happy span")
 
       And("the span is stopped")
       span ! Stop(Note("span-success", true, 2L), 2L)
@@ -234,12 +235,12 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
   "store the result provided in a stop span" in {
     val span = system.actorOf(Props(classOf[SpanFSM], testActor))
     Given("a Start and Stop with a result")
-    span ! Start(SpanId(1L), "happy span")
+    span ! Start(new SpanId("foo", 1L, 1L), "happy span")
     span ! Stop(Note("span-success", true, 2L), 2L)
 
     When("the span data is emitted")
     Then("the span data contains the result passed in on the Stop message")
-    expectMsg(EmitSpan(Span(SpanId(1L), "happy span", Money.applicationName, Money.hostName, 1L, true, 1L, Map())))
+    expectMsg(EmitSpan(Span(new SpanId("foo", 1L, 1L), "happy span", Money.applicationName, Money.hostName, 1L, true, 1L, Map())))
   }
 
   "SpanFSM props" should {

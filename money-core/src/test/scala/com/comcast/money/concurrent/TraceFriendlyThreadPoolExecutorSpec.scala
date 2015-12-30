@@ -18,7 +18,7 @@ package com.comcast.money.concurrent
 
 import java.util.concurrent.{ Callable, ExecutorService }
 
-import com.comcast.money.core.SpanId
+import com.comcast.money.api.SpanId
 import com.comcast.money.internal.SpanLocal
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ Matchers, OneInstancePerTest, WordSpecLike }
@@ -31,7 +31,7 @@ class TraceFriendlyThreadPoolExecutorSpec
 
   "TraceFriendlyThreadPoolExecutor cachedThreadPool" should {
     "propagate the current span local value" in {
-      val traceId = SpanId("1", 2L, 3L)
+      val traceId = new SpanId("1", 2L, 3L)
       SpanLocal.push(traceId)
 
       val future = executor.submit(testCallable)
@@ -48,8 +48,8 @@ class TraceFriendlyThreadPoolExecutorSpec
       SpanLocal.current shouldEqual None
     }
     "propagate only the current span id value" in {
-      val traceId1 = SpanId()
-      val traceId2 = SpanId()
+      val traceId1 = new SpanId()
+      val traceId2 = new SpanId()
       SpanLocal.push(traceId1)
       SpanLocal.push(traceId2)
 
@@ -57,7 +57,7 @@ class TraceFriendlyThreadPoolExecutorSpec
       future.get shouldEqual Some(traceId2)
     }
     "propagate MDC" in {
-      val traceId = SpanId("1", 2L, 3L)
+      val traceId = new SpanId("1", 2L, 3L)
       SpanLocal.push(traceId)
       MDC.put("foo", "bar")
 

@@ -16,6 +16,8 @@
 
 package com.comcast.money.core
 
+import com.comcast.money.api.SpanId
+
 import scala.collection.Map
 
 case class Span(

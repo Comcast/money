@@ -18,6 +18,7 @@ package com.comcast.money.wire
 
 import java.io.ByteArrayOutputStream
 
+import com.comcast.money.api.SpanId
 import com.comcast.money.core._
 import com.comcast.money.wire.avro
 import com.comcast.money.wire.avro.NoteType
@@ -98,11 +99,11 @@ trait SpanWireConverters {
   }
 
   implicit val spanIdToWire: TypeConverter[SpanId, avro.SpanId] = TypeConverter.instance { spanId =>
-    new avro.SpanId(spanId.traceId, spanId.parentSpanId, spanId.spanId)
+    new avro.SpanId(spanId.traceId, spanId.parentId, spanId.selfId)
   }
 
   implicit val wireToSpanId: TypeConverter[avro.SpanId, SpanId] = TypeConverter.instance { spanId =>
-    SpanId(spanId.getTraceId, spanId.getParentId, spanId.getSpanId)
+    new SpanId(spanId.getTraceId, spanId.getParentId, spanId.getSpanId)
   }
 
   implicit val spanToWire: TypeConverter[Span, avro.Span] = TypeConverter.instance { span: Span =>

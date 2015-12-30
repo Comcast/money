@@ -17,7 +17,8 @@
 package com.comcast.money.internal
 
 import akka.testkit.TestProbe
-import com.comcast.money.core.{ Note, Span, SpanId }
+import com.comcast.money.api.SpanId
+import com.comcast.money.core.{ Note, Span }
 import com.comcast.money.internal.EmitterBus.{ EmitterEvent, EmitterGroup }
 import com.comcast.money.internal.EmitterProtocol.EmitSpan
 import com.comcast.money.test.AkkaTestJawn
@@ -29,7 +30,7 @@ class EmitterBusSpec extends AkkaTestJawn with WordSpecLike with MockitoSugar {
   "An EmitterBus" when {
     val underTest = new EmitterBus()
     val testData = Span(
-      SpanId(1L), "happy span", "app", "host", 1L, true, 3L, Map(
+      new SpanId("foo", 1L), "happy span", "app", "host", 1L, true, 3L, Map(
         "when" -> Note("when", 1L), "who" -> Note("who", 2L), "bob" -> Note("bob", "1.2"),
         "apple" -> Note("apple", "pie")
       )

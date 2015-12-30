@@ -16,15 +16,17 @@
 
 package com.comcast.money.internal
 
-import com.comcast.money.core.{ SpanId, Money }
-import org.slf4j.MDC
 import java.util.Map
+
+import com.comcast.money.api.SpanId
+import com.comcast.money.core.Money
+import org.slf4j.MDC
 
 object MDCSupport {
 
   val LogFormat = "[ span-id=%s ][ trace-id=%s ][ parent-id=%s ]"
 
-  def format(spanId: SpanId) = LogFormat.format(spanId.spanId, spanId.traceId, spanId.parentSpanId)
+  def format(spanId: SpanId) = LogFormat.format(spanId.selfId, spanId.traceId, spanId.parentId)
 }
 
 /**

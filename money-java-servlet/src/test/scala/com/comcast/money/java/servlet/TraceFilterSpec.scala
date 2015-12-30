@@ -19,7 +19,7 @@ package com.comcast.money.java.servlet
 import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
 import javax.servlet.{ FilterChain, FilterConfig }
 
-import com.comcast.money.core.SpanId
+import com.comcast.money.api.SpanId
 import com.comcast.money.internal.SpanLocal
 import org.mockito.Mockito._
 import org.scalatest.OptionValues._
@@ -32,7 +32,7 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
   val mockResponse = mock[HttpServletResponse]
   val mockFilterChain = mock[FilterChain]
 
-  val existingSpanId = SpanId()
+  val existingSpanId = new SpanId()
 
   val underTest = new TraceFilter()
 
@@ -54,7 +54,7 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
     }
     "set the trace context to the trace header if present" in {
       when(mockRequest.getHeader("X-MoneyTrace"))
-        .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentSpanId, existingSpanId.spanId))
+        .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentId, existingSpanId.selfId))
 
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
 
@@ -69,16 +69,16 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
     }
     "adds Money header to response" in {
       when(mockRequest.getHeader("X-MoneyTrace"))
-        .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentSpanId, existingSpanId.spanId))
+        .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentId, existingSpanId.selfId))
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
       verify(mockResponse).addHeader(
         "X-MoneyTrace",
-        MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentSpanId, existingSpanId.spanId)
+        MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentId, existingSpanId.selfId)
       )
     }
     "doesn't add Money header to response if response is null" in {
       when(mockRequest.getHeader("X-MoneyTrace"))
-        .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentSpanId, existingSpanId.spanId))
+        .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentId, existingSpanId.selfId))
       underTest.doFilter(mockRequest, null, mockFilterChain)
       verifyZeroInteractions(mockResponse)
     }

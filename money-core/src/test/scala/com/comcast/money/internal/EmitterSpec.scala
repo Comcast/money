@@ -17,9 +17,10 @@
 package com.comcast.money.internal
 
 import akka.testkit.TestActorRef
+import com.comcast.money.api.SpanId
+import com.comcast.money.core.Span
+import com.comcast.money.internal.EmitterProtocol.{ EmitMetricDouble, EmitMetricLong, EmitSpan }
 import com.comcast.money.test.AkkaTestJawn
-import com.comcast.money.core.{ Span, SpanId }
-import com.comcast.money.internal.EmitterProtocol.{ EmitMetricLong, EmitMetricDouble, EmitSpan }
 import com.comcast.money.util.DateTimeUtil
 import org.scalatest.WordSpecLike
 import org.scalatest.mock.MockitoSugar
@@ -31,7 +32,7 @@ class EmitterSpec extends AkkaTestJawn with WordSpecLike with MockitoSugar {
     val underTest = TestActorRef(new Emitter(emitterBus) with TestProbeMaker)
 
     "sending a span message" should {
-      val data = Span(SpanId(1L), "record", "app", "host", 2L, true, 35L, Map())
+      val data = Span(new SpanId("foo", 1L), "record", "app", "host", 2L, true, 35L, Map())
       val span = EmitSpan(data)
       underTest ! span
 
