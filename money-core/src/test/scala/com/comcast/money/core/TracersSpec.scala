@@ -54,7 +54,7 @@ class TracersSpec extends FeatureSpec
 
       Then("Start and Stop span are called on the tracer")
       verify(moneyTracer).startSpan("bob")
-      verify(moneyTracer).stopSpan(Note("span-success", true, 1L))
+      verify(moneyTracer).stopSpan(true)
     }
     scenario("The function being traced throws an exception") {
       When("a method is executed using the traced swag and it throws an exception")
@@ -68,7 +68,7 @@ class TracersSpec extends FeatureSpec
       verify(moneyTracer).startSpan("fail")
 
       And("the stop span is called with a failure result")
-      verify(moneyTracer).stopSpan(Note("span-success", false, 1L))
+      verify(moneyTracer).stopSpan(false)
     }
   }
   feature("Timed api") {

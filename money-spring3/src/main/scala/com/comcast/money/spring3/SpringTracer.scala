@@ -243,7 +243,7 @@ class SpringTracer extends Tracer {
    * }}}
    * @param result The result of the span, this will be Result.success or Result.failed
    */
-  override def stopSpan(result: Note[Boolean]): Unit = tracer.stopSpan(result)
+  override def stopSpan(result: Boolean = true): Unit = tracer.stopSpan(result)
 
   /**
    * Starts a new timer on the current Span for the key provided

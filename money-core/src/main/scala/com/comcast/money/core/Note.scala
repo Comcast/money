@@ -59,6 +59,6 @@ object Note {
 }
 
 object Result {
-  def failed: Note[Boolean] = Note("span-success", false)
-  def success: Note[Boolean] = Note("span-success", true)
+  def failed: Boolean = false
+  def success: Boolean = true
 }

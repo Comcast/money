@@ -50,7 +50,7 @@ object SpanFSMProtocol {
 
   case object Query extends SpanCommand
 
-  case class Stop(result: Note[Boolean], timeStamp: Long = DateTimeUtil.microTime) extends SpanCommand
+  case class Stop(result: Boolean, timeStamp: Long = DateTimeUtil.microTime) extends SpanCommand
 
 }
 
@@ -181,7 +181,7 @@ class SpanFSM(val emitterSupervisor: ActorRef, val openSpanTimeout: FiniteDurati
       }
       spanContext.timers.clear()
 
-      spanContext.setSuccess(result.value.getOrElse(true))
+      spanContext.setSuccess(result)
 
       goto(Stopped)
     case Event(StateTimeout, spanContext: SpanContext) =>
@@ -207,7 +207,7 @@ class SpanFSM(val emitterSupervisor: ActorRef, val openSpanTimeout: FiniteDurati
     case Event(Stop(result, stopTime), spanContext: SpanContext) =>
       log.debug("Stopped -> Stop")
       // Add the result, the basic premise here is that the last one in wins
-      spanContext.setSuccess(result.value.getOrElse(true))
+      spanContext.setSuccess(result)
 
       // Need to update the span duration
       val duration = stopTime - spanContext.startTime
