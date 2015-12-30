@@ -27,7 +27,7 @@ import org.scalatest._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration._
-import scala.concurrent.{Await, Future}
+import scala.concurrent.{ Await, Future }
 
 class FuturesSpec extends AkkaTestJawn
     with FeatureSpecLike

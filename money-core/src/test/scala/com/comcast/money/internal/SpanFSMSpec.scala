@@ -75,7 +75,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
         )
       )
 
-      span ! Stop(Note("span-success", true, 3L), 3L)
+      span ! Stop(true, 3L)
 
       Then("it should emit a span record")
       expectMsg(
@@ -195,7 +195,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
       span ! StartTimer("timer-test", 1L)
 
       When("the span is stopped")
-      span ! Stop(Note("span-success", true, 2L), 2L)
+      span ! Stop(true, 2L)
 
       Then("any unstopped timers are stopped and removed from the span context")
       val spanState = span.underlyingActor.asInstanceOf[SpanFSM].stateData.asInstanceOf[SpanContext]
@@ -215,10 +215,10 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
       span ! Start(new SpanId("foo", 1L, 1L), "happy span")
 
       And("the span is stopped")
-      span ! Stop(Note("span-success", true, 2L), 2L)
+      span ! Stop(true, 2L)
 
       When("another stop message arrives sometime later")
-      span ! Stop(Note("span-success", false, 4L), 4L)
+      span ! Stop(false, 4L)
 
       And("the span is finished and emitted")
       Then("the span duration that is emitted includes the time from the start to the last stop message")
@@ -236,7 +236,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
     val span = system.actorOf(Props(classOf[SpanFSM], testActor))
     Given("a Start and Stop with a result")
     span ! Start(new SpanId("foo", 1L, 1L), "happy span")
-    span ! Stop(Note("span-success", true, 2L), 2L)
+    span ! Stop(true, 2L)
 
     When("the span data is emitted")
     Then("the span data contains the result passed in on the Stop message")

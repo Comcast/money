@@ -303,7 +303,7 @@ trait Tracer extends Closeable {
    * }}}
    * @param result The result of the span, this will be Result.success or Result.failed
    */
-  def stopSpan(result: Note[Boolean] = Result.success) = withSpanId { spanId =>
+  def stopSpan(result: Boolean = true) = withSpanId { spanId =>
     SpanLocal.pop()
     spanSupervisorRef ! SpanMessage(spanId, Stop(result, DateTimeUtil.microTime))
   }

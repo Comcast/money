@@ -55,11 +55,10 @@ class TracerSpec
   val spanSupervisor = new TestProbe(system) {
     def expectSpanMsg(tm: SpanCommand) {
       expectMsgPF() {
-        case SpanMessage(spanId, Stop(note, timeStamp)) =>
+        case SpanMessage(spanId, Stop(result, timeStamp)) =>
           tm shouldBe a[Stop]
-          val tmNote = tm.asInstanceOf[Stop].result
-          note.name shouldEqual tmNote.name
-          note.value shouldEqual tmNote.value
+          val tmResult = tm.asInstanceOf[Stop].result
+          tmResult shouldEqual result
         case SpanMessage(spanId, Start(innerSpanId, spanName, timeStamp, _)) =>
           tm shouldBe a[Start]
           tm.asInstanceOf[Start].spanName shouldEqual spanName
@@ -175,7 +174,7 @@ class TracerSpec
       spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "foo"))
 
       Then("the failed result is sent along with the stop message")
-      spanSupervisor.expectSpanMsg(Stop(Note("span-success", false)))
+      spanSupervisor.expectSpanMsg(Stop(false))
     }
     scenario("stopping a span with a success result") {
       moneyTracer.startSpan("foo")
@@ -183,7 +182,7 @@ class TracerSpec
       spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "foo"))
 
       Then("the failed result is sent along with the stop message")
-      spanSupervisor.expectSpanMsg(Stop(Note("span-success", true)))
+      spanSupervisor.expectSpanMsg(Stop(true))
     }
   }
   feature("recording a Note on a span") {

@@ -153,7 +153,7 @@ object Money {
 
       override def record(key: String, measure: Boolean, propogate: Boolean): Unit = {}
 
-      override def stopSpan(result: Note[Boolean] = Result.success) = {}
+      override def stopSpan(result: Boolean = true) = {}
 
       override def close() = {}
 

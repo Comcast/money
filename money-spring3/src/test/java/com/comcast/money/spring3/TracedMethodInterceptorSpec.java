@@ -52,7 +52,7 @@ public class TracedMethodInterceptorSpec {
     private SpringTracer springTracer;
 
     @Captor
-    private ArgumentCaptor<Note<Object>> spanResultCaptor;
+    private ArgumentCaptor<Boolean> spanResultCaptor;
 
     @Before
     public void setUp() {
@@ -155,7 +155,7 @@ public class TracedMethodInterceptorSpec {
     private void verifySpanResultsIn(Boolean result) {
 
         verify(springTracer).stopSpan(spanResultCaptor.capture());
-        Note<Object> spanResult = spanResultCaptor.getValue();
-        assertThat(spanResult.value().get()).isEqualTo(result);
+        Boolean spanResult = spanResultCaptor.getValue();
+        assertThat(spanResult).isEqualTo(result);
     }
 }
