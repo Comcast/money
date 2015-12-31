@@ -158,4 +158,119 @@ public class Note<T> {
     public static Note<Double> of(String name, double value, boolean sticky) {
         return new Note<Double>(name, value, sticky);
     }
+
+    /**
+     * Creates a new note that contains a string
+     * @param name The name of the note
+     * @param value The value for the note
+     * @param sticky Indicates whether this Note should be sticky
+     * @param timestamp The timestamp for the note
+     * @return A new {@link Note} that contains a String value
+     */
+    public static Note<String> of(String name, String value, boolean sticky, long timestamp) {
+        return new Note<String>(name, value, timestamp, sticky);
+    }
+
+    /**
+     * Creates a new note that contains a long
+     * @param name The name of the note
+     * @param value The value for the note
+     * @param sticky Indicates whether this Note should be sticky
+     * @param timestamp The timestamp for the note
+     * @return A new {@link Note} that contains a long value
+     */
+    public static Note<Long> of(String name, long value, boolean sticky, long timestamp) {
+        return new Note<Long>(name, value, timestamp, sticky);
+    }
+
+    /**
+     * Creates a new note that contains a boolean
+     * @param name The name of the note
+     * @param value The value for the note
+     * @param sticky Indicates whether this Note should be sticky
+     * @param timestamp The timestamp for the note
+     * @return A new {@link Note} that contains a boolean value
+     */
+    public static Note<Boolean> of(String name, boolean value, boolean sticky, long timestamp) {
+        return new Note<Boolean>(name, value, timestamp, sticky);
+    }
+
+    /**
+     * Creates a new note that contains a double
+     * @param name The name of the note
+     * @param value The value for the note
+     * @param sticky Indicates whether this Note should be sticky
+     * @param timestamp The timestamp for the note
+     * @return A new {@link Note} that contains a double value
+     */
+    public static Note<Double> of(String name, double value, boolean sticky, long timestamp) {
+        return new Note<Double>(name, value, timestamp, sticky);
+    }
+
+    /**
+     * Creates a new note that contains a string
+     * @param name The name of the note
+     * @param value The value for the note
+     * @param timestamp The timestamp for the note
+     * @return A new {@link Note} that contains a String value
+     */
+    public static Note<String> of(String name, String value, long timestamp) {
+        return new Note<String>(name, value, timestamp, false);
+    }
+
+    /**
+     * Creates a new note that contains a long
+     * @param name The name of the note
+     * @param value The value for the note
+     * @param timestamp The timestamp for the note
+     * @return A new {@link Note} that contains a long value
+     */
+    public static Note<Long> of(String name, long value, long timestamp) {
+        return new Note<Long>(name, value, timestamp, false);
+    }
+
+    /**
+     * Creates a new note that contains a boolean
+     * @param name The name of the note
+     * @param value The value for the note
+     * @param timestamp The timestamp for the note
+     * @return A new {@link Note} that contains a boolean value
+     */
+    public static Note<Boolean> of(String name, boolean value, long timestamp) {
+        return new Note<Boolean>(name, value, timestamp, false);
+    }
+
+    /**
+     * Creates a new note that contains a double
+     * @param name The name of the note
+     * @param value The value for the note
+     * @param timestamp The timestamp for the note
+     * @return A new {@link Note} that contains a double value
+     */
+    public static Note<Double> of(String name, double value, long timestamp) {
+        return new Note<Double>(name, value, timestamp, false);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Note<?> note = (Note<?>) o;
+
+        if (timestamp != note.timestamp) return false;
+        if (sticky != note.sticky) return false;
+        if (!name.equals(note.name)) return false;
+        return value != null ? value.equals(note.value) : note.value == null;
+
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + (value != null ? value.hashCode() : 0);
+        result = 31 * result + (int) (timestamp ^ (timestamp >>> 32));
+        result = 31 * result + (sticky ? 1 : 0);
+        return result;
+    }
 }

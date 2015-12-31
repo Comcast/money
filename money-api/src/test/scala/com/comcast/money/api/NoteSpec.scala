@@ -59,7 +59,7 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp should not be 0
     }
 
-    "create String notes with propagated" in {
+    "create String notes with sticky" in {
       val note = Note.of("foo", "bar", true)
 
       note.isSticky shouldBe true
@@ -68,7 +68,7 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp should not be 0
     }
 
-    "create Long notes with propagated" in {
+    "create Long notes with sticky" in {
       val note = Note.of("foo", 1L, true)
 
       note.isSticky shouldBe true
@@ -77,7 +77,7 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp should not be 0
     }
 
-    "create Double notes with propagated" in {
+    "create Double notes with sticky" in {
       val note = Note.of("foo", 2.2, true)
 
       note.isSticky shouldBe true
@@ -86,13 +86,85 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp should not be 0
     }
 
-    "create Boolean notes with propagated" in {
+    "create Boolean notes with sticky" in {
       val note = Note.of("foo", true, true)
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
       note.value shouldBe true
       note.timestamp should not be 0
+    }
+
+    "create String notes with sticky including timestamp" in {
+      val note = Note.of("foo", "bar", true, 1L)
+
+      note.isSticky shouldBe true
+      note.name shouldBe "foo"
+      note.value shouldBe "bar"
+      note.timestamp shouldBe 1L
+    }
+
+    "create Long notes with sticky including timestamp" in {
+      val note = Note.of("foo", 1L, true, 1L)
+
+      note.isSticky shouldBe true
+      note.name shouldBe "foo"
+      note.value shouldBe 1L
+      note.timestamp shouldBe 1L
+    }
+
+    "create Double notes with sticky including timestamp" in {
+      val note = Note.of("foo", 2.2, true, 1L)
+
+      note.isSticky shouldBe true
+      note.name shouldBe "foo"
+      note.value shouldBe 2.2
+      note.timestamp shouldBe 1L
+    }
+
+    "create Boolean notes with sticky including timestamp" in {
+      val note = Note.of("foo", true, true, 1L)
+
+      note.isSticky shouldBe true
+      note.name shouldBe "foo"
+      note.value shouldBe true
+      note.timestamp shouldBe 1L
+    }
+
+    "create String notes including timestamp without sticky" in {
+      val note = Note.of("foo", "bar", 1L)
+
+      note.isSticky shouldBe false
+      note.name shouldBe "foo"
+      note.value shouldBe "bar"
+      note.timestamp shouldBe 1L
+    }
+
+    "create Long notes including timestamp without sticky" in {
+      val note = Note.of("foo", 1L, 1L)
+
+      note.isSticky shouldBe false
+      note.name shouldBe "foo"
+      note.value shouldBe 1L
+      note.timestamp shouldBe 1L
+    }
+
+    "create Double notes including timestamp without sticky" in {
+      val note = Note.of("foo", 2.2, 1L)
+
+      note.isSticky shouldBe false
+      note.name shouldBe "foo"
+      note.value shouldBe 2.2
+      note.timestamp shouldBe 1L
+    }
+
+    "create Boolean notes including timestamp without sticky" in {
+      val note = Note.of("foo", true, 1L)
+
+      note.isSticky shouldBe false
+      note.name shouldBe "foo"
+      note.value shouldBe true
+      note.timestamp shouldBe 1L
     }
   }
 }
