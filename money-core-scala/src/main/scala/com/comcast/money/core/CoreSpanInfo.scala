@@ -14,15 +14,20 @@
  * limitations under the License.
  */
 
-package com.comcast.money.api;
+package com.comcast.money.core
 
-public interface SpanFactory {
+import com.comcast.money.api.{ Note, SpanId, SpanInfo }
 
-    Span newSpan(String spanName);
-
-    Span newSpan(SpanId spanId, String spanName);
-
-    Span childSpan(String childName, Span span);
-
-    Span childSpan(String childName, Span span, boolean sticky);
-}
+case class CoreSpanInfo(
+  id: SpanId,
+  name: String,
+  startTimeMillis: java.lang.Long = 0L,
+  startTimeMicros: java.lang.Long = 0L,
+  endTimeMillis: java.lang.Long = 0L,
+  endTimeMicros: java.lang.Long = 0L,
+  durationMicros: java.lang.Long = 0L,
+  success: java.lang.Boolean = true,
+  notes: java.util.Map[String, Note[_]] = new java.util.HashMap[String, Note[_]](),
+  appName: String = Money.Environment.applicationName,
+  host: String = Money.Environment.hostName
+) extends SpanInfo

@@ -6,7 +6,7 @@ scala:
   - 2.11.7
 
 script:
-  -  sbt ++$TRAVIS_SCALA_VERSION clean coverage test it:test coverageAggregate
+  -  sbt ++$TRAVIS_SCALA_VERSION clean coverage test it:test coverageReport coverageAggregate
 
 after_success:
   - pip install --user codecov && codecov

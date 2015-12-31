@@ -4,6 +4,7 @@ import com.typesafe.sbt.SbtScalariform
 import sbt.Keys._
 import sbt._
 import sbtavro.SbtAvro._
+import scoverage.ScoverageKeys
 import scoverage.ScoverageSbtPlugin._
 import de.heikoseeberger.sbtheader.HeaderPlugin
 import de.heikoseeberger.sbtheader.AutomateHeaderPlugin
@@ -25,7 +26,7 @@ object MoneyBuild extends Build {
     publishLocal := {},
     publish := {}
   )
-  .aggregate(moneyApi, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
+  .aggregate(moneyApi, moneyCoreScala, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
 
   lazy val moneyApi =
     Project("money-api", file("./money-api"))
@@ -39,6 +40,22 @@ object MoneyBuild extends Build {
         )
       }
       )
+
+  lazy val moneyCoreScala =
+    Project("money-core-scala", file("./money-core-scala"))
+      .configs( IntegrationTest )
+      .settings(projectSettings: _*)
+      .settings(
+        libraryDependencies ++= {
+          Seq(
+            slf4j,
+            log4jbinding,
+            typesafeConfig,
+            scalaTest,
+            mockito
+          )
+        }
+      ).dependsOn(moneyApi)
 
   lazy val moneyCore =
     Project("money-core", file("./money-core"))
@@ -366,7 +383,7 @@ object MoneyBuild extends Build {
 
     // Test
     val mockito = "org.mockito" % "mockito-core" % "1.9.5" % "test"
-    val scalaTest = "org.scalatest" %% "scalatest" % "2.2.3" % "it,test"
+    val scalaTest = "org.scalatest" %% "scalatest" % "2.2.6" % "it,test"
     val junit = "junit" % "junit" % "4.11" % "test"
     val junitInterface = "com.novocode" % "junit-interface" % "0.11" % "test->default"
     val springTest = ("org.springframework" % "spring-test" % "3.2.6.RELEASE")

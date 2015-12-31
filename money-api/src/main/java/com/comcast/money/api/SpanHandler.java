@@ -28,7 +28,7 @@ public interface SpanHandler {
     /**
      * Handles a span that has been stopped.
      *
-     * @param span {@link Span} that has been stopped and is ready for processing
+     * @param {@link SpanInfo} that contains the information for the completed span
      */
-    void handle(Span span);
+    void handle(SpanInfo span);
 }

@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 
-package com.comcast.money.api;
+package com.comcast.money.core.handlers
 
-public interface SpanFactory {
+import com.comcast.money.api.SpanHandler
+import com.typesafe.config.Config
 
-    Span newSpan(String spanName);
+object HandlerFactory {
 
-    Span newSpan(SpanId spanId, String spanName);
+  def create(config: Config): SpanHandler = {
+    val className = config.getString("class")
 
-    Span childSpan(String childName, Span span);
+    val handlerInstance = Class.forName(className).newInstance().asInstanceOf[SpanHandler]
 
-    Span childSpan(String childName, Span span, boolean sticky);
+    handlerInstance match {
+      case configurable: ConfigurableHandler =>
+        configurable.configure(config)
+        configurable
+
+      case _ => handlerInstance
+    }
+  }
 }

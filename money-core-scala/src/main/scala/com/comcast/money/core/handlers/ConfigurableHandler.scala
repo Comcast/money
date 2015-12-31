@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package com.comcast.money.api;
+package com.comcast.money.core.handlers
 
-public interface SpanFactory {
+import com.comcast.money.api.SpanHandler
+import com.typesafe.config.Config
 
-    Span newSpan(String spanName);
+trait ConfigurableHandler extends SpanHandler {
 
-    Span newSpan(SpanId spanId, String spanName);
-
-    Span childSpan(String childName, Span span);
-
-    Span childSpan(String childName, Span span, boolean sticky);
+  def configure(config: Config): Unit
 }

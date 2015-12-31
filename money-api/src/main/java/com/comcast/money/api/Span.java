@@ -16,8 +16,6 @@
 
 package com.comcast.money.api;
 
-import java.util.Map;
-
 /**
  * A Span is a container that represents a unit of work.  It could be a long running operation or sequence of
  * statements in process, or a remote system call.
@@ -40,7 +38,7 @@ public interface Span {
      * Ends a span, moving it to a Stopped state
      * @param result The result of the span (success or failure)
      */
-    void stop(boolean result);
+    void stop(Boolean result);
 
     /**
      * Records a given note onto the span.  If the note was already present, it will be overwritten
@@ -63,67 +61,7 @@ public interface Span {
     void stopTimer(String timerKey);
 
     /**
-      * @return a map of all of the notes that were recorded on the span.  Implementers should enforce
-     * that the map returned is a copy of the notes
+     * @return The current state of the Span
      */
-    Map<String, Note<?>> notes();
-
-    /**
-     * @return the time in milliseconds when this span was started
-     */
-    Long startTime();
-
-    /**
-     * @return the time in microseconds when this span was started
-     */
-    Long startInstant();
-
-    /**
-     * @return the time in milliseconds when this span was ended.  Will return
-     * null if the span is still open
-     */
-    Long endTime();
-
-    /**
-     * @return the time in microseconds when this span was stopped.
-     */
-    Long endInstant();
-
-    /**
-     * @return the result of the span.  Will return null if the span was never stopped.
-     */
-    Boolean success();
-
-    /**
-     * @return the SpanId of the span.
-     */
-    SpanId id();
-
-    /**
-     * @return the name of the span
-     */
-    String name();
-
-    /**
-     * @return how long since the span was started.  Once it is stopped, the duration should reperesent
-     * how long the span was open for.
-     */
-    Long duration();
-
-    /**
-     * Creates a new child from this span
-     *
-     * @param childName The name of the child to create
-     * @param sticky True if the sticky notes from this span should be passed to the child
-     * @return A new Span that is a child of this span
-     */
-    Span childSpan(String childName, boolean sticky);
-
-    /**
-     * Creates a new child from this span
-     *
-     * @param childName The name of the child to create
-     * @return A new Span that is a child of this span
-     */
-    Span childSpan(String childName);
+    SpanInfo info();
 }
