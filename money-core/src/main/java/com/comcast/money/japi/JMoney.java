@@ -138,7 +138,7 @@ public class JMoney {
      */
     public static void record(String noteName, Object value, boolean propagate) {
 
-        tracer().record(toNote(noteName, value), propagate);
+        tracer().record(toNote(noteName, value, propagate));
     }
 
     /**
@@ -264,21 +264,21 @@ public class JMoney {
         }
     }
 
-    private static Note<?> toNote(String name, Object value) {
+    private static Note<?> toNote(String name, Object value, Boolean propagate) {
 
         if (value == null) {
-            return Note.of(name, null, DateTimeUtil.microTime());
+            return Note.of(name, null, propagate, DateTimeUtil.microTime());
         } else if (value instanceof Boolean) {
             Boolean bool = (Boolean)value;
-            return Note.of(name, bool, DateTimeUtil.microTime());
+            return Note.of(name, bool, propagate, DateTimeUtil.microTime());
         } else if (value instanceof Double) {
             Double dbl = (Double)value;
-            return Note.of(name, dbl, DateTimeUtil.microTime());
+            return Note.of(name, dbl, propagate, DateTimeUtil.microTime());
         } else if (value instanceof Long) {
             Long lng = (Long)value;
-            return Note.of(name, lng, DateTimeUtil.microTime());
+            return Note.of(name, lng, propagate, DateTimeUtil.microTime());
         } else {
-            return Note.of(name, value.toString(), DateTimeUtil.microTime());
+            return Note.of(name, value.toString(), propagate, DateTimeUtil.microTime());
         }
     }
 }

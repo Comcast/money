@@ -215,21 +215,6 @@ class SpringTracer extends Tracer {
   override def record(note: Note[_]): Unit = tracer.record(note)
 
   /**
-   * Adds a new [[com.comcast.money.api.Note]] directly to the current Span if one is present in context.
-   * {{{
-   *   import com.comcast.money.core.Money._
-   *   def recordMe() {
-   *     ...
-   *     tracer.record(Result.success)
-   *     tracer.record(Note.of("that", "thang"))
-   *     ...
-   *  }
-   * }}}
-   * @param note the [[com.comcast.money.api.Note]] to be added
-   */
-  override def record(note: Note[_], propogate: Boolean): Unit = tracer.record(note, propogate)
-
-  /**
    * Stops the current span, adding a note that indicates whether it succeeded or failed.
    * {{{
    *   import com.comcast.money.core.Money._
