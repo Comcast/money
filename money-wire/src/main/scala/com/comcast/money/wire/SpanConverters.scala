@@ -18,7 +18,7 @@ package com.comcast.money.wire
 
 import java.io.ByteArrayOutputStream
 
-import com.comcast.money.api.SpanId
+import com.comcast.money.api
 import com.comcast.money.core._
 import com.comcast.money.wire.avro
 import com.comcast.money.wire.avro.NoteType
@@ -57,26 +57,30 @@ trait SpanWireConverters {
 
   import scala.collection.JavaConversions._
 
-  implicit val noteToWire: TypeConverter[Note[_], avro.Note] = TypeConverter.instance { from: Note[_] =>
+  implicit val noteToWire: TypeConverter[api.Note[_], avro.Note] = TypeConverter.instance { from: api.Note[_] =>
     def avroNote(noteValue: avro.NoteValue): avro.Note = new avro.Note(from.name, from.timestamp, noteValue)
 
-    from match {
-      case LongNote(name, value, timestamp) => avroNote(
-        new avro.NoteValue(avro.NoteType.Long, value.map(_.toString).getOrElse(null))
+    from.value match {
+      case l: Long => avroNote(
+        new avro.NoteValue(avro.NoteType.Long, l.toString)
       )
-      case StringNote(name, value, timestamp) => avroNote(
-        new avro.NoteValue(avro.NoteType.String, value.getOrElse(null))
+      case s: String => avroNote(
+        new avro.NoteValue(avro.NoteType.String, s)
       )
-      case BooleanNote(name, value, timestamp) => avroNote(
-        new avro.NoteValue(avro.NoteType.Boolean, value.map(_.toString).getOrElse(null))
+      case b: java.lang.Boolean => avroNote(
+        new avro.NoteValue(avro.NoteType.Boolean, b.toString)
       )
-      case DoubleNote(name, value, timestamp) => avroNote(
-        new avro.NoteValue(avro.NoteType.Double, value.map(_.toString).getOrElse(null))
+      case d: Double => avroNote(
+        new avro.NoteValue(avro.NoteType.Double, d.toString)
       )
+      case null => avroNote(
+        new avro.NoteValue(avro.NoteType.String, null)
+      )
+
     }
   }
 
-  implicit val wireToNote: TypeConverter[avro.Note, Note[_]] = TypeConverter.instance { from: avro.Note =>
+  implicit val wireToNote: TypeConverter[avro.Note, api.Note[_]] = TypeConverter.instance { from: avro.Note =>
     def toOption[T](str: String)(ft: String => T): Option[T] = {
       if (str == null)
         None: Option[T]
@@ -85,25 +89,25 @@ trait SpanWireConverters {
     }
 
     from.getValue.getType match {
-      case NoteType.Boolean => BooleanNote(
-        from.getName, toOption[Boolean](from.getValue.getData)(_.toBoolean), from.getTimestamp
+      case NoteType.Boolean => api.Note.of(
+        from.getName, from.getValue.getData.toBoolean, from.getTimestamp
       )
-      case NoteType.Long => LongNote(from.getName, toOption[Long](from.getValue.getData)(_.toLong), from.getTimestamp)
-      case NoteType.String => StringNote(
-        from.getName, toOption[String](from.getValue.getData)(_.toString), from.getTimestamp
+      case NoteType.Long => api.Note.of(from.getName, from.getValue.getData.toLong, from.getTimestamp)
+      case NoteType.String => api.Note.of(
+        from.getName, from.getValue.getData, from.getTimestamp
       )
-      case NoteType.Double => DoubleNote(
-        from.getName, toOption[Double](from.getValue.getData)(_.toDouble), from.getTimestamp
+      case NoteType.Double => api.Note.of(
+        from.getName, from.getValue.getData.toDouble, from.getTimestamp
       )
     }
   }
 
-  implicit val spanIdToWire: TypeConverter[SpanId, avro.SpanId] = TypeConverter.instance { spanId =>
+  implicit val spanIdToWire: TypeConverter[api.SpanId, avro.SpanId] = TypeConverter.instance { spanId =>
     new avro.SpanId(spanId.traceId, spanId.parentId, spanId.selfId)
   }
 
-  implicit val wireToSpanId: TypeConverter[avro.SpanId, SpanId] = TypeConverter.instance { spanId =>
-    new SpanId(spanId.getTraceId, spanId.getParentId, spanId.getSpanId)
+  implicit val wireToSpanId: TypeConverter[avro.SpanId, api.SpanId] = TypeConverter.instance { spanId =>
+    new api.SpanId(spanId.getTraceId, spanId.getParentId, spanId.getSpanId)
   }
 
   implicit val spanToWire: TypeConverter[Span, avro.Span] = TypeConverter.instance { span: Span =>
@@ -115,14 +119,14 @@ trait SpanWireConverters {
       span.duration,
       span.success,
       span.startTime,
-      implicitly[TypeConverter[SpanId, avro.SpanId]].convert(span.spanId),
-      span.notes.values.toList.map(implicitly[TypeConverter[Note[_], avro.Note]].convert)
+      implicitly[TypeConverter[api.SpanId, avro.SpanId]].convert(span.spanId),
+      span.notes.values.toList.map(implicitly[TypeConverter[api.Note[_], avro.Note]].convert)
     )
   }
 
   implicit val wireToSpan: TypeConverter[avro.Span, Span] = TypeConverter.instance { from: avro.Span =>
     Span(
-      spanId = implicitly[TypeConverter[avro.SpanId, SpanId]].convert(from.getId),
+      spanId = implicitly[TypeConverter[avro.SpanId, api.SpanId]].convert(from.getId),
       spanName = from.getName,
       appName = from.getAppName,
       host = from.getHost,
@@ -130,7 +134,7 @@ trait SpanWireConverters {
       success = from.getSuccess,
       duration = from.getDuration,
       notes = (for (note: avro.Note <- from.getNotes) yield note
-        .getName -> implicitly[TypeConverter[avro.Note, Note[_]]].convert(note)).toMap
+        .getName -> implicitly[TypeConverter[avro.Note, api.Note[_]]].convert(note)).toMap
     )
   }
 }

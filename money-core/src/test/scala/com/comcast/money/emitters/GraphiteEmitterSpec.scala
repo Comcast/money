@@ -17,8 +17,8 @@
 package com.comcast.money.emitters
 
 import akka.testkit.{ TestActorRef, TestKit }
-import com.comcast.money.api.SpanId
-import com.comcast.money.core.{ LongNote, Note, Span }
+import com.comcast.money.api.{ Note, SpanId }
+import com.comcast.money.core.Span
 import com.comcast.money.internal.EmitterProtocol.{ EmitMetricDouble, EmitMetricLong, EmitSpan }
 import com.comcast.money.test.AkkaTestJawn
 import com.comcast.money.util.DateTimeUtil
@@ -56,8 +56,8 @@ class GraphiteEmitterSpec extends AkkaTestJawn with WordSpecLike with BeforeAndA
         val graphiteEmitter = TestActorRef(new GraphiteEmitter(conf) with TestProbeMaker)
         val span = Span(
           new SpanId("foo", 1L), "happy span", "unknown", "localhost", 1L, true, 35L, Map(
-            "when" -> Note("when", 1.5), "who" -> LongNote("who", None, 45), "bob" -> Note("bob", "1.2"),
-            "apple" -> Note("apple", "pie")
+            "when" -> Note.of("when", 1.5, 1L), "who" -> Note.of("who", null, 45), "bob" -> Note.of("bob", "1.2"),
+            "apple" -> Note.of("apple", "pie")
           )
         )
         graphiteEmitter ! EmitSpan(span)
@@ -71,7 +71,7 @@ class GraphiteEmitterSpec extends AkkaTestJawn with WordSpecLike with BeforeAndA
         val graphiteEmitter = TestActorRef(new GraphiteEmitter(conf) with TestProbeMaker)
         val span = Span(
           new SpanId("foo", 1L), "happy span", "unknown", "localhost", 1L, true, 35L, Map(
-            "bob" -> Note("bob", 12.1), "apple" -> Note("apple", "pie"), "cherry" -> Note("cherry", 1.032)
+            "bob" -> Note.of("bob", 12.1, 1L), "apple" -> Note.of("apple", "pie"), "cherry" -> Note.of("cherry", 1.032, 1L)
           )
         )
         graphiteEmitter ! EmitSpan(span)
@@ -85,7 +85,7 @@ class GraphiteEmitterSpec extends AkkaTestJawn with WordSpecLike with BeforeAndA
       "emit a metric for longs" in {
         val graphiteEmitter = TestActorRef(new GraphiteEmitter(conf) with TestProbeMaker)
         val span = Span(
-          new SpanId("foo", 1L), "happy span", "unknown", "localhost", 1L, true, 35L, Map("long" -> Note("long", 15L))
+          new SpanId("foo", 1L), "happy span", "unknown", "localhost", 1L, true, 35L, Map("long" -> Note.of("long", 15L, 1L))
         )
         graphiteEmitter ! EmitSpan(span)
         val msgs = child(graphiteEmitter, "graphite-router").receiveN(2)

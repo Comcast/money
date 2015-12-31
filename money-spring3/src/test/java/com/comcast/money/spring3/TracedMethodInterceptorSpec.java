@@ -27,11 +27,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.comcast.money.core.BooleanNote;
-import com.comcast.money.core.DoubleNote;
-import com.comcast.money.core.LongNote;
-import com.comcast.money.core.Note;
-import com.comcast.money.core.StringNote;
+import com.comcast.money.api.Note;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Matchers.anyBoolean;
@@ -81,23 +77,23 @@ public class TracedMethodInterceptorSpec {
         ArgumentCaptor<Note> noteCaptor = ArgumentCaptor.forClass(Note.class);
 
         sampleTraceBean.doSomethingWithTracedParams("tp", true, 200L, 3.14);
-        verify(springTracer, times(4)).record(noteCaptor.capture(), anyBoolean());
+        verify(springTracer, times(4)).record(noteCaptor.capture());
 
-        StringNote stringNote = (StringNote)noteCaptor.getAllValues().get(0);
+        Note<String> stringNote = (Note<String>)noteCaptor.getAllValues().get(0);
         assertThat(stringNote.name()).isEqualTo("STRING");
-        assertThat(stringNote.value().get()).isEqualTo("tp");
+        assertThat(stringNote.value()).isEqualTo("tp");
 
-        BooleanNote booleanNote = (BooleanNote)noteCaptor.getAllValues().get(1);
+        Note<Boolean> booleanNote = (Note<Boolean>)noteCaptor.getAllValues().get(1);
         assertThat(booleanNote.name()).isEqualTo("BOOLEAN");
-        assertThat(booleanNote.value().get()).isEqualTo(true);
+        assertThat(booleanNote.value()).isEqualTo(true);
 
-        LongNote longNote = (LongNote)noteCaptor.getAllValues().get(2);
+        Note<Long> longNote = (Note<Long>)noteCaptor.getAllValues().get(2);
         assertThat(longNote.name()).isEqualTo("LONG");
-        assertThat(longNote.value().get()).isEqualTo(200L);
+        assertThat(longNote.value()).isEqualTo(200L);
 
-        DoubleNote doubleNote = (DoubleNote)noteCaptor.getAllValues().get(3);
+        Note<Double> doubleNote = (Note<Double>)noteCaptor.getAllValues().get(3);
         assertThat(doubleNote.name()).isEqualTo("DOUBLE");
-        assertThat(doubleNote.value().get()).isEqualTo(3.14);
+        assertThat(doubleNote.value()).isEqualTo(3.14);
     }
 
     @Test
@@ -106,23 +102,23 @@ public class TracedMethodInterceptorSpec {
         ArgumentCaptor<Note> noteCaptor = ArgumentCaptor.forClass(Note.class);
 
         sampleTraceBean.doSomethingWithTracedParams(null, null, null, null);
-        verify(springTracer, times(4)).record(noteCaptor.capture(), anyBoolean());
+        verify(springTracer, times(4)).record(noteCaptor.capture());
 
-        StringNote stringNote = (StringNote)noteCaptor.getAllValues().get(0);
+        Note<String> stringNote = (Note<String>)noteCaptor.getAllValues().get(0);
         assertThat(stringNote.name()).isEqualTo("STRING");
-        assertThat(stringNote.value().isEmpty()).isEqualTo(true);
+        assertThat(stringNote.value()).isNull();
 
-        BooleanNote booleanNote = (BooleanNote)noteCaptor.getAllValues().get(1);
+        Note<String> booleanNote = (Note<String>)noteCaptor.getAllValues().get(1);
         assertThat(booleanNote.name()).isEqualTo("BOOLEAN");
-        assertThat(booleanNote.value().isEmpty()).isEqualTo(true);
+        assertThat(booleanNote.value()).isNull();
 
-        LongNote longNote = (LongNote)noteCaptor.getAllValues().get(2);
+        Note<String> longNote = (Note<String>)noteCaptor.getAllValues().get(2);
         assertThat(longNote.name()).isEqualTo("LONG");
-        assertThat(longNote.value().isEmpty()).isEqualTo(true);
+        assertThat(longNote.value()).isNull();
 
-        DoubleNote doubleNote = (DoubleNote)noteCaptor.getAllValues().get(3);
+        Note<String> doubleNote = (Note<String>)noteCaptor.getAllValues().get(3);
         assertThat(doubleNote.name()).isEqualTo("DOUBLE");
-        assertThat(doubleNote.value().isEmpty()).isEqualTo(true);
+        assertThat(doubleNote.value()).isNull();
     }
 
     @Test

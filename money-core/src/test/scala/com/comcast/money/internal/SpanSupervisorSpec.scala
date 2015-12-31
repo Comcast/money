@@ -18,8 +18,7 @@ package com.comcast.money.internal
 
 import akka.actor._
 import akka.testkit.{ EventFilter, TestActorRef, TestProbe }
-import com.comcast.money.api.SpanId
-import com.comcast.money.core.{ LongNote, Note }
+import com.comcast.money.api.{ Note, SpanId }
 import com.comcast.money.internal.SpanFSMProtocol._
 import com.comcast.money.internal.SpanSupervisorProtocol.SpanMessage
 import com.comcast.money.test.AkkaTestJawn
@@ -48,16 +47,16 @@ class SpanSupervisorSpec extends AkkaTestJawn with WordSpecLike {
     }
 
     "sending span data to an existing request span" should {
-      spanSupervisor ! SpanMessage(testFingerprint, AddNote(LongNote("bob", None, 1)))
+      spanSupervisor ! SpanMessage(testFingerprint, AddNote(Note.of("bob", "foo", 1L)))
 
       "forward the span data to the request span child" in {
-        child(spanSupervisor, testFingerprint.toString).expectMsg(AddNote(LongNote("bob", None, 1)))
+        child(spanSupervisor, testFingerprint.toString).expectMsg(AddNote(Note.of("bob", "foo", 1L)))
       }
     }
     "sending span data to a non-existing request span" should {
       "log a message that data was sent to a non-existing span" in {
         EventFilter.warning(pattern = "Attempted to message non-existent SpanFSM*", occurrences = 1) intercept {
-          spanSupervisor ! SpanMessage(new SpanId("foo", 2L), AddNote(Note("ben")))
+          spanSupervisor ! SpanMessage(new SpanId("foo", 2L), AddNote(Note.of("ben", "foo")))
         }
       }
     }

@@ -20,6 +20,7 @@ import java.lang.annotation.Annotation
 import java.lang.reflect.Method
 
 import com.comcast.money.annotations.{ Traced, TracedData }
+import com.comcast.money.api.Note
 import com.comcast.money.core._
 
 trait Reflections {
@@ -53,18 +54,19 @@ trait Reflections {
    * @param args An array of arguments passed to the method invocation
    * @return A sequence of Option of Tuple(Note, Boolean); or an empty Sequence if there are no method parameters
    */
-  def extractTracedDataValues(method: Method, args: Array[AnyRef]): Seq[Option[(Note[_], Boolean)]] = {
+  def extractTracedDataValues(method: Method, args: Array[AnyRef]): Seq[Option[(Note[_])]] = {
 
     val paramTypes: Array[Class[_]] = method.getParameterTypes
     val tracedDataAnnotations = extractTracedDataAnnotations(method)
-    for (i <- 0 until tracedDataAnnotations.length) yield {
+    for (i <- tracedDataAnnotations.indices) yield {
       val arg = args(i)
       tracedDataAnnotations(i).map { ann =>
         paramTypes(i) match {
-          case b if isBoolean(b) => (BooleanNote(ann.value, asOption[Boolean](arg)), ann.propagate)
-          case l if isLong(l) => (LongNote(ann.value, asOption[Long](arg)), ann.propagate)
-          case d if isDouble(d) => (DoubleNote(ann.value, asOption[Double](arg)), ann.propagate)
-          case _ => (StringNote(ann.value, asOption[String](asString(arg))), ann.propagate)
+          case _ if arg == null => Note.of(ann.value, null.asInstanceOf[String], ann.propagate)
+          case b if isBoolean(b) => Note.of(ann.value, arg.asInstanceOf[Boolean], ann.propagate)
+          case l if isLong(l) => Note.of(ann.value, arg.asInstanceOf[Long], ann.propagate)
+          case d if isDouble(d) => Note.of(ann.value, arg.asInstanceOf[Double], ann.propagate)
+          case _ => Note.of(ann.value, asString(arg), ann.propagate)
         }
       }
     }
@@ -77,12 +79,7 @@ trait Reflections {
    * @param tracer The tracer to use to record the notes
    */
   def recordTracedParameters(method: Method, args: Array[AnyRef], tracer: Tracer): Unit =
-    for {
-      tdOpt <- extractTracedDataValues(method, args)
-      tdTuple <- tdOpt
-    } {
-      tracer.record(tdTuple._1, tdTuple._2)
-    }
+    extractTracedDataValues(method, args).foreach(_.foreach(tracer.record))
 
   def exceptionMatches(t: Throwable, exceptionList: Array[Class[_]]) =
     exceptionList.exists(isInstance(t))

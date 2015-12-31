@@ -16,7 +16,8 @@
 
 package com.comcast.money.reflect
 
-import com.comcast.money.annotations.{ Traced, TracedData }
+import com.comcast.money.annotations.TracedData
+import com.comcast.money.api.Note
 import com.comcast.money.core._
 import com.sun.istack.internal.NotNull
 import org.mockito.ArgumentCaptor
@@ -99,29 +100,29 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
 
       tds.size shouldBe 5
 
-      val strNote = tds(0).get._1
-      strNote shouldBe a[StringNote]
-      strNote.value shouldBe Some("str")
+      val strNote = tds(0).get
+      strNote shouldBe a[Note[String]]
+      strNote.value shouldBe "str"
       strNote.name shouldBe "STRING"
-      tds(0).get._2 shouldBe false
+      strNote.isSticky shouldBe false
 
-      val lngNote = tds(1).get._1
-      lngNote shouldBe a[LongNote]
-      lngNote.value shouldBe Some(100L)
+      val lngNote = tds(1).get
+      lngNote shouldBe a[Note[Long]]
+      lngNote.value shouldBe 100L
       lngNote.name shouldBe "LONG"
-      tds(1).get._2 shouldBe false
+      lngNote.isSticky shouldBe false
 
-      val dblNote = tds(2).get._1
-      dblNote shouldBe a[DoubleNote]
-      dblNote.value shouldBe Some(3.14)
+      val dblNote = tds(2).get
+      dblNote shouldBe a[Note[Double]]
+      dblNote.value shouldBe 3.14
       dblNote.name shouldBe "DOUBLE"
-      tds(2).get._2 shouldBe false
+      dblNote.isSticky shouldBe false
 
-      val boolNote = tds(3).get._1
-      boolNote shouldBe a[BooleanNote]
-      boolNote.value shouldBe Some(true)
+      val boolNote = tds(3).get
+      boolNote shouldBe a[Note[java.lang.Boolean]]
+      boolNote.value shouldBe true
       boolNote.name shouldBe "BOOLEAN"
-      tds(3).get._2 shouldBe false
+      boolNote.isSticky shouldBe false
 
       tds(4) shouldBe None
     }
@@ -131,27 +132,25 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
 
       tds.size shouldBe 5
 
-      val strNote = tds(0).get._1
-      strNote.value shouldBe None
+      val strNote = tds(0).get.asInstanceOf[Note[String]]
+      strNote.value shouldBe null
       strNote.name shouldBe "STRING"
-      tds(0).get._2 shouldBe false
+      strNote.isSticky shouldBe false
 
-      val lngNote = tds(1).get._1
-      lngNote.value shouldBe None
+      val lngNote = tds(1).get.asInstanceOf[Note[String]]
+      lngNote.value shouldBe null
       lngNote.name shouldBe "LONG"
-      tds(1).get._2 shouldBe false
+      lngNote.isSticky shouldBe false
 
-      val dblNote = tds(2).get._1
-      dblNote shouldBe a[DoubleNote]
-      dblNote.value shouldBe None
+      val dblNote = tds(2).get.asInstanceOf[Note[String]]
+      dblNote.value shouldBe null
       dblNote.name shouldBe "DOUBLE"
-      tds(2).get._2 shouldBe false
+      dblNote.isSticky shouldBe false
 
-      val boolNote = tds(3).get._1
-      boolNote shouldBe a[BooleanNote]
-      boolNote.value shouldBe None
+      val boolNote = tds(3).get.asInstanceOf[Note[String]]
+      boolNote.value shouldBe null
       boolNote.name shouldBe "BOOLEAN"
-      tds(3).get._2 shouldBe false
+      boolNote.isSticky shouldBe false
 
       tds(4) shouldBe None
     }
@@ -159,10 +158,10 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
       val args: Array[AnyRef] = Array("str")
       val tds = testReflections.extractTracedDataValues(methodWithMultipleAnnotations, args)
 
-      val strNote = tds(0).get._1
-      strNote.value shouldBe Some("str")
+      val strNote = tds(0).get
+      strNote.value shouldBe "str"
       strNote.name shouldBe "STRING"
-      tds(0).get._2 shouldBe false
+      strNote.isSticky shouldBe false
     }
   }
   "Recording traced parameter values" should {
@@ -176,88 +175,80 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
       testReflections.recordTracedParameters(methodWithTracedData, args, mockTracer)
 
       val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
-      val propCaptor = ArgumentCaptor.forClass(classOf[Boolean])
-      verify(mockTracer, times(4)).record(noteCaptor.capture(), propCaptor.capture())
+      verify(mockTracer, times(4)).record(noteCaptor.capture())
 
       val strNote = noteCaptor.getAllValues.get(0)
       val lngNote = noteCaptor.getAllValues.get(1)
       val dblNote = noteCaptor.getAllValues.get(2)
       val boolNote = noteCaptor.getAllValues.get(3)
 
-      strNote.value shouldBe Some("str")
+      strNote.value shouldBe "str"
       strNote.name shouldBe "STRING"
+      strNote.isSticky shouldBe false
 
-      lngNote.value shouldBe Some(100L)
+      lngNote.value shouldBe 100L
       lngNote.name shouldBe "LONG"
+      lngNote.isSticky shouldBe false
 
-      dblNote.value shouldBe Some(3.14)
+      dblNote.value shouldBe 3.14
       dblNote.name shouldBe "DOUBLE"
+      dblNote.isSticky shouldBe false
 
-      boolNote.value shouldBe Some(true)
+      boolNote.value shouldBe true
       boolNote.name shouldBe "BOOLEAN"
-
-      propCaptor.getAllValues.get(0) shouldBe false
-      propCaptor.getAllValues.get(1) shouldBe false
-      propCaptor.getAllValues.get(1) shouldBe false
-      propCaptor.getAllValues.get(2) shouldBe false
+      boolNote.isSticky shouldBe false
     }
-    "record None for traced data parameters that are null" in {
+    "record null for traced data parameters that are null" in {
       val args: Array[AnyRef] = Array(null, null, null, null, Double.box(3.14))
       testReflections.recordTracedParameters(methodWithTracedData, args, mockTracer)
 
       val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
-      val propCaptor = ArgumentCaptor.forClass(classOf[Boolean])
-      verify(mockTracer, times(4)).record(noteCaptor.capture(), propCaptor.capture())
+      verify(mockTracer, times(4)).record(noteCaptor.capture())
 
-      val strNote = noteCaptor.getAllValues.get(0)
-      val lngNote = noteCaptor.getAllValues.get(1)
-      val dblNote = noteCaptor.getAllValues.get(2)
-      val boolNote = noteCaptor.getAllValues.get(3)
+      val strNote = noteCaptor.getAllValues.get(0).asInstanceOf[Note[String]]
+      val lngNote = noteCaptor.getAllValues.get(1).asInstanceOf[Note[String]]
+      val dblNote = noteCaptor.getAllValues.get(2).asInstanceOf[Note[String]]
+      val boolNote = noteCaptor.getAllValues.get(3).asInstanceOf[Note[String]]
 
-      strNote.value shouldBe None
+      strNote.value shouldBe null
       strNote.name shouldBe "STRING"
+      strNote.isSticky shouldBe false
 
-      lngNote.value shouldBe None
+      lngNote.value shouldBe null
       lngNote.name shouldBe "LONG"
+      lngNote.isSticky shouldBe false
 
-      dblNote.value shouldBe None
+      dblNote.value shouldBe null
       dblNote.name shouldBe "DOUBLE"
+      dblNote.isSticky shouldBe false
 
-      boolNote.value shouldBe None
+      boolNote.value shouldBe null
       boolNote.name shouldBe "BOOLEAN"
-
-      propCaptor.getAllValues.get(0) shouldBe false
-      propCaptor.getAllValues.get(1) shouldBe false
-      propCaptor.getAllValues.get(2) shouldBe false
-      propCaptor.getAllValues.get(3) shouldBe false
+      boolNote.isSticky shouldBe false
     }
     "record with propagate traced parameters flagged with propagate" in {
       val args: Array[AnyRef] = Array("str")
       testReflections.recordTracedParameters(methodWithTracedDataPropagate, args, mockTracer)
 
       val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
-      val propCaptor = ArgumentCaptor.forClass(classOf[Boolean])
-      verify(mockTracer, times(1)).record(noteCaptor.capture(), propCaptor.capture())
+      verify(mockTracer, times(1)).record(noteCaptor.capture())
 
       val strNote = noteCaptor.getAllValues.get(0)
-      val prop = propCaptor.getAllValues.get(0)
 
-      strNote.value shouldBe Some("str")
-      prop shouldBe true
+      strNote.value shouldBe "str"
+      strNote.isSticky shouldBe true
     }
     "propagate even on null values" in {
       val args: Array[AnyRef] = Array(null)
       testReflections.recordTracedParameters(methodWithTracedDataPropagate, args, mockTracer)
 
       val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
-      val propCaptor = ArgumentCaptor.forClass(classOf[Boolean])
-      verify(mockTracer, times(1)).record(noteCaptor.capture(), propCaptor.capture())
+      verify(mockTracer, times(1)).record(noteCaptor.capture())
 
-      val strNote = noteCaptor.getAllValues.get(0)
-      val prop = propCaptor.getAllValues.get(0)
+      val strNote = noteCaptor.getAllValues.get(0).asInstanceOf[Note[String]]
 
-      strNote.value shouldBe None
-      prop shouldBe true
+      strNote.value shouldBe null
+      strNote.isSticky shouldBe true
     }
   }
 

@@ -19,6 +19,7 @@ package com.comcast.money.emitters
 import akka.actor.{ Actor, ActorLogging, Props }
 import akka.event.Logging
 import akka.event.Logging.LogLevel
+import com.comcast.money.api.Note
 import com.comcast.money.core._
 import com.typesafe.config.Config
 import org.slf4j.MDC
@@ -51,8 +52,8 @@ object LogEmitter {
     append("span-success", t.success)
     t.notes.toList.sortBy(_._1).foreach {
       case (name, note) => note match {
-        case n: Note[_] if n.value.isEmpty => append(n.name, NULL)
-        case n: Note[_] if n.value.isDefined => append(n.name, n.value.get.toString)
+        case n: Note[_] if n.value == null => append(n.name, NULL)
+        case n: Note[_] => append(n.name, n.value.toString)
       }
     }
     builder.toString()

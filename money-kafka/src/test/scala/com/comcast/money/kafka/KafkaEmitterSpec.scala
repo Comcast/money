@@ -61,7 +61,7 @@ class KafkaEmitterSpec extends TestKit(ActorSystem("test", core.Money.config.get
     val testProducer = underlyingActor.mockProducer
     val sampleData = core.Span(
       new api.SpanId("foo", 1L), "key", "app", "host", 1L, true, 35L,
-      Map("what" -> core.Note("what", 1L), "when" -> core.Note("when", 2L), "bob" -> core.Note("bob", "craig"))
+      Map("what" -> api.Note.of("what", 1L), "when" -> api.Note.of("when", 2L), "bob" -> api.Note.of("bob", "craig"))
     )
   }
 

@@ -17,6 +17,7 @@
 package com.comcast.money.spring3
 
 import com.comcast.money.annotations.{ Traced, TracedData }
+import com.comcast.money.api.Note
 import com.comcast.money.core._
 import com.sun.istack.internal.NotNull
 import org.mockito.ArgumentCaptor
@@ -48,81 +49,81 @@ class TracedMethodInterceptorScalaSpec extends WordSpec with Matchers with Mocki
       val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
 
       sampleScalaBean.doSomethingWithTracedParams("tp", true, 200L, 3.14)
-      verify(springTracer, times(4)).record(noteCaptor.capture, anyBoolean())
+      verify(springTracer, times(4)).record(noteCaptor.capture)
 
-      val stringNote: StringNote = noteCaptor.getAllValues.get(0).asInstanceOf[StringNote]
-      stringNote.name shouldBe "STRING"
-      stringNote.value.get shouldBe "tp"
+      val note: Note[String] = noteCaptor.getAllValues.get(0).asInstanceOf[Note[String]]
+      note.name shouldBe "STRING"
+      note.value shouldBe "tp"
 
-      val booleanNote: BooleanNote = noteCaptor.getAllValues.get(1).asInstanceOf[BooleanNote]
-      booleanNote.name shouldBe "BOOLEAN"
-      booleanNote.value.get shouldBe true
+      val boolNote: Note[java.lang.Boolean] = noteCaptor.getAllValues.get(1).asInstanceOf[Note[java.lang.Boolean]]
+      boolNote.name shouldBe "BOOLEAN"
+      boolNote.value shouldBe true
 
-      val longNote: LongNote = noteCaptor.getAllValues.get(2).asInstanceOf[LongNote]
+      val longNote: Note[Long] = noteCaptor.getAllValues.get(2).asInstanceOf[Note[Long]]
       longNote.name shouldBe "LONG"
-      longNote.value.get shouldBe 200L
+      longNote.value shouldBe 200L
 
-      val doubleNote: DoubleNote = noteCaptor.getAllValues.get(3).asInstanceOf[DoubleNote]
-      doubleNote.name shouldBe "DOUBLE"
-      doubleNote.value.get shouldBe 3.14
+      val dblNote: Note[Double] = noteCaptor.getAllValues.get(3).asInstanceOf[Note[Double]]
+      dblNote.name shouldBe "DOUBLE"
+      dblNote.value shouldBe 3.14
     }
     "record null traced data parameters" in {
       val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
 
       sampleScalaBean.doSomethingWithTracedJavaParams(null, null, null, null)
-      verify(springTracer, times(4)).record(noteCaptor.capture, anyBoolean())
+      verify(springTracer, times(4)).record(noteCaptor.capture)
 
-      val stringNote: StringNote = noteCaptor.getAllValues.get(0).asInstanceOf[StringNote]
-      stringNote.name shouldBe "STRING"
-      stringNote.value.isEmpty shouldBe true
+      val strNote: Note[String] = noteCaptor.getAllValues.get(0).asInstanceOf[Note[String]]
+      strNote.name shouldBe "STRING"
+      strNote.value shouldBe null
 
-      val booleanNote: BooleanNote = noteCaptor.getAllValues.get(1).asInstanceOf[BooleanNote]
-      booleanNote.name shouldBe "BOOLEAN"
-      booleanNote.value.isEmpty shouldBe true
+      val boolNote: Note[String] = noteCaptor.getAllValues.get(1).asInstanceOf[Note[String]]
+      boolNote.name shouldBe "BOOLEAN"
+      boolNote.value shouldBe null
 
-      val longNote: LongNote = noteCaptor.getAllValues.get(2).asInstanceOf[LongNote]
+      val longNote: Note[String] = noteCaptor.getAllValues.get(2).asInstanceOf[Note[String]]
       longNote.name shouldBe "LONG"
-      longNote.value.isEmpty shouldBe true
+      longNote.value shouldBe null
 
-      val doubleNote: DoubleNote = noteCaptor.getAllValues.get(3).asInstanceOf[DoubleNote]
-      doubleNote.name shouldBe "DOUBLE"
-      doubleNote.value.isEmpty shouldBe true
+      val dblNote: Note[String] = noteCaptor.getAllValues.get(3).asInstanceOf[Note[String]]
+      dblNote.name shouldBe "DOUBLE"
+      dblNote.value shouldBe null
     }
     "record traced parameters when more than one annotation is present" in {
       val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
 
       sampleScalaBean.doSomethingWithTracedParamsAndNonTracedParams("foo", "bar")
-      verify(springTracer, times(1)).record(noteCaptor.capture, anyBoolean())
+      verify(springTracer, times(1)).record(noteCaptor.capture)
 
       noteCaptor.getValue.name shouldBe "STRING"
-      noteCaptor.getValue.value.get shouldBe "foo"
+      noteCaptor.getValue.value shouldBe "foo"
     }
     "record a string note of None if traced data annotation is on parameter of invalid type with null value" in {
       val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
 
       sampleScalaBean.doSomethingWithIllegalTracedParams(null)
-      verify(springTracer, times(1)).record(noteCaptor.capture, anyBoolean())
+      verify(springTracer, times(1)).record(noteCaptor.capture)
 
-      noteCaptor.getValue.value shouldBe None
+      noteCaptor.getValue.asInstanceOf[Note[String]].value shouldBe null
     }
     "record a string note on a parameter of an unsupported type that is not null" in {
       val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
 
       sampleScalaBean.doSomethingWithIllegalTracedParams(List(1))
-      verify(springTracer, times(1)).record(noteCaptor.capture, anyBoolean())
+      verify(springTracer, times(1)).record(noteCaptor.capture)
 
-      noteCaptor.getValue.value.get shouldBe "List(1)"
+      noteCaptor.getValue.value shouldBe "List(1)"
     }
     "propagate traced data params" in {
       val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
       val propCaptor: ArgumentCaptor[Boolean] = ArgumentCaptor.forClass(classOf[Boolean])
 
       sampleScalaBean.doSomethingWithTracedParamsPropagated("prop", "bar")
-      verify(springTracer, times(1)).record(noteCaptor.capture, propCaptor.capture)
+      verify(springTracer, times(1)).record(noteCaptor.capture)
 
       noteCaptor.getValue.name shouldBe "STRING"
-      noteCaptor.getValue.value.get shouldBe "prop"
-      propCaptor.getValue shouldBe true
+      noteCaptor.getValue.value shouldBe "prop"
+      noteCaptor.getValue.isSticky shouldBe true
     }
   }
 }

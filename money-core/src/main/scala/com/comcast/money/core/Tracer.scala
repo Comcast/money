@@ -20,7 +20,7 @@ import java.io.Closeable
 import java.util.UUID
 
 import akka.actor._
-import com.comcast.money.api.SpanId
+import com.comcast.money.api.{ Note, SpanId }
 import com.comcast.money.internal.SpanFSMProtocol._
 import com.comcast.money.internal.SpanLocal
 import com.comcast.money.internal.SpanSupervisorProtocol._
@@ -103,7 +103,7 @@ trait Tracer extends Closeable {
    * @param key the identifier for the timestamp being captured
    */
   def time(key: String) = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(LongNote(key, Some(DateTimeUtil.microTime))))
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, DateTimeUtil.microTime)))
   }
 
   /**
@@ -121,7 +121,7 @@ trait Tracer extends Closeable {
    * @param measure the value being captured
    */
   def record(key: String, measure: Double): Unit = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(DoubleNote(key, Option(measure))))
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure)))
   }
 
   /**
@@ -140,7 +140,7 @@ trait Tracer extends Closeable {
    * @param propogate propogate to children
    */
   def record(key: String, measure: Double, propogate: Boolean): Unit = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(DoubleNote(key, Option(measure)), propogate))
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure), propogate))
   }
 
   /**
@@ -158,7 +158,7 @@ trait Tracer extends Closeable {
    * @param measure the value being captured
    */
   def record(key: String, measure: String): Unit = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(StringNote(key, Option(measure))))
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure)))
   }
 
   /**
@@ -177,7 +177,7 @@ trait Tracer extends Closeable {
    * @param propogate propogate to children
    */
   def record(key: String, measure: String, propogate: Boolean): Unit = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(StringNote(key, Option(measure)), propogate))
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure), propogate))
   }
 
   /**
@@ -195,7 +195,7 @@ trait Tracer extends Closeable {
    * @param measure the value being captured
    */
   def record(key: String, measure: Long): Unit = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(LongNote(key, Option(measure))))
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure)))
   }
 
   /**
@@ -214,7 +214,7 @@ trait Tracer extends Closeable {
    * @param propogate propogate to children
    */
   def record(key: String, measure: Long, propogate: Boolean): Unit = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(LongNote(key, Option(measure)), propogate))
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure), propogate))
   }
 
   /**
@@ -232,7 +232,7 @@ trait Tracer extends Closeable {
    * @param measure the value being captured
    */
   def record(key: String, measure: Boolean): Unit = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(BooleanNote(key, Option(measure))))
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure)))
   }
 
   /**
@@ -251,11 +251,11 @@ trait Tracer extends Closeable {
    * @param propogate propogate to children
    */
   def record(key: String, measure: Boolean, propogate: Boolean): Unit = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(BooleanNote(key, Option(measure)), propogate))
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure), propogate))
   }
 
   /**
-   * Adds a new [[com.comcast.money.core.Note]] directly to the current Span if one is present in context.
+   * Adds a new [[com.comcast.money.api.Note]] directly to the current Span if one is present in context.
    * {{{
    *   import com.comcast.money.core.Money._
    *   def recordMe() {
@@ -265,14 +265,14 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
-   * @param note the [[com.comcast.money.core.Note]] to be added
+   * @param note the [[com.comcast.money.api.Note]] to be added
    */
   def record(note: Note[_]) = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(note))
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(note, note.isSticky))
   }
 
   /**
-   * Adds a new [[com.comcast.money.core.Note]] directly to the current Span if one is present in context.
+   * Adds a new [[com.comcast.money.api.Note]] directly to the current Span if one is present in context.
    * {{{
    *   import com.comcast.money.core.Money._
    *   def recordMe() {
@@ -282,7 +282,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
-   * @param note the [[com.comcast.money.core.Note]] to be added
+   * @param note the [[com.comcast.money.api.Note]] to be added
    */
   def record(note: Note[_], propogate: Boolean) = withSpanId { spanId =>
     spanSupervisorRef ! SpanMessage(spanId, AddNote(note, propogate))

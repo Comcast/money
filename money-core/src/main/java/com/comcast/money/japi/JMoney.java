@@ -17,17 +17,12 @@
 package com.comcast.money.japi;
 
 import akka.actor.ActorSystem;
-import scala.None;
 import scala.Option;
 
-import com.comcast.money.core.BooleanNote;
-import com.comcast.money.core.DoubleNote;
-import com.comcast.money.core.LongNote;
+import com.comcast.money.api.Note;
 import com.comcast.money.core.Metrics;
 import com.comcast.money.core.Money$;
-import com.comcast.money.core.Note;
 import com.comcast.money.core.Result;
-import com.comcast.money.core.StringNote;
 import com.comcast.money.core.Tracer;
 import com.comcast.money.util.DateTimeUtil;
 
@@ -272,18 +267,18 @@ public class JMoney {
     private static Note<?> toNote(String name, Object value) {
 
         if (value == null) {
-            return new StringNote(name, Option.<String>apply(null), DateTimeUtil.microTime());
+            return Note.of(name, null, DateTimeUtil.microTime());
         } else if (value instanceof Boolean) {
             Boolean bool = (Boolean)value;
-            return new BooleanNote(name, Option.<Object>apply(bool), DateTimeUtil.microTime());
+            return Note.of(name, bool, DateTimeUtil.microTime());
         } else if (value instanceof Double) {
             Double dbl = (Double)value;
-            return new DoubleNote(name, Option.<Object>apply(dbl), DateTimeUtil.microTime());
+            return Note.of(name, dbl, DateTimeUtil.microTime());
         } else if (value instanceof Long) {
             Long lng = (Long)value;
-            return new LongNote(name, Option.<Object>apply(lng), DateTimeUtil.microTime());
+            return Note.of(name, lng, DateTimeUtil.microTime());
         } else {
-            return new StringNote(name, Option.apply(value.toString()), DateTimeUtil.microTime());
+            return Note.of(name, value.toString(), DateTimeUtil.microTime());
         }
     }
 }
