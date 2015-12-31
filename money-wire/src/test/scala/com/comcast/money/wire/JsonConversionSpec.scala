@@ -16,8 +16,8 @@
 
 package com.comcast.money.wire
 
-import com.comcast.money.api.SpanId
-import com.comcast.money.core.{ LongNote, Note, Span }
+import com.comcast.money.api.{ Note, SpanId }
+import com.comcast.money.core.Span
 import org.scalatest.{ Inspectors, Matchers, WordSpec }
 
 class JsonConversionSpec extends WordSpec with Matchers with Inspectors {
@@ -27,12 +27,12 @@ class JsonConversionSpec extends WordSpec with Matchers with Inspectors {
   val orig = Span(
     new SpanId("foo", 1L), "key", "app", "host", 1L, true, 35L,
     Map(
-      "what" -> Note("what", 1L, 100L),
-      "when" -> Note("when", 2L, 200L),
-      "bob" -> Note("bob", "craig", 300L),
-      "none" -> LongNote("none", None),
-      "bool" -> Note("bool", true, 400L),
-      "dbl" -> Note("dbl", 1.0, 500L)
+      "what" -> Note.of("what", 1L),
+      "when" -> Note.of("when", 2L),
+      "bob" -> Note.of("bob", "craig"),
+      "none" -> Note.of("none", null),
+      "bool" -> Note.of("bool", true),
+      "dbl" -> Note.of("dbl", 1.0)
     )
   )
 

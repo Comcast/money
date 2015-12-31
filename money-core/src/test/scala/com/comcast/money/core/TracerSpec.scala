@@ -17,7 +17,7 @@
 package com.comcast.money.core
 
 import akka.testkit.TestProbe
-import com.comcast.money.api.SpanId
+import com.comcast.money.api.{ Note, SpanId }
 import com.comcast.money.internal.EmitterProtocol.{ EmitMetricLong, EmitMetricDouble }
 import com.comcast.money.internal.SpanFSMProtocol._
 import com.comcast.money.internal.SpanLocal
@@ -96,8 +96,8 @@ class TracerSpec
       moneyTracer.stopSpan()
       Then("Span messages should be sent to the spanSupervisor")
       spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "bob"))
-      spanSupervisor.expectSpanMsg(AddNote(LongNote("mike", Some(999L))))
-      spanSupervisor.expectSpanMsg(AddNote(Note("adam", "sneakers")))
+      spanSupervisor.expectSpanMsg(AddNote(Note.of("mike", 999L)))
+      spanSupervisor.expectSpanMsg(AddNote(Note.of("adam", "sneakers")))
       spanSupervisor.expectSpanMsg(Stop(Result.success))
       And("the current spanId and parentSpanId should all be the same")
       spanId.parentId should be(spanId.selfId)
@@ -113,8 +113,8 @@ class TracerSpec
       moneyTracer.close()
       Then("Trace messages should be sent to the traceSupervisor")
       spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "bob"))
-      spanSupervisor.expectSpanMsg(AddNote(LongNote("mike", Some(999L))))
-      spanSupervisor.expectSpanMsg(AddNote(Note("adam", "sneakers")))
+      spanSupervisor.expectSpanMsg(AddNote(Note.of("mike", 999L)))
+      spanSupervisor.expectSpanMsg(AddNote(Note.of("adam", "sneakers")))
       spanSupervisor.expectSpanMsg(Stop(Result.success))
       And("the current spanId and parentSpanId should be the same")
       traceId.parentId should be(traceId.selfId)
@@ -188,16 +188,16 @@ class TracerSpec
   feature("recording a Note on a span") {
     scenario("sending a note on an existing trace") {
       moneyTracer.startSpan("foo")
-      moneyTracer.record(Note("foo", "bar"))
+      moneyTracer.record(Note.of("foo", "bar"))
       moneyTracer.stopSpan(Result.success)
 
       spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "foo"))
 
       Then("the note is sent to the span supervisor")
-      spanSupervisor.expectSpanMsg(AddNote(Note("foo", "bar")))
+      spanSupervisor.expectSpanMsg(AddNote(Note.of("foo", "bar")))
     }
     scenario("sending a note when no trace exists") {
-      moneyTracer.record(Note("foo", "bar"))
+      moneyTracer.record(Note.of("foo", "bar"))
 
       Then("no messages are sent to the span supervisor")
       spanSupervisor.expectNoMsg()

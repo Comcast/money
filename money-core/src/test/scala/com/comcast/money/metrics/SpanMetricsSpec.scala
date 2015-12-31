@@ -18,8 +18,8 @@ package com.comcast.money.metrics
 
 import akka.testkit.TestActorRef
 import com.codahale.metrics.{ Histogram, Meter }
-import com.comcast.money.api.SpanId
-import com.comcast.money.core.{ LongNote, Note, Span }
+import com.comcast.money.api.{ Note, SpanId }
+import com.comcast.money.core.Span
 import com.comcast.money.internal.EmitterProtocol.EmitSpan
 import com.comcast.money.test.AkkaTestJawn
 import com.typesafe.config.Config
@@ -40,8 +40,8 @@ class SpanMetricsSpec extends AkkaTestJawn with FeatureSpecLike with Matchers wi
       When("a span arrives that we haven't seen yet")
       val span = Span(
         new SpanId("foo", 1L), "happy.span", "app", "host", 1L, true, 35L, Map(
-          "when" -> Note("when", 1.5), "who" -> LongNote("who", None, 45), "bob" -> Note("bob", "1.2"),
-          "apple" -> Note("apple", "pie")
+          "when" -> Note.of("when", 1.5), "who" -> Note.of("who", null, 45), "bob" -> Note.of("bob", "1.2"),
+          "apple" -> Note.of("apple", "pie")
         )
       )
       collector ! EmitSpan(span)
@@ -56,8 +56,8 @@ class SpanMetricsSpec extends AkkaTestJawn with FeatureSpecLike with Matchers wi
       val collector = TestActorRef(new SpanMetricsCollector(conf) with TestProbeMaker)
       val span = Span(
         new SpanId("foo", 1L), "happy.span", "app", "host", 1L, true, 35L, Map(
-          "when" -> Note("when", 1.5), "who" -> LongNote("who", None, 45), "duration" -> Note("duration", 3.5),
-          "bob" -> Note("bob", "1.2"), "apple" -> Note("apple", "pie")
+          "when" -> Note.of("when", 1.5), "who" -> Note.of("who", null, 45), "duration" -> Note.of("duration", 3.5),
+          "bob" -> Note.of("bob", "1.2"), "apple" -> Note.of("apple", "pie")
         )
       )
       collector ! EmitSpan(span)
@@ -94,7 +94,7 @@ class SpanMetricsSpec extends AkkaTestJawn with FeatureSpecLike with Matchers wi
       val errorMetric = mock[Meter]
       val span = Span(
         new SpanId("foo", 1L), "test.span", "app", "host", 1L, false, 200L, Map(
-          "span-success" -> Note("span-success", false), "span-duration" -> Note("span-duration", 200.0)
+          "span-success" -> Note.of("span-success", false), "span-duration" -> Note.of("span-duration", 200.0)
         )
       )
 
@@ -112,7 +112,7 @@ class SpanMetricsSpec extends AkkaTestJawn with FeatureSpecLike with Matchers wi
       val latencyMetric = mock[Histogram]
       val errorMetric = mock[Meter]
       val span = Span(
-        new SpanId("foo", 1L), "test.span", "app", "host", 1L, true, 200L, Map("span-duration" -> Note("span-duration", 200.0))
+        new SpanId("foo", 1L), "test.span", "app", "host", 1L, true, 200L, Map("span-duration" -> Note.of("span-duration", 200.0))
       )
 
       When("the span metrics is received")

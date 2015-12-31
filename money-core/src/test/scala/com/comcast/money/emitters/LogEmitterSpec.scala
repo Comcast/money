@@ -17,8 +17,8 @@
 package com.comcast.money.emitters
 
 import akka.event.Logging
-import com.comcast.money.api.SpanId
-import com.comcast.money.core.{ Note, Span, StringNote }
+import com.comcast.money.api.{ Note, SpanId }
+import com.comcast.money.core.Span
 import com.comcast.money.internal.EmitterProtocol.{ EmitMetricDouble, EmitSpan }
 import com.comcast.money.test.AkkaTestJawn
 import com.typesafe.config.ConfigFactory
@@ -40,7 +40,7 @@ class LogEmitterSpec extends AkkaTestJawn with WordSpecLike {
       val underTest = system.actorOf(LogEmitter.props(emitterConf))
       val sampleData = Span(
         new SpanId("foo", 1L, 1L), "key", "unknown", "host", 1L, true, 35L,
-        Map("what" -> Note("what", 1L), "when" -> Note("when", 2L), "bob" -> Note("bob", "craig"))
+        Map("what" -> Note.of("what", 1L), "when" -> Note.of("when", 2L), "bob" -> Note.of("bob", "craig"))
       )
       val span = EmitSpan(sampleData)
       val expectedLogMessage = LogEmitter.buildMessage(sampleData)
@@ -51,7 +51,7 @@ class LogEmitterSpec extends AkkaTestJawn with WordSpecLike {
     "have a correctly formatted message" in {
       val sampleData = Span(
         new SpanId("foo", 1L, 1L), "key", "unknown", "host", 1L, true, 35L,
-        Map("what" -> Note("what", 1L), "when" -> Note("when", 2L), "bob" -> Note("bob", "craig"))
+        Map("what" -> Note.of("what", 1L), "when" -> Note.of("when", 2L), "bob" -> Note.of("bob", "craig"))
       )
       val actualMessage = LogEmitter.buildMessage(sampleData)
       assert(
@@ -65,7 +65,7 @@ class LogEmitterSpec extends AkkaTestJawn with WordSpecLike {
       expectLogMessageContaining("bob=1.0")
     }
     "log NULL when the note value is None" in {
-      val sampleData = Span(new SpanId("foo", 1L), "key", "app", "host", 1L, true, 35L, Map("empty" -> StringNote("empty", None)))
+      val sampleData = Span(new SpanId("foo", 1L), "key", "app", "host", 1L, true, 35L, Map("empty" -> Note.of("empty", null)))
       val expectedLogMessage = LogEmitter.buildMessage(sampleData)
 
       expectedLogMessage should include("[ empty=NULL ]")

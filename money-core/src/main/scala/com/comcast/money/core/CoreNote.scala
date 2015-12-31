@@ -16,17 +16,10 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ Note, SpanId }
+import com.comcast.money.api.Note
+import com.comcast.money.util.DateTimeUtil
 
-import scala.collection.Map
-
-case class Span(
-  spanId: SpanId,
-  spanName: String,
-  appName: String,
-  host: String,
-  startTime: Long,
-  success: Boolean,
-  duration: Long,
-  notes: Map[String, Note[_]]
-)
+object Result {
+  def failed: Boolean = false
+  def success: Boolean = true
+}

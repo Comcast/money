@@ -47,13 +47,13 @@ class GraphiteEmitter(conf: Config) extends Actor with ActorMaker with ActorLogg
       router ! EmitMetricLong(genPath(t.spanName, "span-duration", GraphiteTracingDataPath), t.duration, t.startTime)
       for ((name, note) <- t.notes) {
         note.value match {
-          case None =>
+          case null =>
             log.debug("Emitting to Graphite timing {}, {}", name, note.timestamp)
             router ! EmitMetricLong(genPath(t.spanName, name, GraphiteTracingDataPath), note.timestamp, note.timestamp)
-          case Some(value: Double) =>
+          case value: Double =>
             log.debug("Emitting to Graphite Data {}, {}", name, value)
             router ! EmitMetricDouble(genPath(t.spanName, note.name, GraphiteTracingDataPath), value, note.timestamp)
-          case Some(value: Long) =>
+          case value: Long =>
             log.debug("Emitting to Graphite Data {}, {}", name, value)
             router ! EmitMetricLong(genPath(t.spanName, note.name, GraphiteTracingDataPath), value, note.timestamp)
           case _ => //not a timing and data is not assignable to Double so just dropping it for now

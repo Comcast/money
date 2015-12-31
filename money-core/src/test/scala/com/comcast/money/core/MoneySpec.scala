@@ -19,6 +19,7 @@ package com.comcast.money.core
 import java.lang.{ Class => JavaClass }
 import java.util.concurrent.TimeUnit
 
+import com.comcast.money.api.Note
 import com.comcast.money.core.Money.MoneyFactory
 import com.comcast.money.internal.SpanLocal
 import com.typesafe.config.ConfigFactory
@@ -63,7 +64,7 @@ class MoneySpec extends WordSpec with Matchers {
 
       tracer.startTimer("foo")
       tracer.stopTimer("foo")
-      tracer.record(Note("foo", "bar"))
+      tracer.record(Note.of("foo", "bar"))
       tracer.record("foo", "bar")
       tracer.stopSpan()
       tracer.time("foo")

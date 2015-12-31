@@ -19,7 +19,7 @@ package com.comcast.money.internal
 import java.util.concurrent.TimeUnit
 
 import akka.actor._
-import com.comcast.money.api.SpanId
+import com.comcast.money.api.{ Note, SpanId }
 import com.comcast.money.core._
 import com.comcast.money.internal.EmitterBus.EmitData
 import com.comcast.money.internal.EmitterProtocol.EmitSpan
@@ -73,10 +73,10 @@ object SpanFSM {
       timers += name -> startTime
     }
 
-    def stopTimer(name: String, endTime: Long): Option[Note[Long]] = {
+    def stopTimer(name: String, endTime: Long): Option[Note[_]] = {
       timers.remove(name).map {
         startTime =>
-          Note(name, endTime - startTime, startTime)
+          Note.of(name, endTime - startTime, startTime)
       }
     }
   }
@@ -177,7 +177,7 @@ class SpanFSM(val emitterSupervisor: ActorRef, val openSpanTimeout: FiniteDurati
 
       // Stop any outstanding timers
       for ((name, startTime) <- spanContext.timers) {
-        spanContext.notes += (name -> NoteWrapper(Note(name, stopTime - startTime, startTime)))
+        spanContext.notes += (name -> NoteWrapper(Note.of(name, stopTime - startTime, startTime)))
       }
       spanContext.timers.clear()
 
