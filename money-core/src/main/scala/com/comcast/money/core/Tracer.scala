@@ -140,7 +140,7 @@ trait Tracer extends Closeable {
    * @param propogate propogate to children
    */
   def record(key: String, measure: Double, propogate: Boolean): Unit = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure), propogate))
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure, propogate)))
   }
 
   /**
@@ -177,7 +177,7 @@ trait Tracer extends Closeable {
    * @param propogate propogate to children
    */
   def record(key: String, measure: String, propogate: Boolean): Unit = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure), propogate))
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure, propogate)))
   }
 
   /**
@@ -214,7 +214,7 @@ trait Tracer extends Closeable {
    * @param propogate propogate to children
    */
   def record(key: String, measure: Long, propogate: Boolean): Unit = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure), propogate))
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure, propogate)))
   }
 
   /**
@@ -251,7 +251,7 @@ trait Tracer extends Closeable {
    * @param propogate propogate to children
    */
   def record(key: String, measure: Boolean, propogate: Boolean): Unit = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure), propogate))
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(Note.of(key, measure, propogate)))
   }
 
   /**
@@ -268,24 +268,7 @@ trait Tracer extends Closeable {
    * @param note the [[com.comcast.money.api.Note]] to be added
    */
   def record(note: Note[_]) = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(note, note.isSticky))
-  }
-
-  /**
-   * Adds a new [[com.comcast.money.api.Note]] directly to the current Span if one is present in context.
-   * {{{
-   *   import com.comcast.money.core.Money._
-   *   def recordMe() {
-   *     ...
-   *     tracer.record(Result.success)
-   *     tracer.record(Note("that", "thang"))
-   *     ...
-   *  }
-   * }}}
-   * @param note the [[com.comcast.money.api.Note]] to be added
-   */
-  def record(note: Note[_], propogate: Boolean) = withSpanId { spanId =>
-    spanSupervisorRef ! SpanMessage(spanId, AddNote(note, propogate))
+    spanSupervisorRef ! SpanMessage(spanId, AddNote(note))
   }
 
   /**

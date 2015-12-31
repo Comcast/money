@@ -23,7 +23,6 @@ import com.comcast.money.api.{ Note, SpanId }
 import com.comcast.money.core._
 import com.comcast.money.internal.EmitterBus.EmitData
 import com.comcast.money.internal.EmitterProtocol.EmitSpan
-import com.comcast.money.internal.SpanFSM.NoteWrapper
 import com.comcast.money.internal.SpanSupervisorProtocol.SpanMessage
 import com.comcast.money.metrics.MoneyMetrics
 import com.comcast.money.util.DateTimeUtil
@@ -38,7 +37,7 @@ object SpanFSMProtocol {
   case class Start(spanId: SpanId, spanName: String, timeStamp: Long = DateTimeUtil.microTime,
     parentSpanId: Option[SpanId] = None) extends SpanCommand
 
-  case class AddNote(note: Note[_], propogate: Boolean = false) extends SpanCommand
+  case class AddNote(note: Note[_]) extends SpanCommand
 
   case class StartTimer(name: String, startTime: Long = DateTimeUtil.microTime) extends SpanCommand
 
@@ -46,7 +45,7 @@ object SpanFSMProtocol {
 
   case class PropagateNotesRequest(sendTo: ActorRef) extends SpanCommand
 
-  case class PropagateNotesResponse(notes: Map[String, NoteWrapper]) extends SpanCommand
+  case class PropagateNotesResponse(notes: Map[String, Note[_]]) extends SpanCommand
 
   case object Query extends SpanCommand
 
@@ -101,7 +100,7 @@ object SpanFSM {
       spanId: SpanId,
       spanName: String,
       startTime: Long = DateTimeUtil.microTime,
-      notes: mutable.Map[String, NoteWrapper] = mutable.Map.empty,
+      notes: mutable.Map[String, Note[_]] = mutable.Map.empty,
       timers: mutable.Map[String, Long] = mutable.Map.empty
   ) extends Timings with EmitData with Data {
 
@@ -116,8 +115,6 @@ object SpanFSM {
 
     def setDuration(length: Long): Unit = this.spanDuration = length
   }
-
-  case class NoteWrapper(note: Note[_], propagate: Boolean = false)
 
   def props(emitterSupervisor: ActorRef): Props = {
     Props(classOf[SpanFSM], emitterSupervisor, spanTimeout, stoppedSpanTimeout)
@@ -149,16 +146,16 @@ class SpanFSM(val emitterSupervisor: ActorRef, val openSpanTimeout: FiniteDurati
   when(Started, stateTimeout = openSpanTimeout) {
     case Event(PropagateNotesRequest(sendTo), spanContext: SpanContext) =>
       log.debug("Started -> PropagateNotesRes")
-      val res = PropagateNotesResponse(spanContext.notes.filter(_._2.propagate))
+      val res = PropagateNotesResponse(spanContext.notes.filter(_._2.isSticky))
       sendTo ! res
       stay using spanContext
     case Event(PropagateNotesResponse(parentNotes), spanContext: SpanContext) =>
       log.debug("Started -> PropagateNotesRes")
       spanContext.notes ++= parentNotes
       stay using spanContext
-    case Event(AddNote(note, propagate), spanContext: SpanContext) =>
+    case Event(AddNote(note), spanContext: SpanContext) =>
       log.debug("Started -> AddNote")
-      spanContext.notes += (note.name -> NoteWrapper(note, propagate))
+      spanContext.notes += note.name -> note
       stay using spanContext
     case Event(StartTimer(name, startTime), spanContext: SpanContext) =>
       log.debug("Started -> StartTimer")
@@ -167,7 +164,7 @@ class SpanFSM(val emitterSupervisor: ActorRef, val openSpanTimeout: FiniteDurati
     case Event(StopTimer(name, stopTime), spanContext: SpanContext) =>
       log.debug("Started -> StopTimer")
       spanContext.stopTimer(name, stopTime).map {
-        timerNote => spanContext.notes += (name -> NoteWrapper(timerNote))
+        timerNote => spanContext.notes += name -> timerNote
       }
       stay using spanContext
     case Event(Stop(result, stopTime), spanContext: SpanContext) =>
@@ -177,7 +174,7 @@ class SpanFSM(val emitterSupervisor: ActorRef, val openSpanTimeout: FiniteDurati
 
       // Stop any outstanding timers
       for ((name, startTime) <- spanContext.timers) {
-        spanContext.notes += (name -> NoteWrapper(Note.of(name, stopTime - startTime, startTime)))
+        spanContext.notes += name -> Note.of(name, stopTime - startTime, startTime)
       }
       spanContext.timers.clear()
 
@@ -197,7 +194,7 @@ class SpanFSM(val emitterSupervisor: ActorRef, val openSpanTimeout: FiniteDurati
   when(Stopped, stateTimeout = stoppedSpanTimeout) {
     case Event(PropagateNotesRequest(sendTo), spanContext: SpanContext) =>
       log.debug("Stopped -> PropagateNotesRes")
-      val res = PropagateNotesResponse(spanContext.notes.filter(_._2.propagate))
+      val res = PropagateNotesResponse(spanContext.notes.filter(_._2.isSticky))
       sendTo ! res
       stay using spanContext
     case Event(PropagateNotesResponse(parentNotes), spanContext: SpanContext) =>
@@ -216,9 +213,9 @@ class SpanFSM(val emitterSupervisor: ActorRef, val openSpanTimeout: FiniteDurati
       // staying using the context causes the stateTimeout to reset
       stay using spanContext
 
-    case Event(AddNote(note, propagate), spanContext: SpanContext) =>
+    case Event(AddNote(note), spanContext: SpanContext) =>
       log.debug("Stopped -> AddNote")
-      spanContext.notes += (note.name -> NoteWrapper(note, propagate))
+      spanContext.notes += note.name -> note
       stay using spanContext
 
     case Event(StateTimeout, data) =>
@@ -258,7 +255,7 @@ class SpanFSM(val emitterSupervisor: ActorRef, val openSpanTimeout: FiniteDurati
   def createSpan(spanData: SpanContext): Span = {
     Span(
       spanData.spanId, spanData.spanName, Money.applicationName, Money.hostName, spanData.startTime, spanData.success,
-      spanData.duration, spanData.notes.map(x => x._1 -> x._2.note).toMap
+      spanData.duration, spanData.notes.toMap
     )
   }
 }

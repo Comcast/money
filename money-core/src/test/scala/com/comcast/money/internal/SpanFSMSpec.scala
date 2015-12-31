@@ -23,7 +23,7 @@ import akka.util.Timeout
 import com.comcast.money.api.{ Note, SpanId }
 import com.comcast.money.core._
 import com.comcast.money.internal.EmitterProtocol.EmitSpan
-import com.comcast.money.internal.SpanFSM.{ NoteWrapper, SpanContext }
+import com.comcast.money.internal.SpanFSM.SpanContext
 import com.comcast.money.internal.SpanSupervisorProtocol.SpanMessage
 import com.comcast.money.test.AkkaTestJawn
 import com.comcast.money.util.DateTimeUtil
@@ -59,19 +59,19 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
 
       When("it receives a PropagateNotesReq ")
       val notesPropogationProbe = TestProbe()
-      span ! AddNote(Note.of("where", "Philly", 2L), true)
+      span ! AddNote(Note.of("where", "Philly", true, 2L))
       span ! AddNote(Note.of("who", "tom", 2L))
       span ! PropagateNotesRequest(notesPropogationProbe.ref)
 
       Then("it should send its propogate-able notes")
       notesPropogationProbe
-        .expectMsg(PropagateNotesResponse(Map("where" -> NoteWrapper(Note.of("where", "Philly", 2L), true))))
+        .expectMsg(PropagateNotesResponse(Map("where" -> Note.of("where", "Philly", true, 2L))))
 
       When("it receives timing data messages and finally a Stop")
       span ! PropagateNotesResponse(
         Map(
-          "huh" -> NoteWrapper(Note.of("huh", "Baltimore", 2L)),
-          "whowhat" -> NoteWrapper(Note.of("whowhat", "Wilmington", 2L))
+          "huh" -> Note.of("huh", "Baltimore", 2L),
+          "whowhat" -> Note.of("whowhat", "Wilmington", 2L)
         )
       )
 
@@ -83,7 +83,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
           Span(
             new SpanId("foo", 1L, 1L), "happy span", Money.applicationName, Money.hostName, 1L, true, 2L, Map(
               "whowhat" -> Note.of("whowhat", "Wilmington", 2L), "huh" -> Note.of("huh", "Baltimore", 2L),
-              "where" -> Note.of("where", "Philly", 2L), "who" -> Note.of("who", "tom", 2L)
+              "where" -> Note.of("where", "Philly", true, 2L), "who" -> Note.of("who", "tom", 2L)
             )
           )
         )
@@ -101,12 +101,12 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
 
       When("it receives a PropagateNotesReq ")
       val notesPropogationProbe = TestProbe()
-      span ! AddNote(Note.of("where", "Philly", 2L), true)
+      span ! AddNote(Note.of("where", "Philly", true, 2L))
       span ! PropagateNotesRequest(notesPropogationProbe.ref)
 
       Then("it should send its propogate-able notes")
       notesPropogationProbe
-        .expectMsg(PropagateNotesResponse(Map("where" -> NoteWrapper(Note.of("where", "Philly", 2L), true))))
+        .expectMsg(PropagateNotesResponse(Map("where" -> Note.of("where", "Philly", true, 2L))))
 
       Then("after a second it should Emit")
       Thread.sleep(1100) //force TimeOut Event while Stopped
@@ -114,7 +114,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
         EmitSpan(
           Span(
             new SpanId("foo", 1L, 1L), "happy span", Money.applicationName, Money.hostName, 1L, true, 1L,
-            Map("where" -> Note.of("where", "Philly", 2L), "who" -> Note.of("who", "tom", 3L))
+            Map("where" -> Note.of("where", "Philly", true, 2L), "who" -> Note.of("who", "tom", 3L))
           )
         )
       )
@@ -180,7 +180,7 @@ class SpanFSMSpec extends AkkaTestJawn with WordSpecLike with BeforeAndAfter wit
       ctx.notes should contain key "timer-test"
 
       And("the note for the timer contains the difference between the start and end time")
-      ctx.notes should contain("timer-test", NoteWrapper(Note.of("timer-test", 3L, 1)))
+      ctx.notes should contain("timer-test", Note.of("timer-test", 3L, 1))
 
       println(ctx.notes)
     }

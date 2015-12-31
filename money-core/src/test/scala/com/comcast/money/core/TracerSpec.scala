@@ -70,7 +70,7 @@ class TracerSpec
           tm shouldBe a[StopTimer]
           val tmStop = tm.asInstanceOf[StopTimer]
           tmStop.name shouldEqual name
-        case SpanMessage(spanId, AddNote(note, _)) =>
+        case SpanMessage(spanId, AddNote(note)) =>
           tm shouldBe an[AddNote]
           val tmNote = tm.asInstanceOf[AddNote]
           tmNote.note.name shouldEqual note.name
