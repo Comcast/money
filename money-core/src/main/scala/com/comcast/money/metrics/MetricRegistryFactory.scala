@@ -35,9 +35,8 @@ import scala.util.{ Try, Success, Failure }
  * Note: This trait should be kept as simple as possible so that the resulting interface can also be implemented
  * by a Java client custom factory.
  */
-
 class MetricRegistryExtensionImpl(config: Config) extends Extension {
-  private val logger = LoggerFactory.getLogger("com.comcast.money.metrics.MetricRegistryExtension")
+  private val logger = LoggerFactory.getLogger("com.comcast.money.metrics.MetricRegistryExtensionImpl")
 
   val metricRegistry: MetricRegistry = {
     Try({
@@ -45,8 +44,11 @@ class MetricRegistryExtensionImpl(config: Config) extends Extension {
       lazy val realFactory = Class.forName(config.getString("metrics-registry.class-name"))
         .newInstance.asInstanceOf[MetricRegistryFactory]
 
-      // Ask the custom factory for an MetricRegistry - and pass in the configuration so that an implementation
-      // can add their settings in the application.conf, too.
+      /* 
+       * Ask the custom factory for an MetricRegistry - and pass in the 
+       * configuration so that an implementation can add their settings in the 
+       * application.conf, too.
+       */
       realFactory.metricRegistry(config.getConfig("metrics-registry.configuration"))
     }) match {
       case Success(metricRegistry) => metricRegistry
@@ -61,19 +63,18 @@ class MetricRegistryExtensionImpl(config: Config) extends Extension {
 }
 
 object MetricRegistryExtension extends ExtensionId[MetricRegistryExtensionImpl] with ExtensionIdProvider {
-  //The lookup method is required by ExtensionIdProvider,
-  // so we return ourselves here, this allows us
-  // to configure our extension to be loaded when
-  // the ActorSystem starts up
+  /*
+   * The lookup method is required by ExtensionIdProvider,
+   * so we return ourselves here, this allows us
+   * to configure our extension to be loaded when
+   * the ActorSystem starts up
+   */
   override def lookup = MetricRegistryExtension
 
-  //This method will be called by Akka
-  // to instantiate our Extension
+  // This method will be called by Akka to instantiate our Extension
   override def createExtension(system: ExtendedActorSystem) = new MetricRegistryExtensionImpl(system.settings.config)
 
-  /**
-   * Java API: retrieve the extension for the given system.
-   */
+  // Java API: retrieve the extension for the given system.
   override def get(system: ActorSystem): MetricRegistryExtensionImpl = super.get(system)
 }
 
