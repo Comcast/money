@@ -33,7 +33,7 @@ class MockMetricRegistryFactory extends MetricRegistryFactory {
   def metricRegistry(config: Config): MetricRegistry = MockMetricRegistryFactory.mockRegistry
 }
 
-class MetricRegistryFactorySpec extends WordSpecLike with BeforeAndAfter with MockitoSugar {
+class MetricRegistryExtensionSpec extends WordSpecLike with BeforeAndAfter with MockitoSugar {
 
   private val conf = mock[Config]
 
@@ -43,33 +43,33 @@ class MetricRegistryFactorySpec extends WordSpecLike with BeforeAndAfter with Mo
 
         doReturn("com.comcast.money.metrics.DefaultMetricRegistryFactory").when(conf).getString("metrics-registry.class-name")
 
-        val registry = MetricRegistryFactory.metricRegistry(conf)
+        val registry = new MetricRegistryExtensionImpl(conf).metricRegistry
 
         registry shouldNot be(null)
       }
     }
-  }
 
-  "fall back to the DefaultMetricRegistryFactory" should {
-    "when the config is broken" in {
+    "fall back to the DefaultMetricRegistryFactory" should {
+      "when the config is broken" in {
 
-      doReturn("lorem ipsum").when(conf).getString("metrics-registry.class-name")
+        doReturn("lorem ipsum").when(conf).getString("metrics-registry.class-name")
 
-      intercept[ClassNotFoundException] {
-        val registry = MetricRegistryFactory.metricRegistry(conf)
+        intercept[ClassNotFoundException] {
+          val registry = new MetricRegistryExtensionImpl(conf).metricRegistry
+        }
       }
     }
-  }
 
-  "use the MockMetricRegistryFactory" should {
-    "when configured so" in {
+    "use the MockMetricRegistryFactory" should {
+      "when configured so" in {
+        doReturn("com.comcast.money.metrics.MockMetricRegistryFactory").when(conf).getString("metrics-registry.class-name")
 
-      doReturn("com.comcast.money.metrics.MockMetricRegistryFactory").when(conf).getString("metrics-registry.class-name")
+        val ext = new MetricRegistryExtensionImpl(conf)
+        val registry1 = ext.metricRegistry
+        val registry2 = ext.metricRegistry
 
-      val registry1 = MetricRegistryFactory.metricRegistry(conf)
-      val registry2 = MetricRegistryFactory.metricRegistry(conf)
-
-      registry1 should be theSameInstanceAs registry2
+        registry1 should be theSameInstanceAs registry2
+      }
     }
   }
 }
