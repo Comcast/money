@@ -107,7 +107,7 @@ object Futures {
     case None =>
       new SpanId()
     case Some(existingSpanId) =>
-      existingSpanId.newChild()
+      existingSpanId.newChildId()
   }
 }
 

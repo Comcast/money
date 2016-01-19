@@ -4,7 +4,7 @@ logLevel := Level.Warn
 // The Typesafe repository
 resolvers += "Typesafe repository" at "http://repo.typesafe.com/typesafe/releases/"
 
-addSbtPlugin("org.scoverage" %% "sbt-scoverage" % "1.0.1")
+addSbtPlugin("org.scoverage" %% "sbt-scoverage" % "1.3.5")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-aspectj" % "0.9.4")
 

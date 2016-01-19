@@ -73,7 +73,7 @@ public class SpanId {
         return selfId;
     }
 
-    public SpanId newChild() {
+    public SpanId newChildId() {
         return new SpanId(traceId, selfId);
     }
 

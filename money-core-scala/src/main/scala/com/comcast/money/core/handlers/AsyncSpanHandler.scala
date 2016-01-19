@@ -14,15 +14,21 @@
  * limitations under the License.
  */
 
-package com.comcast.money.api;
+package com.comcast.money.core.handlers
 
-public interface SpanFactory {
+import com.comcast.money.api.{ SpanHandler, SpanInfo }
 
-    Span newSpan(String spanName);
+import scala.concurrent.{ ExecutionContext, Future }
 
-    Span newSpan(SpanId spanId, String spanName);
+/**
+ * Makes sure that a child process is handled asynchronously
+ *
+ * @param ec The execution context used to handle the span asynchronously
+ * @param wrapped The [[SpanHandler]] which will be invoked asynchronously
+ */
+class AsyncSpanHandler(val ec: ExecutionContext, val wrapped: SpanHandler) extends SpanHandler {
 
-    Span childSpan(String childName, Span span);
+  implicit val executor: ExecutionContext = ec
 
-    Span childSpan(String childName, Span span, boolean sticky);
+  def handle(spanInfo: SpanInfo): Unit = Future(wrapped.handle(spanInfo))
 }

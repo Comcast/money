@@ -58,11 +58,11 @@ public class JMoney {
      * Records a note in the current trace span if one is present
      * @param noteName The name of the note to record
      * @param value The value to be recorded on the note
-     * @param propagate whether or not to propagate note to children spans
+     * @param sticky whether or not to sticky note to children spans
      */
-    public static void record(String noteName, Double value, boolean propagate) {
+    public static void record(String noteName, Double value, boolean sticky) {
 
-        tracer().record(noteName, value, propagate);
+        tracer().record(noteName, value, sticky);
     }
 
     /**
@@ -79,11 +79,11 @@ public class JMoney {
      * Records a note in the current trace span if one is present
      * @param noteName The name of the note to record
      * @param value The value to be recorded on the note
-     * @param propagate whether or not to propagate note to children spans
+     * @param sticky whether or not to sticky note to children spans
      */
-    public static void record(String noteName, String value, boolean propagate) {
+    public static void record(String noteName, String value, boolean sticky) {
 
-        tracer().record(noteName, value, propagate);
+        tracer().record(noteName, value, sticky);
     }
 
     /**
@@ -100,11 +100,11 @@ public class JMoney {
      * Records a note in the current trace span if one is present
      * @param noteName The name of the note to record
      * @param value The value to be recorded on the note
-     * @param propagate whether or not to propagate note to children spans
+     * @param sticky whether or not to sticky note to children spans
      */
-    public static void record(String noteName, Long value, boolean propagate) {
+    public static void record(String noteName, Long value, boolean sticky) {
 
-        tracer().record(noteName, value, propagate);
+        tracer().record(noteName, value, sticky);
     }
 
     /**
@@ -121,11 +121,11 @@ public class JMoney {
      * Records a note in the current trace span if one is present
      * @param noteName The name of the note to record
      * @param value The value to be recorded on the note
-     * @param propagate whether or not to propagate note to children spans
+     * @param sticky whether or not to sticky note to children spans
      */
-    public static void record(String noteName, boolean value, boolean propagate) {
+    public static void record(String noteName, boolean value, boolean sticky) {
 
-        tracer().record(noteName, value, propagate);
+        tracer().record(noteName, value, sticky);
     }
 
     /**
@@ -134,11 +134,11 @@ public class JMoney {
      * String Note, and perform a "toString" on the value.
      * @param noteName The name of the note to record
      * @param value The value to be recorded on the note
-     * @param propagate whether or not to propagate the note to child spans
+     * @param sticky whether or not to sticky the note to child spans
      */
-    public static void record(String noteName, Object value, boolean propagate) {
+    public static void record(String noteName, Object value, boolean sticky) {
 
-        tracer().record(toNote(noteName, value, propagate));
+        tracer().record(toNote(noteName, value, sticky));
     }
 
     /**
@@ -264,21 +264,21 @@ public class JMoney {
         }
     }
 
-    private static Note<?> toNote(String name, Object value, Boolean propagate) {
+    private static Note<?> toNote(String name, Object value, Boolean sticky) {
 
         if (value == null) {
-            return Note.of(name, null, propagate, DateTimeUtil.microTime());
+            return Note.of(name, null, sticky, DateTimeUtil.microTime());
         } else if (value instanceof Boolean) {
             Boolean bool = (Boolean)value;
-            return Note.of(name, bool, propagate, DateTimeUtil.microTime());
+            return Note.of(name, bool, sticky, DateTimeUtil.microTime());
         } else if (value instanceof Double) {
             Double dbl = (Double)value;
-            return Note.of(name, dbl, propagate, DateTimeUtil.microTime());
+            return Note.of(name, dbl, sticky, DateTimeUtil.microTime());
         } else if (value instanceof Long) {
             Long lng = (Long)value;
-            return Note.of(name, lng, propagate, DateTimeUtil.microTime());
+            return Note.of(name, lng, sticky, DateTimeUtil.microTime());
         } else {
-            return Note.of(name, value.toString(), propagate, DateTimeUtil.microTime());
+            return Note.of(name, value.toString(), sticky, DateTimeUtil.microTime());
         }
     }
 }
