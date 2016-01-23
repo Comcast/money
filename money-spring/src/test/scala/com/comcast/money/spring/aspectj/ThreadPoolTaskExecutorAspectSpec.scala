@@ -19,7 +19,7 @@ package com.comcast.money.spring.aspectj
 import java.util.concurrent.SynchronousQueue
 
 import com.comcast.money.aspectj.ThreadPoolTaskExecutorAspect
-import com.comcast.money.concurrent.TraceFriendlyThreadPoolExecutor
+import com.comcast.money.core.concurrent.TraceFriendlyThreadPoolExecutor
 import org.scalatest._
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 

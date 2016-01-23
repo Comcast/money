@@ -196,7 +196,7 @@ object MoneyBuild extends Build {
           )
         }
       )
-      .dependsOn(moneyCore)
+      .dependsOn(moneyCoreScala)
 
   lazy val moneySpring3 =
     Project("money-spring3", file("./money-spring3"))
@@ -223,7 +223,7 @@ object MoneyBuild extends Build {
         },
         testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
       )
-      .dependsOn(moneyCore)
+      .dependsOn(moneyCoreScala)
 
   def projectSettings = basicSettings ++ Seq(
     ScoverageKeys.coverageHighlighting := true,

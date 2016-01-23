@@ -19,7 +19,7 @@ package com.comcast.money.aspectj
 import java.lang.reflect.Field
 import java.util.concurrent._
 
-import com.comcast.money.concurrent.TraceFriendlyThreadPoolExecutor
+import com.comcast.money.core.concurrent.TraceFriendlyThreadPoolExecutor
 import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.{ Aspect, Around, Pointcut }
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
