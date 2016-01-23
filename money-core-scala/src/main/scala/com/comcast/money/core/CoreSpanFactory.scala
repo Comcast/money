@@ -24,7 +24,7 @@ class CoreSpanFactory(handler: SpanHandler) extends SpanFactory {
 
   def newSpan(spanName: String): Span = newSpan(new SpanId(), spanName)
 
-  def childSpan(childName: String, span: Span): Span = childSpan(childName, span, false)
+  def childSpan(childName: String, span: Span): Span = childSpan(childName, span, true)
 
   def childSpan(childName: String, span: Span, sticky: Boolean): Span = {
     val info = span.info

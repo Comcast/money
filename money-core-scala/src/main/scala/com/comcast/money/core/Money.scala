@@ -28,7 +28,8 @@ case class Money(
   applicationName: String,
   hostName: String,
   factory: SpanFactory,
-  tracer: Tracer
+  tracer: Tracer,
+  logExceptions: Boolean = false
 )
 
 object Money {
@@ -42,11 +43,12 @@ object Money {
 
     if (enabled) {
       val handler = HandlerChain(conf.getConfig("handling"))
-      val spanFactory: SpanFactory = new CoreSpanFactory(handler)
+      val factory: SpanFactory = new CoreSpanFactory(handler)
       val tracer = new Tracer {
-        val spanFactory: SpanFactory = spanFactory
+        override val spanFactory: SpanFactory = factory
       }
-      Money(enabled, handler, applicationName, hostName, spanFactory, tracer)
+      val logExceptions = conf.getBoolean("log-exceptions")
+      Money(enabled, handler, applicationName, hostName, factory, tracer, logExceptions)
     } else {
       disabled(applicationName, hostName)
     }
