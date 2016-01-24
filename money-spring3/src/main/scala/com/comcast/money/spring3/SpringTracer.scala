@@ -28,8 +28,8 @@ import org.springframework.stereotype.Component
 @Component
 class SpringTracer extends Tracer {
 
-  override val spanSupervisorRef: ActorRef = Money.tracer.spanSupervisorRef
-  private var tracer = Money.tracer
+  override val spanFactory = Money.Environment.factory
+  private var tracer = Money.Environment.tracer
 
   private[spring3] def setTracer(toSet: Tracer): Unit =
     tracer = toSet

@@ -19,10 +19,9 @@ package com.comcast.money.spring3
 import java.lang.reflect.Method
 
 import com.comcast.money.annotations.Traced
-import com.comcast.money.core.Result
-import com.comcast.money.internal.MDCSupport
-import com.comcast.money.logging.TraceLogging
-import com.comcast.money.reflect.Reflections
+import com.comcast.money.core.internal.MDCSupport
+import com.comcast.money.core.logging.TraceLogging
+import com.comcast.money.core.reflect.Reflections
 import org.aopalliance.aop.Advice
 import org.aopalliance.intercept.{ MethodInterceptor, MethodInvocation }
 import org.springframework.aop.Pointcut
@@ -43,7 +42,7 @@ class TracedMethodInterceptor @Autowired() (@Qualifier("springTracer") val trace
   override def invoke(invocation: MethodInvocation): AnyRef = {
 
     Option(invocation.getStaticPart.getAnnotation(classOf[Traced])) map { annotation =>
-      var result = Result.success
+      var result = true
       val oldSpanName = mdcSupport.getSpanNameMDC
       try {
         tracer.startSpan(annotation.value())
@@ -53,7 +52,7 @@ class TracedMethodInterceptor @Autowired() (@Qualifier("springTracer") val trace
       } catch {
         case t: Throwable =>
           logException(t)
-          result = if (exceptionMatches(t, annotation.ignoredExceptions())) Result.success else Result.failed
+          result = if (exceptionMatches(t, annotation.ignoredExceptions())) true else false
           throw t
       } finally {
         mdcSupport.setSpanNameMDC(oldSpanName)

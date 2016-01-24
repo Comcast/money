@@ -42,11 +42,11 @@ public class SpringTracerSpec {
     }
 
     @Test
-    public void testSpringTracerUsesMoneySpanSupervisor() {
+    public void testSpringTracerUsesMoneyEnvironment() {
 
         // Test coverage...bonus!
         SpringTracer springTracer = new SpringTracer();
-        assertThat(springTracer.spanSupervisorRef()).isSameAs(Money$.MODULE$.tracer().spanSupervisorRef());
+        assertThat(springTracer.spanFactory()).isSameAs(Money$.MODULE$.Environment().factory());
     }
 
     @Test
