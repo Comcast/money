@@ -18,9 +18,9 @@ package com.comcast.money.http.client
 
 import java.io.Closeable
 
-import com.comcast.money.core.{ SpanIdHttpFormatter, Tracer, Money }
+import com.comcast.money.core.{ Formatters, Tracer, Money }
 import com.comcast.money.core.Tracers._
-import com.comcast.money.internal.SpanLocal
+import com.comcast.money.core.internal.SpanLocal
 import org.apache.http.client.methods.HttpUriRequest
 import org.apache.http.client.{ HttpClient, ResponseHandler }
 import org.apache.http.conn.ClientConnectionManager
@@ -59,7 +59,7 @@ object TraceFriendlyHttpSupport {
     if (httpRequest != null) {
       SpanLocal.current.foreach {
         span =>
-          httpRequest.setHeader("X-MoneyTrace", SpanIdHttpFormatter.toHttpHeader(span))
+          httpRequest.setHeader("X-MoneyTrace", Formatters.toHttpHeader(span.info.id))
       }
     }
   }
@@ -72,7 +72,7 @@ class TraceFriendlyHttpClient(wrapee: HttpClient) extends HttpClient with java.i
 
   import com.comcast.money.http.client.TraceFriendlyHttpSupport._
 
-  val tracer = Money.tracer
+  val tracer = Money.Environment.tracer
 
   override def getParams: HttpParams = wrapee.getParams
 

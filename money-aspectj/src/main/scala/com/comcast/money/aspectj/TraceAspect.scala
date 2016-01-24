@@ -18,9 +18,9 @@ package com.comcast.money.aspectj
 
 import com.comcast.money.annotations.{ Timed, Traced }
 import com.comcast.money.core._
-import com.comcast.money.internal.MDCSupport
-import com.comcast.money.logging.TraceLogging
-import com.comcast.money.reflect.Reflections
+import com.comcast.money.core.internal.MDCSupport
+import com.comcast.money.core.logging.TraceLogging
+import com.comcast.money.core.reflect.Reflections
 import org.aspectj.lang.annotation.{ Around, Aspect, Pointcut }
 import org.aspectj.lang.reflect.MethodSignature
 import org.aspectj.lang.{ JoinPoint, ProceedingJoinPoint }
@@ -28,7 +28,7 @@ import org.aspectj.lang.{ JoinPoint, ProceedingJoinPoint }
 @Aspect
 class TraceAspect extends Reflections with TraceLogging {
 
-  val tracer: Tracer = Money.tracer
+  val tracer: Tracer = Money.Environment.tracer
   val mdcSupport: MDCSupport = new MDCSupport()
 
   @Pointcut("execution(@com.comcast.money.annotations.Traced * *(..)) && @annotation(traceAnnotation)")
@@ -40,7 +40,7 @@ class TraceAspect extends Reflections with TraceLogging {
   @Around("traced(traceAnnotation)")
   def adviseMethodsWithTracing(joinPoint: ProceedingJoinPoint, traceAnnotation: Traced): AnyRef = {
     val key: String = traceAnnotation.value
-    var result = Result.success
+    var result = true
     val oldSpanName = mdcSupport.getSpanNameMDC
     try {
       tracer.startSpan(key)
@@ -49,7 +49,7 @@ class TraceAspect extends Reflections with TraceLogging {
       joinPoint.proceed
     } catch {
       case t: Throwable =>
-        result = if (exceptionMatches(t, traceAnnotation.ignoredExceptions())) Result.success else Result.failed
+        result = if (exceptionMatches(t, traceAnnotation.ignoredExceptions())) true else false
         logException(t)
         throw t
     } finally {

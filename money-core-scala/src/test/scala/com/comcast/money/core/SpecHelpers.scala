@@ -51,11 +51,10 @@ class LogRecorderSpanHandler extends LoggingSpanHandler {
 
 trait SpecHelpers extends Eventually { this: Matchers =>
 
-  def awaitCond(condition: => Boolean, max: FiniteDuration, interval: Duration, message: String) =
-    eventually(timeout(Span(max.toMillis, Millis))) {
-      Thread.sleep(interval.toMillis)
+  def awaitCond(condition: => Boolean, max: FiniteDuration = 2.seconds, interval: Duration = 100.millis, message: String = "failed waiting") =
+    eventually {
       condition shouldBe true
-    }
+    }(PatienceConfig(Span(max.toMillis, Millis), Span(interval.toMillis, Millis)))
 
   def expectLogMessageContaining(contains: String, wait: FiniteDuration = 2.seconds) {
     awaitCond(

@@ -94,7 +94,7 @@ object MoneyBuild extends Build {
         )
       }
     )
-    .dependsOn(moneyCore)
+    .dependsOn(moneyCoreScala % "test->test;compile->compile")
 
   lazy val moneyHttpClient =
     Project("money-http-client", file("./money-http-client"))
@@ -112,7 +112,7 @@ object MoneyBuild extends Build {
           )
         }
       )
-      .dependsOn(moneyCore,moneyAspectj)
+      .dependsOn(moneyCoreScala % "test->test;compile->compile",moneyAspectj)
 
   lazy val moneyJavaServlet =
     Project("money-java-servlet", file("./money-java-servlet"))

@@ -18,13 +18,10 @@ package com.comcast.money.http.client
 
 import java.io.{ ByteArrayInputStream, InputStream }
 
-import akka.actor.ActorSystem
-import akka.testkit.TestKit
 import com.comcast.money.annotations.Traced
 import com.comcast.money.api.SpanId
 import com.comcast.money.core._
-import com.comcast.money.emitters._
-import com.comcast.money.internal.SpanLocal
+import com.comcast.money.core.internal.SpanLocal
 import org.apache.http._
 import org.apache.http.client.methods.HttpUriRequest
 import org.apache.http.client.{ HttpClient, ResponseHandler }
@@ -36,8 +33,9 @@ import org.scalatest.mock.MockitoSugar
 
 import scala.concurrent.duration._
 
-class HttpTraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getConfig("money.akka")))
-    with FeatureSpecLike
+class HttpTraceAspectSpec
+    extends FeatureSpec
+    with SpecHelpers
     with Matchers
     with MockitoSugar
     with OneInstancePerTest
@@ -70,13 +68,6 @@ class HttpTraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getC
     response
   }
 
-  def expectLogMessageContaining(contains: String, wait: FiniteDuration = 2.seconds) {
-    awaitCond(
-      LogRecord.contains("log")(_.contains(contains)), wait, 100 milliseconds,
-      s"Expected log message containing string $contains not found after $wait"
-    )
-  }
-
   // Used by some tests that cannot be adequately integration tested
   val mockTracer: Tracer = mock[Tracer]
   val mockJoinPoint: ProceedingJoinPoint = mock[ProceedingJoinPoint]
@@ -99,10 +90,6 @@ class HttpTraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getC
     SpanLocal.clear()
   }
 
-  override def afterAll() {
-    TestKit.shutdownActorSystem(system)
-  }
-
   feature("Capturing http metrics on a method that calls http client execute returning an HttpResponse") {
     scenario("happy path") {
       Given("a method exists with the trace annotation")
@@ -116,8 +103,8 @@ class HttpTraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getC
       expectLogMessageContaining("http-process-response-duration")
 
       And("any metrics with names that are overridden through configuration are also recorded in the span")
-      // responseCode is an override in the test resources application.conf file
-      expectLogMessageContaining("responseCode")
+      // http-response-code is an override in the test resources application.conf file
+      expectLogMessageContaining("http-response-code")
 
       And("the result from the method is returned")
       result shouldEqual "test-response"
@@ -170,8 +157,8 @@ class HttpTraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getC
       expectLogMessageContaining("http-process-response-duration")
 
       And("any metrics with names that are overridden through configuration are also recorded in the span")
-      // responseCode is an override in the test resources application.conf file
-      expectLogMessageContaining("responseCode")
+      // http-response-code is an override in the test resources application.conf file
+      expectLogMessageContaining("http-response-code")
 
       And("the result from the method is returned")
       result shouldEqual "test-response"
@@ -196,7 +183,7 @@ class HttpTraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getC
       verify(mockTracer).stopTimer("http-call-duration")
 
       And("the status code is recorded")
-      verify(mockTracer).record("responseCode", 200)
+      verify(mockTracer).record("http-response-code", 200)
 
       And("the joinpoint is executed")
       verify(mockJoinPoint).proceed()
@@ -220,7 +207,7 @@ class HttpTraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getC
       verify(mockTracer).stopTimer("http-call-duration")
 
       And("the status code is recorded as the value that was returned from the service")
-      verify(mockTracer).record("responseCode", 200)
+      verify(mockTracer).record("http-response-code", 200)
     }
     scenario("getting the response code throws an exception") {
       Given("an http response that throws an exception when retrieving the response code")
@@ -238,7 +225,7 @@ class HttpTraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getC
       verify(mockTracer).stopTimer("http-call-duration")
 
       And("the status code is recorded as 0")
-      verify(mockTracer).record("responseCode", 0)
+      verify(mockTracer).record("http-response-code", 0)
     }
     scenario("the http response is null") {
       Given("a call to the response handler passes in an http response that is null")
@@ -253,7 +240,7 @@ class HttpTraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getC
       verify(mockTracer).stopTimer("http-call-duration")
 
       And("the status code is recorded as 0")
-      verify(mockTracer).record("responseCode", 0)
+      verify(mockTracer).record("http-response-code", 0)
     }
   }
   feature("advising the call to http client execute with a response handler") {
@@ -262,7 +249,7 @@ class HttpTraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getC
       doReturn("test-annotation").when(mockTracedAnnotation).value()
 
       And("a span has been started")
-      SpanLocal.push(new SpanId("foo", 1L, 1L))
+      SpanLocal.push(testSpan(new SpanId("foo", 1L, 1L)))
 
       When("The method the uses the http client is invoked")
       testAspect.adviseHttpClientExecuteToResponseHandler(mockHttpRequest, mockTracedAnnotation)
@@ -300,7 +287,7 @@ class HttpTraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getC
       doReturn("test-annotation").when(mockTracedAnnotation).value()
 
       And("a span has been started")
-      SpanLocal.push(new SpanId("foo", 1L, 1L))
+      SpanLocal.push(testSpan(new SpanId("foo", 1L, 1L)))
 
       When("The method the uses the http client is invoked")
       testAspect.adviseHttpClientExecuteToResponseHandler(null, mockTracedAnnotation)
@@ -324,7 +311,7 @@ class HttpTraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getC
       doReturn(204).when(mockStatusLine).getStatusCode
 
       And("a span has been started")
-      SpanLocal.push(new SpanId("foo", 1L, 1L))
+      SpanLocal.push(testSpan(new SpanId("foo", 1L, 1L)))
 
       When("The method the uses the http client is invoked")
       val result = testAspect.adviseHttpClientExecute(mockJoinPoint, mockHttpRequest, mockTracedAnnotation)
@@ -336,7 +323,7 @@ class HttpTraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getC
       verify(mockTracer).startTimer("http-call-with-body-duration")
 
       And("the status code of the response is recorded")
-      verify(mockTracer).record("responseCode", 204)
+      verify(mockTracer).record("http-response-code", 204)
 
       And("the http call with body timer is stopped")
       verify(mockTracer).stopTimer("http-call-duration")

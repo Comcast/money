@@ -19,8 +19,8 @@ package com.comcast.money.http.client
 import java.io.Closeable
 
 import com.comcast.money.api.SpanId
-import com.comcast.money.core.{ SpanIdHttpFormatter => CoreSpanId, Tracer }
-import com.comcast.money.internal.SpanLocal
+import com.comcast.money.core.{ Formatters => CoreSpanId, SpecHelpers, Tracer }
+import com.comcast.money.core.internal.SpanLocal
 import org.apache.http.client.methods.{ CloseableHttpResponse, HttpUriRequest }
 import org.apache.http.client.{ HttpClient, ResponseHandler }
 import org.apache.http.impl.client.CloseableHttpClient
@@ -30,7 +30,7 @@ import org.mockito.Mockito._
 import org.scalatest._
 import org.scalatest.mock.MockitoSugar
 
-class TraceFriendlyHttpClientSpec extends WordSpec
+class TraceFriendlyHttpClientSpec extends WordSpec with SpecHelpers
     with Matchers with MockitoSugar with OneInstancePerTest with BeforeAndAfterEach {
 
   val httpClient = mock[CloseableHttpClient]
@@ -54,7 +54,7 @@ class TraceFriendlyHttpClientSpec extends WordSpec
   }
 
   override def beforeEach(): Unit = {
-    SpanLocal.push(spanId)
+    SpanLocal.push(testSpan(spanId))
   }
 
   // if you don't reset, then the verifies are going to be off
@@ -66,7 +66,7 @@ class TraceFriendlyHttpClientSpec extends WordSpec
   def verifyTracing() = {
     verify(underTest.tracer).startTimer(HttpTraceConfig.HttpResponseTimeTraceKey)
     verify(underTest.tracer).stopTimer(HttpTraceConfig.HttpResponseTimeTraceKey)
-    verify(underTest.tracer).record("responseCode", 200L)
+    verify(underTest.tracer).record("http-response-code", 200L)
     verify(httpUriRequest).setHeader("X-MoneyTrace", CoreSpanId.toHttpHeader(spanId))
   }
 
@@ -120,7 +120,7 @@ class TraceFriendlyHttpClientSpec extends WordSpec
       intercept[RuntimeException] {
         underTest.execute(httpUriRequest)
       }
-      verify(underTest.tracer).record("responseCode", 0L)
+      verify(underTest.tracer).record("http-response-code", 0L)
     }
     "calls close on closeable http client" in {
       underTest.close()

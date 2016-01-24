@@ -16,21 +16,18 @@
 
 package com.comcast.money.aspectj
 
-import akka.actor.ActorSystem
-import akka.testkit.TestKit
-import com.comcast.money.annotations.{ TracedData, Timed, Traced }
-import com.comcast.money.core.Money
-import com.comcast.money.emitters.LogRecord
-import com.comcast.money.internal.MDCSupport
+import com.comcast.money.annotations.{ Timed, Traced, TracedData }
+import com.comcast.money.core.internal.MDCSupport
+import com.comcast.money.core.{ Tracer, Money, SpecHelpers }
 import org.aspectj.lang.ProceedingJoinPoint
 import org.mockito.Mockito._
 import org.scalatest._
+import org.scalatest.concurrent.Eventually
 import org.scalatest.mock.MockitoSugar
 
-import scala.concurrent.duration._
-
-class TraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getConfig("money.akka")))
-    with WordSpecLike with GivenWhenThen with OneInstancePerTest with BeforeAndAfterEach with Matchers with MockitoSugar {
+class TraceAspectSpec extends WordSpec
+    with GivenWhenThen with OneInstancePerTest with BeforeAndAfterEach with Matchers with MockitoSugar with Eventually
+    with SpecHelpers {
 
   @Traced("methodWithArguments")
   def methodWithArguments(@TracedData("foo") foo: String, @TracedData("CUSTOM_NAME") bar: String) = {
@@ -82,20 +79,6 @@ class TraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getConfi
   @Timed("methodWithTiming")
   def methodWithTiming() = {
     Thread.sleep(50)
-  }
-
-  def expectLogMessageContaining(contains: String, wait: FiniteDuration = 2.seconds) {
-    awaitCond(
-      LogRecord.contains("log")(_.contains(contains)), wait, 100 milliseconds,
-      s"Expected log message containing string $contains not found after $wait"
-    )
-  }
-
-  def expectLogMessageContainingStrings(strings: Seq[String], wait: FiniteDuration = 2.seconds) {
-    awaitCond(
-      LogRecord.contains("log")(s => strings.forall(s.contains)), wait, 100 milliseconds,
-      s"Expected log message containing $strings not found after $wait"
-    )
   }
 
   val mockMdcSupport = mock[MDCSupport]
@@ -212,14 +195,14 @@ class TraceAspectSpec extends TestKit(ActorSystem("money", Money.config.getConfi
     "timing method execution" should {
       "record the execution time of a method that returns normally" in {
         Given("a trace exists")
-        Money.tracer.startSpan("test-timing")
+        Money.Environment.tracer.startSpan("test-timing")
         And("a method that has the Timed annotation")
 
         When("the method is called")
         methodWithTiming()
 
         And("the trace is stopped")
-        Money.tracer.stopSpan()
+        Money.Environment.tracer.stopSpan()
 
         Then("a message is logged containing the duration of the method execution")
         expectLogMessageContaining("methodWithTiming")

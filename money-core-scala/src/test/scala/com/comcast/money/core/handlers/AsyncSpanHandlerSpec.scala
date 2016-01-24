@@ -16,12 +16,12 @@
 
 package com.comcast.money.core.handlers
 
-import com.comcast.money.api.{ SpanInfo, SpanHandler }
-import org.scalatest.concurrent.Eventually._
+import com.comcast.money.api.{ SpanHandler, SpanInfo }
+import com.comcast.money.core.SpecHelpers
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ Matchers, WordSpec }
 
-class AsyncSpanHandlerSpec extends WordSpec with Matchers with MockitoSugar with TestData {
+class AsyncSpanHandlerSpec extends WordSpec with Matchers with MockitoSugar with TestData with SpecHelpers {
 
   class Wrapped extends SpanHandler {
     var called = false
@@ -35,9 +35,7 @@ class AsyncSpanHandlerSpec extends WordSpec with Matchers with MockitoSugar with
 
       underTest.handle(testSpanInfo)
 
-      eventually {
-        spanHandler.called shouldBe true
-      }
+      awaitCond(spanHandler.called)
     }
   }
 }
