@@ -26,7 +26,7 @@ object MoneyBuild extends Build {
     publishLocal := {},
     publish := {}
   )
-  .aggregate(moneyApi, moneyCoreScala, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
+  .aggregate(moneyApi, moneyCoreScala, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
 
   lazy val moneyApi =
     Project("money-api", file("./money-api"))
@@ -85,9 +85,6 @@ object MoneyBuild extends Build {
     .settings(
       libraryDependencies <++= (scalaVersion) { v: String =>
         Seq(
-          akkaActor(v),
-          akkaSlf4j(v),
-          akkaTestkit(v),
           typesafeConfig,
           scalaTest,
           mockito
@@ -103,9 +100,6 @@ object MoneyBuild extends Build {
       .settings(
         libraryDependencies <++= (scalaVersion){v: String =>
           Seq(
-            akkaActor(v),
-            akkaSlf4j(v),
-            akkaTestkit(v),
             apacheHttpClient,
             scalaTest,
             mockito
@@ -121,10 +115,7 @@ object MoneyBuild extends Build {
       .settings(
         libraryDependencies <++= (scalaVersion){v: String =>
           Seq(
-            akkaActor(v),
-            akkaSlf4j(v),
             javaxServlet,
-            akkaTestkit(v),
             scalaTest,
             mockito
           )
@@ -162,8 +153,6 @@ object MoneyBuild extends Build {
       .settings(
         libraryDependencies <++= (scalaVersion){v: String =>
           Seq(
-            akkaActor(v),
-            akkaSlf4j(v),
             kafka,
             bijectionCore,
             bijectionAvro,
@@ -186,9 +175,6 @@ object MoneyBuild extends Build {
       .settings(
         libraryDependencies <++= (scalaVersion) { v: String =>
           Seq(
-            akkaActor(v),
-            akkaSlf4j(v),
-            akkaTestkit(v),
             typesafeConfig,
             scalaTest,
             mockito,
@@ -205,9 +191,6 @@ object MoneyBuild extends Build {
       .settings(
         libraryDependencies <++= (scalaVersion) { v: String =>
           Seq(
-            akkaActor(v),
-            akkaSlf4j(v),
-            akkaTestkit(v),
             typesafeConfig,
             scalaTest,
             mockito,
@@ -239,7 +222,7 @@ object MoneyBuild extends Build {
     organization := "com.comcast.money",
     version := "0.8.12-SNAPSHOT",
     crossScalaVersions := Seq("2.10.6", "2.11.7"),
-    scalaVersion := "2.10.6",
+    scalaVersion := "2.11.7",
     resolvers ++= Seq(
       "spray repo" at "http://repo.spray.io/",
       "Sonatype OSS Releases" at "http://oss.sonatype.org/content/repositories/releases/"

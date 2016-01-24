@@ -16,7 +16,6 @@
 
 package com.comcast.money.spring3
 
-import akka.actor.ActorRef
 import com.comcast.money.api.Note
 import com.comcast.money.core._
 import org.springframework.stereotype.Component
