@@ -20,7 +20,7 @@ import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
 import javax.servlet.{ FilterChain, FilterConfig }
 
 import com.comcast.money.api.SpanId
-import com.comcast.money.internal.SpanLocal
+import com.comcast.money.core.internal.SpanLocal
 import org.mockito.Mockito._
 import org.scalatest.OptionValues._
 import org.scalatest.mock.MockitoSugar
@@ -39,7 +39,7 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
   val MoneyTraceFormat = "trace-id=%s;parent-id=%s;span-id=%s"
 
   before {
-    SpanLocal.push(existingSpanId)
+    SpanLocal.clear()
   }
 
   "A TraceFilter" should {
@@ -58,7 +58,7 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
 
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
 
-      SpanLocal.current.value shouldEqual existingSpanId
+      SpanLocal.current.value.info.id shouldEqual existingSpanId
     }
     "not set the trace context if the trace header could not be parsed" in {
       when(mockRequest.getHeader("X-MoneyTrace")).thenReturn("can't parse this")
