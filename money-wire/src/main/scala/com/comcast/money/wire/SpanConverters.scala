@@ -19,6 +19,7 @@ package com.comcast.money.wire
 import java.io.ByteArrayOutputStream
 
 import com.comcast.money.api
+import com.comcast.money.api.SpanInfo
 import com.comcast.money.core._
 import com.comcast.money.wire.avro
 import com.comcast.money.wire.avro.NoteType
@@ -110,31 +111,37 @@ trait SpanWireConverters {
     new api.SpanId(spanId.getTraceId, spanId.getParentId, spanId.getSpanId)
   }
 
-  implicit val spanToWire: TypeConverter[Span, avro.Span] = TypeConverter.instance { span: Span =>
+  implicit val spanToWire: TypeConverter[SpanInfo, avro.Span] = TypeConverter.instance { span: SpanInfo =>
 
     new avro.Span(
-      span.spanName,
+      span.name,
       span.appName,
       span.host,
-      span.duration,
+      span.durationMicros,
       span.success,
-      span.startTime,
-      implicitly[TypeConverter[api.SpanId, avro.SpanId]].convert(span.spanId),
+      span.startTimeMillis,
+      implicitly[TypeConverter[api.SpanId, avro.SpanId]].convert(span.id),
       span.notes.values.toList.map(implicitly[TypeConverter[api.Note[_], avro.Note]].convert)
     )
   }
 
-  implicit val wireToSpan: TypeConverter[avro.Span, Span] = TypeConverter.instance { from: avro.Span =>
-    Span(
-      spanId = implicitly[TypeConverter[avro.SpanId, api.SpanId]].convert(from.getId),
-      spanName = from.getName,
+  implicit val wireToSpan: TypeConverter[avro.Span, SpanInfo] = TypeConverter.instance { from: avro.Span =>
+
+    def toNotesMap(notes: java.util.List[avro.Note]): java.util.Map[String, api.Note[_]] = {
+      val res = new java.util.HashMap[String, api.Note[_]]
+      notes.foreach(n => res.put(n.getName, implicitly[TypeConverter[avro.Note, api.Note[_]]].convert(n)))
+      res
+    }
+
+    CoreSpanInfo(
+      id = implicitly[TypeConverter[avro.SpanId, api.SpanId]].convert(from.getId),
+      name = from.getName,
       appName = from.getAppName,
       host = from.getHost,
-      startTime = from.getStartTime,
+      startTimeMillis = from.getStartTime,
       success = from.getSuccess,
-      duration = from.getDuration,
-      notes = (for (note: avro.Note <- from.getNotes) yield note
-        .getName -> implicitly[TypeConverter[avro.Note, api.Note[_]]].convert(note)).toMap
+      durationMicros = from.getDuration,
+      notes = toNotesMap(from.getNotes)
     )
   }
 }
@@ -144,18 +151,18 @@ trait SpanAvroConverters extends SpanWireConverters {
   val spanDatumWriter = new SpecificDatumWriter[avro.Span](avro.Span.getClassSchema)
   val spanDatumReader = new SpecificDatumReader[avro.Span](avro.Span.getClassSchema)
 
-  implicit val spanToAvro: TypeConverter[Span, Array[Byte]] = TypeConverter.instance { span =>
+  implicit val spanToAvro: TypeConverter[SpanInfo, Array[Byte]] = TypeConverter.instance { span =>
 
     val bytes = new ByteArrayOutputStream()
     val spanBinaryEncoder = EncoderFactory.get.directBinaryEncoder(bytes, null)
-    val wireSpan = implicitly[TypeConverter[Span, avro.Span]].convert(span)
+    val wireSpan = implicitly[TypeConverter[SpanInfo, avro.Span]].convert(span)
     spanDatumWriter.write(wireSpan, spanBinaryEncoder)
     bytes.toByteArray
   }
 
-  implicit val avroToSpan: TypeConverter[Array[Byte], Span] = TypeConverter.instance { bytes =>
+  implicit val avroToSpan: TypeConverter[Array[Byte], SpanInfo] = TypeConverter.instance { bytes =>
     val spanBinaryDecoder = DecoderFactory.get.binaryDecoder(bytes, 0, bytes.length, null)
-    implicitly[TypeConverter[avro.Span, Span]].convert(spanDatumReader.read(null, spanBinaryDecoder))
+    implicitly[TypeConverter[avro.Span, SpanInfo]].convert(spanDatumReader.read(null, spanBinaryDecoder))
   }
 }
 
@@ -185,11 +192,11 @@ trait SpanJsonConverters extends SpanWireConverters {
     jsonMapper
   }
 
-  implicit val spanToJson: TypeConverter[Span, String] = TypeConverter.instance { span =>
-    mapper.writeValueAsString(implicitly[TypeConverter[Span, avro.Span]].convert(span))
+  implicit val spanToJson: TypeConverter[SpanInfo, String] = TypeConverter.instance { span =>
+    mapper.writeValueAsString(implicitly[TypeConverter[SpanInfo, avro.Span]].convert(span))
   }
 
-  implicit val jsonToSpan: TypeConverter[String, Span] = TypeConverter.instance { str =>
-    implicitly[TypeConverter[avro.Span, Span]].convert(mapper.readValue(str, classOf[avro.Span]))
+  implicit val jsonToSpan: TypeConverter[String, SpanInfo] = TypeConverter.instance { str =>
+    implicitly[TypeConverter[avro.Span, SpanInfo]].convert(mapper.readValue(str, classOf[avro.Span]))
   }
 }

@@ -16,19 +16,27 @@
 
 package com.comcast.money.wire
 
-import com.comcast.money.api.{ Note, SpanId }
-import com.comcast.money.core.Span
+import com.comcast.money.api.{ Note, SpanId, SpanInfo }
+import com.comcast.money.core.CoreSpanInfo
 import org.scalatest.{ Inspectors, Matchers, WordSpec }
 
 class AvroConversionSpec extends WordSpec with Matchers with Inspectors {
 
   import AvroConversions._
 
+  import scala.collection.JavaConversions._
+
   "Avro Conversion" should {
     "roundtrip" in {
-      val orig = Span(
-        new SpanId("foo", 1L), "key", "app", "host", 1L, true, 35L,
-        Map(
+      val orig = CoreSpanInfo(
+        id = new SpanId("foo", 1L),
+        name = "key",
+        appName = "app",
+        host = "host",
+        startTimeMillis = 1L,
+        success = true,
+        durationMicros = 35L,
+        notes = Map(
           "what" -> Note.of("what", 1L),
           "when" -> Note.of("when", 2L),
           "bob" -> Note.of("bob", "craig"),
@@ -36,18 +44,18 @@ class AvroConversionSpec extends WordSpec with Matchers with Inspectors {
           "bool" -> Note.of("bool", true),
           "dbl" -> Note.of("dbl", 1.0)
         )
-      )
+      ).asInstanceOf[SpanInfo]
 
       val bytes = orig.convertTo[Array[Byte]]
-      val roundtrip = bytes.convertTo[Span]
+      val roundtrip = bytes.convertTo[SpanInfo]
 
       roundtrip.appName shouldEqual orig.appName
-      roundtrip.spanName shouldEqual orig.spanName
-      roundtrip.duration shouldEqual orig.duration
+      roundtrip.name shouldEqual orig.name
+      roundtrip.durationMicros shouldEqual orig.durationMicros
       roundtrip.host shouldEqual orig.host
-      roundtrip.spanId shouldEqual orig.spanId
+      roundtrip.id shouldEqual orig.id
       roundtrip.success shouldEqual orig.success
-      roundtrip.startTime shouldEqual orig.startTime
+      roundtrip.startTimeMillis shouldEqual orig.startTimeMillis
       roundtrip.notes shouldEqual orig.notes
     }
   }
