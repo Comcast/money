@@ -153,7 +153,7 @@ object MoneyBuild extends Build {
         // Look for *.avsc etc. files in src/test/avro
         (sourceDirectory in avroConfig) <<= (sourceDirectory in Compile)(_ / "avro"),
         (stringType in avroConfig) := "String"
-      ).dependsOn(moneyCore)
+      ).dependsOn(moneyCoreScala)
 
   lazy val moneyKafka =
     Project("money-kafka", file("./money-kafka"))
@@ -177,7 +177,7 @@ object MoneyBuild extends Build {
           )
         }
       )
-      .dependsOn(moneyCore, moneyWire)
+      .dependsOn(moneyCoreScala, moneyWire)
 
   lazy val moneySpring =
     Project("money-spring", file("./money-spring"))
