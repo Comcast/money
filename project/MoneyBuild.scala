@@ -130,7 +130,7 @@ object MoneyBuild extends Build {
           )
         }
       )
-      .dependsOn(moneyCore)
+      .dependsOn(moneyCoreScala)
 
   lazy val moneyWire =
     Project("money-wire", file("./money-wire"))
