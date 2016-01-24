@@ -58,6 +58,10 @@ case class CoreSpan(
     endTimeMicros = System.nanoTime / 1000
     this.success = result
 
+    // process any hanging timers
+    val openTimers = timers.keys
+    openTimers.foreach(stopTimer)
+
     handler.handle(info)
   }
 

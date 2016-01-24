@@ -40,7 +40,7 @@ class LoggingSpanHandler(val logger: Logger) extends ConfigurableHandler {
 
   import LoggingSpanHandler._
 
-  private var logFunction: LogFunction = logger.info
+  protected var logFunction: LogFunction = logger.info
 
   def configure(config: Config): Unit = {
 

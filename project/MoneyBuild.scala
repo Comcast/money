@@ -227,7 +227,7 @@ object MoneyBuild extends Build {
 
   def projectSettings = basicSettings ++ Seq(
     ScoverageKeys.coverageHighlighting := true,
-    ScoverageKeys.coverageMinimum := 90,
+    ScoverageKeys.coverageMinimum := 80,
     ScoverageKeys.coverageFailOnMinimum := true
   )
 
