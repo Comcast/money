@@ -14,13 +14,11 @@
  * limitations under the License.
  */
 
-package com.comcast.money.metrics
+package com.comcast.money.core.metrics
 
-import com.codahale.metrics.{JmxReporter, MetricRegistry}
+import com.codahale.metrics.{ JmxReporter, MetricRegistry }
 import com.typesafe.config.Config
 import org.slf4j.LoggerFactory
-
-import scala.util.{Failure, Success, Try}
 
 /*
  * Simple factory that tries to delegate to an implementation of this trait itself and announced via
@@ -36,25 +34,24 @@ import scala.util.{Failure, Success, Try}
  * by a Java client custom factory.
  */
 object MetricRegistryFactory {
-  private val logger = LoggerFactory.getLogger("com.comcast.money.metrics.MetricRegistryFactory")
+
+  private val logger = LoggerFactory.getLogger("com.comcast.money.core.metrics.MetricRegistryFactory")
 
   def metricRegistry(config: Config): MetricRegistry = {
-    Try({
-      // Try to create an instance of the custom factory, configured via 'metricRegistryFactory'
-      lazy val realFactory = Class.forName(config.getString("metrics-registry.class-name"))
-        .newInstance.asInstanceOf[MetricRegistryFactory]
+    try {
+      val realFactory =
+        if (config.hasPath("metrics-registry.class-name"))
+          Class.forName(config.getString("metrics-registry.class-name")).newInstance.asInstanceOf[MetricRegistryFactory]
+        else
+          new DefaultMetricRegistryFactory()
 
       // Ask the custom factory for an MetricRegistry - and pass in our configuration so that an implementation
       // can add their settings in the application.conf, too.
       realFactory.metricRegistry(config)
-    }) match {
-      case Success(metricRegistry) => metricRegistry
-      case Failure(e) => {
-        // Something went wrong while using the custom factory.
+    } catch {
+      case e: Throwable =>
         logger.error("Unable to create actual factory instance", e)
-
         throw e
-      }
     }
   }
 }

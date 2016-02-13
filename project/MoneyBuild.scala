@@ -50,6 +50,7 @@ object MoneyBuild extends Build {
           Seq(
             slf4j,
             log4jbinding,
+            metricsCore,
             typesafeConfig,
             scalaTest,
             mockito
