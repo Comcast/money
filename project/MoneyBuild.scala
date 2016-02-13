@@ -240,8 +240,6 @@ object MoneyBuild extends Build {
     },
     pomIncludeRepository := { _ => false },
     pomExtra := (
-      <name>com.comcast:money</name>
-      <description>A distributed tracing framework</description>
       <url>https://github.com/Comcast/money</url>
         <licenses>
           <license>
