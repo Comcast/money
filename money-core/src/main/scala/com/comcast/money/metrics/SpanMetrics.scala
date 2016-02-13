@@ -52,10 +52,9 @@ class SpanMetricsCollector(conf: Config) extends Actor with ActorMaker with Acto
         case Some(spanMetrics) =>
           spanMetrics forward t
         case None =>
-          val metricRegistry = MetricRegistryFactory.metricRegistry(conf)
           val escapedName = t.spanName.replace(' ', '.')
           log.debug(s"Creating span metrics for span $escapedName")
-          makeActor(SpanMetrics.props(escapedName, metricRegistry), escapedName) forward t
+          makeActor(SpanMetrics.props(escapedName, MetricRegistryExtension(context.system).metricRegistry), escapedName) forward t
       }
   }
 }

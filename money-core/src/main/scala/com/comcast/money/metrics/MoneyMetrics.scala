@@ -50,7 +50,7 @@ object MoneyMetrics
   // to instantiate our Extension
   override def createExtension(system: ExtendedActorSystem) = {
 
-    val registry = MetricRegistryFactory.metricRegistry(system.settings.config)
+    val registry = MetricRegistryExtension(system).metricRegistry
     // register metrics
     val activeSpans = registry.counter("active.spans")
     val timedOutSpans = registry.counter("timed.out.spans")
