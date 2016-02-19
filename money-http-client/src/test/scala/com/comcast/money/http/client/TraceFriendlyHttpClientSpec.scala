@@ -101,18 +101,22 @@ class TraceFriendlyHttpClientSpec extends WordSpec
     "simply call the wrapped client when execute(HttpUriRequest, ResponseHandler)" in {
       underTest.execute(httpUriRequest, testHttpResponseHandler)
       verify(httpClient).execute(httpUriRequest, testHttpResponseHandler)
+      verify(httpUriRequest).setHeader("X-MoneyTrace", spanId.toHttpHeader)
     }
     "simply call the wrapped client when execute(HttpUriRequest, ResponseHandler, HttpContext)" in {
       underTest.execute(httpUriRequest, testHttpResponseHandler, httpContext)
       verify(httpClient).execute(httpUriRequest, testHttpResponseHandler, httpContext)
+      verify(httpUriRequest).setHeader("X-MoneyTrace", spanId.toHttpHeader)
     }
     "simply call the wrapped client when execute(HttpHost, HttpRequest, ResponseHandler)" in {
       underTest.execute(httpHost, httpUriRequest, testHttpResponseHandler)
       verify(httpClient).execute(httpHost, httpUriRequest, testHttpResponseHandler)
+      verify(httpUriRequest).setHeader("X-MoneyTrace", spanId.toHttpHeader)
     }
     "simply call the wrapped client when execute(HttpHost, HttpRequest, ResponseHandler, HttpContext)" in {
       underTest.execute(httpHost, httpUriRequest, testHttpResponseHandler, httpContext)
       verify(httpClient).execute(httpHost, httpUriRequest, testHttpResponseHandler, httpContext)
+      verify(httpUriRequest).setHeader("X-MoneyTrace", spanId.toHttpHeader)
     }
     "records a zero for a status code on exception" in {
       when(httpClient.execute(httpUriRequest)).thenThrow(new RuntimeException("bad"))
