@@ -27,9 +27,6 @@ import scala.util.Try
 
 object LogEmitter {
 
-  val logTemplate = "[ %s=%s ]"
-  val NULL = "NULL"
-
   def props(conf: Config): Props =
     Try {
       val emitter = conf.getString("emitter")
@@ -38,45 +35,23 @@ object LogEmitter {
       case _ => Props(classOf[LogEmitter], conf)
     }.get
 
-  def buildMessage(t: Span): String = {
-    implicit val builder = new StringBuilder()
-    builder.append("Span: ")
-    append("span-id", t.spanId.spanId)
-    append("trace-id", t.spanId.traceId)
-    append("parent-id", t.spanId.parentSpanId)
-    append("span-name", t.spanName)
-    append("app-name", Money.applicationName)
-    append("start-time", t.startTime)
-    append("span-duration", t.duration)
-    append("span-success", t.success)
-    t.notes.toList.sortBy(_._1).foreach {
-      case (name, note) => note match {
-        case n: Note[_] if n.value.isEmpty => append(n.name, NULL)
-        case n: Note[_] if n.value.isDefined => append(n.name, n.value.get.toString)
-      }
-    }
-    builder.toString()
-  }
-
   def logLevel(conf: Config): LogLevel =
     if (conf.hasPath("log-level"))
       Logging.levelFor(conf.getString("log-level")).getOrElse(Logging.WarningLevel)
     else
       Logging.WarningLevel
-
-  private def append[T](key: String, value: T)(implicit builder: StringBuilder): StringBuilder = builder
-    .append(logTemplate.format(key, value))
 }
 
 import com.comcast.money.internal.EmitterProtocol._
 
 class LogEmitter(val conf: Config) extends Actor with ActorLogging with Configurable {
 
+  private val spanLogFormatter = SpanLogFormatter(conf)
   private val level = LogEmitter.logLevel(conf)
 
   def receive = {
     case EmitSpan(t: Span) =>
-      record(LogEmitter.buildMessage(t))
+      record(spanLogFormatter.buildMessage(t))
     case metric: EmitMetricDouble =>
       record(s"${metric.metricPath}=${metric.value}")
   }
