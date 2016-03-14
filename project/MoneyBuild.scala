@@ -25,7 +25,7 @@ object MoneyBuild extends Build {
     publishLocal := {},
     publish := {}
   )
-  .aggregate(moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
+  .aggregate(moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire,moneyAwsJavaSdk)
 
   lazy val moneyCore =
     Project("money-core", file("./money-core"))
@@ -195,6 +195,24 @@ object MoneyBuild extends Build {
       )
       .dependsOn(moneyCore)
 
+  lazy val moneyAwsJavaSdk =
+    Project("money-aws-java-sdk", file("./money-aws-java-sdk"))
+      .configs(IntegrationTest)
+      .settings(projectSettings: _*)
+      .settings(
+        libraryDependencies <++= (scalaVersion) { v: String =>
+          Seq(
+            awsJavaSdk,
+            mockito,
+            junit,
+            powermockJunit,
+            powermockMockito
+          )
+        },
+        testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
+      )
+      .dependsOn(moneyCore)
+
   def projectSettings = basicSettings ++ Seq(
     ScoverageKeys.coverageHighlighting := true,
     ScoverageKeys.coverageMinimum := 90,
@@ -349,8 +367,12 @@ object MoneyBuild extends Build {
     val springAop3 = "org.springframework" % "spring-aop" % "3.2.6.RELEASE"
     val springContext = "org.springframework" % "spring-context" % "4.1.1.RELEASE"
 
+    val awsJavaSdk = "com.amazonaws" % "aws-java-sdk" % "1.10.57" % "provided"
+
     // Test
     val mockito = "org.mockito" % "mockito-core" % "1.9.5" % "test"
+    val powermockMockito = "org.powermock" % "powermock-api-mockito" % "1.6.3" % "test"
+    val powermockJunit = "org.powermock" % "powermock-module-junit4" % "1.6.3" % "test"
     val scalaTest = "org.scalatest" %% "scalatest" % "2.2.3" % "it,test"
     val junit = "junit" % "junit" % "4.11" % "test"
     val junitInterface = "com.novocode" % "junit-interface" % "0.11" % "test->default"
