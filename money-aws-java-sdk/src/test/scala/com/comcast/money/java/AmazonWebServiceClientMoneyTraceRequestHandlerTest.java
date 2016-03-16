@@ -17,34 +17,46 @@
 package com.comcast.money.java;
 
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mockito;
-import org.powermock.api.mockito.PowerMockito;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
+import org.mockito.Mock;
+import org.mockito.runners.MockitoJUnitRunner;
 
 import com.amazonaws.Request;
 import com.amazonaws.Response;
 import com.comcast.money.core.SpanId;
-import com.comcast.money.internal.SpanLocal;
-import com.comcast.money.japi.JMoney;
 
 import scala.Option;
 
-@RunWith(PowerMockRunner.class)
-@PrepareForTest({JMoney.class, SpanLocal.class, Request.class, Response.class})
+@RunWith(MockitoJUnitRunner.class)
 public class AmazonWebServiceClientMoneyTraceRequestHandlerTest {
 
     private AmazonWebServiceClientMoneyTraceRequestHandler handler;
 
     private final String clientName = "clientName";
 
+    @Mock
+    private Request<?> request;
+
+    @Mock
+    private SpanId spanId;
+
+    @Mock
+    private Exception exception;
+
+    private Response<?> response;
+
     @Before
     public void setUp() {
 
+        response = new Response<String>(null, null);
         handler = new AmazonWebServiceClientMoneyTraceRequestHandler(clientName);
     }
 
@@ -57,148 +69,101 @@ public class AmazonWebServiceClientMoneyTraceRequestHandlerTest {
     @Test
     public void testBeforeRequestRequestOfQ_moneyNotEnabled() {
 
-        PowerMockito.mockStatic(JMoney.class, SpanLocal.class);
-        Request<?> request = PowerMockito.mock(Request.class);
+        handler = spy(handler);
 
-        PowerMockito.when(JMoney.isEnabled()).thenReturn(false);
+        when(handler.isMoneyEnabled()).thenReturn(false);
 
         handler.beforeRequest(request);
 
-        PowerMockito.verifyStatic(Mockito.times(1));
-        JMoney.isEnabled();
-
-        PowerMockito.verifyZeroInteractions(SpanLocal.class, request);
+        verify(handler).isMoneyEnabled();
+        verify(handler, never()).getCurrentSpan();
+        verifyZeroInteractions(request);
     }
 
     @Test
     public void testBeforeRequestRequestOfQ_moneyEnabledCurrentSpanIdAvailable() {
 
-        PowerMockito.mockStatic(JMoney.class, SpanLocal.class);
-        Request<?> request = PowerMockito.mock(Request.class);
-        SpanId spanId = PowerMockito.mock(SpanId.class);
+        handler = spy(handler);
 
-        PowerMockito.when(JMoney.isEnabled()).thenReturn(true);
-        PowerMockito.when(SpanLocal.current()).thenReturn(Option.apply(spanId));
-        PowerMockito.when(spanId.toHttpHeader()).thenReturn("headerValue");
+        when(handler.isMoneyEnabled()).thenReturn(true);
+        when(handler.getCurrentSpan()).thenReturn(Option.apply(spanId));
+        when(spanId.toHttpHeader()).thenReturn("headerValue");
 
         handler.beforeRequest(request);
 
-        PowerMockito.verifyStatic(Mockito.times(1));
-        JMoney.isEnabled();
-
-        PowerMockito.verifyStatic(Mockito.times(1));
-        JMoney.startSpan(clientName);
-
-        PowerMockito.verifyStatic(Mockito.times(1));
-        SpanLocal.current();
-
-        Mockito.verify(spanId).toHttpHeader();
-        Mockito.verify(request).addHeader(AmazonWebServiceClientMoneyTraceRequestHandler.MONEY_TRACE_HEADER, "headerValue");;
+        verify(handler).isMoneyEnabled();
+        verify(handler).getCurrentSpan();
+        verify(spanId).toHttpHeader();
+        verify(request).addHeader(AmazonWebServiceClientMoneyTraceRequestHandler.MONEY_TRACE_HEADER, "headerValue");
     }
 
     @Test
     public void testBeforeRequestRequestOfQ_moneyEnabledCurrentSpanIdNotAvailable() {
 
-        PowerMockito.mockStatic(JMoney.class, SpanLocal.class);
-        Request<?> request = PowerMockito.mock(Request.class);
-        SpanId spanId = PowerMockito.mock(SpanId.class);
+        handler = spy(handler);
 
-        PowerMockito.when(JMoney.isEnabled()).thenReturn(true);
-        Option<SpanId> emptySpan = Option.empty();
-        PowerMockito.when(SpanLocal.current()).thenReturn(emptySpan);
+        when(handler.isMoneyEnabled()).thenReturn(true);
+        Option<SpanId> emptySpanId = Option.empty();
+        when(handler.getCurrentSpan()).thenReturn(emptySpanId);
 
         handler.beforeRequest(request);
 
-        PowerMockito.verifyStatic(Mockito.times(1));
-        JMoney.isEnabled();
-
-        PowerMockito.verifyStatic(Mockito.times(1));
-        JMoney.startSpan(clientName);
-
-        PowerMockito.verifyStatic(Mockito.times(1));
-        SpanLocal.current();
-
-        Mockito.verifyZeroInteractions(spanId, request);
+        verify(handler).isMoneyEnabled();
+        verify(handler).getCurrentSpan();
+        verify(spanId, never()).toHttpHeader();
+        verify(request, never()).addHeader(AmazonWebServiceClientMoneyTraceRequestHandler.MONEY_TRACE_HEADER, "headerValue");
     }
 
     @Test
     public void testAfterResponseRequestOfQResponseOfQ_moneyNotEnabled() {
 
-        PowerMockito.mockStatic(JMoney.class, SpanLocal.class);
-        Request<?> request = PowerMockito.mock(Request.class);
-        Response<?> response = PowerMockito.mock(Response.class);
+        handler = spy(handler);
 
-        PowerMockito.when(JMoney.isEnabled()).thenReturn(false);
+        when(handler.isMoneyEnabled()).thenReturn(false);
 
-        handler.beforeRequest(request);
+        handler.afterResponse(request, response);
 
-        PowerMockito.verifyStatic(Mockito.times(1));
-        JMoney.isEnabled();
-
-        PowerMockito.verifyNoMoreInteractions(JMoney.class);
-        PowerMockito.verifyZeroInteractions(request, response);
-
+        verify(handler).isMoneyEnabled();
+        verify(handler, never()).stopSpan(true);
     }
 
     @Test
     public void testAfterResponseRequestOfQResponseOfQ_moneyEnabled() {
 
-        PowerMockito.mockStatic(JMoney.class, SpanLocal.class);
-        Request<?> request = PowerMockito.mock(Request.class);
-        Response<?> response = PowerMockito.mock(Response.class);
+        handler = spy(handler);
 
-        PowerMockito.when(JMoney.isEnabled()).thenReturn(true);
+        when(handler.isMoneyEnabled()).thenReturn(true);
 
         handler.afterResponse(request, response);
 
-        PowerMockito.verifyStatic(Mockito.times(1));
-        JMoney.isEnabled();
-
-        PowerMockito.verifyStatic(Mockito.times(1));
-        JMoney.stopSpan(true);
-
-        PowerMockito.verifyZeroInteractions(request, response);
-
+        verify(handler).isMoneyEnabled();
+        verify(handler).stopSpan(true);
     }
 
     @Test
     public void testAfterErrorRequestOfQResponseOfQException_moneyNotEnabled() {
 
-        PowerMockito.mockStatic(JMoney.class, SpanLocal.class);
-        Request<?> request = PowerMockito.mock(Request.class);
-        Response<?> response = PowerMockito.mock(Response.class);
-        Exception exception = PowerMockito.mock(Exception.class);
+        handler = spy(handler);
 
-        PowerMockito.when(JMoney.isEnabled()).thenReturn(false);
+        when(handler.isMoneyEnabled()).thenReturn(false);
 
         handler.afterError(request, response, exception);
 
-        PowerMockito.verifyStatic(Mockito.times(1));
-        JMoney.isEnabled();
-
-        PowerMockito.verifyNoMoreInteractions(JMoney.class);
-        PowerMockito.verifyZeroInteractions(request, response);
+        verify(handler).isMoneyEnabled();
+        verify(handler, never()).stopSpan(false);
     }
 
     @Test
     public void testAfterErrorRequestOfQResponseOfQException_moneyEnabled() {
 
-        PowerMockito.mockStatic(JMoney.class, SpanLocal.class);
-        Request<?> request = PowerMockito.mock(Request.class);
-        Response<?> response = PowerMockito.mock(Response.class);
-        Exception exception = PowerMockito.mock(Exception.class);
+        handler = spy(handler);
 
-        PowerMockito.when(JMoney.isEnabled()).thenReturn(true);
+        when(handler.isMoneyEnabled()).thenReturn(true);
 
         handler.afterError(request, response, exception);
 
-        PowerMockito.verifyStatic(Mockito.times(1));
-        JMoney.isEnabled();
-
-        PowerMockito.verifyStatic(Mockito.times(1));
-        JMoney.stopSpan(false);
-
-        PowerMockito.verifyZeroInteractions(request, response);
+        verify(handler).isMoneyEnabled();
+        verify(handler).stopSpan(false);
     }
 
 }

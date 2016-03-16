@@ -204,9 +204,7 @@ object MoneyBuild extends Build {
           Seq(
             awsJavaSdk,
             mockito,
-            junit,
-            powermockJunit,
-            powermockMockito
+            junit
           )
         },
         testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
@@ -371,8 +369,6 @@ object MoneyBuild extends Build {
 
     // Test
     val mockito = "org.mockito" % "mockito-core" % "1.9.5" % "test"
-    val powermockMockito = "org.powermock" % "powermock-api-mockito" % "1.6.3" % "test"
-    val powermockJunit = "org.powermock" % "powermock-module-junit4" % "1.6.3" % "test"
     val scalaTest = "org.scalatest" %% "scalatest" % "2.2.3" % "it,test"
     val junit = "junit" % "junit" % "4.11" % "test"
     val junitInterface = "com.novocode" % "junit-interface" % "0.11" % "test->default"

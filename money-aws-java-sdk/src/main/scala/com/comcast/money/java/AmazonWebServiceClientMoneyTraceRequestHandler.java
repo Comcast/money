@@ -39,14 +39,13 @@ public class AmazonWebServiceClientMoneyTraceRequestHandler extends RequestHandl
     @Override
     public void beforeRequest(Request<?> request) {
 
-        super.beforeRequest(request);
-
-        if (!JMoney.isEnabled()) {
+        if (!isMoneyEnabled()) {
             return;
         }
 
-        JMoney.startSpan(spanName);
-        Option<SpanId> spanId = SpanLocal.current();
+        startSpan(spanName);
+
+        Option<SpanId> spanId = getCurrentSpan();
         if (spanId.isDefined()) {
             request.addHeader(MONEY_TRACE_HEADER, spanId.get().toHttpHeader());
         }
@@ -55,24 +54,40 @@ public class AmazonWebServiceClientMoneyTraceRequestHandler extends RequestHandl
     @Override
     public void afterResponse(Request<?> request, Response<?> response) {
 
-        super.afterResponse(request, response);
-
-        if (!JMoney.isEnabled()) {
+        if (!isMoneyEnabled()) {
             return;
         }
 
-        JMoney.stopSpan(true);
+        stopSpan(true);
     }
 
     @Override
     public void afterError(Request<?> request, Response<?> response, Exception e) {
 
-        super.afterError(request, response, e);
-
-        if (!JMoney.isEnabled()) {
+        if (!isMoneyEnabled()) {
             return;
         }
 
-        JMoney.stopSpan(false);
+        stopSpan(false);
+    }
+
+    protected boolean isMoneyEnabled() {
+
+        return JMoney.isEnabled();
+    }
+
+    protected void startSpan(String spanName) {
+
+        JMoney.startSpan(spanName);
+    }
+
+    protected void stopSpan(boolean status) {
+
+        JMoney.stopSpan(status);
+    }
+
+    protected Option<SpanId> getCurrentSpan() {
+
+        return SpanLocal.current();
     }
 }
