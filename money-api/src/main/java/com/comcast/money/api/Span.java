@@ -42,21 +42,19 @@ public interface Span {
 
     /**
      * Records a given note onto the span.  If the note was already present, it will be overwritten
-     * @param note
+     * @param note The note to be recorded
      */
     void record(Note<?> note);
 
     /**
      * Starts a new timer on the span
      * @param timerKey The name of the timer to start
-     * @return a new Span with the timer started
      */
     void startTimer(String timerKey);
 
     /**
      * Stops an existing timer on the span
      * @param timerKey The name of the timer
-     * @return a new Span with the timer stopped
      */
     void stopTimer(String timerKey);
 
