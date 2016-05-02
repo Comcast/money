@@ -273,4 +273,16 @@ public class Note<T> {
         result = 31 * result + (sticky ? 1 : 0);
         return result;
     }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Note(");
+        builder.append("name=").append(name);
+        builder.append(", value=").append(value.toString());
+        builder.append(", timestamp=").append(timestamp);
+        builder.append(", sticky=").append(sticky);
+        builder.append(")");
+        return builder.toString();
+    }
 }
