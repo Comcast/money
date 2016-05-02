@@ -279,7 +279,7 @@ public class Note<T> {
         StringBuilder builder = new StringBuilder();
         builder.append("Note(");
         builder.append("name=").append(name);
-        builder.append(", value=").append(value.toString());
+        builder.append(", value=").append(value == null ? "null" : value.toString());
         builder.append(", timestamp=").append(timestamp);
         builder.append(", sticky=").append(sticky);
         builder.append(")");
