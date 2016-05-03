@@ -234,7 +234,7 @@ object MoneyBuild extends Build {
       "-Xlint:unchecked",
       "-Xlint:deprecation",
       "-Xlint:-options"),
-    javacOptions in doc := Seq("-source", "1.6"),
+    javacOptions in (Compile, doc) := Seq("-source", "1.6"),
     scalacOptions ++= Seq(
       "-unchecked",
       "-deprecation",

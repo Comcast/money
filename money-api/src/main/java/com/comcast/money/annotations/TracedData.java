@@ -24,10 +24,10 @@ import java.lang.annotation.Target;
 /**
  * For use on method parameters where the method
  * is annotated with {@link Traced}
- * <p/>
+ * <p>
  * By including this annotation on a parameter, the parameter name
  * and value will be added to the request trace before the method is called.
- * <p/>
+ * <p>
  * This is equivalent to calling requestTracer.addTracingData at the beginning
  * of a method
  * <pre>

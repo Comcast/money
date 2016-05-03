@@ -21,14 +21,13 @@ package com.comcast.money.api;
  * <p>
  *     When a {@link Span} is stopped, the resulting span is passed to the SpanHandler for processing.  Useful
  *     processing includes things like logging the span, or sending the span to Graphite.
- * </p>
  */
 public interface SpanHandler {
 
     /**
      * Handles a span that has been stopped.
      *
-     * @param {@link SpanInfo} that contains the information for the completed span
+     * @param span {@link SpanInfo} that contains the information for the completed span
      */
     void handle(SpanInfo span);
 }
