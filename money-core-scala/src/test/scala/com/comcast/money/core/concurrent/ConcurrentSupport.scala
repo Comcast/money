@@ -19,7 +19,7 @@ package com.comcast.money.core.concurrent
 import java.util.concurrent.Callable
 
 import com.comcast.money.api.SpanId
-import com.comcast.money.core.internal.SpanLocal
+import com.comcast.money.core.internal.{ SpanLocal, SpanThreadLocal }
 
 trait ConcurrentSupport {
 
@@ -38,7 +38,7 @@ trait SpanAware {
   def spanId: Option[SpanId] = savedSpanId
 
   def captureCurrentSpan(): Option[SpanId] = {
-    savedSpanId = SpanLocal.current.map(_.info.id)
+    savedSpanId = SpanThreadLocal.current.map(_.info.id)
     savedSpanId
   }
 }

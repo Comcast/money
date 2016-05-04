@@ -20,6 +20,7 @@ import java.net.InetAddress
 
 import com.comcast.money.api.{ SpanFactory, SpanHandler }
 import com.comcast.money.core.handlers.HandlerChain
+import com.comcast.money.core.internal.ThreadLocalSpanTracer
 import com.typesafe.config.{ Config, ConfigFactory }
 
 case class Money(
@@ -44,7 +45,7 @@ object Money {
     if (enabled) {
       val handler = HandlerChain(conf.getConfig("handling"))
       val factory: SpanFactory = new CoreSpanFactory(handler)
-      val tracer = new Tracer {
+      val tracer = new Tracer with ThreadLocalSpanTracer {
         override val spanFactory: SpanFactory = factory
       }
       val logExceptions = conf.getBoolean("log-exceptions")
@@ -55,6 +56,6 @@ object Money {
 
   }
 
-  private def disabled(applicationName: String, hostName: String): Money =
+  def disabled(applicationName: String, hostName: String): Money =
     Money(false, DisabledSpanHandler, applicationName, hostName, DisabledSpanFactory, DisabledTracer)
 }

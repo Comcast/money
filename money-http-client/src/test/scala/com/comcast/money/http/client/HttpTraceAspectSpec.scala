@@ -21,7 +21,7 @@ import java.io.{ ByteArrayInputStream, InputStream }
 import com.comcast.money.annotations.Traced
 import com.comcast.money.api.SpanId
 import com.comcast.money.core._
-import com.comcast.money.core.internal.SpanLocal
+import com.comcast.money.core.internal.{ SpanLocal, SpanThreadLocal }
 import org.apache.http._
 import org.apache.http.client.methods.HttpUriRequest
 import org.apache.http.client.{ HttpClient, ResponseHandler }
@@ -50,6 +50,7 @@ class HttpTraceAspectSpec
   val mockHttpEntity: HttpEntity = mock[HttpEntity]
   val mockHttpResponseHandler: ResponseHandler[String] = mock[ResponseHandler[String]]
   val responseEntityStream: InputStream = new ByteArrayInputStream("test-response".getBytes)
+  val SpanLocal = SpanThreadLocal
 
   // -- SAMPLE METHODS WEAVED BY OUR ASPECT
   @Traced("methodWithHttpCallUsingEntityUtils")

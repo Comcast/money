@@ -19,8 +19,8 @@ package com.comcast.money.http.client
 import java.io.Closeable
 
 import com.comcast.money.api.SpanId
-import com.comcast.money.core.{ Formatters => CoreSpanId, SpecHelpers, Tracer }
-import com.comcast.money.core.internal.SpanLocal
+import com.comcast.money.core.{ SpecHelpers, Tracer, Formatters => CoreSpanId }
+import com.comcast.money.core.internal.{ SpanLocal, SpanThreadLocal }
 import org.apache.http.client.methods.{ CloseableHttpResponse, HttpUriRequest }
 import org.apache.http.client.{ HttpClient, ResponseHandler }
 import org.apache.http.impl.client.CloseableHttpClient
@@ -40,6 +40,7 @@ class TraceFriendlyHttpClientSpec extends WordSpec with SpecHelpers
   val httpHost = new HttpHost("localhost")
   val httpContext = mock[HttpContext]
   val spanId = new SpanId()
+  val SpanLocal = SpanThreadLocal
 
   when(httpResponse.getStatusLine).thenReturn(statusLine)
   when(statusLine.getStatusCode).thenReturn(200)

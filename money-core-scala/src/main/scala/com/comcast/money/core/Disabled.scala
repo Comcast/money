@@ -17,6 +17,7 @@
 package com.comcast.money.core
 
 import com.comcast.money.api._
+import com.comcast.money.core.internal.ThreadLocalSpanTracer
 
 // $COVERAGE-OFF
 object DisabledSpanHandler extends SpanHandler {
@@ -24,7 +25,7 @@ object DisabledSpanHandler extends SpanHandler {
   def handle(spanInfo: SpanInfo): Unit = ()
 }
 
-object DisabledTracer extends Tracer {
+object DisabledTracer extends Tracer with ThreadLocalSpanTracer {
 
   val spanFactory: SpanFactory = DisabledSpanFactory
 

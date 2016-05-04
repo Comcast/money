@@ -19,12 +19,14 @@ package com.comcast.money.core
 import java.io.Closeable
 
 import com.comcast.money.api.{ Note, Span, SpanFactory }
+import com.comcast.money.core.internal.SpanLocal
 
 /**
  * Primary API to be used for tracing
  */
 trait Tracer extends Closeable {
 
+  val SpanLocal: SpanLocal
   val spanFactory: SpanFactory
 
   /**

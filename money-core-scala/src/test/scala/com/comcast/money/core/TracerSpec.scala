@@ -16,14 +16,14 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ Note, SpanId, Span, SpanFactory }
+import com.comcast.money.api.{ Note, Span, SpanFactory, SpanId }
 import com.comcast.money.core.handlers.TestData
-import com.comcast.money.core.internal.SpanLocal
+import com.comcast.money.core.internal.{ SpanLocal, SpanThreadLocal, ThreadLocalSpanTracer }
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{ OneInstancePerTest, BeforeAndAfterEach, Matchers, WordSpec }
+import org.scalatest.{ BeforeAndAfterEach, Matchers, OneInstancePerTest, WordSpec }
 
 class TracerSpec extends WordSpec
     with Matchers with MockitoSugar with TestData with BeforeAndAfterEach with OneInstancePerTest {
@@ -31,9 +31,11 @@ class TracerSpec extends WordSpec
   val mockSpanFactory = mock[SpanFactory]
   val mockSpan = mock[Span]
   val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
-  val underTest = new Tracer {
+  val underTest = new Tracer with ThreadLocalSpanTracer {
     val spanFactory = mockSpanFactory
   }
+
+  val SpanLocal: SpanLocal = SpanThreadLocal
 
   override def beforeEach() = {
     SpanLocal.clear()

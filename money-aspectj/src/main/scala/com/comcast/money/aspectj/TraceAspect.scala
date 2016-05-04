@@ -18,7 +18,7 @@ package com.comcast.money.aspectj
 
 import com.comcast.money.annotations.{ Timed, Traced }
 import com.comcast.money.core._
-import com.comcast.money.core.internal.MDCSupport
+import com.comcast.money.core.internal.{ MDCSupport, ThreadLocalSpanTracer }
 import com.comcast.money.core.logging.TraceLogging
 import com.comcast.money.core.reflect.Reflections
 import org.aspectj.lang.annotation.{ Around, Aspect, Pointcut }
@@ -26,7 +26,7 @@ import org.aspectj.lang.reflect.MethodSignature
 import org.aspectj.lang.{ JoinPoint, ProceedingJoinPoint }
 
 @Aspect
-class TraceAspect extends Reflections with TraceLogging {
+class TraceAspect extends Reflections with TraceLogging with ThreadLocalSpanTracer {
 
   val tracer: Tracer = Money.Environment.tracer
   val mdcSupport: MDCSupport = new MDCSupport()
