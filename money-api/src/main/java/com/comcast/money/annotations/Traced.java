@@ -23,11 +23,11 @@ import java.lang.annotation.*;
  * <p>
  * This annotation can be used on any method that you want to trace.  Typically this will be
  * used on the controller to indicate a new request trace, as well as external service methods
- * <p>
+ * </p><p>
  * Before the method is called, the a new trace will be started.  If there is an existing
  * trace in context, the existing trace will automatically become the parent trace for the new trace
  * After the method completes, even on exception, the tracer will stop tracing.
- * <p>
+ * </p>
  * <pre>
  *     {@code
  *     {@literal @}Traced

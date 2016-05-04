@@ -27,10 +27,10 @@ import java.lang.annotation.Target;
  * <p>
  * By including this annotation on a parameter, the parameter name
  * and value will be added to the request trace before the method is called.
- * <p>
+ * </p><p>
  * This is equivalent to calling requestTracer.addTracingData at the beginning
  * of a method
- * <pre>
+ * </p><pre>
  *     {@code
  *     {@literal @}Traced
  *      public void measureMePlease(@TracedData("TracMe") String traceMe) {
