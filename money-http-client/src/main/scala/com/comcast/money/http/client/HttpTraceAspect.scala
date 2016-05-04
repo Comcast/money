@@ -18,14 +18,14 @@ package com.comcast.money.http.client
 
 import com.comcast.money.annotations.Traced
 import com.comcast.money.core.{ Formatters, Money, Tracer }
-import com.comcast.money.core.internal.SpanLocal
+import com.comcast.money.core.internal.ThreadLocalSpanTracer
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.HttpUriRequest
 import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.{ Around, Aspect, Before, Pointcut }
 
 @Aspect
-class HttpTraceAspect {
+class HttpTraceAspect extends ThreadLocalSpanTracer {
 
   import HttpTraceConfig._
 

@@ -21,7 +21,7 @@ import javax.servlet.http.{ HttpServletRequest, HttpServletRequestWrapper, HttpS
 
 import com.comcast.money.core.Formatters._
 import com.comcast.money.core.Money
-import com.comcast.money.core.internal.SpanLocal
+import com.comcast.money.core.internal.ThreadLocalSpanTracer
 import org.slf4j.LoggerFactory
 
 import scala.util.{ Failure, Success }
@@ -30,7 +30,7 @@ import scala.util.{ Failure, Success }
  * A Java Servlet 2.5 Filter.  Examines the inbound http request, and will set the
  * trace context for the request if the money trace header is found
  */
-class TraceFilter extends Filter {
+class TraceFilter extends Filter with ThreadLocalSpanTracer {
 
   private val MoneyTraceHeader = "X-MoneyTrace"
   private val logger = LoggerFactory.getLogger(classOf[TraceFilter])

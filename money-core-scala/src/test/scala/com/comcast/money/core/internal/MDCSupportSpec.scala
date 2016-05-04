@@ -28,7 +28,7 @@ class MDCSupportSpec extends WordSpec with Matchers with BeforeAndAfterEach with
   val spanId = new SpanId()
 
   override def beforeEach() = {
-    SpanLocal.clear()
+    SpanThreadLocal.clear()
   }
 
   "MDCSupport" should {

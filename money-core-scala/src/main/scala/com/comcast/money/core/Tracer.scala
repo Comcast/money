@@ -26,6 +26,7 @@ import com.comcast.money.core.internal.SpanLocal
  */
 trait Tracer extends Closeable {
 
+  val SpanLocal: SpanLocal
   val spanFactory: SpanFactory
 
   /**

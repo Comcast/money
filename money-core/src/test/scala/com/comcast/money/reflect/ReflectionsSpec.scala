@@ -24,6 +24,8 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ Matchers, OneInstancePerTest, WordSpec }
+import com.comcast.money.internal.SpanLocal
+import com.comcast.money.internal.SpanThreadLocal
 
 class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneInstancePerTest {
 
@@ -31,6 +33,7 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
 
   val testReflections = new Reflections {
     val tracer: Tracer = mockTracer
+    val spanLocal: SpanLocal = SpanThreadLocal
   }
 
   val samples = new Samples()

@@ -20,7 +20,7 @@ import java.util.concurrent.{ Callable, ExecutorService }
 
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.SpecHelpers
-import com.comcast.money.core.internal.SpanLocal
+import com.comcast.money.core.internal.{ SpanLocal, SpanThreadLocal }
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ Matchers, OneInstancePerTest, WordSpecLike }
 import org.slf4j.MDC
@@ -30,6 +30,7 @@ class TraceFriendlyThreadPoolExecutorSpec
     with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest with SpecHelpers {
 
   val executor: ExecutorService = TraceFriendlyThreadPoolExecutor.newCachedThreadPool
+  val SpanLocal: SpanLocal = SpanThreadLocal
 
   "TraceFriendlyThreadPoolExecutor cachedThreadPool" should {
     "propagate the current span local value" in {
