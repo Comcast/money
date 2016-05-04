@@ -46,8 +46,11 @@ object MoneyBuild extends Build {
       .configs( IntegrationTest )
       .settings(projectSettings: _*)
       .settings(
-        libraryDependencies ++= {
+        libraryDependencies <++= (scalaVersion) { v: String =>
           Seq(
+            akkaActor(v),
+            akkaSlf4j(v),
+            akkaTestkit(v),
             slf4j,
             log4jbinding,
             metricsCore,

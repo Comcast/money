@@ -268,10 +268,7 @@ trait Tracer extends Closeable {
    * @param result The result of the span, this will be Result.success or Result.failed
    */
   def stopSpan(result: Boolean = true): Unit = {
-    SpanLocal.pop() foreach {
-      span =>
-        span.stop(result)
-    }
+    SpanLocal.pop() foreach (_.stop(result))
   }
 
   /**
