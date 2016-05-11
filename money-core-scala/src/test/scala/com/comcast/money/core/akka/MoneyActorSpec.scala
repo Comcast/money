@@ -16,8 +16,9 @@
 
 package com.comcast.money.core.akka
 
-import com.comcast.money.api.{ Span, SpanId }
-import com.comcast.money.core.CoreSpan
+import com.comcast.money.api.{ Span, SpanFactory, SpanId }
+import com.comcast.money.core.{ CoreSpan, Tracer }
+import com.comcast.money.core.akka.SpanCarrier.`X-MoneyTrace`
 import com.comcast.money.core.handlers.HandlerChain
 import org.scalatest._
 import org.scalatest.mock.MockitoSugar
@@ -96,6 +97,25 @@ class MoneyActorSpec extends WordSpecLike with Matchers with BeforeAndAfterEach 
 
       // It is the same stack - thus they should add up
       SpanCarrier.Implicits.root.spanId.size should be(2)
+    }
+
+    "support a Spray header" in {
+      val spanCarrier = new RootSpanCarrier()
+      spanCarrier.push(new CoreSpan(new SpanId("traceId", 23, 42), "StringTest", new HandlerChain(List())))
+
+      val underTest = `X-MoneyTrace`(spanCarrier)
+      underTest.toString should be("X-MoneyTrace: trace-id=traceId;parent-id=23;span-id=42")
+    }
+
+    "support an empty Spray header" in {
+      val spanCarrier = new RootSpanCarrier()
+      val tracer = new Tracer {
+        override val SpanLocal = spanCarrier
+        override val spanFactory = mock[SpanFactory]
+      }
+
+      val underTest = `X-MoneyTrace`(tracer)
+      underTest.toString should be("X-MoneyTrace: ")
     }
   }
 }

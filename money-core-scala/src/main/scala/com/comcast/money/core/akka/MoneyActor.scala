@@ -19,8 +19,9 @@ package com.comcast.money.core.akka
 import scala.collection.mutable.{ Buffer, Stack }
 import akka.actor.{ Actor, ActorSystem }
 import com.comcast.money.api.Span
-import com.comcast.money.core.Tracer
+import com.comcast.money.core.{ DisabledSpan, Formatters, Tracer, Tracers }
 import com.comcast.money.core.internal.SpanLocal
+import spray.http.{ HttpHeader, Rendering }
 
 import scala.collection.IterableLike
 
@@ -93,6 +94,23 @@ object SpanCarrier {
     val tracer = MoneyExtension(system).tracer(spanCarrier)
     tracer.startSpan(spanName)
     try f(tracer) finally tracer.stopSpan(true)
+  }
+
+  case class `X-MoneyTrace`(span: Span) extends HttpHeader {
+    /* Inspired by RawHeader */
+    override val name = "X-MoneyTrace"
+    override val value = span match {
+      case DisabledSpan => ""
+      case _ => Formatters.toHttpHeader(span.info.id)
+    }
+    val lowercaseName = name.toLowerCase
+    def render[R <: Rendering](r: R): r.type = r ~~ name ~~ ':' ~~ ' ' ~~ value
+  }
+
+  object `X-MoneyTrace` {
+    def apply(span: Option[Span]): `X-MoneyTrace` = `X-MoneyTrace`(span.getOrElse(DisabledSpan))
+    def apply(implicit spanCarrier: SpanCarrier): `X-MoneyTrace` = apply(spanCarrier.current)
+    def apply(tracer: Tracer): `X-MoneyTrace` = apply(tracer.SpanLocal.current)
   }
 }
 
