@@ -207,7 +207,8 @@ object MoneyBuild extends Build {
             junit
           )
         },
-        testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
+        testOptions += Tests.Argument(TestFrameworks.JUnit, "-v"),
+        javacOptions in doc := Seq("-source", "1.6")
       )
       .dependsOn(moneyCore)
 
@@ -236,7 +237,7 @@ object MoneyBuild extends Build {
       "-Xlint:unchecked",
       "-Xlint:deprecation",
       "-Xlint:-options"),
-    javacOptions in doc := Seq("-source", "1.6"),
+    javacOptions in (Compile, doc) := Seq("-source", "1.6"),
     scalacOptions ++= Seq(
       "-unchecked",
       "-deprecation",
