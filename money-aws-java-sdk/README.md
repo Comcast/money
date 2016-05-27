@@ -22,14 +22,6 @@ Add a dependency as follows for maven:
    </dependency>
 ```
 
-And here is a dependency for SBT:
-
-```scala
-    resolvers += "CIM Nexus Repository" at "http://repo.dev.cim.comcast.net/nexus/content/repositories/releases"
-
-    libraryDependencies += "com.comcast.money" %% "money-aws-java-sdk" % "0.8.14"
-```
-
 Then in your application, when you instantiate the AmazonDynamoDBClient, add one line of code:
 
 ```java
