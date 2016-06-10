@@ -16,7 +16,7 @@
 
 package com.comcast.money.spring3
 
-import com.comcast.money.api.Note
+import com.comcast.money.api.{ Note, SpanId }
 import com.comcast.money.core._
 import com.comcast.money.core.internal.ThreadLocalSpanTracer
 import org.springframework.stereotype.Component
@@ -50,7 +50,7 @@ class SpringTracer extends Tracer with ThreadLocalSpanTracer {
    * }}}
    * @param key an identifier for the span
    */
-  override def startSpan(key: String): Unit = tracer.startSpan(key)
+  override def startSpan(key: String, spanId: Option[SpanId] = None): Unit = tracer.startSpan(key, spanId)
 
   /**
    * Captures a timestamp for the key provided on the current Span if present.  If a Span is present, a Note

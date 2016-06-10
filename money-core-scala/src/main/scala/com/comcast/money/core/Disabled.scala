@@ -16,6 +16,8 @@
 
 package com.comcast.money.core
 
+import java.util.Collections
+
 import com.comcast.money.api._
 import com.comcast.money.core.internal.ThreadLocalSpanTracer
 
@@ -29,7 +31,7 @@ object DisabledTracer extends Tracer with ThreadLocalSpanTracer {
 
   val spanFactory: SpanFactory = DisabledSpanFactory
 
-  override def startSpan(key: String): Unit = ()
+  override def startSpan(key: String, spanId: Option[SpanId] = None): Unit = ()
 
   override def time(key: String): Unit = ()
 
@@ -86,5 +88,33 @@ object DisabledSpan extends Span {
   def startTimer(timerKey: String): Unit = ()
 
   def info(): SpanInfo = null
+}
+
+object NilSpanInfo extends SpanInfo {
+  def notes = Collections.emptyMap[String, Note[_]]
+
+  def startTimeMillis = 0L
+
+  def startTimeMicros = 0L
+
+  def endTimeMillis = 0L
+
+  def endTimeMicros = 0L
+
+  def success = false
+
+  def id = NilSpanId
+
+  def name = ""
+
+  def durationMicros() = 0L
+
+  def appName = ""
+
+  def host = ""
+}
+
+object NilSpanId extends SpanId("", 0L, 0L) {
+  override def newChildId: SpanId = throw new IllegalStateException()
 }
 // $COVERAGE-ON$

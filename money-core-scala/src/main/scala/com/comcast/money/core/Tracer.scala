@@ -18,7 +18,7 @@ package com.comcast.money.core
 
 import java.io.Closeable
 
-import com.comcast.money.api.{ Note, Span, SpanFactory }
+import com.comcast.money.api.{ Note, Span, SpanFactory, SpanId }
 import com.comcast.money.core.internal.SpanLocal
 
 /**
@@ -45,13 +45,14 @@ trait Tracer extends Closeable {
    * }}}
    * @param key an identifier for the span
    */
-  def startSpan(key: String) = {
+  def startSpan(key: String, spanId: Option[SpanId] = None) = {
     val child = SpanLocal.current
       .map { existingSpan =>
         spanFactory.childSpan(key, existingSpan)
       }
       .getOrElse(
-        spanFactory.newSpan(key)
+        spanId.map(id => spanFactory.newSpan(id, key))
+          .getOrElse(spanFactory.newSpan(key))
       )
 
     SpanLocal.push(child)

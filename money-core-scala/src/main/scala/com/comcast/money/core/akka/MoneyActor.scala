@@ -84,6 +84,7 @@ trait SpanCarrier extends SpanLocal with IterableLike[SpanCarrier, SpanCarrier] 
 object SpanCarrier {
   /** Just a global SpanCarrier to be used in test cases or simmilar */
   def root: SpanCarrier = Implicits.root
+
   /* Pattern inspired by scala.concurrent.ExecutionContext */
   object Implicits {
     implicit lazy val root: SpanCarrier = new RootSpanCarrier
@@ -102,12 +103,12 @@ object SpanCarrier {
  *
  * It is a stack-like structure with a parent stack.
  */
-class BaseSpanCarrier(implicit parentSpanCarrier: SpanCarrier) extends SpanCarrier {
+abstract class BaseSpanCarrier(implicit parentSpanCarrier: SpanCarrier) extends SpanCarrier {
   parent = Some(parentSpanCarrier)
 }
 
 /** Wrapper around {@code SpanCarrier} for better naming */
-class RootSpanCarrier extends SpanCarrier {
+abstract class RootSpanCarrier extends SpanCarrier {
 }
 
 trait MoneyActor {
