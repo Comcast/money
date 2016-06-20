@@ -21,7 +21,7 @@ import java.io.{ ByteArrayInputStream, InputStream }
 import com.comcast.money.annotations.Traced
 import com.comcast.money.api.SpanId
 import com.comcast.money.core._
-import com.comcast.money.core.internal.{ SpanLocal, SpanThreadLocal }
+import com.comcast.money.core.internal.{ SpanContext, SpanThreadLocal }
 import org.apache.http._
 import org.apache.http.client.methods.HttpUriRequest
 import org.apache.http.client.{ HttpClient, ResponseHandler }

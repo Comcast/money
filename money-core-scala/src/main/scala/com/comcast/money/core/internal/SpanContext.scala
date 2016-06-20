@@ -20,7 +20,7 @@ import com.comcast.money.api.Span
 
 import scala.collection.mutable.Stack
 
-trait SpanLocal {
+trait SpanContext {
   def current(): Option[Span]
   def push(span: Span): Unit
   def pop(): Option[Span]
@@ -28,14 +28,14 @@ trait SpanLocal {
 }
 
 trait ThreadLocalSpanTracer {
-  val SpanLocal: SpanLocal = SpanThreadLocal
+  val spanContext: SpanContext = SpanThreadLocal
 }
 
 /**
  * Provides a thread local context for storing SpanIds.  Keeps a stack of trace ids so that we
  * an roll back to the parent once a span completes
  */
-object SpanThreadLocal extends SpanLocal {
+object SpanThreadLocal extends SpanContext {
 
   // A stack of span ids for the current thread
   private[this] val threadLocalCtx = new ThreadLocal[Stack[Span]]
@@ -44,11 +44,11 @@ object SpanThreadLocal extends SpanLocal {
 
   import mdcSupport._
 
-  override def current: Option[Span] = {
+  def current: Option[Span] = {
     Option(threadLocalCtx.get).flatMap(_.headOption)
   }
 
-  override def push(span: Span): Unit = {
+  def push(span: Span): Unit = {
     if (span != null) {
       Option(threadLocalCtx.get) match {
         case Some(stack) =>
@@ -61,7 +61,7 @@ object SpanThreadLocal extends SpanLocal {
     }
   }
 
-  override def pop(): Option[Span] = {
+  def pop(): Option[Span] = {
     Option(threadLocalCtx.get).map {
       stack =>
         // remove the current span in scope for this thread
@@ -77,7 +77,7 @@ object SpanThreadLocal extends SpanLocal {
   /**
    * Clears the entire call stack for the thread
    */
-  override def clear() = {
+  def clear() = {
     if (threadLocalCtx != null) {
       threadLocalCtx.remove()
     }

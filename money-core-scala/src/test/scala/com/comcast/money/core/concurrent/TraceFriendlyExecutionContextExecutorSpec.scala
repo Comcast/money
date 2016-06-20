@@ -18,7 +18,7 @@ package com.comcast.money.core.concurrent
 
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.SpecHelpers
-import com.comcast.money.core.internal.{ SpanLocal, SpanThreadLocal }
+import com.comcast.money.core.internal.{ SpanContext, SpanThreadLocal }
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ BeforeAndAfterEach, Matchers, OneInstancePerTest, WordSpec }
@@ -36,7 +36,7 @@ class TraceFriendlyExecutionContextExecutorSpec extends WordSpec
     with BeforeAndAfterEach {
 
   import com.comcast.money.core.concurrent.TraceFriendlyExecutionContextExecutor.Implicits.global
-  val SpanLocal: SpanLocal = SpanThreadLocal
+  val SpanLocal: SpanContext = SpanThreadLocal
 
   override def beforeEach() = {
     SpanLocal.clear()

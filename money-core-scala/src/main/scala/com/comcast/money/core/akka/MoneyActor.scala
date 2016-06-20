@@ -16,17 +16,21 @@
 
 package com.comcast.money.core.akka
 
-import scala.collection.mutable.{ Buffer, Stack }
+import scala.collection.mutable.{ Buffer }
+import scala.collection.immutable.{ Stack }
 import akka.actor.{ Actor, ActorSystem }
 import com.comcast.money.api.Span
 import com.comcast.money.core.Tracer
-import com.comcast.money.core.internal.SpanLocal
+import com.comcast.money.core.internal.SpanContext
 
 import scala.collection.IterableLike
 
-/** Stack-like structure to collect Spans.  */
-trait SpanCarrier extends SpanLocal with IterableLike[SpanCarrier, SpanCarrier] {
-  protected[akka] var spanId: Stack[Span] = new Stack()
+/**
+ * This class provides a stack-like structure to collect Spans.
+ * This allows to refer to sub-spans and keeping all the storage in this class
+ */
+trait SpanCarrier extends SpanContext with IterableLike[SpanCarrier, SpanCarrier] {
+  protected[akka] var spanId: Stack[Span] = Stack()
   protected[akka] var parent: Option[SpanCarrier] = None
 
   override def current: Option[Span] = spanId.headOption orElse (parent.flatMap(_.current))
@@ -41,11 +45,11 @@ trait SpanCarrier extends SpanLocal with IterableLike[SpanCarrier, SpanCarrier] 
   }
 
   override def push(span: Span): Unit = {
-    spanId.push(span)
+    spanId = spanId.push(span)
   }
 
   override def clear() = {
-    spanId = new Stack()
+    spanId = Stack()
     parent = None
   }
 
@@ -108,7 +112,7 @@ abstract class BaseSpanCarrier(implicit parentSpanCarrier: SpanCarrier) extends 
 }
 
 /** Wrapper around {@code SpanCarrier} for better naming */
-abstract class RootSpanCarrier extends SpanCarrier {
+class RootSpanCarrier extends SpanCarrier {
 }
 
 trait MoneyActor {

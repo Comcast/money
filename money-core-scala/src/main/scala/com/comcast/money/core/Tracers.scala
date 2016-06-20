@@ -16,7 +16,7 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.core.internal.SpanLocal
+import com.comcast.money.core.internal.SpanContext
 import com.comcast.money.core.logging.TraceLogging
 
 object Tracers extends TraceLogging {

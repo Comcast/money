@@ -42,12 +42,12 @@ class TraceFilter extends Filter with ThreadLocalSpanTracer {
 
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = {
 
-    SpanLocal.clear()
+    spanContext.clear()
     val httpRequest = new HttpServletRequestWrapper(request.asInstanceOf[HttpServletRequest])
     val incomingTraceId = Option(httpRequest.getHeader(MoneyTraceHeader)) map { incTrcaceId =>
       // attempt to parse the incoming trace id (its a Try)
       fromHttpHeader(incTrcaceId) match {
-        case Success(spanId) => SpanLocal.push(factory.newSpan(spanId, "servlet"))
+        case Success(spanId) => spanContext.push(factory.newSpan(spanId, "servlet"))
         case Failure(ex) => logger.warn("Unable to parse money trace for request header '{}'", incTrcaceId)
       }
       incTrcaceId

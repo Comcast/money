@@ -20,7 +20,7 @@ import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
 import javax.servlet.{ FilterChain, FilterConfig }
 
 import com.comcast.money.api.SpanId
-import com.comcast.money.core.internal.{ SpanLocal, SpanThreadLocal }
+import com.comcast.money.core.internal.{ SpanContext, SpanThreadLocal }
 import org.mockito.Mockito._
 import org.scalatest.OptionValues._
 import org.scalatest.mock.MockitoSugar

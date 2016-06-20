@@ -25,7 +25,7 @@ import org.slf4j.MDC
 class SpanLocalSpec extends WordSpec
     with Matchers with OneInstancePerTest with BeforeAndAfterEach with MockitoSugar with TestData {
 
-  val SpanLocal: SpanLocal = SpanThreadLocal
+  val SpanLocal: SpanContext = SpanThreadLocal
 
   override def afterEach() = {
     SpanLocal.clear()

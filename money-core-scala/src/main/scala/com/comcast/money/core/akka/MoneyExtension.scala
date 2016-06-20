@@ -26,14 +26,11 @@ import com.comcast.money.core.{ CoreSpanFactory, Money, Tracer }
 import com.typesafe.config.{ Config, ConfigFactory, ConfigValue, ConfigValueFactory }
 
 object MoneyExtension extends ExtensionId[MoneyExtensionImpl] with ExtensionIdProvider {
-  //The lookup method is required by ExtensionIdProvider,
-  // so we return ourselves here, this allows us
-  // to configure our extension to be loaded when
-  // the ActorSystem starts up
+  /* The lookup method is required by ExtensionIdProvider, so we return ourselves here, this
+   * allows us to configure our extension to be loaded when the ActorSystem starts up */
   override def lookup = MoneyExtension
 
-  //This method will be called by Akka
-  // to instantiate our Extension
+  // This method will be called by Akka to instantiate our Extension
   override def createExtension(system: ExtendedActorSystem): MoneyExtensionImpl =
     new MoneyExtensionImpl(system.settings.config.getConfig("money"))
 
@@ -41,8 +38,7 @@ object MoneyExtension extends ExtensionId[MoneyExtensionImpl] with ExtensionIdPr
 }
 
 class MoneyExtensionImpl(originalConf: Config) extends Extension {
-  // Since this Extension is a shared instance
-  // per ActorSystem we need to be threadsafe
+  // Since this Extension is a shared instance per ActorSystem we need to be threadsafe
   private val conf = originalConf.withValue(
     "mdc.enabled",
     ConfigValueFactory.fromAnyRef(false, "SLF4J's MDC is not supported in an actor system")
@@ -57,7 +53,7 @@ class MoneyExtensionImpl(originalConf: Config) extends Extension {
     val factory: SpanFactory = new CoreSpanFactory(handler)
     def tracer(spanCarrier: SpanCarrier): Tracer = {
       new Tracer {
-        override val SpanLocal = spanCarrier
+        override val spanContext = spanCarrier
         override val spanFactory: SpanFactory = factory
       }
     }

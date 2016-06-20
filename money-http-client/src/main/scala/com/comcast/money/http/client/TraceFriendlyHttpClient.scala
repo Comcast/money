@@ -57,7 +57,7 @@ object TraceFriendlyHttpSupport extends ThreadLocalSpanTracer {
   def addTraceHeader(httpRequest: HttpRequest) {
 
     if (httpRequest != null) {
-      SpanLocal.current.foreach {
+      spanContext.current.foreach {
         span =>
           httpRequest.setHeader("X-MoneyTrace", Formatters.toHttpHeader(span.info.id))
       }

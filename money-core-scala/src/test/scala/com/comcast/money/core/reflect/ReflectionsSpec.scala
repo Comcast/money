@@ -19,7 +19,7 @@ package com.comcast.money.core.reflect
 import com.comcast.money.annotations.TracedData
 import com.comcast.money.api.Note
 import com.comcast.money.core._
-import com.comcast.money.core.internal.{ SpanLocal, SpanThreadLocal }
+import com.comcast.money.core.internal.{ SpanContext, SpanThreadLocal }
 import com.sun.istack.internal.NotNull
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
@@ -33,7 +33,7 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
   val testReflections = new Reflections {
     val tracer: Tracer = mockTracer
   }
-  val spanLocal: SpanLocal = SpanThreadLocal
+  val spanLocal: SpanContext = SpanThreadLocal
 
   val samples = new Samples()
   val clazz = samples.getClass

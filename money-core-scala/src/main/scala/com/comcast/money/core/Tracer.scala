@@ -19,14 +19,14 @@ package com.comcast.money.core
 import java.io.Closeable
 
 import com.comcast.money.api.{ Note, Span, SpanFactory, SpanId }
-import com.comcast.money.core.internal.SpanLocal
+import com.comcast.money.core.internal.SpanContext
 
 /**
  * Primary API to be used for tracing
  */
 trait Tracer extends Closeable {
 
-  val SpanLocal: SpanLocal
+  val spanContext: SpanContext
   val spanFactory: SpanFactory
 
   /**
@@ -43,10 +43,11 @@ trait Tracer extends Closeable {
    *    }
    *  }
    * }}}
+   *
    * @param key an identifier for the span
    */
   def startSpan(key: String, spanId: Option[SpanId] = None) = {
-    val child = SpanLocal.current
+    val child = spanContext.current
       .map { existingSpan =>
         spanFactory.childSpan(key, existingSpan)
       }
@@ -55,7 +56,7 @@ trait Tracer extends Closeable {
           .getOrElse(spanFactory.newSpan(key))
       )
 
-    SpanLocal.push(child)
+    spanContext.push(child)
     child.start()
   }
 
@@ -70,6 +71,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the timestamp being captured
    */
   def time(key: String) = withSpan { span =>
@@ -87,6 +89,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
@@ -105,6 +108,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    * @param propogate propogate to children
@@ -124,6 +128,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
@@ -142,6 +147,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    * @param propogate propogate to children
@@ -161,6 +167,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
@@ -179,6 +186,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    * @param propogate propogate to children
@@ -198,6 +206,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
@@ -216,6 +225,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    * @param propogate propogate to children
@@ -235,6 +245,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param note the [[com.comcast.money.api.Note]] to be added
    */
   def record(note: Note[_]) = withSpan { span =>
@@ -254,10 +265,11 @@ trait Tracer extends Closeable {
    *    }
    *  }
    * }}}
+   *
    * @param result The result of the span, this will be Result.success or Result.failed
    */
   def stopSpan(result: Boolean = true): Unit = {
-    SpanLocal.pop() foreach (_.stop(result))
+    spanContext.pop() foreach (_.stop(result))
   }
 
   /**
@@ -274,6 +286,7 @@ trait Tracer extends Closeable {
    *   }
    * }
    * }}}
+   *
    * @param key the identifier for the timer
    */
   def startTimer(key: String) = withSpan { span =>
@@ -296,6 +309,7 @@ trait Tracer extends Closeable {
    *   }
    * }
    * }}}
+   *
    * @param key the identifier for the timer
    */
   def stopTimer(key: String) = withSpan { span =>
@@ -305,6 +319,6 @@ trait Tracer extends Closeable {
   override def close() = stopSpan()
 
   private def withSpan(func: Span => Unit): Unit = {
-    SpanLocal.current.foreach(func)
+    spanContext.current.foreach(func)
   }
 }

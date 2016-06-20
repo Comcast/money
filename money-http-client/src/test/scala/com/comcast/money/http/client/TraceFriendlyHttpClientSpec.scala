@@ -20,7 +20,7 @@ import java.io.Closeable
 
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.{ SpecHelpers, Tracer, Formatters => CoreSpanId }
-import com.comcast.money.core.internal.{ SpanLocal, SpanThreadLocal }
+import com.comcast.money.core.internal.{ SpanContext, SpanThreadLocal }
 import org.apache.http.client.methods.{ CloseableHttpResponse, HttpUriRequest }
 import org.apache.http.client.{ HttpClient, ResponseHandler }
 import org.apache.http.impl.client.CloseableHttpClient

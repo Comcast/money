@@ -18,7 +18,7 @@ package com.comcast.money.core
 
 import com.comcast.money.api.{ Note, Span, SpanFactory, SpanId }
 import com.comcast.money.core.handlers.TestData
-import com.comcast.money.core.internal.{ SpanLocal, SpanThreadLocal, ThreadLocalSpanTracer }
+import com.comcast.money.core.internal.{ SpanContext, SpanThreadLocal, ThreadLocalSpanTracer }
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
 import org.mockito.Mockito._
@@ -35,7 +35,7 @@ class TracerSpec extends WordSpec
     val spanFactory = mockSpanFactory
   }
 
-  val SpanLocal: SpanLocal = SpanThreadLocal
+  val SpanLocal: SpanContext = SpanThreadLocal
 
   override def beforeEach() = {
     SpanLocal.clear()

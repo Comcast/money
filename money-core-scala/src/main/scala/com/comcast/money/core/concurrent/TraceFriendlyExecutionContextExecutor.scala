@@ -16,7 +16,7 @@
 
 package com.comcast.money.core.concurrent
 
-import com.comcast.money.core.internal.{ MDCSupport, SpanLocal, SpanThreadLocal }
+import com.comcast.money.core.internal.{ MDCSupport, SpanContext, SpanThreadLocal }
 import com.comcast.money.core.logging.TraceLogging
 import org.slf4j.MDC
 

@@ -19,7 +19,7 @@ package com.comcast.money.core.concurrent
 import java.util.concurrent.Callable
 
 import com.comcast.money.api.SpanId
-import com.comcast.money.core.internal.{ SpanLocal, SpanThreadLocal }
+import com.comcast.money.core.internal.{ SpanContext, SpanThreadLocal }
 
 trait ConcurrentSupport {
 

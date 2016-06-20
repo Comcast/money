@@ -49,6 +49,7 @@ object MoneyBuild extends Build {
         libraryDependencies <++= (scalaVersion) { v: String =>
           Seq(
             akkaActor(v),
+            akkaHttp(v),
             akkaSlf4j(v),
             akkaTestkit(v),
             slf4j,
@@ -228,7 +229,6 @@ object MoneyBuild extends Build {
     crossScalaVersions := Seq("2.10.6", "2.11.7"),
     scalaVersion := "2.11.7",
     resolvers ++= Seq(
-      "spray repo" at "http://repo.spray.io/",
       "Sonatype OSS Releases" at "http://oss.sonatype.org/content/repositories/releases/"
     ),
     javacOptions in Compile ++= Seq(
@@ -318,6 +318,7 @@ object MoneyBuild extends Build {
 
     // Akka
     def akkaActor(scalaVersion: String) = "com.typesafe.akka" %% "akka-actor" % getAkkaVersion(scalaVersion)
+    def akkaHttp(scalaVersion: String) = "com.typesafe.akka" %% "akka-http-core" % getAkkaVersion(scalaVersion)
     def akkaSlf4j(scalaVersion: String) = "com.typesafe.akka" %% "akka-slf4j" % getAkkaVersion(scalaVersion) % "runtime"
     def akkaTestkit(scalaVersion: String) = "com.typesafe.akka" %% "akka-testkit" % getAkkaVersion(scalaVersion) %
       "it,test"
@@ -379,7 +380,7 @@ object MoneyBuild extends Build {
     def getAkkaVersion(scalaVersion: String) = {
       scalaVersion match {
         case version if version.startsWith("2.10") => "2.2.3"
-        case version if version.startsWith("2.11") => "2.3.4"
+        case version if version.startsWith("2.11") => "2.4.7"
       }
     }
   }
