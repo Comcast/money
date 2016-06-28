@@ -29,17 +29,17 @@ import scala.collection.IterableLike
  * This class provides a stack-like structure to collect Spans.
  * This allows to refer to sub-spans and keeping all the storage in this class
  */
-trait SpanCarrier extends SpanContext with IterableLike[SpanCarrier, SpanCarrier] {
+trait StackedSpanContext extends SpanContext with IterableLike[StackedSpanContext, StackedSpanContext] {
   protected[akka] var spanId: Stack[Span] = Stack()
-  protected[akka] var parent: Option[SpanCarrier] = None
+  protected[akka] var parent: Option[StackedSpanContext] = None
 
   override def current: Option[Span] = spanId.headOption orElse (parent.flatMap(_.current))
 
   override def pop(): Option[Span] = {
-    val filledSpanId = iterator.find(spanCarrier => !spanCarrier.spanId.isEmpty)
-    filledSpanId.flatMap(spanCarrier => {
-      val retValue = spanCarrier.spanId.headOption
-      filledSpanId.get.spanId = spanCarrier.spanId.drop(1)
+    val filledSpanId = iterator.find(spanContext => !spanContext.spanId.isEmpty)
+    filledSpanId.flatMap(spanContext => {
+      val retValue = spanContext.spanId.headOption
+      filledSpanId.get.spanId = spanContext.spanId.drop(1)
       retValue
     })
   }
@@ -53,10 +53,10 @@ trait SpanCarrier extends SpanContext with IterableLike[SpanCarrier, SpanCarrier
     parent = None
   }
 
-  def iterator: Iterator[SpanCarrier] = new Iterator[SpanCarrier]() {
-    var it: Option[SpanCarrier] = Some(SpanCarrier.this)
+  def iterator: Iterator[StackedSpanContext] = new Iterator[StackedSpanContext]() {
+    var it: Option[StackedSpanContext] = Some(StackedSpanContext.this)
 
-    def next(): SpanCarrier = {
+    def next(): StackedSpanContext = {
       val retValue = it
       it = it.flatMap(_.parent)
       retValue.get
@@ -65,8 +65,8 @@ trait SpanCarrier extends SpanContext with IterableLike[SpanCarrier, SpanCarrier
     def hasNext(): Boolean = it.isDefined
   }
 
-  def seq: scala.collection.TraversableOnce[SpanCarrier] = {
-    val buf = Buffer[SpanCarrier]()
+  def seq: scala.collection.TraversableOnce[StackedSpanContext] = {
+    val buf = Buffer[StackedSpanContext]()
     val it = iterator
     while (it.hasNext) {
       buf.append(it.next())
@@ -74,7 +74,7 @@ trait SpanCarrier extends SpanContext with IterableLike[SpanCarrier, SpanCarrier
     buf
   }
 
-  protected[this] def newBuilder: scala.collection.mutable.Builder[SpanCarrier, SpanCarrier] = ???
+  protected[this] def newBuilder: scala.collection.mutable.Builder[StackedSpanContext, StackedSpanContext] = ???
 
   override def addString(b: StringBuilder, start: String, sep: String, end: String): StringBuilder = {
     b append start
@@ -85,17 +85,17 @@ trait SpanCarrier extends SpanContext with IterableLike[SpanCarrier, SpanCarrier
   }
 }
 
-object SpanCarrier {
-  /** Just a global SpanCarrier to be used in test cases or simmilar */
-  def root: SpanCarrier = Implicits.root
+object StackedSpanContext {
+  /** Just a global SpanContext to be used in test cases or simmilar */
+  def root: StackedSpanContext = Implicits.root
 
   /* Pattern inspired by scala.concurrent.ExecutionContext */
   object Implicits {
-    implicit lazy val root: SpanCarrier = new RootSpanCarrier
+    implicit lazy val root: StackedSpanContext = new RootSpanContext
   }
 
-  def tracing[T](spanName: String, f: (Tracer) => T)(implicit spanCarrier: SpanCarrier, system: ActorSystem): T = {
-    val tracer = MoneyExtension(system).tracer(spanCarrier)
+  def tracing[T](spanName: String, f: (Tracer) => T)(implicit spanContext: StackedSpanContext, system: ActorSystem): T = {
+    val tracer = MoneyExtension(system).tracer(spanContext)
     tracer.startSpan(spanName)
     try f(tracer) finally tracer.stopSpan(true)
   }
@@ -107,12 +107,12 @@ object SpanCarrier {
  *
  * It is a stack-like structure with a parent stack.
  */
-abstract class BaseSpanCarrier(implicit parentSpanCarrier: SpanCarrier) extends SpanCarrier {
-  parent = Some(parentSpanCarrier)
+class BaseSpanContext(implicit parentSpanContext: StackedSpanContext) extends StackedSpanContext {
+  parent = Some(parentSpanContext)
 }
 
-/** Wrapper around {@code SpanCarrier} for better naming */
-class RootSpanCarrier extends SpanCarrier {
+/** Wrapper around {@code SpanContext} for better naming */
+class RootSpanContext extends StackedSpanContext {
 }
 
 trait MoneyActor {
@@ -121,6 +121,6 @@ trait MoneyActor {
   private lazy val moneyExtension = MoneyExtension(context.system)
 
   // Exposing Money functionality to the actor
-  def tracer(implicit spanCarrier: SpanCarrier) = moneyExtension.tracer(spanCarrier)
+  def tracer(implicit spanContext: StackedSpanContext) = moneyExtension.tracer(spanContext)
 
 }

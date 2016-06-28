@@ -318,7 +318,7 @@ object MoneyBuild extends Build {
 
     // Akka
     def akkaActor(scalaVersion: String) = "com.typesafe.akka" %% "akka-actor" % getAkkaVersion(scalaVersion)
-    def akkaHttp(scalaVersion: String) = "com.typesafe.akka" %% "akka-http-core" % getAkkaVersion(scalaVersion)
+    def akkaHttp(scalaVersion: String) = "com.typesafe.akka" %% "akka-http-experimental" % getAkkaVersion(scalaVersion)
     def akkaSlf4j(scalaVersion: String) = "com.typesafe.akka" %% "akka-slf4j" % getAkkaVersion(scalaVersion) % "runtime"
     def akkaTestkit(scalaVersion: String) = "com.typesafe.akka" %% "akka-testkit" % getAkkaVersion(scalaVersion) %
       "it,test"

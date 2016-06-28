@@ -24,9 +24,9 @@ import com.comcast.money.core.handlers.HandlerChain
 import com.typesafe.config.ConfigFactory
 import org.scalatest._
 
-case class ChildTestMessage(val value: Int, originalSender: ActorRef)(implicit parent: SpanCarrier) extends BaseSpanCarrier()(parent)
+case class ChildTestMessage(val value: Int, originalSender: ActorRef)(implicit parent: StackedSpanContext) extends BaseSpanContext()(parent)
 
-case class TestMessage(val value: Int) extends RootSpanCarrier
+case class TestMessage(val value: Int) extends RootSpanContext
 
 class ChildEchoMoneyActor extends Actor with ActorLogging with MoneyActor {
   override def receive = {
@@ -84,7 +84,7 @@ class MoneyExtensionSpec() extends TestKit(ActorSystem(
     with WordSpecLike with Matchers with BeforeAndAfterEach with BeforeAndAfterAll {
 
   override def beforeEach() {
-    SpanCarrier.Implicits.root.clear
+    StackedSpanContext.Implicits.root.clear
 
     MoneyExtension(system).handler.asInstanceOf[HandlerChain]
       .handlers(0).asInstanceOf[CollectingSpanHandler].buf.clear()
@@ -94,11 +94,11 @@ class MoneyExtensionSpec() extends TestKit(ActorSystem(
     TestKit.shutdownActorSystem(system)
   }
 
-  "SpanCarrier" should {
+  "SpanContext" should {
     "support a simple tracing method" in {
-      import SpanCarrier.Implicits.root
+      import StackedSpanContext.Implicits.root
       val input = 23
-      val actual = SpanCarrier.tracing("Sample Span", tracer => {
+      val actual = StackedSpanContext.tracing("Sample Span", tracer => {
         tracer.record("input", 23)
         input * 2
       })

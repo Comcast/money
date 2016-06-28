@@ -48,19 +48,19 @@ class MoneyExtensionImpl(originalConf: Config) extends Extension {
   val enabled = conf.getBoolean("enabled")
   val hostName = InetAddress.getLocalHost.getCanonicalHostName
 
-  private val (innerHandler: SpanHandler, innerFactory: SpanFactory, innerTracer: ((SpanCarrier) => Tracer), innerLogExceptions: Boolean) = if (enabled) {
+  private val (innerHandler: SpanHandler, innerFactory: SpanFactory, innerTracer: ((StackedSpanContext) => Tracer), innerLogExceptions: Boolean) = if (enabled) {
     val handler = HandlerChain(conf.getConfig("handling"))
     val factory: SpanFactory = new CoreSpanFactory(handler)
-    def tracer(spanCarrier: SpanCarrier): Tracer = {
+    def tracer(context: StackedSpanContext): Tracer = {
       new Tracer {
-        override val spanContext = spanCarrier
+        override val spanContext = context
         override val spanFactory: SpanFactory = factory
       }
     }
 
     val logExceptions = conf.getBoolean("log-exceptions")
 
-    (handler, factory, (spanCarrier: SpanCarrier) => tracer(spanCarrier), logExceptions)
+    (handler, factory, (spanContext: StackedSpanContext) => tracer(spanContext), logExceptions)
   } else {
     val disabled = Money.disabled(applicationName, hostName)
     (disabled.handler, disabled.factory, () => disabled.tracer, disabled.logExceptions)
@@ -68,8 +68,8 @@ class MoneyExtensionImpl(originalConf: Config) extends Extension {
 
   val handler = innerHandler
   val factory = innerFactory
-  def tracer(implicit spanCarrier: SpanCarrier) = {
-    innerTracer(spanCarrier)
+  def tracer(implicit spanContext: StackedSpanContext) = {
+    innerTracer(spanContext)
   }
   val logExceptions = innerLogExceptions
 }
