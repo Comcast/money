@@ -16,68 +16,57 @@
 
 package com.comcast.money.core.handlers
 
-import com.comcast.money.api.Note
-import com.typesafe.config.ConfigFactory
+import com.comcast.money.api.SpanInfo
+import com.typesafe.config.{ Config, ConfigFactory }
 import org.mockito.ArgumentCaptor
+import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ Matchers, OneInstancePerTest, WordSpec }
 import org.slf4j.Logger
 
-import scala.collection.JavaConversions._
-
 class LoggingSpanHandlerSpec extends WordSpec
     with Matchers with MockitoSugar with OneInstancePerTest with TestData {
 
   val mockLogger = mock[Logger]
+  val mockFormatter = mock[SpanLogFormatter]
+  val mockMakeFormatter = mock[Config => SpanLogFormatter]
+  val sampleMessage = "sample formatted log message"
+  val sampleFormatterConfig = ConfigFactory.parseString("formatting { this=that }")
+
+  doReturn(mockFormatter).when(mockMakeFormatter).apply(any[Config])
+  doReturn(sampleMessage).when(mockFormatter).buildMessage(any[SpanInfo])
+
   val logEntryCaptor = ArgumentCaptor.forClass(classOf[String])
-  val underTest = new LoggingSpanHandler(mockLogger)
+  val underTest = new LoggingSpanHandler(mockLogger, mockMakeFormatter)
 
   "LoggingSpanHandler" should {
     "log span info" in {
+      underTest.configure(sampleFormatterConfig)
       underTest.handle(testSpanInfo)
 
-      verify(mockLogger).info(logEntryCaptor.capture())
-
-      val logEntry = logEntryCaptor.getValue
-
-      logEntry should include(s"span-id=${testSpanInfo.id.selfId}")
-      logEntry should include(s"parent-id=${testSpanInfo.id.parentId}")
-      logEntry should include(s"trace-id=${testSpanInfo.id.traceId}")
-      logEntry should include(s"span-duration=${testSpanInfo.durationMicros}")
-      logEntry should include(s"start-time=${testSpanInfo.startTimeMillis}")
-      logEntry should include(s"span-duration=${testSpanInfo.durationMicros}")
-      logEntry should include(s"host=${testSpanInfo.host}")
-      logEntry should include(s"app-name=${testSpanInfo.appName}")
-      logEntry should include(s"span-name=${testSpanInfo.name}")
-      logEntry should include(s"span-success=${testSpanInfo.success}")
-
-      for (note <- testSpanInfo.notes.values) {
-        logEntry should include(s"${note.name}=${note.value}")
-      }
-    }
-
-    "log a NULL if the value of a note is null" in {
-
-      val nullTest = testSpanInfo.copy(
-        notes = Map("nullStr" -> Note.of("nullStr", null.asInstanceOf[String]))
-      )
-
-      underTest.handle(nullTest)
-
-      verify(mockLogger).info(logEntryCaptor.capture())
-
-      val logEntry = logEntryCaptor.getValue
-
-      logEntry should include("nullStr=NULL")
+      verify(mockFormatter).buildMessage(testSpanInfo)
     }
 
     "be configurable" in {
       underTest shouldBe a[ConfigurableHandler]
     }
 
+    "create the formatter when configured" in {
+      underTest.configure(sampleFormatterConfig)
+
+      verify(mockMakeFormatter).apply(any[Config])
+    }
+
     "be configured to use error" in {
-      val config = ConfigFactory.parseString("log-level=ERROR")
+      val config = ConfigFactory.parseString(
+        """
+          |log-level=ERROR
+          |formatting {
+          | this=that
+          |}
+        """.stripMargin
+      )
 
       underTest.configure(config)
       underTest.handle(testSpanInfo)
@@ -86,7 +75,14 @@ class LoggingSpanHandlerSpec extends WordSpec
     }
 
     "be configured to use warn" in {
-      val config = ConfigFactory.parseString("log-level=WARN")
+      val config = ConfigFactory.parseString(
+        """
+          |log-level=WARN
+          |formatting {
+          | this=that
+          |}
+        """.stripMargin
+      )
 
       underTest.configure(config)
       underTest.handle(testSpanInfo)
@@ -95,7 +91,14 @@ class LoggingSpanHandlerSpec extends WordSpec
     }
 
     "be configured to use info" in {
-      val config = ConfigFactory.parseString("log-level=INFO")
+      val config = ConfigFactory.parseString(
+        """
+          |log-level=INFO
+          |formatting {
+          | this=that
+          |}
+        """.stripMargin
+      )
 
       underTest.configure(config)
       underTest.handle(testSpanInfo)
@@ -104,7 +107,14 @@ class LoggingSpanHandlerSpec extends WordSpec
     }
 
     "be configured to use debug" in {
-      val config = ConfigFactory.parseString("log-level=DEBUG")
+      val config = ConfigFactory.parseString(
+        """
+          |log-level=DEBUG
+          |formatting {
+          | this=that
+          |}
+        """.stripMargin
+      )
 
       underTest.configure(config)
       underTest.handle(testSpanInfo)
@@ -113,7 +123,14 @@ class LoggingSpanHandlerSpec extends WordSpec
     }
 
     "be configured to use trace" in {
-      val config = ConfigFactory.parseString("log-level=TRACE")
+      val config = ConfigFactory.parseString(
+        """
+          |log-level=TRACE
+          |formatting {
+          | this=that
+          |}
+        """.stripMargin
+      )
 
       underTest.configure(config)
       underTest.handle(testSpanInfo)
@@ -122,7 +139,13 @@ class LoggingSpanHandlerSpec extends WordSpec
     }
 
     "be configured to default to info" in {
-      val config = ConfigFactory.parseString("no-configure=true")
+      val config = ConfigFactory.parseString(
+        """
+          |formatting {
+          | this=that
+          |}
+        """.stripMargin
+      )
 
       underTest.configure(config)
       underTest.handle(testSpanInfo)
