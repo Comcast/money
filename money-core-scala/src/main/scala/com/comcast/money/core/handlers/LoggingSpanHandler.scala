@@ -16,11 +16,9 @@
 
 package com.comcast.money.core.handlers
 
-import com.comcast.money.api.{ SpanHandler, SpanInfo }
+import com.comcast.money.api.SpanInfo
 import com.typesafe.config.Config
 import org.slf4j.{ Logger, LoggerFactory }
-
-import scala.collection.JavaConversions._
 
 object LoggingSpanHandler {
 
@@ -34,13 +32,14 @@ object LoggingSpanHandler {
   val NULL: String = "NULL"
 }
 
-class LoggingSpanHandler(val logger: Logger) extends ConfigurableHandler {
+class LoggingSpanHandler(val logger: Logger, makeFormatter: Config => SpanLogFormatter) extends ConfigurableHandler {
 
-  def this() = this(LoggerFactory.getLogger(classOf[LoggingSpanHandler]))
+  def this() = this(LoggerFactory.getLogger(classOf[LoggingSpanHandler]), SpanLogFormatter.apply)
 
   import LoggingSpanHandler._
 
   protected var logFunction: LogFunction = logger.info
+  protected var formatter: SpanLogFormatter = _
 
   def configure(config: Config): Unit = {
 
@@ -56,33 +55,13 @@ class LoggingSpanHandler(val logger: Logger) extends ConfigurableHandler {
         case "TRACE" => logFunction = logger.trace
       }
     }
+
+    val formattingConfig = config.getConfig("formatting")
+    formatter = makeFormatter(formattingConfig)
   }
 
   def handle(spanInfo: SpanInfo): Unit = {
-
-    val sb: StringBuilder = new StringBuilder
-    sb.append(
-      HEADER_FORMAT.format(
-        spanInfo.id.selfId, spanInfo.id.traceId, spanInfo.id.parentId, spanInfo.name, spanInfo.appName,
-        spanInfo.startTimeMillis, spanInfo.durationMicros, spanInfo.success, spanInfo.host
-      )
-    )
-
-    for (note <- spanInfo.notes.values) {
-      sb.append(NOTE_BEGIN)
-        .append(note.name)
-        .append(EQ)
-        .append(valueOrNull(note.value))
-        .append(NOTE_END)
-    }
-
-    logFunction(sb.toString)
+    logFunction(formatter.buildMessage(spanInfo))
   }
-
-  private def valueOrNull[T](value: T) =
-    if (value == null)
-      NULL
-    else
-      value
 }
 
