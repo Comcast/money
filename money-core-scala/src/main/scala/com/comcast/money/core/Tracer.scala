@@ -26,6 +26,7 @@ import com.comcast.money.core.internal.SpanLocal
  */
 trait Tracer extends Closeable {
 
+  val SpanLocal: SpanLocal
   val spanFactory: SpanFactory
 
   /**
@@ -42,6 +43,7 @@ trait Tracer extends Closeable {
    *    }
    *  }
    * }}}
+   *
    * @param key an identifier for the span
    */
   def startSpan(key: String) = {
@@ -68,6 +70,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the timestamp being captured
    */
   def time(key: String) = withSpan { span =>
@@ -85,6 +88,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
@@ -103,6 +107,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    * @param propogate propogate to children
@@ -122,6 +127,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
@@ -140,6 +146,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    * @param propogate propogate to children
@@ -159,6 +166,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
@@ -177,6 +185,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    * @param propogate propogate to children
@@ -196,6 +205,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
@@ -214,6 +224,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    * @param propogate propogate to children
@@ -233,6 +244,7 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
+   *
    * @param note the [[com.comcast.money.api.Note]] to be added
    */
   def record(note: Note[_]) = withSpan { span =>
@@ -252,13 +264,11 @@ trait Tracer extends Closeable {
    *    }
    *  }
    * }}}
+   *
    * @param result The result of the span, this will be Result.success or Result.failed
    */
   def stopSpan(result: Boolean = true): Unit = {
-    SpanLocal.pop() foreach {
-      span =>
-        span.stop(result)
-    }
+    SpanLocal.pop() foreach (_.stop(result))
   }
 
   /**
@@ -275,6 +285,7 @@ trait Tracer extends Closeable {
    *   }
    * }
    * }}}
+   *
    * @param key the identifier for the timer
    */
   def startTimer(key: String) = withSpan { span =>
@@ -297,6 +308,7 @@ trait Tracer extends Closeable {
    *   }
    * }
    * }}}
+   *
    * @param key the identifier for the timer
    */
   def stopTimer(key: String) = withSpan { span =>

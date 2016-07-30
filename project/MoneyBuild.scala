@@ -46,8 +46,12 @@ object MoneyBuild extends Build {
       .configs( IntegrationTest )
       .settings(projectSettings: _*)
       .settings(
-        libraryDependencies ++= {
+        libraryDependencies <++= (scalaVersion) { v: String =>
           Seq(
+            akkaActor(v),
+            akkaSlf4j(v),
+            akkaTestkit(v),
+            spray(v),
             slf4j,
             log4jbinding,
             metricsCore,
@@ -318,6 +322,9 @@ object MoneyBuild extends Build {
     def akkaSlf4j(scalaVersion: String) = "com.typesafe.akka" %% "akka-slf4j" % getAkkaVersion(scalaVersion) % "runtime"
     def akkaTestkit(scalaVersion: String) = "com.typesafe.akka" %% "akka-testkit" % getAkkaVersion(scalaVersion) %
       "it,test"
+
+    // Spray
+    def spray(scalaVersion: String) = "io.spray" %% "spray-can" % "1.3.3"
 
     // Joda
     val jodaTime = "joda-time" % "joda-time" % "2.1"

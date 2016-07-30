@@ -18,6 +18,7 @@ package com.comcast.money.spring3
 
 import com.comcast.money.api.Note
 import com.comcast.money.core._
+import com.comcast.money.core.internal.ThreadLocalSpanTracer
 import org.springframework.stereotype.Component
 
 /**
@@ -25,7 +26,7 @@ import org.springframework.stereotype.Component
  * Money tracer in the event that Money or tracing is disabled
  */
 @Component
-class SpringTracer extends Tracer {
+class SpringTracer extends Tracer with ThreadLocalSpanTracer {
 
   override val spanFactory = Money.Environment.factory
   private var tracer = Money.Environment.tracer

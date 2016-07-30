@@ -18,7 +18,7 @@ package com.comcast.money.core.concurrent
 
 import java.util.concurrent._
 
-import com.comcast.money.core.internal.{ MDCSupport, SpanLocal }
+import com.comcast.money.core.internal.{ MDCSupport, SpanLocal, SpanThreadLocal }
 import com.comcast.money.core.logging.TraceLogging
 import org.slf4j.MDC
 
@@ -55,6 +55,7 @@ class TraceFriendlyThreadPoolExecutor(corePoolSize: Int, maximumPoolSize: Int, k
     with TraceLogging {
 
   lazy val mdcSupport = new MDCSupport()
+  lazy val SpanLocal: SpanLocal = SpanThreadLocal
 
   def this(corePoolSize: Int, maximumPoolSize: Int, keepAliveTime: Long, unit: TimeUnit,
     workQueue: BlockingQueue[Runnable], threadFactory: ThreadFactory,

@@ -19,7 +19,7 @@ package com.comcast.money.spring3
 import java.lang.reflect.Method
 
 import com.comcast.money.annotations.Traced
-import com.comcast.money.core.internal.MDCSupport
+import com.comcast.money.core.internal.{ MDCSupport, ThreadLocalSpanTracer }
 import com.comcast.money.core.logging.TraceLogging
 import com.comcast.money.core.reflect.Reflections
 import org.aopalliance.aop.Advice
@@ -35,7 +35,7 @@ import org.springframework.stereotype.Component
 @Component
 class TracedMethodInterceptor @Autowired() (@Qualifier("springTracer") val tracer: SpringTracer)
     extends MethodInterceptor
-    with Reflections with TraceLogging {
+    with Reflections with TraceLogging with ThreadLocalSpanTracer {
 
   val mdcSupport = new MDCSupport()
 

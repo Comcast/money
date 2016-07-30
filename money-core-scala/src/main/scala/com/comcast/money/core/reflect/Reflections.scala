@@ -22,6 +22,7 @@ import java.lang.reflect.Method
 import com.comcast.money.annotations.TracedData
 import com.comcast.money.api.Note
 import com.comcast.money.core._
+import com.comcast.money.core.internal.SpanLocal
 
 trait Reflections {
 
