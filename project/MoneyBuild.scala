@@ -140,7 +140,6 @@ object MoneyBuild extends Build {
             chillAvro,
             chillBijection,
             commonsIo,
-            akkaTestkit(v),
             scalaTest,
             mockito
           )
@@ -269,7 +268,6 @@ object MoneyBuild extends Build {
       }
       val links: Seq[Option[(File, URL)]] = Seq(
         findManagedDependency("org.scala-lang", "scala-library").map(d => d -> url(s"http://www.scala-lang.org/api/2.10.4/")),
-        findManagedDependency("com.typesafe.akka", "akka-actor").map(d => d -> url(s"http://doc.akka.io/api/akka/$akkaVersion/")),
         findManagedDependency("com.typesafe", "config").map(d => d -> url("http://typesafehub.github.io/config/latest/api/"))
       )
       val x = links.collect { case Some(d) => d }.toMap
@@ -284,19 +282,12 @@ object MoneyBuild extends Build {
   ) ++ HeaderPlugin.settingsFor(IntegrationTest) ++ AutomateHeaderPlugin.automateFor(Compile, Test, IntegrationTest)
 
   object Dependencies {
-    val akkaVersion = "2.2.3"
     val codahaleVersion = "3.0.2"
     val apacheHttpClientVersion = "4.3.5"
 
-    // Logging, SlF4J must equal the same version used by akka
+    // Logging
     val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
     val log4jbinding = "org.slf4j" % "slf4j-log4j12" % "1.7.5" % "it,test"
-
-    // Akka
-    def akkaActor(scalaVersion: String) = "com.typesafe.akka" %% "akka-actor" % getAkkaVersion(scalaVersion)
-    def akkaSlf4j(scalaVersion: String) = "com.typesafe.akka" %% "akka-slf4j" % getAkkaVersion(scalaVersion) % "runtime"
-    def akkaTestkit(scalaVersion: String) = "com.typesafe.akka" %% "akka-testkit" % getAkkaVersion(scalaVersion) %
-      "it,test"
 
     // Joda
     val jodaTime = "joda-time" % "joda-time" % "2.1"

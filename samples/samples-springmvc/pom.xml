@@ -13,7 +13,7 @@
         <jackson.version>2.2.3</jackson.version>
         <jetty.version>8.1.5.v20120716</jetty.version>
         <jetty.jsp.version>8.1.4.v20120524</jetty.jsp.version>
-        <money.version>0.8.12-SNAPSHOT</money.version>
+        <money.version>0.9.0</money.version>
     </properties>
 
     <repositories>
@@ -49,22 +49,27 @@
         <!-- Money -->
         <dependency>
             <groupId>com.comcast.money</groupId>
-            <artifactId>money-core_2.10</artifactId>
+            <artifactId>money-api_2.11</artifactId>
             <version>${money.version}</version>
         </dependency>
         <dependency>
             <groupId>com.comcast.money</groupId>
-            <artifactId>money-http-client_2.10</artifactId>
+            <artifactId>money-core_2.11</artifactId>
             <version>${money.version}</version>
         </dependency>
         <dependency>
             <groupId>com.comcast.money</groupId>
-            <artifactId>money-spring3_2.10</artifactId>
+            <artifactId>money-http-client_2.11</artifactId>
             <version>${money.version}</version>
         </dependency>
         <dependency>
             <groupId>com.comcast.money</groupId>
-            <artifactId>money-java-servlet_2.10</artifactId>
+            <artifactId>money-spring3_2.11</artifactId>
+            <version>${money.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.comcast.money</groupId>
+            <artifactId>money-java-servlet_2.11</artifactId>
             <version>${money.version}</version>
             <exclusions>
                 <exclusion>
@@ -72,6 +77,18 @@
                     <artifactId>servlet-api</artifactId>
                 </exclusion>
             </exclusions>
+        </dependency>
+
+        <!-- Money Dependencies -->
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>2.11.8</version>
+        </dependency>
+        <dependency>
+            <groupId>com.typesafe</groupId>
+            <artifactId>config</artifactId>
+            <version>1.2.1</version>
         </dependency>
 
         <!-- Servlet -->
@@ -156,6 +173,7 @@
             <artifactId>logback-classic</artifactId>
             <version>1.0.13</version>
         </dependency>
+
     </dependencies>
 
     <build>

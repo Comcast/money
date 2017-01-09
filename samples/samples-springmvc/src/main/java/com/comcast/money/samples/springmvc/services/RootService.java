@@ -20,7 +20,7 @@ public class RootService {
         double wait = RandomUtil.nextRandom(100, 500);
         Thread.sleep((int)wait);
         String message = name + ", made you wait " + wait + " millseconds.";
-        Money.tracer().record("wait", wait);
+        Money.Environment().tracer().record("wait", wait);
 
         timeIntensiveTask();
 

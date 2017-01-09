@@ -72,7 +72,7 @@
 
     <!--money logger-->
     <logger name="com.comcast.money" additivity="false">
-        <level value="WARN"/>
+        <level value="TRACE"/>
         <appender-ref ref="async_money_appender" />
     </logger>
 

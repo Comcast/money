@@ -19,7 +19,7 @@ public class NestedService {
     public String doSomethingElse(String message) throws Exception {
 
         double wait = RandomUtil.nextRandom(100, 500);
-        Money.tracer().record("nested-wait", wait);
+        Money.Environment().tracer().record("nested-wait", wait);
 
         // invoking the http client will activate the http tracing...
         callHttpClient();
