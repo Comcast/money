@@ -26,7 +26,7 @@ object MoneyBuild extends Build {
     publishLocal := {},
     publish := {}
   )
-  .aggregate(moneyApi, moneyCoreScala, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
+  .aggregate(moneyApi, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
 
   lazy val moneyApi =
     Project("money-api", file("./money-api"))
@@ -41,8 +41,8 @@ object MoneyBuild extends Build {
       }
       )
 
-  lazy val moneyCoreScala =
-    Project("money-core-scala", file("./money-core-scala"))
+  lazy val moneyCore =
+    Project("money-core", file("./money-core"))
       .configs( IntegrationTest )
       .settings(projectSettings: _*)
       .settings(
@@ -58,27 +58,6 @@ object MoneyBuild extends Build {
         }
       ).dependsOn(moneyApi)
 
-  lazy val moneyCore =
-    Project("money-core", file("./money-core"))
-    .configs( IntegrationTest )
-    .settings(projectSettings: _*)
-    .settings(
-      libraryDependencies <++= (scalaVersion) { v: String =>
-        Seq(
-          akkaActor(v),
-          akkaSlf4j(v),
-          akkaTestkit(v),
-          slf4j,
-          log4jbinding,
-          typesafeConfig,
-          jodaTime,
-          metricsCore,
-          scalaTest,
-          mockito
-        )
-      }
-    ).dependsOn(moneyApi)
-
   lazy val moneyAspectj =
     Project("money-aspectj", file("./money-aspectj"))
     .configs( IntegrationTest )
@@ -92,7 +71,7 @@ object MoneyBuild extends Build {
         )
       }
     )
-    .dependsOn(moneyCoreScala % "test->test;compile->compile")
+    .dependsOn(moneyCore % "test->test;compile->compile")
 
   lazy val moneyHttpClient =
     Project("money-http-client", file("./money-http-client"))
@@ -107,7 +86,7 @@ object MoneyBuild extends Build {
           )
         }
       )
-      .dependsOn(moneyCoreScala % "test->test;compile->compile",moneyAspectj)
+      .dependsOn(moneyCore % "test->test;compile->compile",moneyAspectj)
 
   lazy val moneyJavaServlet =
     Project("money-java-servlet", file("./money-java-servlet"))
@@ -122,7 +101,7 @@ object MoneyBuild extends Build {
           )
         }
       )
-      .dependsOn(moneyCoreScala)
+      .dependsOn(moneyCore)
 
   lazy val moneyWire =
     Project("money-wire", file("./money-wire"))
@@ -145,7 +124,7 @@ object MoneyBuild extends Build {
         // Look for *.avsc etc. files in src/test/avro
         (sourceDirectory in avroConfig) <<= (sourceDirectory in Compile)(_ / "avro"),
         (stringType in avroConfig) := "String"
-      ).dependsOn(moneyCoreScala)
+      ).dependsOn(moneyCore)
 
   lazy val moneyKafka =
     Project("money-kafka", file("./money-kafka"))
@@ -167,7 +146,7 @@ object MoneyBuild extends Build {
           )
         }
       )
-      .dependsOn(moneyCoreScala, moneyWire)
+      .dependsOn(moneyCore, moneyWire)
 
   lazy val moneySpring =
     Project("money-spring", file("./money-spring"))
@@ -183,7 +162,7 @@ object MoneyBuild extends Build {
           )
         }
       )
-      .dependsOn(moneyCoreScala)
+      .dependsOn(moneyCore)
 
   lazy val moneySpring3 =
     Project("money-spring3", file("./money-spring3"))
@@ -207,7 +186,7 @@ object MoneyBuild extends Build {
         },
         testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
       )
-      .dependsOn(moneyCoreScala)
+      .dependsOn(moneyCore)
 
   def projectSettings = basicSettings ++ Seq(
     ScoverageKeys.coverageHighlighting := true,
@@ -221,9 +200,9 @@ object MoneyBuild extends Build {
 
   def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings ++ Seq(
     organization := "com.comcast.money",
-    version := "0.9.0-SNAPSHOT",
-    crossScalaVersions := Seq("2.10.6", "2.11.7"),
-    scalaVersion := "2.11.7",
+    version := "0.9.0",
+    crossScalaVersions := Seq("2.10.6", "2.11.8"),
+    scalaVersion := "2.11.8",
     resolvers ++= Seq(
       "spray repo" at "http://repo.spray.io/",
       "Sonatype OSS Releases" at "http://oss.sonatype.org/content/repositories/releases/"

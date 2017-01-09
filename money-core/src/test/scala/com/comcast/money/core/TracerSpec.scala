@@ -16,191 +16,213 @@
 
 package com.comcast.money.core
 
-import akka.testkit.TestProbe
-import com.comcast.money.api.{ Note, SpanId }
-import com.comcast.money.internal.EmitterProtocol.{ EmitMetricLong, EmitMetricDouble }
-import com.comcast.money.internal.SpanFSMProtocol._
-import com.comcast.money.internal.SpanLocal
-import com.comcast.money.internal.SpanSupervisorProtocol.SpanMessage
-import com.comcast.money.test.AkkaTestJawn
-import com.comcast.money.util.DateTimeUtil
-import org.scalatest._
+import com.comcast.money.api.{ Note, SpanId, Span, SpanFactory }
+import com.comcast.money.core.handlers.TestData
+import com.comcast.money.core.internal.SpanLocal
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers._
+import org.mockito.Mockito._
+import org.scalatest.mock.MockitoSugar
+import org.scalatest.{ OneInstancePerTest, BeforeAndAfterEach, Matchers, WordSpec }
 
-class TracerSpec
-    extends AkkaTestJawn with FeatureSpecLike with GivenWhenThen with BeforeAndAfterEach with OneInstancePerTest {
+class TracerSpec extends WordSpec
+    with Matchers with MockitoSugar with TestData with BeforeAndAfterEach with OneInstancePerTest {
 
-  override def beforeEach() {
+  val mockSpanFactory = mock[SpanFactory]
+  val mockSpan = mock[Span]
+  val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
+  val underTest = new Tracer {
+    val spanFactory = mockSpanFactory
+  }
+
+  override def beforeEach() = {
     SpanLocal.clear()
-    DateTimeUtil.timeProvider = () => 999L
+
+    doReturn(mockSpan).when(mockSpanFactory).newSpan(any[SpanId], anyString())
+    doReturn(mockSpan).when(mockSpanFactory).newSpan(anyString())
+    doReturn(mockSpan).when(mockSpanFactory).childSpan(anyString(), any[Span])
+    doReturn(testSpanInfo).when(mockSpan).info()
   }
 
-  val emitter = new TestProbe(system) {
-    def expectEmitterMsg(em: EmitMetricDouble): Unit = {
-      expectMsgPF() {
-        case EmitMetricDouble(path, metricValue, timestamp) =>
-          em.metricPath shouldEqual path
-          em.value shouldEqual metricValue
-      }
+  "Tracer" should {
+    "start a new span when no span exists" in {
+      underTest.startSpan("foo")
+
+      verify(mockSpan).start()
+
+      SpanLocal.current shouldBe Some(mockSpan)
     }
 
-    def expectEmitterMsg(em: EmitMetricLong): Unit = {
-      expectMsgPF() {
-        case EmitMetricLong(path, metricValue, timestamp) =>
-          em.metricPath shouldEqual path
-          em.value shouldEqual metricValue
-      }
-    }
-  }
+    "start a child span if a span already exsits" in {
+      SpanLocal.push(testSpan)
 
-  val spanSupervisor = new TestProbe(system) {
-    def expectSpanMsg(tm: SpanCommand) {
-      expectMsgPF() {
-        case SpanMessage(spanId, Stop(result, timeStamp)) =>
-          tm shouldBe a[Stop]
-          val tmResult = tm.asInstanceOf[Stop].result
-          tmResult shouldEqual result
-        case SpanMessage(spanId, Start(innerSpanId, spanName, timeStamp, _)) =>
-          tm shouldBe a[Start]
-          tm.asInstanceOf[Start].spanName shouldEqual spanName
-        case SpanMessage(spanId, StartTimer(name, startTime)) =>
-          tm shouldBe a[StartTimer]
-          val tmStart = tm.asInstanceOf[StartTimer]
-          tmStart.name shouldEqual name
-        case SpanMessage(spanId, StopTimer(name, stopTime)) =>
-          tm shouldBe a[StopTimer]
-          val tmStop = tm.asInstanceOf[StopTimer]
-          tmStop.name shouldEqual name
-        case SpanMessage(spanId, AddNote(note)) =>
-          tm shouldBe an[AddNote]
-          val tmNote = tm.asInstanceOf[AddNote]
-          tmNote.note.name shouldEqual note.name
-          tmNote.note.value shouldEqual note.value
-      }
-    }
-  }
+      underTest.startSpan("bar")
 
-  val moneyTracer = new Tracer {
-    val spanSupervisorRef = spanSupervisor.ref
-  }
-  val moneyMetrics = new Metrics {
-    val emitterRef = emitter.ref
-  }
+      verify(mockSpanFactory).childSpan("bar", testSpan)
+      verify(mockSpan).start()
 
-  feature("Span capturing") {
-
-    scenario("Span captured with no Span context") {
-      moneyTracer.startSpan("bob")
-      val spanId = SpanLocal.current.get
-      moneyTracer.time("mike")
-      moneyTracer.record("adam", "sneakers")
-      moneyTracer.stopSpan()
-      Then("Span messages should be sent to the spanSupervisor")
-      spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "bob"))
-      spanSupervisor.expectSpanMsg(AddNote(Note.of("mike", 999L)))
-      spanSupervisor.expectSpanMsg(AddNote(Note.of("adam", "sneakers")))
-      spanSupervisor.expectSpanMsg(Stop(Result.success))
-      And("the current spanId and parentSpanId should all be the same")
-      spanId.parentId should be(spanId.selfId)
-      And("SpanLocal should be empty after span completes")
-      SpanLocal.current.isEmpty shouldBe true
+      SpanLocal.current shouldBe Some(mockSpan)
     }
 
-    scenario("Trace captured with no Trace context with close instead of stopTrace") {
-      moneyTracer.startSpan("bob")
-      val traceId = SpanLocal.current.get
-      moneyTracer.time("mike")
-      moneyTracer.record("adam", "sneakers")
-      moneyTracer.close()
-      Then("Trace messages should be sent to the traceSupervisor")
-      spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "bob"))
-      spanSupervisor.expectSpanMsg(AddNote(Note.of("mike", 999L)))
-      spanSupervisor.expectSpanMsg(AddNote(Note.of("adam", "sneakers")))
-      spanSupervisor.expectSpanMsg(Stop(Result.success))
-      And("the current spanId and parentSpanId should be the same")
-      traceId.parentId should be(traceId.selfId)
-      And("SpanLocal should be empty after trace completes")
-      SpanLocal.current.isEmpty shouldBe true
+    "record a time" in {
+      SpanLocal.push(mockSpan)
+
+      underTest.time("foo")
+
+      verify(mockSpan).record(any[Note[_]])
     }
 
-    scenario("A subspan is created") {
-      moneyTracer.startSpan("bob")
-      val parentSpan = SpanLocal.current.get
-      moneyTracer.startSpan("henry")
-      val currentSpan = SpanLocal.current.get
+    "record a double" in {
+      SpanLocal.push(mockSpan)
 
-      Then("the current span should not be the same as the parentSpan")
-      currentSpan should not be parentSpan
-      And("the current span's parentSpanId should be teh parentSpan.spanId")
-      currentSpan.parentId should be(parentSpan.selfId)
-      And("the current span's traceId should be the same as the parentSpan.originSpanId")
-      currentSpan.traceId should be(parentSpan.traceId)
+      underTest.record("dbl", 1.2)
+
+      verify(mockSpan).record(noteCaptor.capture())
+
+      val note = noteCaptor.getValue
+
+      note.name shouldBe "dbl"
+      note.value shouldBe 1.2
     }
 
-    scenario("a span has a timer started") {
-      moneyTracer.startSpan("bob")
-      moneyTracer.startTimer("timer-test")
+    "record a sticky double" in {
+      SpanLocal.push(mockSpan)
 
-      Then("the start message is sent to the span supervisor")
-      spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "bob"))
-      spanSupervisor.expectSpanMsg(StartTimer("timer-test"))
-    }
-    scenario("a Span has a timer started and stopped") {
-      moneyTracer.startSpan("bob")
-      moneyTracer.startTimer("timer-test")
-      moneyTracer.stopTimer("timer-test")
+      underTest.record("dbl", 1.2, true)
 
-      Then("the stop message is sent to the span supervisor")
-      spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "bob"))
-      spanSupervisor.expectSpanMsg(StartTimer("timer-test"))
-      spanSupervisor.expectSpanMsg(StopTimer("timer-test"))
-    }
-  }
-  feature("metric capturing") {
-    scenario("individual metric is sent") {
-      moneyMetrics.sendMetric("bob", 1.03)
-      Then("The Emitter should receive an EmitMetric message")
-      emitter.expectEmitterMsg(EmitMetricDouble("bob", 1.03))
-    }
-    scenario("individual metric is sent as a long") {
-      moneyMetrics.sendMetric("bob", 300L)
-      Then("The Emitter should receive an EmitMetric message")
-      emitter.expectEmitterMsg(EmitMetricLong("bob", 300L))
-    }
-  }
-  feature("recording the result of a span") {
-    scenario("stopping a span with a failed result") {
-      moneyTracer.startSpan("foo")
-      moneyTracer.stopSpan(Result.failed)
-      spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "foo"))
+      verify(mockSpan).record(noteCaptor.capture())
 
-      Then("the failed result is sent along with the stop message")
-      spanSupervisor.expectSpanMsg(Stop(false))
+      val note = noteCaptor.getValue
+
+      note.name shouldBe "dbl"
+      note.value shouldBe 1.2
+      note.isSticky shouldBe true
     }
-    scenario("stopping a span with a success result") {
-      moneyTracer.startSpan("foo")
-      moneyTracer.stopSpan(Result.success)
-      spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "foo"))
 
-      Then("the failed result is sent along with the stop message")
-      spanSupervisor.expectSpanMsg(Stop(true))
+    "record a string" in {
+      SpanLocal.push(mockSpan)
+
+      underTest.record("str", "bar")
+
+      verify(mockSpan).record(noteCaptor.capture())
+
+      val note = noteCaptor.getValue
+
+      note.name shouldBe "str"
+      note.value shouldBe "bar"
     }
-  }
-  feature("recording a Note on a span") {
-    scenario("sending a note on an existing trace") {
-      moneyTracer.startSpan("foo")
-      moneyTracer.record(Note.of("foo", "bar"))
-      moneyTracer.stopSpan(Result.success)
 
-      spanSupervisor.expectSpanMsg(Start(new SpanId("foo", 1L), "foo"))
+    "record a sticky string" in {
+      SpanLocal.push(mockSpan)
 
-      Then("the note is sent to the span supervisor")
-      spanSupervisor.expectSpanMsg(AddNote(Note.of("foo", "bar")))
+      underTest.record("str", "bar", true)
+
+      verify(mockSpan).record(noteCaptor.capture())
+
+      val note = noteCaptor.getValue
+
+      note.name shouldBe "str"
+      note.value shouldBe "bar"
+      note.isSticky shouldBe true
     }
-    scenario("sending a note when no trace exists") {
-      moneyTracer.record(Note.of("foo", "bar"))
 
-      Then("no messages are sent to the span supervisor")
-      spanSupervisor.expectNoMsg()
+    "record a long" in {
+      SpanLocal.push(mockSpan)
+
+      underTest.record("lng", 100L)
+
+      verify(mockSpan).record(noteCaptor.capture())
+
+      val note = noteCaptor.getValue
+
+      note.name shouldBe "lng"
+      note.value shouldBe 100L
+    }
+
+    "record a sticky long" in {
+      SpanLocal.push(mockSpan)
+
+      underTest.record("lng", 100L, true)
+
+      verify(mockSpan).record(noteCaptor.capture())
+
+      val note = noteCaptor.getValue
+
+      note.name shouldBe "lng"
+      note.value shouldBe 100L
+      note.isSticky shouldBe true
+    }
+
+    "record a boolean" in {
+      SpanLocal.push(mockSpan)
+
+      underTest.record("bool", true)
+
+      verify(mockSpan).record(noteCaptor.capture())
+
+      val note = noteCaptor.getValue
+
+      note.name shouldBe "bool"
+      note.value shouldBe true
+    }
+
+    "record a sticky boolean" in {
+      SpanLocal.push(mockSpan)
+
+      underTest.record("bool", true, true)
+
+      verify(mockSpan).record(noteCaptor.capture())
+
+      val note = noteCaptor.getValue
+
+      note.name shouldBe "bool"
+      note.value shouldBe true
+      note.isSticky shouldBe true
+    }
+
+    "record a note" in {
+      SpanLocal.push(mockSpan)
+
+      underTest.record(testLongNote)
+
+      verify(mockSpan).record(noteCaptor.capture())
+
+      val note = noteCaptor.getValue
+
+      note.name shouldBe testLongNote.name
+      note.value shouldBe testLongNote.value
+    }
+
+    "stop the current span" in {
+      SpanLocal.push(mockSpan)
+
+      underTest.stopSpan(true)
+
+      verify(mockSpan).stop(true)
+    }
+
+    "start a timer" in {
+      SpanLocal.push(mockSpan)
+
+      underTest.startTimer("timer")
+
+      verify(mockSpan).startTimer("timer")
+    }
+
+    "stop a timer" in {
+      SpanLocal.push(mockSpan)
+
+      underTest.stopTimer("t")
+
+      verify(mockSpan).stopTimer("t")
+    }
+
+    "stop the span on close" in {
+      SpanLocal.push(mockSpan)
+
+      underTest.close()
+
+      verify(mockSpan).stop(true)
     }
   }
 }
