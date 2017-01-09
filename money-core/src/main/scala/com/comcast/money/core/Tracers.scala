@@ -16,7 +16,7 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.logging.TraceLogging
+import com.comcast.money.core.logging.TraceLogging
 
 object Tracers extends TraceLogging {
 
@@ -29,16 +29,16 @@ object Tracers extends TraceLogging {
    * @tparam T The return type of the function
    * @return The result of the function being executed
    */
-  def traced[T](name: String, tracer: Tracer = Money.tracer)(f: => T): T = {
+  def traced[T](name: String, tracer: Tracer = Money.Environment.tracer)(f: => T): T = {
     try {
       tracer.startSpan(name)
       val result: T = f
-      tracer.stopSpan(Result.success)
+      tracer.stopSpan(true)
       result
     } catch {
       case e: Throwable =>
         logException(e)
-        tracer.stopSpan(Result.failed)
+        tracer.stopSpan(false)
         throw e
     }
   }
@@ -52,7 +52,7 @@ object Tracers extends TraceLogging {
    * @tparam T The return type of the function
    * @return The result of the function being executed
    */
-  def timed[T](name: String, tracer: Tracer = Money.tracer)(f: => T): T = {
+  def timed[T](name: String, tracer: Tracer = Money.Environment.tracer)(f: => T): T = {
     try {
       tracer.startTimer(name)
       f
