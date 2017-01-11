@@ -22,7 +22,7 @@ import com.comcast.money.api
 import com.comcast.money.api.{ SpanInfo, Tag }
 import com.comcast.money.core._
 import com.comcast.money.wire.avro
-import com.comcast.money.wire.avro.NoteType
+import com.comcast.money.wire.avro.TagType
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.{ DeserializationFeature, ObjectMapper }
 import org.apache.avro.Schema
@@ -58,30 +58,30 @@ trait SpanWireConverters {
 
   import scala.collection.JavaConversions._
 
-  implicit val noteToWire: TypeConverter[Tag[_], avro.Note] = TypeConverter.instance { from: Tag[_] =>
-    def avroNote(noteValue: avro.NoteValue): avro.Note = new avro.Note(from.name, from.timestamp, noteValue)
+  implicit val tagToWire: TypeConverter[Tag[_], avro.Tag] = TypeConverter.instance { from: Tag[_] =>
+    def avroTag(tagValue: avro.TagValue): avro.Tag = new avro.Tag(from.name, from.timestamp, tagValue)
 
     from.value match {
-      case l: Long => avroNote(
-        new avro.NoteValue(avro.NoteType.Long, l.toString)
+      case l: Long => avroTag(
+        new avro.TagValue(avro.TagType.Long, l.toString)
       )
-      case s: String => avroNote(
-        new avro.NoteValue(avro.NoteType.String, s)
+      case s: String => avroTag(
+        new avro.TagValue(avro.TagType.String, s)
       )
-      case b: java.lang.Boolean => avroNote(
-        new avro.NoteValue(avro.NoteType.Boolean, b.toString)
+      case b: java.lang.Boolean => avroTag(
+        new avro.TagValue(avro.TagType.Boolean, b.toString)
       )
-      case d: Double => avroNote(
-        new avro.NoteValue(avro.NoteType.Double, d.toString)
+      case d: Double => avroTag(
+        new avro.TagValue(avro.TagType.Double, d.toString)
       )
-      case null => avroNote(
-        new avro.NoteValue(avro.NoteType.String, null)
+      case null => avroTag(
+        new avro.TagValue(avro.TagType.String, null)
       )
 
     }
   }
 
-  implicit val wireToNote: TypeConverter[avro.Note, Tag[_]] = TypeConverter.instance { from: avro.Note =>
+  implicit val wireToTag: TypeConverter[avro.Tag, Tag[_]] = TypeConverter.instance { from: avro.Tag =>
     def toOption[T](str: String)(ft: String => T): Option[T] = {
       if (str == null)
         None: Option[T]
@@ -90,14 +90,14 @@ trait SpanWireConverters {
     }
 
     from.getValue.getType match {
-      case NoteType.Boolean => api.Tag.of(
+      case TagType.Boolean => api.Tag.of(
         from.getName, from.getValue.getData.toBoolean, from.getTimestamp
       )
-      case NoteType.Long => api.Tag.of(from.getName, from.getValue.getData.toLong, from.getTimestamp)
-      case NoteType.String => api.Tag.of(
+      case TagType.Long => api.Tag.of(from.getName, from.getValue.getData.toLong, from.getTimestamp)
+      case TagType.String => api.Tag.of(
         from.getName, from.getValue.getData, from.getTimestamp
       )
-      case NoteType.Double => api.Tag.of(
+      case TagType.Double => api.Tag.of(
         from.getName, from.getValue.getData.toDouble, from.getTimestamp
       )
     }
@@ -121,15 +121,15 @@ trait SpanWireConverters {
       span.success,
       span.startTimeMillis,
       implicitly[TypeConverter[api.SpanId, avro.SpanId]].convert(span.id),
-      span.tags.values.toList.map(implicitly[TypeConverter[Tag[_], avro.Note]].convert)
+      span.tags.values.toList.map(implicitly[TypeConverter[Tag[_], avro.Tag]].convert)
     )
   }
 
   implicit val wireToSpan: TypeConverter[avro.Span, SpanInfo] = TypeConverter.instance { from: avro.Span =>
 
-    def toNotesMap(notes: java.util.List[avro.Note]): java.util.Map[String, Tag[_]] = {
+    def toTagsMap(tags: java.util.List[avro.Tag]): java.util.Map[String, Tag[_]] = {
       val res = new java.util.HashMap[String, Tag[_]]
-      notes.foreach(n => res.put(n.getName, implicitly[TypeConverter[avro.Note, Tag[_]]].convert(n)))
+      tags.foreach(n => res.put(n.getName, implicitly[TypeConverter[avro.Tag, Tag[_]]].convert(n)))
       res
     }
 
@@ -141,7 +141,7 @@ trait SpanWireConverters {
       startTimeMillis = from.getStartTime,
       success = from.getSuccess,
       durationMicros = from.getDuration,
-      tags = toNotesMap(from.getNotes)
+      tags = toTagsMap(from.getTags)
     )
   }
 }
@@ -186,8 +186,8 @@ trait SpanJsonConverters extends SpanWireConverters {
     // We need to ignore the getSchema Javabean Properties or else serdes will fail
     jsonMapper.addMixInAnnotations(classOf[avro.Span], classOf[IgnoreSpanProperties]);
     jsonMapper.addMixInAnnotations(classOf[avro.SpanId], classOf[IgnoreSpanProperties]);
-    jsonMapper.addMixInAnnotations(classOf[avro.Note], classOf[IgnoreSpanProperties]);
-    jsonMapper.addMixInAnnotations(classOf[avro.NoteValue], classOf[IgnoreSpanProperties]);
+    jsonMapper.addMixInAnnotations(classOf[avro.Tag], classOf[IgnoreSpanProperties]);
+    jsonMapper.addMixInAnnotations(classOf[avro.TagValue], classOf[IgnoreSpanProperties]);
 
     jsonMapper
   }
