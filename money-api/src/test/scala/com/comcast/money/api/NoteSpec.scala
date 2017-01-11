@@ -22,9 +22,9 @@ import scala.collection.JavaConverters._
 
 class NoteSpec extends WordSpec with Matchers {
 
-  "A Note" should {
-    "create String notes" in {
-      val note = Note.of("foo", "bar")
+  "A Tag" should {
+    "create String tags" in {
+      val note = Tag.of("foo", "bar")
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"
@@ -32,8 +32,8 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp should not be 0
     }
 
-    "create Long notes" in {
-      val note = Note.of("foo", 1L)
+    "create Long tags" in {
+      val note = Tag.of("foo", 1L)
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"
@@ -41,8 +41,8 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp should not be 0
     }
 
-    "create Double notes" in {
-      val note = Note.of("foo", 2.2)
+    "create Double tags" in {
+      val note = Tag.of("foo", 2.2)
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"
@@ -50,8 +50,8 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp should not be 0
     }
 
-    "create Boolean notes" in {
-      val note = Note.of("foo", true)
+    "create Boolean tags" in {
+      val note = Tag.of("foo", true)
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"
@@ -59,8 +59,8 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp should not be 0
     }
 
-    "create String notes with sticky" in {
-      val note = Note.of("foo", "bar", true)
+    "create String tags with sticky" in {
+      val note = Tag.of("foo", "bar", true)
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
@@ -68,8 +68,8 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp should not be 0
     }
 
-    "create Long notes with sticky" in {
-      val note = Note.of("foo", 1L, true)
+    "create Long tags with sticky" in {
+      val note = Tag.of("foo", 1L, true)
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
@@ -77,8 +77,8 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp should not be 0
     }
 
-    "create Double notes with sticky" in {
-      val note = Note.of("foo", 2.2, true)
+    "create Double tags with sticky" in {
+      val note = Tag.of("foo", 2.2, true)
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
@@ -86,8 +86,8 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp should not be 0
     }
 
-    "create Boolean notes with sticky" in {
-      val note = Note.of("foo", true, true)
+    "create Boolean tags with sticky" in {
+      val note = Tag.of("foo", true, true)
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
@@ -95,8 +95,8 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp should not be 0
     }
 
-    "create String notes with sticky including timestamp" in {
-      val note = Note.of("foo", "bar", true, 1L)
+    "create String tags with sticky including timestamp" in {
+      val note = Tag.of("foo", "bar", true, 1L)
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
@@ -104,8 +104,8 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp shouldBe 1L
     }
 
-    "create Long notes with sticky including timestamp" in {
-      val note = Note.of("foo", 1L, true, 1L)
+    "create Long tags with sticky including timestamp" in {
+      val note = Tag.of("foo", 1L, true, 1L)
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
@@ -113,8 +113,8 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp shouldBe 1L
     }
 
-    "create Double notes with sticky including timestamp" in {
-      val note = Note.of("foo", 2.2, true, 1L)
+    "create Double tags with sticky including timestamp" in {
+      val note = Tag.of("foo", 2.2, true, 1L)
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
@@ -122,8 +122,8 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp shouldBe 1L
     }
 
-    "create Boolean notes with sticky including timestamp" in {
-      val note = Note.of("foo", true, true, 1L)
+    "create Boolean tags with sticky including timestamp" in {
+      val note = Tag.of("foo", true, true, 1L)
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
@@ -131,8 +131,8 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp shouldBe 1L
     }
 
-    "create String notes including timestamp without sticky" in {
-      val note = Note.of("foo", "bar", 1L)
+    "create String tags including timestamp without sticky" in {
+      val note = Tag.of("foo", "bar", 1L)
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"
@@ -140,8 +140,8 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp shouldBe 1L
     }
 
-    "create Long notes including timestamp without sticky" in {
-      val note = Note.of("foo", 1L, 1L)
+    "create Long tags including timestamp without sticky" in {
+      val note = Tag.of("foo", 1L, 1L)
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"
@@ -149,8 +149,8 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp shouldBe 1L
     }
 
-    "create Double notes including timestamp without sticky" in {
-      val note = Note.of("foo", 2.2, 1L)
+    "create Double tags including timestamp without sticky" in {
+      val note = Tag.of("foo", 2.2, 1L)
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"
@@ -158,8 +158,8 @@ class NoteSpec extends WordSpec with Matchers {
       note.timestamp shouldBe 1L
     }
 
-    "create Boolean notes including timestamp without sticky" in {
-      val note = Note.of("foo", true, 1L)
+    "create Boolean tags including timestamp without sticky" in {
+      val note = Tag.of("foo", true, 1L)
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"

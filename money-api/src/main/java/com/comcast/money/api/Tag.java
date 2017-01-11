@@ -19,24 +19,24 @@ package com.comcast.money.api;
 /**
  * A note that has been recorded on a {@link Span}
  *
- * @param <T> The type of Note.  This is currently limited to Long, String, Boolean and Double
+ * @param <T> The type of Tag.  This is currently limited to Long, String, Boolean and Double
  */
-public class Note<T> {
+public class Tag<T> {
 
     private final String name;
     private final T value;
     private final long timestamp;
     private final boolean sticky; // indicates that this note should be sent to child spans if so requested by user
 
-    private Note(String name, T value) {
+    private Tag(String name, T value) {
         this(name, value, System.currentTimeMillis(), false);
     }
 
-    private Note(String name, T value, boolean sticky) {
+    private Tag(String name, T value, boolean sticky) {
         this(name, value, System.currentTimeMillis(), sticky);
     }
 
-    private Note(String name, T value, Long timestamp, boolean sticky) {
+    private Tag(String name, T value, Long timestamp, boolean sticky) {
         this.name = name;
         this.value = value;
         this.timestamp = timestamp;
@@ -79,132 +79,132 @@ public class Note<T> {
      * Creates a new note that contains a string
      * @param name The name of the note
      * @param value The value for the note
-     * @return A new {@link Note} that contains a String value
+     * @return A new {@link Tag} that contains a String value
      */
-    public static Note<String> of(String name, String value) {
-        return new Note<String>(name, value);
+    public static Tag<String> of(String name, String value) {
+        return new Tag<String>(name, value);
     }
 
     /**
      * Creates a new note that contains a long
      * @param name The name of the note
      * @param value The value for the note
-     * @return A new {@link Note} that contains a long value
+     * @return A new {@link Tag} that contains a long value
      */
-    public static Note<Long> of(String name, long value) {
-        return new Note<Long>(name, value);
+    public static Tag<Long> of(String name, long value) {
+        return new Tag<Long>(name, value);
     }
 
     /**
      * Creates a new note that contains a boolean
      * @param name The name of the note
      * @param value The value for the note
-     * @return A new {@link Note} that contains a boolean value
+     * @return A new {@link Tag} that contains a boolean value
      */
-    public static Note<Boolean> of(String name, boolean value) {
-        return new Note<Boolean>(name, value);
+    public static Tag<Boolean> of(String name, boolean value) {
+        return new Tag<Boolean>(name, value);
     }
 
     /**
      * Creates a new note that contains a double
      * @param name The name of the note
      * @param value The value for the note
-     * @return A new {@link Note} that contains a double value
+     * @return A new {@link Tag} that contains a double value
      */
-    public static Note<Double> of(String name, double value) {
-        return new Note<Double>(name, value);
+    public static Tag<Double> of(String name, double value) {
+        return new Tag<Double>(name, value);
     }
 
     /**
      * Creates a new note that contains a string
      * @param name The name of the note
      * @param value The value for the note
-     * @param sticky Indicates whether this Note should be sticky
-     * @return A new {@link Note} that contains a String value
+     * @param sticky Indicates whether this Tag should be sticky
+     * @return A new {@link Tag} that contains a String value
      */
-    public static Note<String> of(String name, String value, boolean sticky) {
-        return new Note<String>(name, value, sticky);
+    public static Tag<String> of(String name, String value, boolean sticky) {
+        return new Tag<String>(name, value, sticky);
     }
 
     /**
      * Creates a new note that contains a long
      * @param name The name of the note
      * @param value The value for the note
-     * @param sticky Indicates whether this Note should be sticky
-     * @return A new {@link Note} that contains a long value
+     * @param sticky Indicates whether this Tag should be sticky
+     * @return A new {@link Tag} that contains a long value
      */
-    public static Note<Long> of(String name, long value, boolean sticky) {
-        return new Note<Long>(name, value, sticky);
+    public static Tag<Long> of(String name, long value, boolean sticky) {
+        return new Tag<Long>(name, value, sticky);
     }
 
     /**
      * Creates a new note that contains a boolean
      * @param name The name of the note
      * @param value The value for the note
-     * @param sticky Indicates whether this Note should be sticky
-     * @return A new {@link Note} that contains a boolean value
+     * @param sticky Indicates whether this Tag should be sticky
+     * @return A new {@link Tag} that contains a boolean value
      */
-    public static Note<Boolean> of(String name, boolean value, boolean sticky) {
-        return new Note<Boolean>(name, value, sticky);
+    public static Tag<Boolean> of(String name, boolean value, boolean sticky) {
+        return new Tag<Boolean>(name, value, sticky);
     }
 
     /**
      * Creates a new note that contains a double
      * @param name The name of the note
      * @param value The value for the note
-     * @param sticky Indicates whether this Note should be sticky
-     * @return A new {@link Note} that contains a double value
+     * @param sticky Indicates whether this Tag should be sticky
+     * @return A new {@link Tag} that contains a double value
      */
-    public static Note<Double> of(String name, double value, boolean sticky) {
-        return new Note<Double>(name, value, sticky);
+    public static Tag<Double> of(String name, double value, boolean sticky) {
+        return new Tag<Double>(name, value, sticky);
     }
 
     /**
      * Creates a new note that contains a string
      * @param name The name of the note
      * @param value The value for the note
-     * @param sticky Indicates whether this Note should be sticky
+     * @param sticky Indicates whether this Tag should be sticky
      * @param timestamp The timestamp for the note
-     * @return A new {@link Note} that contains a String value
+     * @return A new {@link Tag} that contains a String value
      */
-    public static Note<String> of(String name, String value, boolean sticky, long timestamp) {
-        return new Note<String>(name, value, timestamp, sticky);
+    public static Tag<String> of(String name, String value, boolean sticky, long timestamp) {
+        return new Tag<String>(name, value, timestamp, sticky);
     }
 
     /**
      * Creates a new note that contains a long
      * @param name The name of the note
      * @param value The value for the note
-     * @param sticky Indicates whether this Note should be sticky
+     * @param sticky Indicates whether this Tag should be sticky
      * @param timestamp The timestamp for the note
-     * @return A new {@link Note} that contains a long value
+     * @return A new {@link Tag} that contains a long value
      */
-    public static Note<Long> of(String name, long value, boolean sticky, long timestamp) {
-        return new Note<Long>(name, value, timestamp, sticky);
+    public static Tag<Long> of(String name, long value, boolean sticky, long timestamp) {
+        return new Tag<Long>(name, value, timestamp, sticky);
     }
 
     /**
      * Creates a new note that contains a boolean
      * @param name The name of the note
      * @param value The value for the note
-     * @param sticky Indicates whether this Note should be sticky
+     * @param sticky Indicates whether this Tag should be sticky
      * @param timestamp The timestamp for the note
-     * @return A new {@link Note} that contains a boolean value
+     * @return A new {@link Tag} that contains a boolean value
      */
-    public static Note<Boolean> of(String name, boolean value, boolean sticky, long timestamp) {
-        return new Note<Boolean>(name, value, timestamp, sticky);
+    public static Tag<Boolean> of(String name, boolean value, boolean sticky, long timestamp) {
+        return new Tag<Boolean>(name, value, timestamp, sticky);
     }
 
     /**
      * Creates a new note that contains a double
      * @param name The name of the note
      * @param value The value for the note
-     * @param sticky Indicates whether this Note should be sticky
+     * @param sticky Indicates whether this Tag should be sticky
      * @param timestamp The timestamp for the note
-     * @return A new {@link Note} that contains a double value
+     * @return A new {@link Tag} that contains a double value
      */
-    public static Note<Double> of(String name, double value, boolean sticky, long timestamp) {
-        return new Note<Double>(name, value, timestamp, sticky);
+    public static Tag<Double> of(String name, double value, boolean sticky, long timestamp) {
+        return new Tag<Double>(name, value, timestamp, sticky);
     }
 
     /**
@@ -212,10 +212,10 @@ public class Note<T> {
      * @param name The name of the note
      * @param value The value for the note
      * @param timestamp The timestamp for the note
-     * @return A new {@link Note} that contains a String value
+     * @return A new {@link Tag} that contains a String value
      */
-    public static Note<String> of(String name, String value, long timestamp) {
-        return new Note<String>(name, value, timestamp, false);
+    public static Tag<String> of(String name, String value, long timestamp) {
+        return new Tag<String>(name, value, timestamp, false);
     }
 
     /**
@@ -223,10 +223,10 @@ public class Note<T> {
      * @param name The name of the note
      * @param value The value for the note
      * @param timestamp The timestamp for the note
-     * @return A new {@link Note} that contains a long value
+     * @return A new {@link Tag} that contains a long value
      */
-    public static Note<Long> of(String name, long value, long timestamp) {
-        return new Note<Long>(name, value, timestamp, false);
+    public static Tag<Long> of(String name, long value, long timestamp) {
+        return new Tag<Long>(name, value, timestamp, false);
     }
 
     /**
@@ -234,10 +234,10 @@ public class Note<T> {
      * @param name The name of the note
      * @param value The value for the note
      * @param timestamp The timestamp for the note
-     * @return A new {@link Note} that contains a boolean value
+     * @return A new {@link Tag} that contains a boolean value
      */
-    public static Note<Boolean> of(String name, boolean value, long timestamp) {
-        return new Note<Boolean>(name, value, timestamp, false);
+    public static Tag<Boolean> of(String name, boolean value, long timestamp) {
+        return new Tag<Boolean>(name, value, timestamp, false);
     }
 
     /**
@@ -245,10 +245,10 @@ public class Note<T> {
      * @param name The name of the note
      * @param value The value for the note
      * @param timestamp The timestamp for the note
-     * @return A new {@link Note} that contains a double value
+     * @return A new {@link Tag} that contains a double value
      */
-    public static Note<Double> of(String name, double value, long timestamp) {
-        return new Note<Double>(name, value, timestamp, false);
+    public static Tag<Double> of(String name, double value, long timestamp) {
+        return new Tag<Double>(name, value, timestamp, false);
     }
 
     @Override
@@ -256,12 +256,12 @@ public class Note<T> {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
 
-        Note<?> note = (Note<?>) o;
+        Tag<?> tag = (Tag<?>) o;
 
-        if (timestamp != note.timestamp) return false;
-        if (sticky != note.sticky) return false;
-        if (!name.equals(note.name)) return false;
-        return value != null ? value.equals(note.value) : note.value == null;
+        if (timestamp != tag.timestamp) return false;
+        if (sticky != tag.sticky) return false;
+        if (!name.equals(tag.name)) return false;
+        return value != null ? value.equals(tag.value) : tag.value == null;
 
     }
 
@@ -277,7 +277,7 @@ public class Note<T> {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("Note(");
+        builder.append("Tag(");
         builder.append("name=").append(name);
         builder.append(", value=").append(value == null ? "null" : value.toString());
         builder.append(", timestamp=").append(timestamp);

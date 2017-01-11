@@ -84,10 +84,10 @@ class SpanLogFormatter(
 
     append(spanSuccessKey, spanInfo.success)
 
-    val notes = spanInfo.notes.values().iterator()
+    val tags = spanInfo.tags.values().iterator()
 
-    while (notes.hasNext) {
-      val note = notes.next
+    while (tags.hasNext) {
+      val note = tags.next
       append(note.name, valueOrNull(note.value))
     }
 

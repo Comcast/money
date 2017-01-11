@@ -66,7 +66,7 @@ class KafkaSpanHandlerSpec extends WordSpec
       startTimeMillis = 1L,
       success = true,
       durationMicros = 35L,
-      notes = Map("what" -> api.Note.of("what", 1L), "when" -> api.Note.of("when", 2L), "bob" -> api.Note.of("bob", "craig"))
+      tags = Map("what" -> api.Tag.of("what", 1L), "when" -> api.Tag.of("when", 2L), "bob" -> api.Tag.of("bob", "craig"))
     )
   }
 

@@ -16,7 +16,7 @@
 
 package com.comcast.money.core.handlers
 
-import com.comcast.money.api.{ SpanHandler, SpanInfo, Note, SpanId }
+import com.comcast.money.api.{ SpanHandler, SpanInfo, Tag, SpanId }
 import com.comcast.money.core.{ CoreSpan, CoreSpanInfo }
 import com.typesafe.config.Config
 
@@ -36,10 +36,10 @@ trait TestData {
 
   import scala.collection.JavaConversions._
 
-  val testStringNote = Note.of("str", "bar")
-  val testLongNote = Note.of("lng", 200L)
-  val testDoubleNote = Note.of("dbl", 1.2)
-  val testBooleanNote = Note.of("bool", true)
+  val testStringNote = Tag.of("str", "bar")
+  val testLongNote = Tag.of("lng", 200L)
+  val testDoubleNote = Tag.of("dbl", 1.2)
+  val testBooleanNote = Tag.of("bool", true)
 
   val testSpanInfo = CoreSpanInfo(
     id = new SpanId(),
@@ -51,7 +51,7 @@ trait TestData {
     name = "test-span",
     appName = "test",
     host = "localhost",
-    notes = Map("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote)
+    tags = Map("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote)
   )
 
   val testSpan = CoreSpan(new SpanId(), "test-span", null)

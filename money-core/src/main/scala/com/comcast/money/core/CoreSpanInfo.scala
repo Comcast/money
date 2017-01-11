@@ -16,7 +16,7 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ SpanId, SpanInfo, Tag }
 
 case class CoreSpanInfo(
   id: SpanId,
@@ -27,7 +27,7 @@ case class CoreSpanInfo(
   endTimeMicros: java.lang.Long = 0L,
   durationMicros: java.lang.Long = 0L,
   success: java.lang.Boolean = true,
-  notes: java.util.Map[String, Note[_]] = new java.util.HashMap[String, Note[_]](),
+  tags: java.util.Map[String, Tag[_]] = new java.util.HashMap[String, Tag[_]](),
   appName: String = Money.Environment.applicationName,
   host: String = Money.Environment.hostName
 ) extends SpanInfo

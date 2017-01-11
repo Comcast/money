@@ -16,7 +16,7 @@
 
 package com.comcast.money.spring3
 
-import com.comcast.money.api.Note
+import com.comcast.money.api.Tag
 import com.comcast.money.core._
 import org.springframework.stereotype.Component
 
@@ -52,7 +52,7 @@ class SpringTracer extends Tracer {
   override def startSpan(key: String): Unit = tracer.startSpan(key)
 
   /**
-   * Captures a timestamp for the key provided on the current Span if present.  If a Span is present, a Note
+   * Captures a timestamp for the key provided on the current Span if present.  If a Span is present, a Tag
    * will be added to the Span.
    * {{{
    *   import com.comcast.money.core.Money._
@@ -67,7 +67,7 @@ class SpringTracer extends Tracer {
   override def time(key: String): Unit = tracer.time(key)
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -83,7 +83,7 @@ class SpringTracer extends Tracer {
   override def record(key: String, measure: Double): Unit = tracer.record(key, measure)
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -100,7 +100,7 @@ class SpringTracer extends Tracer {
   override def record(key: String, measure: Double, propogate: Boolean): Unit = tracer.record(key, measure, propogate)
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -116,7 +116,7 @@ class SpringTracer extends Tracer {
   override def record(key: String, measure: String): Unit = tracer.record(key, measure)
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -133,7 +133,7 @@ class SpringTracer extends Tracer {
   override def record(key: String, measure: String, propogate: Boolean): Unit = tracer.record(key, measure, propogate)
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -149,7 +149,7 @@ class SpringTracer extends Tracer {
   override def record(key: String, measure: Long): Unit = tracer.record(key, measure)
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -166,7 +166,7 @@ class SpringTracer extends Tracer {
   override def record(key: String, measure: Long, propogate: Boolean): Unit = tracer.record(key, measure, propogate)
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -182,7 +182,7 @@ class SpringTracer extends Tracer {
   override def record(key: String, measure: Boolean): Unit = tracer.record(key, measure)
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -199,7 +199,7 @@ class SpringTracer extends Tracer {
   override def record(key: String, measure: Boolean, propogate: Boolean): Unit = tracer.record(key, measure, propogate)
 
   /**
-   * Adds a new [[com.comcast.money.api.Note]] directly to the current Span if one is present in context.
+   * Adds a new [[Tag]] directly to the current Span if one is present in context.
    * {{{
    *   import com.comcast.money.core.Money._
    *   def recordMe() {
@@ -209,9 +209,10 @@ class SpringTracer extends Tracer {
    *     ...
    *  }
    * }}}
-   * @param note the [[com.comcast.money.api.Note]] to be added
+   *
+   * @param note the [[Tag]] to be added
    */
-  override def record(note: Note[_]): Unit = tracer.record(note)
+  override def record(note: Tag[_]): Unit = tracer.record(note)
 
   /**
    * Stops the current span, adding a note that indicates whether it succeeded or failed.

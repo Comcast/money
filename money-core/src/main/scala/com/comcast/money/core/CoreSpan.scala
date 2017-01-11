@@ -44,7 +44,7 @@ case class CoreSpan(
 
   // use concurrent maps
   private val timers = new TrieMap[String, Long]()
-  private val noted = new TrieMap[String, Note[_]]()
+  private val tagged = new TrieMap[String, Tag[_]]()
 
   def start(): Unit = {
     startTimeMillis = System.currentTimeMillis
@@ -68,10 +68,10 @@ case class CoreSpan(
   def stopTimer(timerKey: String): Unit =
     timers.remove(timerKey) foreach {
       timerStartInstant =>
-        record(Note.of(timerKey, System.nanoTime - timerStartInstant))
+        record(Tag.of(timerKey, System.nanoTime - timerStartInstant))
     }
 
-  def record(note: Note[_]): Unit = noted += note.name -> note
+  def record(note: Tag[_]): Unit = tagged += note.name -> note
 
   def startTimer(timerKey: String): Unit = timers += timerKey -> System.nanoTime
 
@@ -85,7 +85,7 @@ case class CoreSpan(
       endTimeMicros,
       calculateDuration,
       success,
-      noted.toMap[String, Note[_]]
+      tagged.toMap[String, Tag[_]]
     )
 
   private def calculateDuration: Long =

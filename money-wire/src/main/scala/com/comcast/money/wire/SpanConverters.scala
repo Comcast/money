@@ -19,7 +19,7 @@ package com.comcast.money.wire
 import java.io.ByteArrayOutputStream
 
 import com.comcast.money.api
-import com.comcast.money.api.SpanInfo
+import com.comcast.money.api.{ SpanInfo, Tag }
 import com.comcast.money.core._
 import com.comcast.money.wire.avro
 import com.comcast.money.wire.avro.NoteType
@@ -58,7 +58,7 @@ trait SpanWireConverters {
 
   import scala.collection.JavaConversions._
 
-  implicit val noteToWire: TypeConverter[api.Note[_], avro.Note] = TypeConverter.instance { from: api.Note[_] =>
+  implicit val noteToWire: TypeConverter[Tag[_], avro.Note] = TypeConverter.instance { from: Tag[_] =>
     def avroNote(noteValue: avro.NoteValue): avro.Note = new avro.Note(from.name, from.timestamp, noteValue)
 
     from.value match {
@@ -81,7 +81,7 @@ trait SpanWireConverters {
     }
   }
 
-  implicit val wireToNote: TypeConverter[avro.Note, api.Note[_]] = TypeConverter.instance { from: avro.Note =>
+  implicit val wireToNote: TypeConverter[avro.Note, Tag[_]] = TypeConverter.instance { from: avro.Note =>
     def toOption[T](str: String)(ft: String => T): Option[T] = {
       if (str == null)
         None: Option[T]
@@ -90,14 +90,14 @@ trait SpanWireConverters {
     }
 
     from.getValue.getType match {
-      case NoteType.Boolean => api.Note.of(
+      case NoteType.Boolean => api.Tag.of(
         from.getName, from.getValue.getData.toBoolean, from.getTimestamp
       )
-      case NoteType.Long => api.Note.of(from.getName, from.getValue.getData.toLong, from.getTimestamp)
-      case NoteType.String => api.Note.of(
+      case NoteType.Long => api.Tag.of(from.getName, from.getValue.getData.toLong, from.getTimestamp)
+      case NoteType.String => api.Tag.of(
         from.getName, from.getValue.getData, from.getTimestamp
       )
-      case NoteType.Double => api.Note.of(
+      case NoteType.Double => api.Tag.of(
         from.getName, from.getValue.getData.toDouble, from.getTimestamp
       )
     }
@@ -121,15 +121,15 @@ trait SpanWireConverters {
       span.success,
       span.startTimeMillis,
       implicitly[TypeConverter[api.SpanId, avro.SpanId]].convert(span.id),
-      span.notes.values.toList.map(implicitly[TypeConverter[api.Note[_], avro.Note]].convert)
+      span.tags.values.toList.map(implicitly[TypeConverter[Tag[_], avro.Note]].convert)
     )
   }
 
   implicit val wireToSpan: TypeConverter[avro.Span, SpanInfo] = TypeConverter.instance { from: avro.Span =>
 
-    def toNotesMap(notes: java.util.List[avro.Note]): java.util.Map[String, api.Note[_]] = {
-      val res = new java.util.HashMap[String, api.Note[_]]
-      notes.foreach(n => res.put(n.getName, implicitly[TypeConverter[avro.Note, api.Note[_]]].convert(n)))
+    def toNotesMap(notes: java.util.List[avro.Note]): java.util.Map[String, Tag[_]] = {
+      val res = new java.util.HashMap[String, Tag[_]]
+      notes.foreach(n => res.put(n.getName, implicitly[TypeConverter[avro.Note, Tag[_]]].convert(n)))
       res
     }
 
@@ -141,7 +141,7 @@ trait SpanWireConverters {
       startTimeMillis = from.getStartTime,
       success = from.getSuccess,
       durationMicros = from.getDuration,
-      notes = toNotesMap(from.getNotes)
+      tags = toNotesMap(from.getNotes)
     )
   }
 }

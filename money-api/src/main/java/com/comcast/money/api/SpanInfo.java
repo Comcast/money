@@ -21,10 +21,10 @@ import java.util.Map;
 public interface SpanInfo {
 
     /**
-     * @return a map of all of the notes that were recorded on the span.  Implementers should enforce
-     * that the map returned is a copy of the notes
+     * @return a map of all of the tags that were recorded on the span.  Implementers should enforce
+     * that the map returned is a copy of the tags
      */
-    Map<String, Note<?>> notes();
+    Map<String, Tag<?>> tags();
 
     /**
      * @return the time in milliseconds when this span was started

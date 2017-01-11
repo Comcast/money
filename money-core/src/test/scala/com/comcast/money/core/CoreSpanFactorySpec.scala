@@ -16,7 +16,7 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ Note, SpanHandler, SpanId }
+import com.comcast.money.api.{ Tag, SpanHandler, SpanId }
 import com.comcast.money.core.handlers.TestData
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ Matchers, WordSpec }
@@ -51,19 +51,19 @@ class CoreSpanFactorySpec extends WordSpec with Matchers with MockitoSugar with 
       child.id.parentId shouldBe parent.id.selfId
     }
 
-    "propagate sticky notes to a child span" in {
+    "propagate sticky tags to a child span" in {
 
       val parentSpan = underTest.newSpan("parent")
-      val stickyNote = Note.of("foo", "bar", true)
-      val nonStickyNote = Note.of("other", "one", false)
+      val stickyNote = Tag.of("foo", "bar", true)
+      val nonStickyNote = Tag.of("other", "one", false)
       parentSpan.record(stickyNote)
       parentSpan.record(nonStickyNote)
 
       val childSpan = underTest.childSpan("child", parentSpan, true)
       val childInfo = childSpan.info
 
-      childInfo.notes should contain value stickyNote
-      childInfo.notes shouldNot contain value nonStickyNote
+      childInfo.tags should contain value stickyNote
+      childInfo.tags shouldNot contain value nonStickyNote
     }
   }
 }

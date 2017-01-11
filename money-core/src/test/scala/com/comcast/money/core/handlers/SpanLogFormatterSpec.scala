@@ -16,7 +16,7 @@
 
 package com.comcast.money.core.handlers
 
-import com.comcast.money.api.{ Note, SpanId }
+import com.comcast.money.api.{ Tag, SpanId }
 import com.comcast.money.core.CoreSpanInfo
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{ Matchers, WordSpec }
@@ -46,7 +46,7 @@ class SpanLogFormatterSpec extends WordSpec with Matchers {
     name = "key",
     appName = "unknown",
     host = "host",
-    notes = Map("bob" -> Note.of("bob", "craig"), "what" -> Note.of("what", 1L), "when" -> Note.of("when", 2L)),
+    tags = Map("bob" -> Tag.of("bob", "craig"), "what" -> Tag.of("what", 1L), "when" -> Tag.of("when", 2L)),
     success = true
   )
 
@@ -60,7 +60,7 @@ class SpanLogFormatterSpec extends WordSpec with Matchers {
     name = "key",
     appName = "unknown",
     host = "host",
-    notes = Map("empty" -> Note.of("empty", null)),
+    tags = Map("empty" -> Tag.of("empty", null)),
     success = true
   )
 
