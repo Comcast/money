@@ -9,4 +9,6 @@
 .idea
 *.iml
 target
- ajcore.*.txt
+ajcore.*.txt
+.ensime
+.ensime_cache
