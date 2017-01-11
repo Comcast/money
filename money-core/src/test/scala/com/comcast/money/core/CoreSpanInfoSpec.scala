@@ -30,7 +30,7 @@ class CoreSpanInfoSpec extends WordSpec with Matchers {
       underTest.name shouldBe "test"
       underTest.appName shouldBe Money.Environment.applicationName
       underTest.host shouldBe Money.Environment.hostName
-      underTest.notes shouldBe empty
+      underTest.tags shouldBe empty
       underTest.success shouldBe true
       underTest.durationMicros shouldBe 0L
       underTest.startTimeMicros shouldBe 0L

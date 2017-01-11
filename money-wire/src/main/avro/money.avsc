@@ -52,11 +52,11 @@
             }
         },
         {
-            "name": "notes",
+            "name": "tags",
             "type": {
                 "type": "array",
                 "items": {
-                    "name": "Note",
+                    "name": "Tag",
                     "type": "record",
                     "fields": [
                         {
@@ -70,13 +70,13 @@
                         {
                             "name": "value",
                             "type": {
-                                "name": "NoteValue",
+                                "name": "TagValue",
                                 "type": "record",
                                 "fields": [
                                     {
                                         "name": "type",
                                         "type": {
-                                            "name": "NoteType",
+                                            "name": "TagType",
                                             "type": "enum",
                                             "symbols": [
                                                 "Boolean",

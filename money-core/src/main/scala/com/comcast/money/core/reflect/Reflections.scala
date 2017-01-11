@@ -20,7 +20,7 @@ import java.lang.annotation.Annotation
 import java.lang.reflect.Method
 
 import com.comcast.money.annotations.TracedData
-import com.comcast.money.api.Note
+import com.comcast.money.api.Tag
 import com.comcast.money.core._
 
 trait Reflections {
@@ -42,19 +42,19 @@ trait Reflections {
     }.getOrElse(Array.empty)
 
   /**
-   * Extracts notes from a given method invocation and argument array.  The resulting sequence contains the note
+   * Extracts tags from a given method invocation and argument array.  The resulting sequence contains the note
    * for each argument in the args array passed in.  If the argument at any position does NOT have a TracedData
    * annotation, then the value at that position in the sequence will be None.
    *
-   * The result is a sequence of Option of tuple of (Note, Boolean), where the second value in the tuple indicates
+   * The result is a sequence of Option of tuple of (Tag, Boolean), where the second value in the tuple indicates
    * if the note should be propagated.
    *
    * If there are no arguments on the method, an empty sequence will be returned.
    * @param method The method invocation we are inspecting
    * @param args An array of arguments passed to the method invocation
-   * @return A sequence of Option of Tuple(Note, Boolean); or an empty Sequence if there are no method parameters
+   * @return A sequence of Option of Tuple(Tag, Boolean); or an empty Sequence if there are no method parameters
    */
-  def extractTracedDataValues(method: Method, args: Array[AnyRef]): Seq[Option[(Note[_])]] = {
+  def extractTracedDataValues(method: Method, args: Array[AnyRef]): Seq[Option[(Tag[_])]] = {
 
     val paramTypes: Array[Class[_]] = method.getParameterTypes
     val tracedDataAnnotations = extractTracedDataAnnotations(method)
@@ -62,11 +62,11 @@ trait Reflections {
       val arg = args(i)
       tracedDataAnnotations(i).map { ann =>
         paramTypes(i) match {
-          case _ if arg == null => Note.of(ann.value, null.asInstanceOf[String], ann.propagate)
-          case b if isBoolean(b) => Note.of(ann.value, arg.asInstanceOf[Boolean], ann.propagate)
-          case l if isLong(l) => Note.of(ann.value, arg.asInstanceOf[Long], ann.propagate)
-          case d if isDouble(d) => Note.of(ann.value, arg.asInstanceOf[Double], ann.propagate)
-          case _ => Note.of(ann.value, asString(arg), ann.propagate)
+          case _ if arg == null => Tag.of(ann.value, null.asInstanceOf[String], ann.propagate)
+          case b if isBoolean(b) => Tag.of(ann.value, arg.asInstanceOf[Boolean], ann.propagate)
+          case l if isLong(l) => Tag.of(ann.value, arg.asInstanceOf[Long], ann.propagate)
+          case d if isDouble(d) => Tag.of(ann.value, arg.asInstanceOf[Double], ann.propagate)
+          case _ => Tag.of(ann.value, asString(arg), ann.propagate)
         }
       }
     }
@@ -76,7 +76,7 @@ trait Reflections {
    * Records all traced parameters for the given method invocation and argument list
    * @param method The Method invocation
    * @param args The list of arguments being passed into the method
-   * @param tracer The tracer to use to record the notes
+   * @param tracer The tracer to use to record the tags
    */
   def recordTracedParameters(method: Method, args: Array[AnyRef], tracer: Tracer): Unit =
     extractTracedDataValues(method, args).foreach(_.foreach(tracer.record))

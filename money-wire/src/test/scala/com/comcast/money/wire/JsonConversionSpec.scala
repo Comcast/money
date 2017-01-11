@@ -16,7 +16,7 @@
 
 package com.comcast.money.wire
 
-import com.comcast.money.api.{ Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ Tag, SpanId, SpanInfo }
 import com.comcast.money.core.CoreSpanInfo
 import org.scalatest.{ Inspectors, Matchers, WordSpec }
 
@@ -34,13 +34,13 @@ class JsonConversionSpec extends WordSpec with Matchers with Inspectors {
     startTimeMillis = 1L,
     success = true,
     durationMicros = 35L,
-    notes = Map(
-      "what" -> Note.of("what", 1L),
-      "when" -> Note.of("when", 2L),
-      "bob" -> Note.of("bob", "craig"),
-      "none" -> Note.of("none", null),
-      "bool" -> Note.of("bool", true),
-      "dbl" -> Note.of("dbl", 1.0)
+    tags = Map(
+      "what" -> Tag.of("what", 1L),
+      "when" -> Tag.of("when", 2L),
+      "bob" -> Tag.of("bob", "craig"),
+      "none" -> Tag.of("none", null),
+      "bool" -> Tag.of("bool", true),
+      "dbl" -> Tag.of("dbl", 1.0)
     )
   ).asInstanceOf[SpanInfo]
 
@@ -57,7 +57,7 @@ class JsonConversionSpec extends WordSpec with Matchers with Inspectors {
       converted.id shouldEqual orig.id
       converted.success shouldEqual orig.success
       converted.startTimeMillis shouldEqual orig.startTimeMillis
-      converted.notes shouldEqual orig.notes
+      converted.tags shouldEqual orig.tags
     }
   }
 }

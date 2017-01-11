@@ -48,7 +48,7 @@ object DisabledTracer extends Tracer {
 
   override def record(key: String, measure: Boolean, propogate: Boolean): Unit = ()
 
-  override def record(note: Note[_]): Unit = ()
+  override def record(note: Tag[_]): Unit = ()
 
   override def stopSpan(result: Boolean): Unit = ()
 
@@ -80,7 +80,7 @@ object DisabledSpan extends Span {
 
   def stopTimer(timerKey: String): Unit = ()
 
-  def record(note: Note[_]): Unit = ()
+  def record(note: Tag[_]): Unit = ()
 
   def startTimer(timerKey: String): Unit = ()
 

@@ -16,7 +16,7 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ SpanInfo, SpanHandler, Note, SpanId }
+import com.comcast.money.api.{ SpanInfo, SpanHandler, Tag, SpanId }
 import com.comcast.money.core.handlers.TestData
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
@@ -42,7 +42,7 @@ class CoreSpanSpec extends WordSpec with Matchers with TestData with MockitoSuga
       underTest.startTimer("foo")
       underTest.stopTimer("foo")
 
-      underTest.info.notes should contain key "foo"
+      underTest.info.tags should contain key "foo"
     }
 
     "record a note" in {
@@ -50,7 +50,7 @@ class CoreSpanSpec extends WordSpec with Matchers with TestData with MockitoSuga
 
       underTest.record(testLongNote)
 
-      underTest.info.notes should contain value testLongNote
+      underTest.info.tags should contain value testLongNote
     }
 
     "set the endTimeMillis and endTimeMicros when stopped" in {
@@ -83,7 +83,7 @@ class CoreSpanSpec extends WordSpec with Matchers with TestData with MockitoSuga
       handledInfo.startTimeMillis.toInt should not be 0
       handledInfo.endTimeMicros.toInt should not be 0
       handledInfo.endTimeMillis.toInt should not be 0
-      handledInfo.notes should contain value testLongNote
+      handledInfo.tags should contain value testLongNote
     }
   }
 }

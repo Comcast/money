@@ -18,7 +18,7 @@ package com.comcast.money.core
 
 import java.io.Closeable
 
-import com.comcast.money.api.{ Note, Span, SpanFactory }
+import com.comcast.money.api.{ Span, SpanFactory, Tag }
 import com.comcast.money.core.internal.SpanLocal
 
 /**
@@ -58,7 +58,7 @@ trait Tracer extends Closeable {
   }
 
   /**
-   * Captures a timestamp for the key provided on the current Span if present.  If a Span is present, a Note
+   * Captures a timestamp for the key provided on the current Span if present.  If a Span is present, a Tag
    * will be added to the Span.
    * {{{
    *   import com.comcast.money.core.Money._
@@ -71,11 +71,11 @@ trait Tracer extends Closeable {
    * @param key the identifier for the timestamp being captured
    */
   def time(key: String) = withSpan { span =>
-    span.record(Note.of(key, System.currentTimeMillis()))
+    span.record(Tag.of(key, System.currentTimeMillis()))
   }
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -89,11 +89,11 @@ trait Tracer extends Closeable {
    * @param measure the value being captured
    */
   def record(key: String, measure: Double): Unit = withSpan { span =>
-    span.record(Note.of(key, measure))
+    span.record(Tag.of(key, measure))
   }
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -108,11 +108,11 @@ trait Tracer extends Closeable {
    * @param propogate propogate to children
    */
   def record(key: String, measure: Double, propogate: Boolean): Unit = withSpan { span =>
-    span.record(Note.of(key, measure, propogate))
+    span.record(Tag.of(key, measure, propogate))
   }
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -126,11 +126,11 @@ trait Tracer extends Closeable {
    * @param measure the value being captured
    */
   def record(key: String, measure: String): Unit = withSpan { span =>
-    span.record(Note.of(key, measure))
+    span.record(Tag.of(key, measure))
   }
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -145,11 +145,11 @@ trait Tracer extends Closeable {
    * @param propogate propogate to children
    */
   def record(key: String, measure: String, propogate: Boolean): Unit = withSpan { span =>
-    span.record(Note.of(key, measure, propogate))
+    span.record(Tag.of(key, measure, propogate))
   }
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -163,11 +163,11 @@ trait Tracer extends Closeable {
    * @param measure the value being captured
    */
   def record(key: String, measure: Long): Unit = withSpan { span =>
-    span.record(Note.of(key, measure))
+    span.record(Tag.of(key, measure))
   }
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -182,11 +182,11 @@ trait Tracer extends Closeable {
    * @param propogate propogate to children
    */
   def record(key: String, measure: Long, propogate: Boolean): Unit = withSpan { span =>
-    span.record(Note.of(key, measure, propogate))
+    span.record(Tag.of(key, measure, propogate))
   }
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -200,11 +200,11 @@ trait Tracer extends Closeable {
    * @param measure the value being captured
    */
   def record(key: String, measure: Boolean): Unit = withSpan { span =>
-    span.record(Note.of(key, measure))
+    span.record(Tag.of(key, measure))
   }
 
   /**
-   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Note
+   * Captures an arbitrary data element on the current Span if present.  If a span is present, a Tag
    * will be added to the Span with the key and data element provided
    * {{{
    *   import com.comcast.money.core.Money._
@@ -219,11 +219,11 @@ trait Tracer extends Closeable {
    * @param propogate propogate to children
    */
   def record(key: String, measure: Boolean, propogate: Boolean): Unit = withSpan { span =>
-    span.record(Note.of(key, measure, propogate))
+    span.record(Tag.of(key, measure, propogate))
   }
 
   /**
-   * Adds a new [[com.comcast.money.api.Note]] directly to the current Span if one is present in context.
+   * Adds a new [[Tag]] directly to the current Span if one is present in context.
    * {{{
    *   import com.comcast.money.core.Money._
    *   def recordMe() {
@@ -233,9 +233,10 @@ trait Tracer extends Closeable {
    *     ...
    *  }
    * }}}
-   * @param note the [[com.comcast.money.api.Note]] to be added
+   *
+   * @param note the [[Tag]] to be added
    */
-  def record(note: Note[_]) = withSpan { span =>
+  def record(note: Tag[_]) = withSpan { span =>
     span.record(note)
   }
 

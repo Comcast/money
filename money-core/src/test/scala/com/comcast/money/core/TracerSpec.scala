@@ -16,21 +16,21 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ Note, SpanId, Span, SpanFactory }
+import com.comcast.money.api._
 import com.comcast.money.core.handlers.TestData
 import com.comcast.money.core.internal.SpanLocal
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{ OneInstancePerTest, BeforeAndAfterEach, Matchers, WordSpec }
+import org.scalatest.{ BeforeAndAfterEach, Matchers, OneInstancePerTest, WordSpec }
 
 class TracerSpec extends WordSpec
     with Matchers with MockitoSugar with TestData with BeforeAndAfterEach with OneInstancePerTest {
 
   val mockSpanFactory = mock[SpanFactory]
   val mockSpan = mock[Span]
-  val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
+  val noteCaptor = ArgumentCaptor.forClass(classOf[Tag[_]])
   val underTest = new Tracer {
     val spanFactory = mockSpanFactory
   }
@@ -69,7 +69,7 @@ class TracerSpec extends WordSpec
 
       underTest.time("foo")
 
-      verify(mockSpan).record(any[Note[_]])
+      verify(mockSpan).record(any[Tag[_]])
     }
 
     "record a double" in {

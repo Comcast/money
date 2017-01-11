@@ -17,7 +17,7 @@
 package com.comcast.money.core.reflect
 
 import com.comcast.money.annotations.TracedData
-import com.comcast.money.api.Note
+import com.comcast.money.api.Tag
 import com.comcast.money.core._
 import com.sun.istack.internal.NotNull
 import org.mockito.ArgumentCaptor
@@ -94,67 +94,67 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
 
       tds shouldBe empty
     }
-    "return the notes when multiple traced data params are present" in {
+    "return the tags when multiple traced data params are present" in {
       val args: Array[AnyRef] = Array("str", Long.box(100L), Double.box(3.14), Boolean.box(true), Double.box(2.22))
       val tds = testReflections.extractTracedDataValues(methodWithTracedData, args)
 
       tds.size shouldBe 5
 
       val strNote = tds(0).get
-      strNote shouldBe a[Note[String]]
+      strNote shouldBe a[Tag[String]]
       strNote.value shouldBe "str"
       strNote.name shouldBe "STRING"
       strNote.isSticky shouldBe false
 
       val lngNote = tds(1).get
-      lngNote shouldBe a[Note[Long]]
+      lngNote shouldBe a[Tag[Long]]
       lngNote.value shouldBe 100L
       lngNote.name shouldBe "LONG"
       lngNote.isSticky shouldBe false
 
       val dblNote = tds(2).get
-      dblNote shouldBe a[Note[Double]]
+      dblNote shouldBe a[Tag[Double]]
       dblNote.value shouldBe 3.14
       dblNote.name shouldBe "DOUBLE"
       dblNote.isSticky shouldBe false
 
       val boolNote = tds(3).get
-      boolNote shouldBe a[Note[java.lang.Boolean]]
+      boolNote shouldBe a[Tag[java.lang.Boolean]]
       boolNote.value shouldBe true
       boolNote.name shouldBe "BOOLEAN"
       boolNote.isSticky shouldBe false
 
       tds(4) shouldBe None
     }
-    "return notes with None values when nulls are passed in for arguments" in {
+    "return tags with None values when nulls are passed in for arguments" in {
       val args: Array[AnyRef] = Array(null, null, null, null, Double.box(3.14))
       val tds = testReflections.extractTracedDataValues(methodWithTracedData, args)
 
       tds.size shouldBe 5
 
-      val strNote = tds(0).get.asInstanceOf[Note[String]]
+      val strNote = tds(0).get.asInstanceOf[Tag[String]]
       strNote.value shouldBe null
       strNote.name shouldBe "STRING"
       strNote.isSticky shouldBe false
 
-      val lngNote = tds(1).get.asInstanceOf[Note[String]]
+      val lngNote = tds(1).get.asInstanceOf[Tag[String]]
       lngNote.value shouldBe null
       lngNote.name shouldBe "LONG"
       lngNote.isSticky shouldBe false
 
-      val dblNote = tds(2).get.asInstanceOf[Note[String]]
+      val dblNote = tds(2).get.asInstanceOf[Tag[String]]
       dblNote.value shouldBe null
       dblNote.name shouldBe "DOUBLE"
       dblNote.isSticky shouldBe false
 
-      val boolNote = tds(3).get.asInstanceOf[Note[String]]
+      val boolNote = tds(3).get.asInstanceOf[Tag[String]]
       boolNote.value shouldBe null
       boolNote.name shouldBe "BOOLEAN"
       boolNote.isSticky shouldBe false
 
       tds(4) shouldBe None
     }
-    "return notes for traced params that have other annotations present" in {
+    "return tags for traced params that have other annotations present" in {
       val args: Array[AnyRef] = Array("str")
       val tds = testReflections.extractTracedDataValues(methodWithMultipleAnnotations, args)
 
@@ -174,13 +174,13 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
       val args: Array[AnyRef] = Array("str", Long.box(100L), Double.box(3.14), Boolean.box(true), Double.box(2.22))
       testReflections.recordTracedParameters(methodWithTracedData, args, mockTracer)
 
-      val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
-      verify(mockTracer, times(4)).record(noteCaptor.capture())
+      val tagCaptor = ArgumentCaptor.forClass(classOf[Tag[_]])
+      verify(mockTracer, times(4)).record(tagCaptor.capture())
 
-      val strNote = noteCaptor.getAllValues.get(0)
-      val lngNote = noteCaptor.getAllValues.get(1)
-      val dblNote = noteCaptor.getAllValues.get(2)
-      val boolNote = noteCaptor.getAllValues.get(3)
+      val strNote = tagCaptor.getAllValues.get(0)
+      val lngNote = tagCaptor.getAllValues.get(1)
+      val dblNote = tagCaptor.getAllValues.get(2)
+      val boolNote = tagCaptor.getAllValues.get(3)
 
       strNote.value shouldBe "str"
       strNote.name shouldBe "STRING"
@@ -202,13 +202,13 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
       val args: Array[AnyRef] = Array(null, null, null, null, Double.box(3.14))
       testReflections.recordTracedParameters(methodWithTracedData, args, mockTracer)
 
-      val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
-      verify(mockTracer, times(4)).record(noteCaptor.capture())
+      val tagCaptor = ArgumentCaptor.forClass(classOf[Tag[_]])
+      verify(mockTracer, times(4)).record(tagCaptor.capture())
 
-      val strNote = noteCaptor.getAllValues.get(0).asInstanceOf[Note[String]]
-      val lngNote = noteCaptor.getAllValues.get(1).asInstanceOf[Note[String]]
-      val dblNote = noteCaptor.getAllValues.get(2).asInstanceOf[Note[String]]
-      val boolNote = noteCaptor.getAllValues.get(3).asInstanceOf[Note[String]]
+      val strNote = tagCaptor.getAllValues.get(0).asInstanceOf[Tag[String]]
+      val lngNote = tagCaptor.getAllValues.get(1).asInstanceOf[Tag[String]]
+      val dblNote = tagCaptor.getAllValues.get(2).asInstanceOf[Tag[String]]
+      val boolNote = tagCaptor.getAllValues.get(3).asInstanceOf[Tag[String]]
 
       strNote.value shouldBe null
       strNote.name shouldBe "STRING"
@@ -230,10 +230,10 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
       val args: Array[AnyRef] = Array("str")
       testReflections.recordTracedParameters(methodWithTracedDataPropagate, args, mockTracer)
 
-      val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
-      verify(mockTracer, times(1)).record(noteCaptor.capture())
+      val tagCaptor = ArgumentCaptor.forClass(classOf[Tag[_]])
+      verify(mockTracer, times(1)).record(tagCaptor.capture())
 
-      val strNote = noteCaptor.getAllValues.get(0)
+      val strNote = tagCaptor.getAllValues.get(0)
 
       strNote.value shouldBe "str"
       strNote.isSticky shouldBe true
@@ -242,10 +242,10 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
       val args: Array[AnyRef] = Array(null)
       testReflections.recordTracedParameters(methodWithTracedDataPropagate, args, mockTracer)
 
-      val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
-      verify(mockTracer, times(1)).record(noteCaptor.capture())
+      val tagCaptor = ArgumentCaptor.forClass(classOf[Tag[_]])
+      verify(mockTracer, times(1)).record(tagCaptor.capture())
 
-      val strNote = noteCaptor.getAllValues.get(0).asInstanceOf[Note[String]]
+      val strNote = tagCaptor.getAllValues.get(0).asInstanceOf[Tag[String]]
 
       strNote.value shouldBe null
       strNote.isSticky shouldBe true

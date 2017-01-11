@@ -31,7 +31,7 @@ class CoreSpanFactory(handler: SpanHandler) extends SpanFactory {
     val child = newSpan(info.id.newChildId, childName)
 
     if (sticky) {
-      info.notes.values
+      info.tags.values
         .filter(_.isSticky)
         .foreach(child.record)
     }

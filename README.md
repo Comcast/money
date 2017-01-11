@@ -36,7 +36,7 @@ In Dapper, a Span can encompass the communication between a client and a server.
 - *server-recv* - the time that the server received the request
 - *server-send* - the time that the server responded to the request
 - *client-recv* - the time that the client received the request
-- *foo* - any arbitrary annotation (note) made by either the client or the server
+- *foo* - any arbitrary annotation (tag) made by either the client or the server
 
 The idea being that everything can be calculated when the data is at rest.
 

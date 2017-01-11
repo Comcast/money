@@ -41,10 +41,10 @@ public interface Span {
     void stop(Boolean result);
 
     /**
-     * Records a given note onto the span.  If the note was already present, it will be overwritten
-     * @param note The note to be recorded
+     * Records a given tag onto the span.  If the tag was already present, it will be overwritten
+     * @param tag The tag to be recorded
      */
-    void record(Note<?> note);
+    void record(Tag<?> tag);
 
     /**
      * Starts a new timer on the span

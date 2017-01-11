@@ -16,6 +16,7 @@
 
 package com.comcast.money.spring3;
 
+import com.comcast.money.api.Tag;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,10 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.comcast.money.api.Note;
-
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -74,51 +72,51 @@ public class TracedMethodInterceptorSpec {
     @Test
     public void testTracedDataParamsWithValues() throws Exception {
 
-        ArgumentCaptor<Note> noteCaptor = ArgumentCaptor.forClass(Note.class);
+        ArgumentCaptor<Tag> tagCaptor = ArgumentCaptor.forClass(Tag.class);
 
         sampleTraceBean.doSomethingWithTracedParams("tp", true, 200L, 3.14);
-        verify(springTracer, times(4)).record(noteCaptor.capture());
+        verify(springTracer, times(4)).record(tagCaptor.capture());
 
-        Note<String> stringNote = (Note<String>)noteCaptor.getAllValues().get(0);
-        assertThat(stringNote.name()).isEqualTo("STRING");
-        assertThat(stringNote.value()).isEqualTo("tp");
+        Tag<String> stringTag = (Tag<String>)tagCaptor.getAllValues().get(0);
+        assertThat(stringTag.name()).isEqualTo("STRING");
+        assertThat(stringTag.value()).isEqualTo("tp");
 
-        Note<Boolean> booleanNote = (Note<Boolean>)noteCaptor.getAllValues().get(1);
-        assertThat(booleanNote.name()).isEqualTo("BOOLEAN");
-        assertThat(booleanNote.value()).isEqualTo(true);
+        Tag<Boolean> booleanTag = (Tag<Boolean>)tagCaptor.getAllValues().get(1);
+        assertThat(booleanTag.name()).isEqualTo("BOOLEAN");
+        assertThat(booleanTag.value()).isEqualTo(true);
 
-        Note<Long> longNote = (Note<Long>)noteCaptor.getAllValues().get(2);
-        assertThat(longNote.name()).isEqualTo("LONG");
-        assertThat(longNote.value()).isEqualTo(200L);
+        Tag<Long> longTag = (Tag<Long>)tagCaptor.getAllValues().get(2);
+        assertThat(longTag.name()).isEqualTo("LONG");
+        assertThat(longTag.value()).isEqualTo(200L);
 
-        Note<Double> doubleNote = (Note<Double>)noteCaptor.getAllValues().get(3);
-        assertThat(doubleNote.name()).isEqualTo("DOUBLE");
-        assertThat(doubleNote.value()).isEqualTo(3.14);
+        Tag<Double> doubleTag = (Tag<Double>)tagCaptor.getAllValues().get(3);
+        assertThat(doubleTag.name()).isEqualTo("DOUBLE");
+        assertThat(doubleTag.value()).isEqualTo(3.14);
     }
 
     @Test
     public void testTracedDataParamsWithNullValues() throws Exception {
 
-        ArgumentCaptor<Note> noteCaptor = ArgumentCaptor.forClass(Note.class);
+        ArgumentCaptor<Tag> tagCaptor = ArgumentCaptor.forClass(Tag.class);
 
         sampleTraceBean.doSomethingWithTracedParams(null, null, null, null);
-        verify(springTracer, times(4)).record(noteCaptor.capture());
+        verify(springTracer, times(4)).record(tagCaptor.capture());
 
-        Note<String> stringNote = (Note<String>)noteCaptor.getAllValues().get(0);
-        assertThat(stringNote.name()).isEqualTo("STRING");
-        assertThat(stringNote.value()).isNull();
+        Tag<String> stringTag = (Tag<String>)tagCaptor.getAllValues().get(0);
+        assertThat(stringTag.name()).isEqualTo("STRING");
+        assertThat(stringTag.value()).isNull();
 
-        Note<String> booleanNote = (Note<String>)noteCaptor.getAllValues().get(1);
-        assertThat(booleanNote.name()).isEqualTo("BOOLEAN");
-        assertThat(booleanNote.value()).isNull();
+        Tag<String> booleanTag = (Tag<String>)tagCaptor.getAllValues().get(1);
+        assertThat(booleanTag.name()).isEqualTo("BOOLEAN");
+        assertThat(booleanTag.value()).isNull();
 
-        Note<String> longNote = (Note<String>)noteCaptor.getAllValues().get(2);
-        assertThat(longNote.name()).isEqualTo("LONG");
-        assertThat(longNote.value()).isNull();
+        Tag<String> longTag = (Tag<String>)tagCaptor.getAllValues().get(2);
+        assertThat(longTag.name()).isEqualTo("LONG");
+        assertThat(longTag.value()).isNull();
 
-        Note<String> doubleNote = (Note<String>)noteCaptor.getAllValues().get(3);
-        assertThat(doubleNote.name()).isEqualTo("DOUBLE");
-        assertThat(doubleNote.value()).isNull();
+        Tag<String> doubleTag = (Tag<String>)tagCaptor.getAllValues().get(3);
+        assertThat(doubleTag.name()).isEqualTo("DOUBLE");
+        assertThat(doubleTag.value()).isNull();
     }
 
     @Test
