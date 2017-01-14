@@ -104,20 +104,24 @@ class TraceFriendlyHttpClient(wrapee: HttpClient) extends HttpClient with java.i
    */
 
   override def execute[T](request: HttpUriRequest, responseHandler: ResponseHandler[_ <: T]): T = {
+    addTraceHeader(request)
     wrapee.execute(request, responseHandler)
   }
 
   override def execute[T](request: HttpUriRequest, responseHandler: ResponseHandler[_ <: T],
     context: HttpContext): T = {
+    addTraceHeader(request)
     wrapee.execute(request, responseHandler, context)
   }
 
   override def execute[T](target: HttpHost, request: HttpRequest, responseHandler: ResponseHandler[_ <: T]): T = {
+    addTraceHeader(request)
     wrapee.execute(target, request, responseHandler)
   }
 
   override def execute[T](target: HttpHost, request: HttpRequest, responseHandler: ResponseHandler[_ <: T],
     context: HttpContext): T = {
+    addTraceHeader(request)
     wrapee.execute(target, request, responseHandler, context)
   }
 
