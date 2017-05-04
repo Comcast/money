@@ -18,11 +18,28 @@ package com.comcast.money.core
 
 import com.comcast.money.api.{ Span, SpanFactory, SpanHandler, SpanId }
 
+import scala.util.{ Success, Failure }
+
 import scala.collection.JavaConversions._
 
 class CoreSpanFactory(handler: SpanHandler) extends SpanFactory {
 
   def newSpan(spanName: String): Span = newSpan(new SpanId(), spanName)
+
+  /**
+   * Continues a trace by creating a child span from the given x-moneytrace header
+   * value or a root span if header is malformed.
+   *
+   * @param childName - the name of the child span to create
+   * @param traceContextHeader - value of x-moneytrace header
+   * @return a child span with trace id and parent id from trace context header or a new root span if the
+   * traceContextHeader is malformed.
+   */
+  def childOrRootSpan(childName: String, traceContextHeader: String): Span =
+    Formatters.fromHttpHeader(traceContextHeader) match {
+      case Success(spanId) => newSpan(new SpanId(spanId.traceId, spanId.parentId), childName)
+      case Failure(e) => newSpan(childName)
+    }
 
   def childSpan(childName: String, span: Span): Span = childSpan(childName, span, true)
 

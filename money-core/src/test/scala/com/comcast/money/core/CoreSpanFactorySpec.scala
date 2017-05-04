@@ -49,6 +49,7 @@ class CoreSpanFactorySpec extends WordSpec with Matchers with MockitoSugar with 
 
       child.id.traceId shouldBe parent.id.traceId
       child.id.parentId shouldBe parent.id.selfId
+      child.id.selfId == parent.id.selfId shouldBe false
     }
 
     "propagate sticky notes to a child span" in {
@@ -64,6 +65,27 @@ class CoreSpanFactorySpec extends WordSpec with Matchers with MockitoSugar with 
 
       childInfo.notes should contain value stickyNote
       childInfo.notes shouldNot contain value nonStickyNote
+    }
+
+    "create a child span from a well-formed x-moneytrace header" in {
+      val parentSpan = underTest.newSpan("parent")
+      val traceContextHeader = Formatters.toHttpHeader(parentSpan.info.id)
+      val childSpan = underTest.childOrRootSpan("child", traceContextHeader)
+
+      childSpan.info.id.traceId shouldBe parentSpan.info.id.traceId
+      childSpan.info.id.parentId shouldBe parentSpan.info.id.selfId
+      childSpan.info.id.selfId == parentSpan.info.id.selfId shouldBe false
+    }
+
+    "create a root span from a malformed x-moneytrace header" in {
+      val parentSpan = underTest.newSpan("parent")
+      val traceContextHeader = "mangled header value"
+      val childSpan = underTest.childOrRootSpan("child", traceContextHeader)
+
+      childSpan.info.id.traceId == parentSpan.info.id.traceId shouldBe false
+      childSpan.info.id.parentId == parentSpan.info.id.selfId shouldBe false
+      childSpan.info.id.selfId == parentSpan.info.id.selfId shouldBe false
+      childSpan.info.id.selfId shouldBe childSpan.info.id.parentId
     }
   }
 }
