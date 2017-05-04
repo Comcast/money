@@ -31,7 +31,7 @@ public interface SpanFactory {
      * @return a child span with trace id and parent id from trace context header or a new root span if the
      * traceContextHeader is malformed.
      */
-    Span childOrRootSpan(String childName, String traceContextHeader);
+    Span newSpanFromHeader(String childName, String traceContextHeader);
 
     Span childSpan(String childName, Span span);
 
