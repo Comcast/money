@@ -44,13 +44,13 @@ class TraceFilter extends Filter {
 
     SpanLocal.clear()
     val httpRequest = new HttpServletRequestWrapper(request.asInstanceOf[HttpServletRequest])
-    val incomingTraceId = Option(httpRequest.getHeader(MoneyTraceHeader)) map { incTrcaceId =>
+    val incomingTraceId = Option(httpRequest.getHeader(MoneyTraceHeader)) map { incTraceId =>
       // attempt to parse the incoming trace id (its a Try)
-      fromHttpHeader(incTrcaceId) match {
+      fromHttpHeader(incTraceId) match {
         case Success(spanId) => SpanLocal.push(factory.newSpan(spanId, "servlet"))
-        case Failure(ex) => logger.warn("Unable to parse money trace for request header '{}'", incTrcaceId)
+        case Failure(ex) => logger.warn("Unable to parse money trace for request header '{}'", incTraceId)
       }
-      incTrcaceId
+      incTraceId
     }
 
     incomingTraceId.foreach { traceId =>
