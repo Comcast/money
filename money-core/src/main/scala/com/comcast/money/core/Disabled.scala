@@ -63,6 +63,8 @@ object DisabledSpanFactory extends SpanFactory {
 
   def newSpan(spanName: String): Span = DisabledSpan
 
+  def newSpanFromHeader(childName: String, traceContextHeader: String): Span = DisabledSpan
+
   def childSpan(childName: String, span: Span): Span = DisabledSpan
 
   def childSpan(childName: String, span: Span, sticky: Boolean): Span = DisabledSpan

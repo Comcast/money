@@ -22,6 +22,17 @@ public interface SpanFactory {
 
     Span newSpan(SpanId spanId, String spanName);
 
+    /**
+     * Continues a trace by creating a child span from the given x-moneytrace header
+     * value.
+     *
+     * @param childName - the name of the child span to create
+     * @param traceContextHeader - value of x-moneytrace header
+     * @return a child span with trace id and parent id from trace context header or a new root span if the
+     * traceContextHeader is malformed.
+     */
+    Span newSpanFromHeader(String childName, String traceContextHeader);
+
     Span childSpan(String childName, Span span);
 
     Span childSpan(String childName, Span span, boolean sticky);
