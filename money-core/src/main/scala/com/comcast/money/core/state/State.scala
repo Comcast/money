@@ -26,22 +26,27 @@ object State {
     val span = SpanLocal.current
     val mdc = MDC.getCopyOfContextMap
 
-    new State {
-      override def restore()(f: => Unit): Unit = {
-        mdcSupport.propogateMDC(Option(mdc))
+    () => {
+      mdcSupport.propogateMDC(Option(mdc))
+      SpanLocal.clear()
+      span.foreach(SpanLocal.push)
+      () => {
+        MDC.clear()
         SpanLocal.clear()
-        span.foreach(SpanLocal.push)
-        try {
-          f
-        } finally {
-          MDC.clear()
-          SpanLocal.clear()
-        }
       }
     }
   }
 }
 
 trait State {
-  def restore()(f: => Unit): Unit
+  def restore(): RestoredState
+
+  def restore(f: => Unit): Unit = {
+    val restoredState = restore()
+    try {
+      f
+    } finally {
+      if (restoredState != null) restoredState.close()
+    }
+  }
 }

@@ -34,7 +34,10 @@ import org.apache.http.nio.protocol.{HttpAsyncRequestProducer, HttpAsyncResponse
 import scala.util.Try
 
 object TraceFriendlyHttpAsyncSupport {
-  def wrapExecute(httpRequest: HttpRequest, callback: FutureCallback[HttpResponse], tracer: Tracer)(f: FutureCallback[HttpResponse] => Future[HttpResponse]): Future[HttpResponse] = {
+  def wrapExecute(httpRequest: HttpRequest,
+                  callback: FutureCallback[HttpResponse],
+                  tracer: Tracer)
+                 (f: FutureCallback[HttpResponse] => Future[HttpResponse]): Future[HttpResponse] = {
     val state = State.capture()
 
     TraceFriendlyHttpAsyncSupport.addTraceHeader(Option(httpRequest), SpanLocal.current)
@@ -50,7 +53,11 @@ object TraceFriendlyHttpAsyncSupport {
     f(cb)
   }
 
-  def wrapExecute[T](requestProducer: HttpAsyncRequestProducer, responseConsumer: HttpAsyncResponseConsumer[T], callback: FutureCallback[T], tracer: Tracer)(f: (HttpAsyncRequestProducer, HttpAsyncResponseConsumer[T], FutureCallback[T]) => Future[T]): Future[T] = {
+  def wrapExecute[T](requestProducer: HttpAsyncRequestProducer,
+                     responseConsumer: HttpAsyncResponseConsumer[T],
+                     callback: FutureCallback[T],
+                     tracer: Tracer)
+                    (f: (HttpAsyncRequestProducer, HttpAsyncResponseConsumer[T], FutureCallback[T]) => Future[T]): Future[T] = {
     val state = State.capture()
     val span = SpanLocal.current
     val p = new TracingHttpAsyncRequestProducer(requestProducer, (httpRequest: HttpRequest) => {
@@ -84,27 +91,39 @@ class TraceFriendlyHttpAsyncClient(wrappee : HttpAsyncClient) extends HttpAsyncC
 
   private val tracer = Money.Environment.tracer
 
-  override def execute[T](requestProducer: HttpAsyncRequestProducer, responseConsumer: HttpAsyncResponseConsumer[T], context: HttpContext, callback: FutureCallback[T]): Future[T] =
+  override def execute[T](requestProducer: HttpAsyncRequestProducer,
+                          responseConsumer: HttpAsyncResponseConsumer[T],
+                          context: HttpContext,
+                          callback: FutureCallback[T]): Future[T] =
     wrapExecute(requestProducer, responseConsumer, callback, tracer) {
       (p, c, cb) => wrappee.execute(p, c, context, cb)
     }
 
-  override def execute[T](requestProducer: HttpAsyncRequestProducer, responseConsumer: HttpAsyncResponseConsumer[T], callback: FutureCallback[T]): Future[T] =
+  override def execute[T](requestProducer: HttpAsyncRequestProducer,
+                          responseConsumer: HttpAsyncResponseConsumer[T],
+                          callback: FutureCallback[T]): Future[T] =
     wrapExecute(requestProducer, responseConsumer, callback, tracer) {
       (p, c, cb) => wrappee.execute(p, c, cb)
     }
 
-  override def execute(target: HttpHost, request: HttpRequest, context: HttpContext, callback: FutureCallback[HttpResponse]): Future[HttpResponse] =
+  override def execute(target: HttpHost,
+                       request: HttpRequest,
+                       context: HttpContext,
+                       callback: FutureCallback[HttpResponse]): Future[HttpResponse] =
     wrapExecute(request, callback, tracer) {
       cb => wrappee.execute(target, request, context, cb)
     }
 
-  override def execute(target: HttpHost, request: HttpRequest, callback: FutureCallback[HttpResponse]): Future[HttpResponse] =
+  override def execute(target: HttpHost,
+                       request: HttpRequest,
+                       callback: FutureCallback[HttpResponse]): Future[HttpResponse] =
     wrapExecute(request, callback, tracer) {
       cb => wrappee.execute(target, request, cb)
     }
 
-  override def execute(request: HttpUriRequest, context: HttpContext, callback: FutureCallback[HttpResponse]): Future[HttpResponse] =
+  override def execute(request: HttpUriRequest,
+                       context: HttpContext,
+                       callback: FutureCallback[HttpResponse]): Future[HttpResponse] =
     wrapExecute(request, callback, tracer) {
       cb => wrappee.execute(request, context, cb)
     }
@@ -128,17 +147,17 @@ class TraceFriendlyHttpAsyncClient(wrappee : HttpAsyncClient) extends HttpAsyncC
 }
 
 class TracingFutureHttpResponseCallback(wrappee: Option[FutureCallback[HttpResponse]], state: State, f: Try[HttpResponse] => Unit) extends FutureCallback[HttpResponse] {
-  override def failed(ex: Exception): Unit = state.restore() {
+  override def failed(ex: Exception): Unit = state.restore {
     f(Try(ex))
     wrappee.foreach(_.failed(ex))
   }
 
-  override def completed(result: HttpResponse): Unit = state.restore() {
+  override def completed(result: HttpResponse): Unit = state.restore {
     f(Try(result))
     wrappee.foreach(_.completed(result))
   }
 
-  override def cancelled(): Unit = state.restore() {
+  override def cancelled(): Unit = state.restore {
     f(Try(new CancellationException()))
     wrappee.foreach(_.cancelled())
   }
