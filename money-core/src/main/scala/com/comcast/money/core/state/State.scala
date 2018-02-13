@@ -41,7 +41,7 @@ object State {
 trait State {
   def restore(): RestoredState
 
-  def restore(f: => Unit): Unit = {
+  def restore[T](f: => T): T = {
     val restoredState = restore()
     try {
       f
