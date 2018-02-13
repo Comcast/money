@@ -20,6 +20,7 @@ import java.util.concurrent._
 
 import com.comcast.money.core.internal.{ MDCSupport, SpanLocal }
 import com.comcast.money.core.logging.TraceLogging
+import com.comcast.money.core.state.State
 import org.slf4j.MDC
 
 object TraceFriendlyThreadPoolExecutor {
@@ -65,24 +66,19 @@ class TraceFriendlyThreadPoolExecutor(corePoolSize: Int, maximumPoolSize: Int, k
   }
 
   override def execute(command: Runnable) = {
-    val inherited = SpanLocal.current
-    val submittingThreadsContext = MDC.getCopyOfContextMap
+    val state = State.capture()
 
     super.execute(
       new Runnable {
         override def run = {
-          mdcSupport.propogateMDC(Option(submittingThreadsContext))
-          SpanLocal.clear()
-          inherited.foreach(SpanLocal.push)
-          try {
-            command.run()
-          } catch {
-            case t: Throwable =>
-              logException(t)
-              throw t
-          } finally {
-            SpanLocal.clear()
-            MDC.clear()
+          state.restore() {
+            try {
+              command.run()
+            } catch {
+              case t: Throwable =>
+                logException(t)
+                throw t
+            }
           }
         }
       }

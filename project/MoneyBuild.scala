@@ -88,6 +88,21 @@ object MoneyBuild extends Build {
       )
       .dependsOn(moneyCore % "test->test;compile->compile",moneyAspectj)
 
+  lazy val moneyHttpAsyncClient =
+    Project("money-http-async-client", file("./money-http-async-client"))
+      .configs( IntegrationTest )
+      .settings(aspectjProjectSettings: _*)
+      .settings(
+        libraryDependencies <++= (scalaVersion){v: String =>
+          Seq(
+            apacheHttpAsyncClient,
+            scalaTest,
+            mockito
+          )
+        }
+      )
+      .dependsOn(moneyCore % "test->test;compile->compile",moneyAspectj)
+
   lazy val moneyJavaServlet =
     Project("money-java-servlet", file("./money-java-servlet"))
       .configs( IntegrationTest )
@@ -284,6 +299,7 @@ object MoneyBuild extends Build {
   object Dependencies {
     val codahaleVersion = "3.0.2"
     val apacheHttpClientVersion = "4.3.5"
+    val apacheHttpAsyncClientVersion = "4.1.3"
 
     // Logging
     val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
@@ -304,6 +320,9 @@ object MoneyBuild extends Build {
 
     // Apache http client
     val apacheHttpClient = "org.apache.httpcomponents" % "httpclient" % apacheHttpClientVersion
+
+    // Apache http async client
+    val apacheHttpAsyncClient = "org.apache.httpcomponents" % "httpasyncclient" % apacheHttpAsyncClientVersion
 
     // Javax servlet - note: the group id and artfacit id have changed in 3.0
     val javaxServlet = "javax.servlet" % "servlet-api" % "2.5"
