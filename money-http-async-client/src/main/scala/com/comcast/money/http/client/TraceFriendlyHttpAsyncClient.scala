@@ -63,12 +63,12 @@ object TraceFriendlyHttpAsyncSupport {
   )(f: (HttpAsyncRequestProducer, HttpAsyncResponseConsumer[T], FutureCallback[T]) => Future[T]): Future[T] = {
     val state = State.capture()
     val span = SpanLocal.current
-    val tracingRequestProducer = new TracingHttpAsyncRequestProducer(requestProducer, (httpRequest: HttpRequest) => {
+    val tracingRequestProducer = new TracingHttpAsyncRequestProducer(requestProducer, state, (httpRequest: HttpRequest) => {
       TraceFriendlyHttpAsyncSupport.addTraceHeader(Option(httpRequest), span)
       tracer.startTimer(HttpAsyncTraceConfig.HttpResponseTimeTraceKey)
       httpRequest
     })
-    val tracingResponseConsumer = new TracingHttpAsyncResponseConsumer[T](responseConsumer, (httpResponse: Try[HttpResponse]) => {
+    val tracingResponseConsumer = new TracingHttpAsyncResponseConsumer[T](responseConsumer, state, (httpResponse: Try[HttpResponse]) => {
       tracer.stopTimer(HttpAsyncTraceConfig.HttpResponseTimeTraceKey)
       val responseCode = getResponseCode(httpResponse)
       tracer.record(HttpAsyncTraceConfig.HttpResponseCodeTraceKey, responseCode)
@@ -197,46 +197,51 @@ class TracingFutureHttpResponseCallback(wrappee: Option[FutureCallback[HttpRespo
   }
 }
 
-class TracingHttpAsyncRequestProducer(wrappee: HttpAsyncRequestProducer, f: HttpRequest => HttpRequest) extends HttpAsyncRequestProducer {
-  override def resetRequest(): Unit = wrappee.resetRequest()
+class TracingHttpAsyncRequestProducer(wrappee: HttpAsyncRequestProducer, state: State, f: HttpRequest => HttpRequest) extends HttpAsyncRequestProducer {
+  override def generateRequest(): HttpRequest = state.restore {
+    f(wrappee.generateRequest())
+  }
 
-  override def requestCompleted(context: HttpContext): Unit = wrappee.requestCompleted(context)
+  override def produceContent(encoder: ContentEncoder, ioctrl: IOControl): Unit = state.restore {
+    wrappee.produceContent(encoder, ioctrl)
+  }
 
-  override def failed(ex: Exception): Unit = wrappee.failed(ex)
+  override def requestCompleted(context: HttpContext): Unit = state.restore {
+    wrappee.requestCompleted(context)
+  }
 
-  override def generateRequest(): HttpRequest = f(wrappee.generateRequest())
-
-  override def isRepeatable: Boolean = wrappee.isRepeatable
-
-  override def getTarget: HttpHost = wrappee.getTarget
-
-  override def produceContent(encoder: ContentEncoder, ioctrl: IOControl): Unit = wrappee.produceContent(encoder, ioctrl)
-
-  override def close(): Unit = wrappee.close()
-}
-
-class TracingHttpAsyncResponseConsumer[T](wrappee: HttpAsyncResponseConsumer[T], f: Try[HttpResponse] => Unit) extends HttpAsyncResponseConsumer[T] {
-  override def getException: Exception = wrappee.getException
-
-  override def failed(ex: Exception): Unit = {
-    f(Failure(ex))
+  override def failed(ex: Exception): Unit = state.restore {
     wrappee.failed(ex)
   }
 
-  override def responseReceived(response: HttpResponse): Unit = {
+  override def isRepeatable: Boolean = wrappee.isRepeatable
+  override def getTarget: HttpHost = wrappee.getTarget
+  override def resetRequest(): Unit = wrappee.resetRequest()
+  override def close(): Unit = wrappee.close()
+}
+
+class TracingHttpAsyncResponseConsumer[T](wrappee: HttpAsyncResponseConsumer[T], state: State, f: Try[HttpResponse] => Unit) extends HttpAsyncResponseConsumer[T] {
+  override def isDone: Boolean = wrappee.isDone
+  override def getResult: T = wrappee.getResult
+  override def getException: Exception = wrappee.getException
+  override def cancel(): Boolean = wrappee.cancel()
+  override def close(): Unit = wrappee.close()
+
+  override def responseReceived(response: HttpResponse): Unit = state.restore {
     f(Try(response))
     wrappee.responseReceived(response)
   }
 
-  override def isDone: Boolean = wrappee.isDone
+  override def consumeContent(decoder: ContentDecoder, ioctrl: IOControl): Unit = state.restore {
+    wrappee.consumeContent(decoder, ioctrl)
+  }
 
-  override def responseCompleted(context: HttpContext): Unit = wrappee.responseCompleted(context)
+  override def responseCompleted(context: HttpContext): Unit = state.restore {
+    wrappee.responseCompleted(context)
+  }
 
-  override def getResult: T = wrappee.getResult
-
-  override def consumeContent(decoder: ContentDecoder, ioctrl: IOControl): Unit = wrappee.consumeContent(decoder, ioctrl)
-
-  override def cancel(): Boolean = wrappee.cancel()
-
-  override def close(): Unit = wrappee.close()
+  override def failed(ex: Exception): Unit = state.restore {
+    f(Failure(ex))
+    wrappee.failed(ex)
+  }
 }
