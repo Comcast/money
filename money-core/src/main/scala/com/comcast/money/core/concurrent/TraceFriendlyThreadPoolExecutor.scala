@@ -65,23 +65,19 @@ class TraceFriendlyThreadPoolExecutor(corePoolSize: Int, maximumPoolSize: Int, k
     setRejectedExecutionHandler(rejectedExecutionHandler)
   }
 
-  override def execute(command: Runnable) = {
+  override def execute(command: Runnable) {
     val state = State.capture()
 
-    super.execute(
-      new Runnable {
-        override def run = {
-          state.restore() {
-            try {
-              command.run()
-            } catch {
-              case t: Throwable =>
-                logException(t)
-                throw t
-            }
-          }
+    super.execute(new Runnable {
+      override def run(): Unit = state.restore {
+        try {
+          command.run()
+        } catch {
+          case t: Throwable =>
+            logException(t)
+            throw t
         }
       }
-    )
+    })
   }
 }

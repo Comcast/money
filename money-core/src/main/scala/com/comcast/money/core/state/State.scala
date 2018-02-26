@@ -26,13 +26,17 @@ object State {
     val span = SpanLocal.current
     val mdc = MDC.getCopyOfContextMap
 
-    () => {
-      mdcSupport.propogateMDC(Option(mdc))
-      SpanLocal.clear()
-      span.foreach(SpanLocal.push)
-      () => {
-        MDC.clear()
+    new State {
+      override def restore(): RestoredState = {
+        mdcSupport.propogateMDC(Option(mdc))
         SpanLocal.clear()
+        span.foreach(SpanLocal.push)
+        new RestoredState {
+          override def close(): Unit = {
+            MDC.clear()
+            SpanLocal.clear()
+          }
+        }
       }
     }
   }
