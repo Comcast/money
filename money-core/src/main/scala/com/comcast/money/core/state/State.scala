@@ -22,6 +22,25 @@ import org.slf4j.MDC
 object State {
   private lazy val mdcSupport = new MDCSupport()
 
+  /**
+   * Captures the state of the current tracing span so that it can be restored onto
+   * a separate worker thread.
+   *
+   * {{{
+   *   import com.comcast.money.core.state
+   *
+   *   def doSomethingAsynchronous(executor: ExecutorService) {
+   *     val capturedState = State.capture()
+   *
+   *     executor.submit(new Runnable {
+   *       override def run(): Unit = state.restore {
+   *         // resumes on captured
+   *       }
+   *     })
+   *   }
+   * }}}
+   * @return the captured tracing state
+   */
   def capture(): State = {
     val span = SpanLocal.current
     val mdc = MDC.getCopyOfContextMap
@@ -42,9 +61,39 @@ object State {
   }
 }
 
+/** Represents the tracing state that has been captured from another thread */
 trait State {
+  /**
+   * Restores the tracing state on the current thread returning a [[RestoredState]]
+   * that can be used with Java 7+ "try-with-resources" syntax to revert the
+   * restored state.
+   *
+   * {{{
+   *   State state = State.capture();
+   *   // later
+   *   try (RestoredState restored = state.restore()) {
+   *     // do something meaningful here
+   *   }
+   * }}}
+   * @return the restored state
+   */
   def restore(): RestoredState
 
+  /**
+   * Restores the tracing state on the current thread for the duration of the
+   * function.
+   *
+   * {{{
+   *   val state = State.capture
+   *   // later
+   *   state.restore {
+   *     // do something meaningful here
+   *   }
+   * }}}
+   * @param f the function to invoke
+   * @tparam T the return value of the function
+   * @return the value returned from the function
+   */
   def restore[T](f: => T): T = {
     val restoredState = restore()
     try {

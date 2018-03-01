@@ -40,18 +40,26 @@ object TraceFriendlyHttpAsyncSupport {
     callback: FutureCallback[HttpResponse],
     tracer: Tracer
   )(f: FutureCallback[HttpResponse] => Future[HttpResponse]): Future[HttpResponse] = {
+    // capture the current tracing state...
     val state = State.capture()
 
+    // Put the X-MoneyTrace header in the request...
     TraceFriendlyHttpAsyncSupport.addTraceHeader(Option(httpRequest), SpanLocal.current)
 
-    val tracingCallback = new TracingFutureHttpResponseCallback(Option(callback), state, (response: Try[HttpResponse]) => {
+    // Start timing the execution of the request...
+    tracer.startTimer(HttpAsyncTraceConfig.HttpResponseTimeTraceKey)
+
+    // Wrap the callback to intercept the response...
+    val tracingCallback = new TracingFutureCallback[HttpResponse](Option(callback), state, response => {
+      // Stop timing the execution of the request...
       tracer.stopTimer(HttpAsyncTraceConfig.HttpResponseTimeTraceKey)
+
+      // Get the response code, will be 0 if response is null
       val responseCode = getResponseCode(response)
       tracer.record(HttpAsyncTraceConfig.HttpResponseCodeTraceKey, responseCode)
     })
 
-    tracer.startTimer(HttpAsyncTraceConfig.HttpResponseTimeTraceKey)
-
+    // Continue with the execution of the request...
     f(tracingCallback)
   }
 
@@ -61,20 +69,35 @@ object TraceFriendlyHttpAsyncSupport {
     callback: FutureCallback[T],
     tracer: Tracer
   )(f: (HttpAsyncRequestProducer, HttpAsyncResponseConsumer[T], FutureCallback[T]) => Future[T]): Future[T] = {
+    // capture the current tracing state...
     val state = State.capture()
     val span = SpanLocal.current
+
+    // Wrap the producer interface to intercept the request...
     val tracingRequestProducer = new TracingHttpAsyncRequestProducer(requestProducer, state, (httpRequest: HttpRequest) => {
+      // Put the X-MoneyTrace header in the request...
       TraceFriendlyHttpAsyncSupport.addTraceHeader(Option(httpRequest), span)
+
+      // Start timing the execution of the request...
       tracer.startTimer(HttpAsyncTraceConfig.HttpResponseTimeTraceKey)
       httpRequest
     })
+
+    // Wrap the consumer interface to intercept the response...
     val tracingResponseConsumer = new TracingHttpAsyncResponseConsumer[T](responseConsumer, state, (httpResponse: Try[HttpResponse]) => {
+      // Stop timing the execution of the request...
       tracer.stopTimer(HttpAsyncTraceConfig.HttpResponseTimeTraceKey)
+
+      // Get the response code, will be 0 if response is null
       val responseCode = getResponseCode(httpResponse)
       tracer.record(HttpAsyncTraceConfig.HttpResponseCodeTraceKey, responseCode)
       httpResponse
     })
-    val tracingCallback = new TracingFutureCallback[T](Option(callback), state)
+
+    // Wrap the callback interface to restore the tracing state on the callback thread...
+    val tracingCallback = new TracingFutureCallback[T](Option(callback), state, _ => {})
+
+    // Continue with the execution of the request...
     f(tracingRequestProducer, tracingResponseConsumer, tracingCallback)
   }
 
@@ -84,11 +107,14 @@ object TraceFriendlyHttpAsyncSupport {
     }
   }
 
-  def getResponseCode(response: Try[HttpResponse]): Int = {
+  def getResponseCode(response: Try[HttpResponse]): Int =
     response map (_.getStatusLine) map (_.getStatusCode) getOrElse 0
-  }
 }
 
+/**
+ * Provides a thin wrapper around [[HttpAsyncClient]] to support automatically tracing
+ * requests and restoring the tracing state on the callback interfaces.
+ */
 class TraceFriendlyHttpAsyncClient(wrappee: HttpAsyncClient) extends HttpAsyncClient
     with java.io.Closeable {
 
@@ -164,29 +190,17 @@ class TraceFriendlyHttpAsyncClient(wrappee: HttpAsyncClient) extends HttpAsyncCl
   }
 }
 
-class TracingFutureCallback[T](wrappee: Option[FutureCallback[T]], state: State) extends FutureCallback[T] {
-  override def failed(ex: Exception): Unit = state.restore {
-    wrappee.foreach { _.failed(ex) }
-  }
-
-  override def completed(result: T): Unit = state.restore {
-    wrappee.foreach {
-      _.completed(result)
-    }
-  }
-
-  override def cancelled(): Unit = state.restore {
-    wrappee.foreach { _.cancelled() }
-  }
-}
-
-class TracingFutureHttpResponseCallback(wrappee: Option[FutureCallback[HttpResponse]], state: State, f: Try[HttpResponse] => Unit) extends FutureCallback[HttpResponse] {
+/**
+ * Wraps the [[FutureCallback]] callback interface and restores the captured tracing
+ * state before invoking any of the wrapped methods.
+ */
+class TracingFutureCallback[T](wrappee: Option[FutureCallback[T]], state: State, f: Try[T] => Unit) extends FutureCallback[T] {
   override def failed(ex: Exception): Unit = state.restore {
     f(Failure(ex))
     wrappee.foreach(_.failed(ex))
   }
 
-  override def completed(result: HttpResponse): Unit = state.restore {
+  override def completed(result: T): Unit = state.restore {
     f(Try(result))
     wrappee.foreach(_.completed(result))
   }
@@ -197,13 +211,12 @@ class TracingFutureHttpResponseCallback(wrappee: Option[FutureCallback[HttpRespo
   }
 }
 
+/**
+ * Wraps the [[HttpAsyncRequestProducer]] interface to intercept the [[HttpRequest]].
+ */
 class TracingHttpAsyncRequestProducer(wrappee: HttpAsyncRequestProducer, state: State, f: HttpRequest => HttpRequest) extends HttpAsyncRequestProducer {
   override def generateRequest(): HttpRequest = state.restore {
     f(wrappee.generateRequest())
-  }
-
-  override def produceContent(encoder: ContentEncoder, ioctrl: IOControl): Unit = state.restore {
-    wrappee.produceContent(encoder, ioctrl)
   }
 
   override def requestCompleted(context: HttpContext): Unit = state.restore {
@@ -214,26 +227,21 @@ class TracingHttpAsyncRequestProducer(wrappee: HttpAsyncRequestProducer, state: 
     wrappee.failed(ex)
   }
 
+  override def produceContent(encoder: ContentEncoder, ioctrl: IOControl): Unit = wrappee.produceContent(encoder, ioctrl)
   override def isRepeatable: Boolean = wrappee.isRepeatable
   override def getTarget: HttpHost = wrappee.getTarget
   override def resetRequest(): Unit = wrappee.resetRequest()
   override def close(): Unit = wrappee.close()
 }
 
+/**
+ * Wraps the [[HttpAsyncResponseConsumer]] interface to intercept the completion of the
+ * HTTP request, handle the [[HttpResponse]] and to restore the captured tracing state.
+ */
 class TracingHttpAsyncResponseConsumer[T](wrappee: HttpAsyncResponseConsumer[T], state: State, f: Try[HttpResponse] => Unit) extends HttpAsyncResponseConsumer[T] {
-  override def isDone: Boolean = wrappee.isDone
-  override def getResult: T = wrappee.getResult
-  override def getException: Exception = wrappee.getException
-  override def cancel(): Boolean = wrappee.cancel()
-  override def close(): Unit = wrappee.close()
-
   override def responseReceived(response: HttpResponse): Unit = state.restore {
     f(Try(response))
     wrappee.responseReceived(response)
-  }
-
-  override def consumeContent(decoder: ContentDecoder, ioctrl: IOControl): Unit = state.restore {
-    wrappee.consumeContent(decoder, ioctrl)
   }
 
   override def responseCompleted(context: HttpContext): Unit = state.restore {
@@ -244,4 +252,11 @@ class TracingHttpAsyncResponseConsumer[T](wrappee: HttpAsyncResponseConsumer[T],
     f(Failure(ex))
     wrappee.failed(ex)
   }
+
+  override def consumeContent(decoder: ContentDecoder, ioctrl: IOControl): Unit = wrappee.consumeContent(decoder, ioctrl)
+  override def isDone: Boolean = wrappee.isDone
+  override def getResult: T = wrappee.getResult
+  override def getException: Exception = wrappee.getException
+  override def cancel(): Boolean = wrappee.cancel()
+  override def close(): Unit = wrappee.close()
 }

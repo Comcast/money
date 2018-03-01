@@ -16,6 +16,8 @@
 
 package com.comcast.money.core.state
 
+/** Represents the restored tracing state. */
 trait RestoredState extends AutoCloseable {
+  /** Reverts the restored tracing state on the current thread */
   override def close(): Unit
 }
