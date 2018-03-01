@@ -50,6 +50,7 @@ class TraceFriendlyHttpAsyncClientSpec extends WordSpec with SpecHelpers
   val callback = mock[FutureCallback[HttpResponse]]
   val requestProducer = mock[HttpAsyncRequestProducer]
   val responseConsumer = mock[HttpAsyncResponseConsumer[HttpResponse]]
+  
   val spanId = new SpanId()
   val future = new CompletableFuture[HttpResponse]()
 
