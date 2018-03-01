@@ -25,6 +25,7 @@ import com.comcast.money.core.internal.SpanLocal
 import org.apache.http.client.methods.{ CloseableHttpResponse, HttpUriRequest }
 import org.apache.http.concurrent.FutureCallback
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient
+import org.apache.http.nio.{ ContentDecoder, ContentEncoder, IOControl }
 import org.apache.http.nio.client.HttpAsyncClient
 import org.apache.http.nio.protocol.{ HttpAsyncRequestProducer, HttpAsyncResponseConsumer }
 import org.apache.http.protocol.HttpContext
@@ -178,6 +179,98 @@ class TraceFriendlyHttpAsyncClientSpec extends WordSpec with SpecHelpers
       callbackCaptor.getValue.failed(new RuntimeException("bad"))
 
       verify(underTest.tracer).record("http-response-code", 0L)
+    }
+    "wraps the HttpAsyncRequestProducer members" in {
+      underTest.execute(requestProducer, responseConsumer, httpContext, callback)
+
+      verify(httpClient).execute(producerCaptor.capture(), consumerCaptor.capture(), argEq(httpContext), callbackCaptor.capture())
+
+      val capturedProducer = producerCaptor.getValue
+      verifyZeroInteractions(requestProducer)
+
+      val exception = mock[Exception]
+      capturedProducer.failed(exception)
+      verify(requestProducer).failed(argEq(exception))
+
+      val contentEncoder = mock[ContentEncoder]
+      val ioControl = mock[IOControl]
+      capturedProducer.produceContent(contentEncoder, ioControl)
+      verify(requestProducer).produceContent(argEq(contentEncoder), argEq(ioControl))
+
+      val context = mock[HttpContext]
+      capturedProducer.requestCompleted(context)
+      verify(requestProducer).requestCompleted(argEq(context))
+
+      capturedProducer.resetRequest()
+      verify(requestProducer).resetRequest()
+
+      capturedProducer.generateRequest()
+      verify(requestProducer).generateRequest()
+
+      capturedProducer.getTarget
+      verify(requestProducer).getTarget
+
+      capturedProducer.isRepeatable
+      verify(requestProducer).isRepeatable
+
+      capturedProducer.close()
+      verify(requestProducer).close()
+    }
+    "wraps the HttpAsyncResponseConsumer members" in {
+      underTest.execute(requestProducer, responseConsumer, httpContext, callback)
+
+      verify(httpClient).execute(producerCaptor.capture(), consumerCaptor.capture(), argEq(httpContext), callbackCaptor.capture())
+
+      val capturedConsumer = consumerCaptor.getValue
+      verifyZeroInteractions(responseConsumer)
+
+      val contentDecoder = mock[ContentDecoder]
+      val ioControl = mock[IOControl]
+      capturedConsumer.consumeContent(contentDecoder, ioControl)
+      verify(responseConsumer).consumeContent(argEq(contentDecoder), argEq(ioControl))
+
+      val exception = mock[Exception]
+      capturedConsumer.failed(exception)
+      verify(responseConsumer).failed(argEq(exception))
+
+      val context = mock[HttpContext]
+      capturedConsumer.responseCompleted(context)
+      verify(responseConsumer).responseCompleted(argEq(context))
+
+      val response = mock[HttpResponse]
+      capturedConsumer.responseReceived(response)
+      verify(responseConsumer).responseReceived(argEq(response))
+
+      capturedConsumer.getException
+      verify(responseConsumer).getException
+
+      capturedConsumer.getResult
+      verify(responseConsumer).getResult
+
+      capturedConsumer.isDone
+      verify(responseConsumer).isDone
+
+      capturedConsumer.close()
+      verify(responseConsumer).close()
+    }
+    "wraps the FutureCallback members" in {
+      underTest.execute(requestProducer, responseConsumer, httpContext, callback)
+
+      verify(httpClient).execute(producerCaptor.capture(), consumerCaptor.capture(), argEq(httpContext), callbackCaptor.capture())
+
+      val capturedCallback = callbackCaptor.getValue
+      verifyZeroInteractions(callback)
+
+      capturedCallback.cancelled()
+      verify(callback).cancelled()
+
+      val response = mock[HttpResponse]
+      capturedCallback.completed(response)
+      verify(callback).completed(argEq(response))
+
+      val exception = mock[Exception]
+      capturedCallback.failed(exception)
+      verify(callback).failed(argEq(exception))
     }
     "calls close on closeable http client" in {
       underTest.close()
