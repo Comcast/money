@@ -18,12 +18,14 @@ package com.comcast.money.aspectj
 
 import com.comcast.money.annotations.{ Timed, Traced }
 import com.comcast.money.core._
-import com.comcast.money.core.internal.MDCSupport
+import com.comcast.money.core.async.AsyncTracingService
+import com.comcast.money.core.internal.{ MDCSupport, SpanLocal }
 import com.comcast.money.core.logging.TraceLogging
 import com.comcast.money.core.reflect.Reflections
 import org.aspectj.lang.annotation.{ Around, Aspect, Pointcut }
 import org.aspectj.lang.reflect.MethodSignature
 import org.aspectj.lang.{ JoinPoint, ProceedingJoinPoint }
+import org.slf4j.MDC
 
 @Aspect
 class TraceAspect extends Reflections with TraceLogging {
@@ -41,12 +43,42 @@ class TraceAspect extends Reflections with TraceLogging {
   def adviseMethodsWithTracing(joinPoint: ProceedingJoinPoint, traceAnnotation: Traced): AnyRef = {
     val key: String = traceAnnotation.value
     var result = true
+    var stopSpan = true
     val oldSpanName = mdcSupport.getSpanNameMDC
+
     try {
       tracer.startSpan(key)
       mdcSupport.setSpanNameMDC(Some(key))
       traceMethodArguments(joinPoint)
-      joinPoint.proceed
+
+      if (traceAnnotation.async()) {
+        val methodTimeKey = "method-time"
+        tracer.startTimer(methodTimeKey)
+        var retval = joinPoint.proceed
+        tracer.stopTimer(methodTimeKey)
+
+        AsyncTracingService.findTracingService(retval).foreach {
+          service =>
+            stopSpan = false
+            val asyncSpan = SpanLocal.current.get
+            val mdc = Option(MDC.getCopyOfContextMap)
+
+            retval = service.whenDone(retval, (_, exception) => {
+              mdcSupport.propogateMDC(mdc)
+              result = true
+              if (exception != null) {
+                logException(exception)
+                result = exceptionMatches(exception, traceAnnotation.ignoredExceptions())
+              }
+              asyncSpan.stop(result)
+              MDC.clear()
+            })
+        }
+
+        retval
+      } else {
+        joinPoint.proceed
+      }
     } catch {
       case t: Throwable =>
         result = if (exceptionMatches(t, traceAnnotation.ignoredExceptions())) true else false
@@ -54,7 +86,11 @@ class TraceAspect extends Reflections with TraceLogging {
         throw t
     } finally {
       mdcSupport.setSpanNameMDC(oldSpanName)
-      tracer.stopSpan(result)
+      if (stopSpan) {
+        tracer.stopSpan(result)
+      } else {
+        SpanLocal.pop()
+      }
     }
   }
 

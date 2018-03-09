@@ -18,12 +18,15 @@ package com.comcast.money.aspectj
 
 import com.comcast.money.annotations.{ Timed, Traced, TracedData }
 import com.comcast.money.core.internal.MDCSupport
-import com.comcast.money.core.{ Tracer, Money, SpecHelpers }
+import com.comcast.money.core.{ LogRecord, Money, SpecHelpers }
 import org.aspectj.lang.ProceedingJoinPoint
 import org.mockito.Mockito._
 import org.scalatest._
 import org.scalatest.concurrent.Eventually
 import org.scalatest.mock.MockitoSugar
+
+import scala.concurrent.Promise
+import scala.util.Try
 
 class TraceAspectSpec extends WordSpec
     with GivenWhenThen with OneInstancePerTest with BeforeAndAfterEach with Matchers with MockitoSugar with Eventually
@@ -75,6 +78,12 @@ class TraceAspectSpec extends WordSpec
   def methodWithNonMatchingIgnoredException() = {
     throw new RuntimeException("not-ignored")
   }
+
+  @Traced(
+    value = "methodReturnsScalaPromise",
+    async = true
+  )
+  def methodReturnsScalaPromise(promise: Promise[String]): Promise[String] = promise
 
   @Timed("methodWithTiming")
   def methodWithTiming() = {
@@ -144,6 +153,19 @@ class TraceAspectSpec extends WordSpec
 
         And("a span-success is logged with a value of false")
         expectLogMessageContaining("span-success=false")
+      }
+      "handle async methods" in {
+        Given("a method that returns a future")
+
+        When("the method is invoked")
+        val promise = Promise[String]()
+        methodReturnsScalaPromise(promise)
+
+        promise.complete(Try("Success"))
+        expectLogMessageContaining("methodReturnsScalaPromise")
+        expectLogMessageContaining("method-time")
+
+        LogRecord.log("log").foreach(System.out.println(_))
       }
     }
     "advising methods that have parameters with the TracedData annotation" should {
