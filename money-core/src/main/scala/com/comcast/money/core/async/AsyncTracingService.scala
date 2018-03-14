@@ -24,7 +24,7 @@ object AsyncTracingService {
   private lazy val services = loadServices()
 
   def findTracingService(future: AnyRef): Option[AsyncTracingService] =
-    services.find(_.supports(future))
+    if (future != null) services.find(_.supports(future)) else None
 
   private def loadServices() =
     ServiceLoader.load(classOf[AsyncTracingService], classOf[AsyncTracingService].getClassLoader).asScala.toList

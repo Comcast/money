@@ -25,8 +25,9 @@ import org.scalatest._
 import org.scalatest.concurrent.Eventually
 import org.scalatest.mock.MockitoSugar
 
-import scala.concurrent.Promise
-import scala.util.Try
+import scala.concurrent.{ Await, Promise }
+import scala.concurrent.duration._
+import scala.util.{ Failure, Try }
 
 class TraceAspectSpec extends WordSpec
     with GivenWhenThen with OneInstancePerTest with BeforeAndAfterEach with Matchers with MockitoSugar with Eventually
@@ -80,10 +81,56 @@ class TraceAspectSpec extends WordSpec
   }
 
   @Traced(
-    value = "methodReturnsScalaPromise",
+    value = "asyncMethodReturnsPromise",
     async = true
   )
-  def methodReturnsScalaPromise(promise: Promise[String]): Promise[String] = promise
+  def asyncMethodReturnsPromise(promise: Promise[String]): Promise[String] = promise
+
+  @Traced(
+    value = "asyncMethodReturnsNull",
+    async = true
+  )
+  def asyncMethodReturnsNull(): Promise[String] = null
+
+  @Traced(
+    value = "asyncMethodReturnsNonPromise",
+    async = true
+  )
+  def asyncMethodReturnsNonPromise(): AnyRef = new Object
+
+  @Traced(
+    value = "asyncMethodThrowingException",
+    async = true
+  )
+  def asyncMethodThrowingException(): AnyRef = {
+    Thread.sleep(50)
+    throw new RuntimeException()
+  }
+
+  @Traced(
+    value = "asyncMethodWithIgnoredException",
+    async = true,
+    ignoredExceptions = Array(classOf[IllegalArgumentException])
+  )
+  def asyncMethodWithIgnoredException(): AnyRef = {
+    throw new IllegalArgumentException("ignored")
+  }
+
+  @Traced(
+    value = "asyncMethodWithNonMatchingIgnoredException",
+    async = true,
+    ignoredExceptions = Array(classOf[IllegalArgumentException])
+  )
+  def asyncMethodWithNonMatchingIgnoredException(): AnyRef = {
+    throw new RuntimeException("not-ignored")
+  }
+
+  @Traced(
+    value = "asyncMethodWithIgnoredException",
+    async = true,
+    ignoredExceptions = Array(classOf[IllegalArgumentException])
+  )
+  def asyncMethodWithIgnoredException(promise: Promise[String]): Promise[String] = promise
 
   @Timed("methodWithTiming")
   def methodWithTiming() = {
@@ -97,6 +144,7 @@ class TraceAspectSpec extends WordSpec
 
   override def beforeEach() = {
     reset(mockMdcSupport)
+    LogRecord.clear()
   }
 
   "TraceAspect" when {
@@ -124,7 +172,7 @@ class TraceAspectSpec extends WordSpec
         expectLogMessageContaining("methodThrowingException")
 
         And("a span-success is logged with a value of true")
-        expectLogMessageContaining("span-success=true")
+        expectLogMessageContaining("span-success=false")
       }
       "complete the trace with success for methods that throw ignored exceptions" in {
         Given("a method that throws an ignored exception")
@@ -154,19 +202,150 @@ class TraceAspectSpec extends WordSpec
         And("a span-success is logged with a value of false")
         expectLogMessageContaining("span-success=false")
       }
-      "handle async methods" in {
+    }
+    "advising methods by tracing them with async flag" should {
+      "handle async methods that return a future" in {
         Given("a method that returns a future")
 
         When("the method is invoked")
         val promise = Promise[String]()
-        methodReturnsScalaPromise(promise)
+        val future = asyncMethodReturnsPromise(promise)
 
+        Then("the method execution is logged")
+        expectSpanInfoThat("is named asyncMethodReturnsPromise", _.name == "asyncMethodReturnsPromise")
+        dontExpectSpanInfoThat("is named asyncMethodReturnsPromise-async", _.name == "asyncMethodReturnsPromise-async")
+
+        When("the future completes")
         promise.complete(Try("Success"))
-        expectLogMessageContaining("methodReturnsScalaPromise")
-        expectLogMessageContaining("method-time")
+        Await.ready(future.future, 500 millis)
 
-        LogRecord.log("log").foreach(System.out.println(_))
+        Then("the async execution is logged")
+        expectSpanInfoThat("is named asyncMethodReturnsPromise-async", _.name == "asyncMethodReturnsPromise-async")
       }
+      "handle async methods that return a failed future" in {
+        Given("a method that returns a future")
+
+        When("the method is invoked")
+        val promise = Promise[String]()
+        val future = asyncMethodReturnsPromise(promise)
+
+        Then("the method execution is logged")
+        expectSpanInfoThat("is named asyncMethodReturnsPromise", _.name == "asyncMethodReturnsPromise")
+        dontExpectSpanInfoThat("is named asyncMethodReturnsPromise-async", _.name == "asyncMethodReturnsPromise-async")
+
+        When("the future fails")
+        promise.complete(Failure(new RuntimeException()))
+        Await.ready(future.future, 500 millis)
+
+        Then("the async execution is logged")
+        expectSpanInfoThat("is named asyncMethodReturnsPromise-async and is not successful", span =>
+          span.name == "asyncMethodReturnsPromise-async" && !span.success())
+      }
+      "handle async methods that return a failed future with ignored exception" in {
+        Given("a method that returns a future")
+
+        When("the method is invoked")
+        val promise = Promise[String]()
+        val future = asyncMethodWithIgnoredException(promise)
+
+        Then("the method execution is logged")
+        expectSpanInfoThat("is named asyncMethodWithIgnoredException", _.name == "asyncMethodWithIgnoredException")
+        dontExpectSpanInfoThat("is named asyncMethodWithIgnoredException-async", _.name == "asyncMethodWithIgnoredException-async")
+
+        When("the future fails")
+        promise.complete(Failure(new IllegalArgumentException()))
+        Await.ready(future.future, 500 millis)
+
+        Then("the async execution is logged")
+        expectSpanInfoThat("is named asyncMethodWithIgnoredException-async and is successful", span =>
+          span.name == "asyncMethodWithIgnoredException-async" && span.success())
+      }
+      "handle async methods that return a failed future with exception not in ignored list" in {
+        Given("a method that returns a future")
+
+        When("the method is invoked")
+        val promise = Promise[String]()
+        val future = asyncMethodWithIgnoredException(promise)
+
+        Then("the method execution is logged")
+        expectSpanInfoThat("is named asyncMethodWithIgnoredException", _.name == "asyncMethodWithIgnoredException")
+        dontExpectSpanInfoThat("is named asyncMethodWithIgnoredException-async", _.name == "asyncMethodWithIgnoredException-async")
+
+        When("the future fails")
+        promise.complete(Failure(new RuntimeException()))
+        Await.ready(future.future, 500 millis)
+
+        Then("the async execution is logged")
+        expectSpanInfoThat("is named asyncMethodWithIgnoredException-async and is not successful", span =>
+          span.name == "asyncMethodWithIgnoredException-async" && !span.success())
+      }
+      "handle async methods that return a null future" in {
+        Given("a method that returns null")
+
+        When("the method is invoked")
+        val future = asyncMethodReturnsNull()
+
+        Then("the method and future execution is logged")
+        expectSpanInfoThat("is named asyncMethodReturnsNull", _.name == "asyncMethodReturnsNull")
+        dontExpectSpanInfoThat("is named asyncMethodReturnsNull-async", _.name == "asyncMethodReturnsNull-async")
+      }
+      "handle async methods that return a non-future" in {
+        Given("a method that returns a non-future")
+
+        When("the method is invoked")
+        val promise = Promise[String]()
+        val future = asyncMethodReturnsNonPromise()
+
+        Then("the method and future execution is logged")
+        expectSpanInfoThat("is named asyncMethodReturnsNonPromise", _.name == "asyncMethodReturnsNonPromise")
+        dontExpectSpanInfoThat("is named asyncMethodReturnsNonPromise-async", _.name == "asyncMethodReturnsNonPromise-async")
+      }
+      "complete the trace for methods that throw exceptions" in {
+        Given("a method that throws an exception")
+
+        When("the method is invoked")
+        a[RuntimeException] should be thrownBy {
+          asyncMethodThrowingException()
+        }
+
+        Then("the method execution is logged")
+        expectSpanInfoThat("is named asyncMethodThrowingException", _.name == "asyncMethodThrowingException")
+        dontExpectSpanInfoThat("is named asyncMethodThrowingException-async", _.name == "asyncMethodThrowingException-async")
+
+        And("a span-success is logged with a value of false")
+        expectLogMessageContaining("span-success=false")
+      }
+      "complete the trace with success for methods that throw ignored exceptions" in {
+        Given("a method that throws an ignored exception")
+
+        When("the method is invoked")
+        an[IllegalArgumentException] should be thrownBy {
+          asyncMethodWithIgnoredException()
+        }
+
+        Then("the method execution is logged")
+        expectSpanInfoThat("is named asyncMethodWithIgnoredException", _.name == "asyncMethodWithIgnoredException")
+        dontExpectSpanInfoThat("is named asyncMethodWithIgnoredException-async", _.name == "asyncMethodWithIgnoredException-async")
+
+        And("a span-success is logged with a value of true")
+        expectLogMessageContaining("span-success=true")
+      }
+      "complete the trace with failure for methods that throw exceptions that are not in ignored list" in {
+        Given("a method that throws an ignored exception")
+
+        When("the method is invoked")
+        a[RuntimeException] should be thrownBy {
+          asyncMethodWithNonMatchingIgnoredException()
+        }
+
+        Then("the method execution is logged")
+        expectSpanInfoThat("is named asyncMethodWithNonMatchingIgnoredException", _.name == "asyncMethodWithNonMatchingIgnoredException")
+        dontExpectSpanInfoThat("is named asyncMethodWithNonMatchingIgnoredException-async", _.name == "asyncMethodWithNonMatchingIgnoredException-async")
+
+        And("a span-success is logged with a value of false")
+        expectLogMessageContaining("span-success=false")
+      }
+
     }
     "advising methods that have parameters with the TracedData annotation" should {
       "record the value of the parameter in the trace" in {
