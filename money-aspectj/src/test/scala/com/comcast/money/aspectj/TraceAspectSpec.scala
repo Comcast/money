@@ -24,6 +24,7 @@ import org.mockito.Mockito._
 import org.scalatest._
 import org.scalatest.concurrent.Eventually
 import org.scalatest.mock.MockitoSugar
+import org.slf4j.MDC
 
 import scala.concurrent.{ Await, Promise }
 import scala.concurrent.duration._
@@ -212,15 +213,14 @@ class TraceAspectSpec extends WordSpec
         val future = asyncMethodReturnsPromise(promise)
 
         Then("the method execution is logged")
-        expectSpanInfoThat("is named asyncMethodReturnsPromise", _.name == "asyncMethodReturnsPromise")
-        dontExpectSpanInfoThat("is named asyncMethodReturnsPromise-async", _.name == "asyncMethodReturnsPromise-async")
+        dontExpectSpanInfoThat("is named asyncMethodReturnsPromise", _.name == "asyncMethodReturnsPromise")
 
         When("the future completes")
         promise.complete(Try("Success"))
         Await.ready(future.future, 500 millis)
 
         Then("the async execution is logged")
-        expectSpanInfoThat("is named asyncMethodReturnsPromise-async", _.name == "asyncMethodReturnsPromise-async")
+        expectSpanInfoThat("is named asyncMethodReturnsPromise", _.name == "asyncMethodReturnsPromise")
       }
       "handle async methods that return a failed future" in {
         Given("a method that returns a future")
@@ -230,16 +230,15 @@ class TraceAspectSpec extends WordSpec
         val future = asyncMethodReturnsPromise(promise)
 
         Then("the method execution is logged")
-        expectSpanInfoThat("is named asyncMethodReturnsPromise", _.name == "asyncMethodReturnsPromise")
-        dontExpectSpanInfoThat("is named asyncMethodReturnsPromise-async", _.name == "asyncMethodReturnsPromise-async")
+        dontExpectSpanInfoThat("is named asyncMethodReturnsPromise", _.name == "asyncMethodReturnsPromise")
 
         When("the future fails")
         promise.complete(Failure(new RuntimeException()))
         Await.ready(future.future, 500 millis)
 
         Then("the async execution is logged")
-        expectSpanInfoThat("is named asyncMethodReturnsPromise-async and is not successful", span =>
-          span.name == "asyncMethodReturnsPromise-async" && !span.success())
+        expectSpanInfoThat("is named asyncMethodReturnsPromise and is not successful", span =>
+          span.name == "asyncMethodReturnsPromise" && !span.success())
       }
       "handle async methods that return a failed future with ignored exception" in {
         Given("a method that returns a future")
@@ -249,16 +248,15 @@ class TraceAspectSpec extends WordSpec
         val future = asyncMethodWithIgnoredException(promise)
 
         Then("the method execution is logged")
-        expectSpanInfoThat("is named asyncMethodWithIgnoredException", _.name == "asyncMethodWithIgnoredException")
-        dontExpectSpanInfoThat("is named asyncMethodWithIgnoredException-async", _.name == "asyncMethodWithIgnoredException-async")
+        dontExpectSpanInfoThat("is named asyncMethodWithIgnoredException", _.name == "asyncMethodWithIgnoredException")
 
         When("the future fails")
         promise.complete(Failure(new IllegalArgumentException()))
         Await.ready(future.future, 500 millis)
 
         Then("the async execution is logged")
-        expectSpanInfoThat("is named asyncMethodWithIgnoredException-async and is successful", span =>
-          span.name == "asyncMethodWithIgnoredException-async" && span.success())
+        expectSpanInfoThat("is named asyncMethodWithIgnoredException and is successful", span =>
+          span.name == "asyncMethodWithIgnoredException" && span.success())
       }
       "handle async methods that return a failed future with exception not in ignored list" in {
         Given("a method that returns a future")
@@ -268,16 +266,15 @@ class TraceAspectSpec extends WordSpec
         val future = asyncMethodWithIgnoredException(promise)
 
         Then("the method execution is logged")
-        expectSpanInfoThat("is named asyncMethodWithIgnoredException", _.name == "asyncMethodWithIgnoredException")
-        dontExpectSpanInfoThat("is named asyncMethodWithIgnoredException-async", _.name == "asyncMethodWithIgnoredException-async")
+        dontExpectSpanInfoThat("is named asyncMethodWithIgnoredException", _.name == "asyncMethodWithIgnoredException")
 
         When("the future fails")
         promise.complete(Failure(new RuntimeException()))
         Await.ready(future.future, 500 millis)
 
         Then("the async execution is logged")
-        expectSpanInfoThat("is named asyncMethodWithIgnoredException-async and is not successful", span =>
-          span.name == "asyncMethodWithIgnoredException-async" && !span.success())
+        expectSpanInfoThat("is named asyncMethodWithIgnoredException and is not successful", span =>
+          span.name == "asyncMethodWithIgnoredException" && !span.success())
       }
       "handle async methods that return a null future" in {
         Given("a method that returns null")
@@ -287,7 +284,6 @@ class TraceAspectSpec extends WordSpec
 
         Then("the method and future execution is logged")
         expectSpanInfoThat("is named asyncMethodReturnsNull", _.name == "asyncMethodReturnsNull")
-        dontExpectSpanInfoThat("is named asyncMethodReturnsNull-async", _.name == "asyncMethodReturnsNull-async")
       }
       "handle async methods that return a non-future" in {
         Given("a method that returns a non-future")
@@ -298,7 +294,6 @@ class TraceAspectSpec extends WordSpec
 
         Then("the method and future execution is logged")
         expectSpanInfoThat("is named asyncMethodReturnsNonPromise", _.name == "asyncMethodReturnsNonPromise")
-        dontExpectSpanInfoThat("is named asyncMethodReturnsNonPromise-async", _.name == "asyncMethodReturnsNonPromise-async")
       }
       "complete the trace for methods that throw exceptions" in {
         Given("a method that throws an exception")
@@ -310,7 +305,6 @@ class TraceAspectSpec extends WordSpec
 
         Then("the method execution is logged")
         expectSpanInfoThat("is named asyncMethodThrowingException", _.name == "asyncMethodThrowingException")
-        dontExpectSpanInfoThat("is named asyncMethodThrowingException-async", _.name == "asyncMethodThrowingException-async")
 
         And("a span-success is logged with a value of false")
         expectLogMessageContaining("span-success=false")
@@ -325,7 +319,6 @@ class TraceAspectSpec extends WordSpec
 
         Then("the method execution is logged")
         expectSpanInfoThat("is named asyncMethodWithIgnoredException", _.name == "asyncMethodWithIgnoredException")
-        dontExpectSpanInfoThat("is named asyncMethodWithIgnoredException-async", _.name == "asyncMethodWithIgnoredException-async")
 
         And("a span-success is logged with a value of true")
         expectLogMessageContaining("span-success=true")
@@ -340,7 +333,6 @@ class TraceAspectSpec extends WordSpec
 
         Then("the method execution is logged")
         expectSpanInfoThat("is named asyncMethodWithNonMatchingIgnoredException", _.name == "asyncMethodWithNonMatchingIgnoredException")
-        dontExpectSpanInfoThat("is named asyncMethodWithNonMatchingIgnoredException-async", _.name == "asyncMethodWithNonMatchingIgnoredException-async")
 
         And("a span-success is logged with a value of false")
         expectLogMessageContaining("span-success=false")

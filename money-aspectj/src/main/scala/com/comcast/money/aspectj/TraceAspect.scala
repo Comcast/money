@@ -20,6 +20,7 @@ import com.comcast.money.annotations.{ Timed, Traced }
 import com.comcast.money.api.Span
 import com.comcast.money.core._
 import com.comcast.money.core.async.AsyncTracingService
+import com.comcast.money.core.async.AsyncTracingService._
 import com.comcast.money.core.internal.{ MDCSupport, SpanLocal }
 import com.comcast.money.core.logging.TraceLogging
 import com.comcast.money.core.reflect.Reflections
@@ -73,38 +74,39 @@ class TraceAspect extends Reflections with TraceLogging {
 
   private def traceMethodAsync(joinPoint: ProceedingJoinPoint, traceAnnotation: Traced): AnyRef = {
     val key = traceAnnotation.value()
-    val asyncKey = key + "-async"
     val oldSpanName = mdcSupport.getSpanNameMDC
     var result = true
-    var asyncSpan: Option[Span] = None
+    var stopSpan = true
 
     try {
       tracer.startSpan(key)
       mdcSupport.setSpanNameMDC(Some(key))
       traceMethodArguments(joinPoint)
 
-      tracer.startSpan(key + "-async")
-      asyncSpan = SpanLocal.pop()
-
       val future = joinPoint.proceed()
 
-      AsyncTracingService.findTracingService(future) match {
-        case Some(service) =>
-          service.whenDone(future, (_, t) => {
-            val asyncResult = t == null || exceptionMatches(t, traceAnnotation.ignoredExceptions())
-            logException(t)
-            asyncSpan.foreach(_.stop(asyncResult))
-          })
-        case _ =>
-          future
-      }
+      findTracingService(future).map(service => {
+        stopSpan = false
+        val span = SpanLocal.pop()
+        val mdc = Option(MDC.getCopyOfContextMap)
+
+        service.whenDone(future, (_, t) => {
+          mdcSupport.propogateMDC(mdc)
+          val asyncResult = t == null || exceptionMatches(t, traceAnnotation.ignoredExceptions())
+          logException(t)
+          span.foreach(_.stop(asyncResult))
+        })
+      }).getOrElse(future)
+
     } catch {
       case t: Throwable =>
         result = exceptionMatches(t, traceAnnotation.ignoredExceptions())
         logException(t)
         throw t
     } finally {
-      tracer.stopSpan(result)
+      if (stopSpan) {
+        tracer.stopSpan(result)
+      }
       mdcSupport.setSpanNameMDC(oldSpanName)
     }
   }
