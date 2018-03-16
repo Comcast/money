@@ -18,7 +18,7 @@ package com.comcast.money.core.async
 
 import scala.concurrent.{ ExecutionContext, Future }
 
-class ScalaFutureTracingService extends AsyncTracingService {
+class ScalaFutureNotificationService extends AsyncNotificationService {
   implicit private val context: ExecutionContext = ExecutionContext.global
 
   override def supports(future: AnyRef): Boolean = future != null && future.isInstanceOf[Future[_]]

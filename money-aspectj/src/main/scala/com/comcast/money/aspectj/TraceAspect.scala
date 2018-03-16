@@ -17,10 +17,8 @@
 package com.comcast.money.aspectj
 
 import com.comcast.money.annotations.{ Timed, Traced }
-import com.comcast.money.api.Span
 import com.comcast.money.core._
-import com.comcast.money.core.async.AsyncTracingService
-import com.comcast.money.core.async.AsyncTracingService._
+import com.comcast.money.core.async.AsyncNotificationService._
 import com.comcast.money.core.internal.{ MDCSupport, SpanLocal }
 import com.comcast.money.core.logging.TraceLogging
 import com.comcast.money.core.reflect.Reflections
@@ -43,36 +41,6 @@ class TraceAspect extends Reflections with TraceLogging {
 
   @Around("traced(traceAnnotation)")
   def adviseMethodsWithTracing(joinPoint: ProceedingJoinPoint, traceAnnotation: Traced): AnyRef = {
-    if (traceAnnotation.async()) {
-      traceMethodAsync(joinPoint, traceAnnotation)
-    } else {
-      traceMethod(joinPoint, traceAnnotation)
-    }
-  }
-
-  private def traceMethod(joinPoint: ProceedingJoinPoint, traceAnnotation: Traced): AnyRef = {
-    val key = traceAnnotation.value()
-    val oldSpanName = mdcSupport.getSpanNameMDC
-    var result = true
-
-    try {
-      tracer.startSpan(key)
-      mdcSupport.setSpanNameMDC(Some(key))
-      traceMethodArguments(joinPoint)
-
-      joinPoint.proceed()
-    } catch {
-      case t: Throwable =>
-        result = exceptionMatches(t, traceAnnotation.ignoredExceptions())
-        logException(t)
-        throw t
-    } finally {
-      tracer.stopSpan(result)
-      mdcSupport.setSpanNameMDC(oldSpanName)
-    }
-  }
-
-  private def traceMethodAsync(joinPoint: ProceedingJoinPoint, traceAnnotation: Traced): AnyRef = {
     val key = traceAnnotation.value()
     val oldSpanName = mdcSupport.getSpanNameMDC
     var result = true
@@ -83,21 +51,24 @@ class TraceAspect extends Reflections with TraceLogging {
       mdcSupport.setSpanNameMDC(Some(key))
       traceMethodArguments(joinPoint)
 
-      val future = joinPoint.proceed()
+      val returnValue = joinPoint.proceed()
 
-      findTracingService(future).map(service => {
-        stopSpan = false
-        val span = SpanLocal.pop()
-        val mdc = Option(MDC.getCopyOfContextMap)
+      if (traceAnnotation.async()) {
+        findNotificationService(returnValue).map(service => {
+          stopSpan = false
+          val span = SpanLocal.pop()
+          val mdc = Option(MDC.getCopyOfContextMap)
 
-        service.whenDone(future, (_, t) => {
-          mdcSupport.propogateMDC(mdc)
-          val asyncResult = t == null || exceptionMatches(t, traceAnnotation.ignoredExceptions())
-          logException(t)
-          span.foreach(_.stop(asyncResult))
-        })
-      }).getOrElse(future)
-
+          service.whenDone(returnValue, (_, t) => {
+            mdcSupport.propogateMDC(mdc)
+            val asyncResult = t == null || exceptionMatches(t, traceAnnotation.ignoredExceptions())
+            logException(t)
+            span.foreach(_.stop(asyncResult))
+          })
+        }).getOrElse(returnValue)
+      } else {
+        returnValue
+      }
     } catch {
       case t: Throwable =>
         result = exceptionMatches(t, traceAnnotation.ignoredExceptions())

@@ -20,17 +20,17 @@ import java.util.ServiceLoader
 
 import scala.collection.JavaConverters._
 
-object AsyncTracingService {
+object AsyncNotificationService {
   private lazy val services = loadServices()
 
-  def findTracingService(future: AnyRef): Option[AsyncTracingService] =
+  def findNotificationService(future: AnyRef): Option[AsyncNotificationService] =
     Option(future).flatMap(f => services.find(_.supports(f)))
 
   private def loadServices() =
-    ServiceLoader.load(classOf[AsyncTracingService], classOf[AsyncTracingService].getClassLoader).asScala.toList
+    ServiceLoader.load(classOf[AsyncNotificationService], classOf[AsyncNotificationService].getClassLoader).asScala.toList
 }
 
-trait AsyncTracingService {
+trait AsyncNotificationService {
   def supports(future: AnyRef): Boolean
   def whenDone(future: AnyRef, f: (Any, Throwable) => Unit): AnyRef
 }
