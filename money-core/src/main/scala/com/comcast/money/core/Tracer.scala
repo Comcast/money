@@ -18,8 +18,8 @@ package com.comcast.money.core
 
 import java.io.Closeable
 
-import com.comcast.money.api.{ Note, Span, SpanFactory }
-import com.comcast.money.core.internal.SpanLocal
+import com.comcast.money.api.{Note, Span, SpanFactory}
+import com.comcast.money.core.internal.{SpanContext, SpanLocal}
 
 /**
  * Primary API to be used for tracing
@@ -27,6 +27,8 @@ import com.comcast.money.core.internal.SpanLocal
 trait Tracer extends Closeable {
 
   val spanFactory: SpanFactory
+
+  val spanContext: SpanContext = SpanLocal
 
   /**
    * Creates a new span if one is not present; or creates a child span for the existing Span if one is present
@@ -45,7 +47,7 @@ trait Tracer extends Closeable {
    * @param key an identifier for the span
    */
   def startSpan(key: String) = {
-    val child = SpanLocal.current
+    val child = spanContext.current
       .map { existingSpan =>
         spanFactory.childSpan(key, existingSpan)
       }
@@ -53,7 +55,7 @@ trait Tracer extends Closeable {
         spanFactory.newSpan(key)
       )
 
-    SpanLocal.push(child)
+    spanContext.push(child)
     child.start()
   }
 
@@ -255,7 +257,7 @@ trait Tracer extends Closeable {
    * @param result The result of the span, this will be Result.success or Result.failed
    */
   def stopSpan(result: Boolean = true): Unit = {
-    SpanLocal.pop() foreach {
+    spanContext.pop foreach  {
       span =>
         span.stop(result)
     }
@@ -306,6 +308,6 @@ trait Tracer extends Closeable {
   override def close() = stopSpan()
 
   private def withSpan(func: Span => Unit): Unit = {
-    SpanLocal.current.foreach(func)
+    spanContext.current.foreach(func)
   }
 }
