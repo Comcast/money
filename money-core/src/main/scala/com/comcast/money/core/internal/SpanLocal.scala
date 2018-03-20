@@ -31,9 +31,9 @@ trait SpanContext {
 }
 
 /**
- * Provides a thread local context for storing SpanIds.  Keeps a stack of trace ids so that we
- * an roll back to the parent once a span completes
- */
+  * Provides a thread local context for storing SpanIds.  Keeps a stack of trace ids so that we
+  * an roll back to the parent once a span completes
+  */
 object SpanLocal extends SpanContext {
 
   // A stack of span ids for the current thread
@@ -69,7 +69,11 @@ object SpanLocal extends SpanContext {
     }
 
   /**
-   * Clears the entire call stack for the thread
-   */
-  override def clear() = if (threadLocalCtx != null) threadLocalCtx.remove() else setSpanMDC(None)
+    * Clears the entire call stack for the thread
+    */
+  override def clear() = {
+    if (threadLocalCtx != null) threadLocalCtx.remove()
+
+    setSpanMDC(None)
+  }
 }
