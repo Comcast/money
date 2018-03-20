@@ -58,6 +58,24 @@ object MoneyBuild extends Build {
         }
       ).dependsOn(moneyApi)
 
+  lazy val moneyAkka =
+    Project("money-akka", file("./money-akka"))
+    .configs(IntegrationTest)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies <++= (scalaVersion) { _: String =>
+        Seq(
+          akka,
+          akkaHttp,
+          akkaHttpTestKit,
+          akkaLog,
+          scalaTest,
+          typesafeConfig
+        )
+      }
+    )
+    .dependsOn(moneyCore)
+
   lazy val moneyAspectj =
     Project("money-aspectj", file("./money-aspectj"))
     .configs( IntegrationTest )
@@ -284,6 +302,14 @@ object MoneyBuild extends Build {
   object Dependencies {
     val codahaleVersion = "3.0.2"
     val apacheHttpClientVersion = "4.3.5"
+
+    val akkaV = "2.4.14"
+    val akkaHttpV = "10.0.0"
+
+    val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
+    val akkaLog =         "com.typesafe.akka"         %% "akka-slf4j"                  % akkaV
+    val akkaHttp =        "com.typesafe.akka"         %% "akka-http"                   % akkaHttpV
+    val akkaHttpTestKit = "com.typesafe.akka"         %% "akka-http-testkit"           % akkaHttpV % "test"
 
     // Logging
     val slf4j = "org.slf4j" % "slf4j-api" % "1.7.5"
