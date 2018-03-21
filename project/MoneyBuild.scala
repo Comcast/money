@@ -26,7 +26,7 @@ object MoneyBuild extends Build {
     publishLocal := {},
     publish := {}
   )
-  .aggregate(moneyApi, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
+  .aggregate(moneyApi, moneyCore, moneyAspectj, moneyHttpClient, moneyHttpAsyncClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
 
   lazy val moneyApi =
     Project("money-api", file("./money-api"))
@@ -99,6 +99,21 @@ object MoneyBuild extends Build {
         libraryDependencies <++= (scalaVersion){v: String =>
           Seq(
             apacheHttpClient,
+            scalaTest,
+            mockito
+          )
+        }
+      )
+      .dependsOn(moneyCore % "test->test;compile->compile",moneyAspectj)
+
+  lazy val moneyHttpAsyncClient =
+    Project("money-http-async-client", file("./money-http-async-client"))
+      .configs( IntegrationTest )
+      .settings(aspectjProjectSettings: _*)
+      .settings(
+        libraryDependencies <++= (scalaVersion){v: String =>
+          Seq(
+            apacheHttpAsyncClient,
             scalaTest,
             mockito
           )
@@ -302,6 +317,7 @@ object MoneyBuild extends Build {
   object Dependencies {
     val codahaleVersion = "3.0.2"
     val apacheHttpClientVersion = "4.3.5"
+    val apacheHttpAsyncClientVersion = "4.1.3"
 
     val akkaV = "2.5.11"
     val akkaHttpV = "10.1.0"
@@ -330,6 +346,9 @@ object MoneyBuild extends Build {
 
     // Apache http client
     val apacheHttpClient = "org.apache.httpcomponents" % "httpclient" % apacheHttpClientVersion
+
+    // Apache http async client
+    val apacheHttpAsyncClient = "org.apache.httpcomponents" % "httpasyncclient" % apacheHttpAsyncClientVersion
 
     // Javax servlet - note: the group id and artfacit id have changed in 3.0
     val javaxServlet = "javax.servlet" % "servlet-api" % "2.5"

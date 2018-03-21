@@ -122,12 +122,12 @@ class TraceFriendlyHttpClient(wrapee: HttpClient) extends HttpClient with java.i
   }
 
   override def close(): Unit = {
-    if (wrapee.isInstanceOf[CloseableHttpClient])
-      wrapee.asInstanceOf[CloseableHttpClient].close()
-    else if (wrapee.isInstanceOf[Closeable])
-      wrapee.asInstanceOf[Closeable].close()
-    else if (wrapee.isInstanceOf[AutoCloseable])
-      wrapee.asInstanceOf[AutoCloseable].close()
+    wrapee match {
+      case client: CloseableHttpClient => client.close()
+      case closeable: Closeable => closeable.close()
+      case closeable: AutoCloseable => closeable.close()
+      case _ =>
+    }
   }
 }
 
