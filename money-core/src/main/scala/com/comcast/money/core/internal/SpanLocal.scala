@@ -20,11 +20,21 @@ import com.comcast.money.api.Span
 
 import scala.collection.mutable.Stack
 
+trait SpanContext {
+  def push(span: Span): Unit
+
+  def pop: Option[Span]
+
+  def current: Option[Span]
+
+  def clear: Unit
+}
+
 /**
- * Provides a thread local context for storing SpanIds.  Keeps a stack of trace ids so that we
- * an roll back to the parent once a span completes
- */
-object SpanLocal {
+  * Provides a thread local context for storing SpanIds.  Keeps a stack of trace ids so that we
+  * an roll back to the parent once a span completes
+  */
+object SpanLocal extends SpanContext {
 
   // A stack of span ids for the current thread
   private[this] val threadLocalCtx = new ThreadLocal[Stack[Span]]
@@ -33,12 +43,10 @@ object SpanLocal {
 
   import mdcSupport._
 
-  def current: Option[Span] = {
-    Option(threadLocalCtx.get).flatMap(_.headOption)
-  }
+  override def current: Option[Span] = Option(threadLocalCtx.get).flatMap(_.headOption)
 
-  def push(span: Span): Unit = {
-    if (span != null) {
+  override def push(span: Span): Unit =
+    if (span != null)
       Option(threadLocalCtx.get) match {
         case Some(stack) =>
           stack.push(span)
@@ -47,10 +55,8 @@ object SpanLocal {
           threadLocalCtx.set(new Stack[Span]())
           push(span)
       }
-    }
-  }
 
-  def pop(): Option[Span] = {
+  override def pop(): Option[Span] =
     Option(threadLocalCtx.get).map {
       stack =>
         // remove the current span in scope for this thread
@@ -61,15 +67,13 @@ object SpanLocal {
 
         spanId
     }
-  }
 
   /**
-   * Clears the entire call stack for the thread
-   */
-  def clear() = {
-    if (threadLocalCtx != null) {
-      threadLocalCtx.remove()
-    }
+    * Clears the entire call stack for the thread
+    */
+  override def clear() = {
+    if (threadLocalCtx != null) threadLocalCtx.remove()
+
     setSpanMDC(None)
   }
 }
