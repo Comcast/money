@@ -34,10 +34,7 @@ abstract class TracedLogic[In, Out](shape: Shape)
                      moneyExtension: MoneyExtension): Tracer =
     moneyExtension.tracer(spanContext)
 
-  def traceStageAndPush(key: String, stageLogic: In => Out)
-                       (implicit in: Inlet[TracedIn],
-                        out: Outlet[TracedOut],
-                        moneyExtension: MoneyExtension): Unit = {
+  def traceStageAndPush(key: String, stageLogic: In => Out): Unit = {
     implicit val (inMessage, spanContext) = grab[TracedIn](in)
     tracer.startSpan(key)
     val outMessage = stageLogic(inMessage)
