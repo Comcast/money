@@ -303,8 +303,8 @@ object MoneyBuild extends Build {
     val codahaleVersion = "3.0.2"
     val apacheHttpClientVersion = "4.3.5"
 
-    val akkaV = "2.4.14"
-    val akkaHttpV = "10.0.0"
+    val akkaV = "2.5.11"
+    val akkaHttpV = "10.1.0"
 
     val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
     val akkaLog =         "com.typesafe.akka"         %% "akka-slf4j"                  % akkaV
