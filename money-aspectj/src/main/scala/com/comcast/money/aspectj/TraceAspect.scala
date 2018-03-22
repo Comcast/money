@@ -18,7 +18,7 @@ package com.comcast.money.aspectj
 
 import com.comcast.money.annotations.{ Timed, Traced }
 import com.comcast.money.core._
-import com.comcast.money.core.async.AsyncNotificationService._
+import com.comcast.money.core.async.{ AsyncNotifier, DirectExecutionContext }
 import com.comcast.money.core.internal.{ MDCSupport, SpanLocal }
 import com.comcast.money.core.logging.TraceLogging
 import com.comcast.money.core.reflect.Reflections
@@ -27,11 +27,15 @@ import org.aspectj.lang.reflect.MethodSignature
 import org.aspectj.lang.{ JoinPoint, ProceedingJoinPoint }
 import org.slf4j.MDC
 
+import scala.concurrent.ExecutionContext
+
 @Aspect
 class TraceAspect extends Reflections with TraceLogging {
 
   val tracer: Tracer = Money.Environment.tracer
+  val asyncNotifier: AsyncNotifier = Money.Environment.asyncNotifier
   val mdcSupport: MDCSupport = new MDCSupport()
+  implicit val executionContext: ExecutionContext = new DirectExecutionContext()
 
   @Pointcut("execution(@com.comcast.money.annotations.Traced * *(..)) && @annotation(traceAnnotation)")
   def traced(traceAnnotation: Traced) = {}
@@ -54,16 +58,17 @@ class TraceAspect extends Reflections with TraceLogging {
       val returnValue = joinPoint.proceed()
 
       if (traceAnnotation.async()) {
-        findNotificationService(returnValue).map(service => {
+        asyncNotifier.resolveHandler(returnValue).map(handler => {
           stopSpan = false
           val span = SpanLocal.pop()
           val mdc = Option(MDC.getCopyOfContextMap)
 
-          service.whenDone(returnValue, (_, t) => {
+          handler.whenComplete(returnValue, (_, t) => {
             mdcSupport.propogateMDC(mdc)
             val asyncResult = t == null || exceptionMatches(t, traceAnnotation.ignoredExceptions())
             logException(t)
             span.foreach(_.stop(asyncResult))
+            MDC.clear()
           })
         }).getOrElse(returnValue)
       } else {

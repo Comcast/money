@@ -24,20 +24,19 @@ import org.mockito.Mockito._
 import org.mockito.Matchers.{ any, argThat, eq => argEq }
 import org.hamcrest.CoreMatchers.nullValue
 
-import scala.concurrent.{ Await, ExecutionContext, Future, Promise }
-import scala.concurrent.duration._
+import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Failure, Try }
 
-class ScalaFutureNotificationServiceSpec
+class ScalaFutureNotificationHandlerSpec
     extends WordSpecLike
     with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest with SpecHelpers {
 
-  val underTest = new ScalaFutureNotificationService()
-  implicit val ec: ExecutionContext = ExecutionContext.global
+  val underTest = new ScalaFutureNotificationHandler()
+  implicit val executionContext: ExecutionContext = new DirectExecutionContext()
 
-  "ScalaFutureTracingService" should {
+  "ScalaFutureNotificationHandler" should {
     "support scala.concurrent.Future" in {
-      val future = Future("success")
+      val future = Future.successful("success")
       val result = underTest.supports(future)
 
       result shouldEqual true
@@ -61,18 +60,29 @@ class ScalaFutureNotificationServiceSpec
     }
     "calls transform method on the future" in {
       val future = mock[Future[String]]
-      doReturn(future).when(future).transform(any(), any())(any())
+      doReturn(future).when(future).transform(any(), any())(argEq(executionContext))
 
-      val result = underTest.whenDone(future, (_, _) => {})
+      val result = underTest.whenComplete(future, (_, _) => {})(executionContext)
 
-      verify(result, times(1)).transform(any(), any())(any())
+      verify(result, times(1)).transform(any(), any())(argEq(executionContext))
     }
     "calls registered completion function for already completed future" in {
-      val future = Future("success")
+      val future = Future.successful("success")
       val func = mock[(Any, Throwable) => Unit]
 
-      val result = underTest.whenDone(future, func)
+      val result = underTest.whenComplete(future, func)(executionContext)
 
+      verify(func, times(1)).apply(argEq("success"), argThat(nullValue[Throwable]()))
+    }
+    "calls registered completion function for already exceptionally completed future" in {
+      val ex = new RuntimeException
+      val future = Future.failed(ex)
+      val func = mock[(Any, Throwable) => Unit]
+      val executionContext = new DirectExecutionContext()
+
+      val result = underTest.whenComplete(future, func)(executionContext)
+
+      verify(func, times(1)).apply(argThat(nullValue[Any]()), argEq(ex))
     }
     "calls registered completion function when the future completes successfully" in {
       val promise = Promise[String]()
@@ -80,11 +90,10 @@ class ScalaFutureNotificationServiceSpec
 
       val func = mock[(Any, Throwable) => Unit]
 
-      val result = underTest.whenDone(future, func)
+      val result = underTest.whenComplete(future, func)(executionContext)
       verify(func, never()).apply(any(), any())
 
       promise.complete(Try("success"))
-      Await.ready(result.asInstanceOf[Future[String]], 50 millis)
 
       verify(func, times(1)).apply(argEq("success"), argThat(nullValue[Throwable]()))
     }
@@ -94,12 +103,11 @@ class ScalaFutureNotificationServiceSpec
 
       val func = mock[(Any, Throwable) => Unit]
 
-      val result = underTest.whenDone(future, func)
+      val result = underTest.whenComplete(future, func)(executionContext)
       verify(func, never()).apply(any(), any())
 
       val exception = new RuntimeException()
       promise.complete(Failure(exception))
-      Await.ready(result.asInstanceOf[Future[String]], 50 millis)
 
       verify(func, times(1)).apply(argThat(nullValue[String]), argEq(exception))
     }

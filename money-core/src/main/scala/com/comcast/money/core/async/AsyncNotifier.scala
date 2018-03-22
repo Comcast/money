@@ -16,21 +16,20 @@
 
 package com.comcast.money.core.async
 
-import java.util.ServiceLoader
+import com.typesafe.config.Config
 
-import scala.collection.JavaConverters._
+import scala.collection.JavaConversions._
 
-object AsyncNotificationService {
-  private lazy val services = loadServices()
-
-  def findNotificationService(future: AnyRef): Option[AsyncNotificationService] =
-    Option(future).flatMap(f => services.find(_.supports(f)))
-
-  private def loadServices() =
-    ServiceLoader.load(classOf[AsyncNotificationService], classOf[AsyncNotificationService].getClassLoader).asScala.toList
+case class AsyncNotifier(handlers: Seq[AsyncNotificationHandler]) {
+  def resolveHandler(future: AnyRef): Option[AsyncNotificationHandler] =
+    Option(future).flatMap(f => handlers.find(_.supports(f)))
 }
 
-trait AsyncNotificationService {
-  def supports(future: AnyRef): Boolean
-  def whenDone(future: AnyRef, f: (Any, Throwable) => Unit): AnyRef
+object AsyncNotifier {
+  import AsyncNotificationHandlerFactory.create
+
+  def apply(config: Config): AsyncNotifier = {
+    val handlers = config.getConfigList("handlers").map(create)
+    new AsyncNotifier(handlers)
+  }
 }

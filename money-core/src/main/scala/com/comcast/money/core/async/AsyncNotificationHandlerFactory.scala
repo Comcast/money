@@ -16,20 +16,23 @@
 
 package com.comcast.money.core.async
 
-import scala.concurrent.{ ExecutionContext, Future }
+import com.typesafe.config.Config
 
-class ScalaFutureNotificationService extends AsyncNotificationService {
-  implicit private val context: ExecutionContext = ExecutionContext.global
+object AsyncNotificationHandlerFactory {
 
-  override def supports(future: AnyRef): Boolean = future != null && future.isInstanceOf[Future[_]]
+  def create(config: Config): AsyncNotificationHandler = {
+    val className = config.getString("class")
 
-  override def whenDone(value: AnyRef, f: (Any, Throwable) => Unit): Future[_] = {
-    value.asInstanceOf[Future[_]].transform(result => {
-      f(result, null)
-      result
-    }, throwable => {
-      f(null, throwable)
-      throwable
-    })
+    val handlerInstance = Class.forName(className)
+      .newInstance()
+      .asInstanceOf[AsyncNotificationHandler]
+
+    handlerInstance match {
+      case configurable: ConfigurableNotificationHandler =>
+        configurable.configure(config)
+        configurable
+
+      case _ => handlerInstance
+    }
   }
 }
