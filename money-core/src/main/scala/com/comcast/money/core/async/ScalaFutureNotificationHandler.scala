@@ -17,17 +17,18 @@
 package com.comcast.money.core.async
 
 import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Try }
 
 class ScalaFutureNotificationHandler extends AsyncNotificationHandler {
   override def supports(future: AnyRef): Boolean =
     future != null && future.isInstanceOf[Future[_]]
 
-  override def whenComplete(future: AnyRef, f: (Any, Throwable) => Unit)(implicit executionContext: ExecutionContext): Future[_] = {
+  override def whenComplete(future: AnyRef, f: Try[_] => Unit)(implicit executionContext: ExecutionContext): Future[_] = {
     future.asInstanceOf[Future[_]].transform(result => {
-      f(result, null)
+      f(Try(result))
       result
     }, throwable => {
-      f(null, throwable)
+      f(Failure(throwable))
       throwable
     })(executionContext)
   }

@@ -21,8 +21,7 @@ import com.comcast.money.core.concurrent.ConcurrentSupport
 import org.scalatest.{ Matchers, OneInstancePerTest, WordSpecLike }
 import org.scalatest.mock.MockitoSugar
 import org.mockito.Mockito._
-import org.mockito.Matchers.{ any, argThat, eq => argEq }
-import org.hamcrest.CoreMatchers.nullValue
+import org.mockito.Matchers.{ any, eq => argEq }
 
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Failure, Try }
@@ -62,54 +61,54 @@ class ScalaFutureNotificationHandlerSpec
       val future = mock[Future[String]]
       doReturn(future).when(future).transform(any(), any())(argEq(executionContext))
 
-      val result = underTest.whenComplete(future, (_, _) => {})(executionContext)
+      val result = underTest.whenComplete(future, _ => {})(executionContext)
 
       verify(result, times(1)).transform(any(), any())(argEq(executionContext))
     }
     "calls registered completion function for already completed future" in {
       val future = Future.successful("success")
-      val func = mock[(Any, Throwable) => Unit]
+      val func = mock[Try[_] => Unit]
 
       val result = underTest.whenComplete(future, func)(executionContext)
 
-      verify(func, times(1)).apply(argEq("success"), argThat(nullValue[Throwable]()))
+      verify(func, times(1)).apply(argEq(Try("success")))
     }
     "calls registered completion function for already exceptionally completed future" in {
       val ex = new RuntimeException
       val future = Future.failed(ex)
-      val func = mock[(Any, Throwable) => Unit]
+      val func = mock[Try[_] => Unit]
       val executionContext = new DirectExecutionContext()
 
       val result = underTest.whenComplete(future, func)(executionContext)
 
-      verify(func, times(1)).apply(argThat(nullValue[Any]()), argEq(ex))
+      verify(func, times(1)).apply(argEq(Failure(ex)))
     }
     "calls registered completion function when the future completes successfully" in {
       val promise = Promise[String]()
       val future = promise.future
 
-      val func = mock[(Any, Throwable) => Unit]
+      val func = mock[Try[_] => Unit]
 
       val result = underTest.whenComplete(future, func)(executionContext)
-      verify(func, never()).apply(any(), any())
+      verify(func, never()).apply(any())
 
       promise.complete(Try("success"))
 
-      verify(func, times(1)).apply(argEq("success"), argThat(nullValue[Throwable]()))
+      verify(func, times(1)).apply(argEq(Try("success")))
     }
     "calls registered completion function when the future completes exceptionally" in {
       val promise = Promise[String]()
       val future = promise.future
 
-      val func = mock[(Any, Throwable) => Unit]
+      val func = mock[Try[_] => Unit]
 
       val result = underTest.whenComplete(future, func)(executionContext)
-      verify(func, never()).apply(any(), any())
+      verify(func, never()).apply(any())
 
       val exception = new RuntimeException()
       promise.complete(Failure(exception))
 
-      verify(func, times(1)).apply(argThat(nullValue[String]), argEq(exception))
+      verify(func, times(1)).apply(argEq(Failure(exception)))
     }
   }
 

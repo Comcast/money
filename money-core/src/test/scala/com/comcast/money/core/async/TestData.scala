@@ -18,16 +18,17 @@ package com.comcast.money.core.async
 import com.typesafe.config.Config
 
 import scala.concurrent.ExecutionContext
+import scala.util.Try
 
 class ConfiguredNotificationHandler extends ConfigurableNotificationHandler {
   var calledConfigure: Boolean = false
 
   override def configure(config: Config): Unit = calledConfigure = true
   override def supports(future: AnyRef): Boolean = false
-  override def whenComplete(future: AnyRef, f: (Any, Throwable) => Unit)(implicit executionContext: ExecutionContext): AnyRef = null
+  override def whenComplete(future: AnyRef, f: Try[_] => Unit)(implicit executionContext: ExecutionContext): AnyRef = null
 }
 
 class NonConfiguredNotificationHandler extends AsyncNotificationHandler {
   override def supports(future: AnyRef): Boolean = false
-  override def whenComplete(future: AnyRef, f: (Any, Throwable) => Unit)(implicit executionContext: ExecutionContext): AnyRef = null
+  override def whenComplete(future: AnyRef, f: Try[_] => Unit)(implicit executionContext: ExecutionContext): AnyRef = null
 }

@@ -28,6 +28,7 @@ import org.aspectj.lang.{ JoinPoint, ProceedingJoinPoint }
 import org.slf4j.MDC
 
 import scala.concurrent.ExecutionContext
+import scala.util.{ Failure, Success }
 
 @Aspect
 class TraceAspect extends Reflections with TraceLogging {
@@ -58,19 +59,26 @@ class TraceAspect extends Reflections with TraceLogging {
       val returnValue = joinPoint.proceed()
 
       if (traceAnnotation.async()) {
-        asyncNotifier.resolveHandler(returnValue).map(handler => {
-          stopSpan = false
-          val span = SpanLocal.pop()
-          val mdc = Option(MDC.getCopyOfContextMap)
+        asyncNotifier.resolveHandler(returnValue).map {
+          handler =>
+            stopSpan = false
+            val span = SpanLocal.pop()
+            val mdc = Option(MDC.getCopyOfContextMap)
 
-          handler.whenComplete(returnValue, (_, t) => {
-            mdcSupport.propogateMDC(mdc)
-            val asyncResult = t == null || exceptionMatches(t, traceAnnotation.ignoredExceptions())
-            logException(t)
-            span.foreach(_.stop(asyncResult))
-            MDC.clear()
-          })
-        }).getOrElse(returnValue)
+            handler.whenComplete(returnValue, completed => {
+              mdcSupport.propogateMDC(mdc)
+
+              val result = completed match {
+                case Success(_) => true
+                case Failure(exception) =>
+                  logException(exception)
+                  exceptionMatches(exception, traceAnnotation.ignoredExceptions())
+              }
+
+              span.foreach(_.stop(result))
+              MDC.clear()
+            })
+        }.getOrElse(returnValue)
       } else {
         returnValue
       }
