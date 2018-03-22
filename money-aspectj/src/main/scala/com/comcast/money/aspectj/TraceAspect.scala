@@ -18,7 +18,7 @@ package com.comcast.money.aspectj
 
 import com.comcast.money.annotations.{ Timed, Traced }
 import com.comcast.money.core._
-import com.comcast.money.core.async.{ AsyncNotifier, DirectExecutionContext }
+import com.comcast.money.core.async.AsyncNotifier
 import com.comcast.money.core.internal.{ MDCSupport, SpanLocal }
 import com.comcast.money.core.logging.TraceLogging
 import com.comcast.money.core.reflect.Reflections
@@ -27,7 +27,6 @@ import org.aspectj.lang.reflect.MethodSignature
 import org.aspectj.lang.{ JoinPoint, ProceedingJoinPoint }
 import org.slf4j.MDC
 
-import scala.concurrent.ExecutionContext
 import scala.util.{ Failure, Success }
 
 @Aspect
@@ -36,7 +35,6 @@ class TraceAspect extends Reflections with TraceLogging {
   val tracer: Tracer = Money.Environment.tracer
   val asyncNotifier: AsyncNotifier = Money.Environment.asyncNotifier
   val mdcSupport: MDCSupport = new MDCSupport()
-  implicit val executionContext: ExecutionContext = new DirectExecutionContext()
 
   @Pointcut("execution(@com.comcast.money.annotations.Traced * *(..)) && @annotation(traceAnnotation)")
   def traced(traceAnnotation: Traced) = {}

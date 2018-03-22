@@ -59,17 +59,17 @@ class ScalaFutureNotificationHandlerSpec
     }
     "calls transform method on the future" in {
       val future = mock[Future[String]]
-      doReturn(future).when(future).transform(any(), any())(argEq(executionContext))
+      doReturn(future).when(future).transform(any(), any())(argEq(underTest.executionContext))
 
-      val result = underTest.whenComplete(future, _ => {})(executionContext)
+      val result = underTest.whenComplete(future, _ => {})
 
-      verify(result, times(1)).transform(any(), any())(argEq(executionContext))
+      verify(result, times(1)).transform(any(), any())(argEq(underTest.executionContext))
     }
     "calls registered completion function for already completed future" in {
       val future = Future.successful("success")
       val func = mock[Try[_] => Unit]
 
-      val result = underTest.whenComplete(future, func)(executionContext)
+      underTest.whenComplete(future, func)
 
       verify(func, times(1)).apply(argEq(Try("success")))
     }
@@ -79,7 +79,7 @@ class ScalaFutureNotificationHandlerSpec
       val func = mock[Try[_] => Unit]
       val executionContext = new DirectExecutionContext()
 
-      val result = underTest.whenComplete(future, func)(executionContext)
+      underTest.whenComplete(future, func)
 
       verify(func, times(1)).apply(argEq(Failure(ex)))
     }
@@ -89,7 +89,7 @@ class ScalaFutureNotificationHandlerSpec
 
       val func = mock[Try[_] => Unit]
 
-      val result = underTest.whenComplete(future, func)(executionContext)
+      underTest.whenComplete(future, func)
       verify(func, never()).apply(any())
 
       promise.complete(Try("success"))
@@ -102,7 +102,7 @@ class ScalaFutureNotificationHandlerSpec
 
       val func = mock[Try[_] => Unit]
 
-      val result = underTest.whenComplete(future, func)(executionContext)
+      underTest.whenComplete(future, func)
       verify(func, never()).apply(any())
 
       val exception = new RuntimeException()
