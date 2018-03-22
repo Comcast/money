@@ -35,13 +35,9 @@ object LogRecord {
     spans.clear()
   }
 
-  def add(log: String, message: String): Unit = {
-    messages.addBinding(log, message)
-  }
+  def add(log: String, message: String): Unit = messages.addBinding(log, message)
 
-  def add(spanInfo: SpanInfo): Unit = {
-    spans.append(spanInfo)
-  }
+  def add(spanInfo: SpanInfo): Unit = spans.append(spanInfo)
 
   def contains(log: String)(cond: String => Boolean): Boolean = messages.entryExists(log, cond)
 
