@@ -66,6 +66,7 @@ object MoneyBuild extends Build {
       libraryDependencies <++= (scalaVersion) { _: String =>
         Seq(
           akka,
+          akkaStreams,
           akkaHttp,
           akkaHttpTestKit,
           akkaLog,
@@ -307,6 +308,7 @@ object MoneyBuild extends Build {
     val akkaHttpV = "10.1.0"
 
     val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
+    val akkaStreams =     "com.typesafe.akka"         %% "akka-stream"                 % akkaV
     val akkaLog =         "com.typesafe.akka"         %% "akka-slf4j"                  % akkaV
     val akkaHttp =        "com.typesafe.akka"         %% "akka-http"                   % akkaHttpV
     val akkaHttpTestKit = "com.typesafe.akka"         %% "akka-http-testkit"           % akkaHttpV % "test"
