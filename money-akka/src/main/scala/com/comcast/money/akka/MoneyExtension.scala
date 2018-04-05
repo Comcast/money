@@ -23,8 +23,6 @@ object MoneyExtension extends ExtensionId[MoneyExtension] with ExtensionIdProvid
      * allows us to configure our extension to be loaded when the ActorSystem starts up */
   override def lookup = MoneyExtension
 
-
-  // This method will be called by Akka to instantiate our Extension
   override def createExtension(system: ExtendedActorSystem): MoneyExtension = {
     val config = system.settings.config.getConfig("money")
     val money: Money = config.asMoney
