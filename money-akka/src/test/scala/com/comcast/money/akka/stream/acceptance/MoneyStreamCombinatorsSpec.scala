@@ -86,70 +86,78 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
     private def source = Source(List("chunk"))
 
     def simple =
-      RunnableGraph.fromGraph(GraphDSL.create(sink) {
-        implicit builder: Builder[Future[Done]] =>
-          sink =>
+      RunnableGraph.fromGraph {
+        GraphDSL.create(sink) {
+          implicit builder: Builder[Future[Done]] =>
+            sink =>
 
-            (source |~> Flow[String]) ~| sink.in
+              (source |~> Flow[String]) ~| sink.in
 
-            ClosedShape
-      })
+              ClosedShape
+        }
+      }
 
     def sourceEndingWithFlow =
-      Source.fromGraph(GraphDSL.create() {
-        implicit builder =>
-          val out: PortOps[String] = (source |~> Flow[String]) ~|> Flow[String]
+      Source.fromGraph {
+        GraphDSL.create() {
+          implicit builder =>
+            val out: PortOps[String] = (source |~> Flow[String]) ~|> Flow[String]
 
-          SourceShape(out.outlet)
-      })
+            SourceShape(out.outlet)
+        }
+      }
 
     def fanOutFanInWithConcat =
-      RunnableGraph.fromGraph(GraphDSL.create(sink) {
-        implicit builder: Builder[Future[Done]] =>
-          sink =>
+      RunnableGraph.fromGraph {
+        GraphDSL.create(sink) {
+          implicit builder: Builder[Future[Done]] =>
+            sink =>
 
-            val partitioner =
-              (string: String) =>
-                string match {
-                  case "chunk" => 0
-                  case "funk" => 1
-                }
+              val partitioner =
+                (string: String) =>
+                  string match {
+                    case "chunk" => 0
+                    case "funk" => 1
+                  }
 
-            val partition = builder.tracedAdd(Partition[String](2, partitioner))
+              val partition = builder.tracedAdd(Partition[String](2, partitioner))
 
-            val concat = builder.tracedConcat(Concat[String](2))
+              val concat = builder.tracedConcat(Concat[String](2))
 
-            Source(List("chunk", "funk")) |~> partition
+              Source(List("chunk", "funk")) |~> partition
 
-            partition.out(0) |~> Flow[String] |~\ concat
+              partition.out(0) |~> Flow[String] |~\ concat
 
-            partition.out(1) |~> Flow[String] |~/ concat
+              partition.out(1) |~> Flow[String] |~/ concat
 
-            concat ~| sink.in
+              concat ~| sink.in
 
-            ClosedShape
-      })
+              ClosedShape
+        }
+      }
 
     def async(implicit executionContext: ExecutionContext) =
-      RunnableGraph.fromGraph(GraphDSL.create(Sink.seq[String].async) {
-        implicit builder: Builder[Future[Seq[String]]] =>
-          sink =>
-            val stringToFuture =
-              (string: String) =>
-                Future {
-                  string.last.asDigit match {
-                    case 2 => Thread.sleep(400)
-                    case 3 => Thread.sleep(400)
-                    case _ =>
+      RunnableGraph.fromGraph {
+        GraphDSL.create(Sink.seq[String].async) {
+          implicit builder: Builder[Future[Seq[String]]] =>
+            sink =>
+              val stringToFuture =
+                (string: String) =>
+                  Future {
+                    string.last.asDigit match {
+                      case 2 => Thread.sleep(400)
+                      case 3 => Thread.sleep(400)
+                      case _ =>
+                    }
+                    string
                   }
-                  string
-                }
 
-            val iterator = List("chunk1", "chunk2", "chunk3").iterator
-            (Source.fromIterator(() => iterator) |~> Flow[String].mapAsync(3)(stringToFuture)) ~| sink.in
+              val iterator = List("chunk1", "chunk2", "chunk3").iterator
+              (Source.fromIterator(() => iterator) |~> Flow[String].mapAsync(3)(stringToFuture)) ~| sink.in
 
-            ClosedShape
-      })
+              ClosedShape
+        }
+      }
 
     def namedFlow =
       RunnableGraph.fromGraph {
@@ -163,4 +171,5 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
         }
       }
   }
+
 }
