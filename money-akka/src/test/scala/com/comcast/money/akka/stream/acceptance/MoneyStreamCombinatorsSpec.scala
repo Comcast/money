@@ -49,7 +49,7 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
     }
 
     "allow streams with async boundaries to run asynchronously" in {
-      val expectedSpanNames = replicateAndAppend(Seq(stream, "Tuple[String, Int]toString"))
+      val expectedSpanNames = replicateAndAppend(Seq(stream, "StringtoString"))
 
       val orderedChunks = TestStreams.async.run().get(500 milliseconds)
 
