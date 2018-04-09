@@ -5,7 +5,7 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl.GraphDSL.Builder
 import akka.stream.scaladsl.GraphDSL.Implicits.PortOps
 import akka.stream.scaladsl.{Concat, Flow, GraphDSL, Partition, RunnableGraph, Sink, Source}
-import akka.stream.{ClosedShape, SourceShape}
+import akka.stream.{Attributes, ClosedShape, SourceShape}
 import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka._
 import com.comcast.money.akka.stream._
@@ -48,7 +48,7 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
       maybeSpanHandler should haveSomeSpanNames(expectedSpanNames)
     }
 
-    "allow streams with async boundaries to run asynchronously" in {
+    "allow instrumented streams with ordered async boundaries to run asynchronously" in {
       val expectedSpanNames = replicateAndAppend(Seq(stream, "StringtoString"))
 
       val orderedChunks = TestStreams.async.run().get(500 milliseconds)
@@ -58,6 +58,17 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
 
       maybeSpanHandler should haveSomeSpanNames(expectedSpanNames)
       orderedChunks shouldBe Seq("chunk1", "chunk2", "chunk3")
+    }
+
+    "name a Span after the name of the flow" in {
+      val expectedSpanNames = Seq(stream, "SomeFlowName")
+
+      TestStreams.namedFlow.run().get()
+
+      val maybeHandler = MoneyExtension(system).handler.asInstanceOf[HandlerChain].handlers.headOption
+      val maybeSpanHandler = maybeHandler.map(_.asInstanceOf[CollectingSpanHandler])
+
+      maybeSpanHandler should haveSomeSpanNames(expectedSpanNames)
     }
   }
 
@@ -72,12 +83,14 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
 
     private val sink = Sink.ignore
 
+    private def source = Source(List("chunk"))
+
     def simple =
       RunnableGraph.fromGraph(GraphDSL.create(sink) {
         implicit builder: Builder[Future[Done]] =>
           sink =>
 
-            (Source(List("chunk")) |~> Flow[String]) ~| sink.in
+            (source |~> Flow[String]) ~| sink.in
 
             ClosedShape
       })
@@ -85,7 +98,7 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
     def sourceEndingWithFlow =
       Source.fromGraph(GraphDSL.create() {
         implicit builder =>
-          val out: PortOps[String] = (Source(List("chunk")) |~> Flow[String]) ~|> Flow[String]
+          val out: PortOps[String] = (source |~> Flow[String]) ~|> Flow[String]
 
           SourceShape(out.outlet)
       })
@@ -137,5 +150,17 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
 
             ClosedShape
       })
+
+    def namedFlow =
+      RunnableGraph.fromGraph {
+        GraphDSL.create(sink) {
+          implicit builder: Builder[Future[Done]] =>
+            sink =>
+
+              (source |~> Flow[String].addAttributes(Attributes(Attributes.Name("SomeFlowName")))) ~| sink.in
+
+              ClosedShape
+        }
+      }
   }
 }
