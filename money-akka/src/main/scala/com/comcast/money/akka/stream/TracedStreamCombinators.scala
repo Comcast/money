@@ -3,7 +3,7 @@ package com.comcast.money.akka.stream
 import akka.actor.ActorSystem
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
-import akka.stream.scaladsl.{Concat, Flow, Partition, Source, Unzip, Zip}
+import akka.stream.scaladsl.{Concat, Flow, GraphDSL, Partition, Source, Unzip, Zip}
 import com.comcast.money.akka.{MoneyExtension, SpanContextWithStack}
 import com.comcast.money.core.Tracer
 
@@ -28,12 +28,12 @@ trait TracedStreamCombinators {
                                                   (implicit builder: Builder[_]) {
     type TracedIn = (In, SpanContextWithStack)
 
-    def |~>[Out: ClassTag](flow: Graph[FlowShape[In, Out], _]): PortOps[(Out, SpanContextWithStack)] =
+    def |~>[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[(Out, SpanContextWithStack)] =
       portOps ~> wrapFlowWithSpanFlow(flow) ~> closeSpanFlow[Out]
 
     def ~|[T >: In](inlet: Inlet[T]): Unit = portOps ~> closeAllSpans[In] ~> inlet
 
-    def ~>|[Out: ClassTag](flow: Graph[FlowShape[In, Out], _]): PortOps[Out] = (portOps |~> flow) ~> closeAllSpans[Out]
+    def ~|>[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[Out] = (portOps |~> flow) ~> closeAllSpans[Out]
 
     def |~\(fanIn: UniformFanInShape[TracedIn, TracedIn]): Unit = portOps ~> startSpanFlow[In](s"FanInOf${nameOfType[In]}") ~> fanIn.in(0)
 
@@ -52,8 +52,10 @@ trait TracedStreamCombinators {
           (input, spanContext)
       }
 
-    def |~>[Out: ClassTag](flow: Graph[FlowShape[T, Out], _]): PortOps[(Out, SpanContextWithStack)] =
-      source ~> createSpanContextFlow[T](source) |~> flow
+    def |~>[Out: ClassTag](flow: Flow[T, Out, _]): PortOps[(Out, SpanContextWithStack)] = source ~> createSpanContextFlow[T](source) |~> flow
+
+    def |~>[TracedOut <: (_, SpanContextWithStack)](flow: Graph[FlowShape[TracedIn, TracedOut], _]): PortOps[TracedOut] =
+      source ~> createSpanContextFlow[T](source) ~> flow
 
     def |~>(fanOut: UniformFanOutShape[TracedIn, TracedIn]): Unit =
       (source ~> createSpanContextFlow[T](source)).outlet ~> startSpanFlow[T](s"FanOutOf${nameOfType[T]}") ~> fanOut.in
@@ -61,7 +63,7 @@ trait TracedStreamCombinators {
 
   implicit class OutletSpanInserter[In: ClassTag](outlet: Outlet[(In, SpanContextWithStack)])
                                                  (implicit builder: Builder[_]) {
-    def |~>[Out: ClassTag](flow: Graph[FlowShape[In, Out], _]): PortOps[(Out, SpanContextWithStack)] =
+    def |~>[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[(Out, SpanContextWithStack)] =
       outlet ~> closeSpanFlow[In] ~> wrapFlowWithSpanFlow(flow) ~> closeSpanFlow[Out]
   }
 
@@ -70,23 +72,31 @@ trait TracedStreamCombinators {
     def ~|[S >: T](inlet: Inlet[S]): Unit = fanIn.out ~> closeAllSpans[S] ~> inlet
   }
 
-  private def wrapFlowWithSpanFlow[In: ClassTag, Out: ClassTag](flow: Graph[FlowShape[In, Out], _])
+  private def wrapFlowWithSpanFlow[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])
                                                                (implicit builder: Builder[_]) = {
-    val flowName = s"${nameOfType[In]}To${nameOfType[Out]}"
+    val flowName = Attributes.extractName(flow.traversalBuilder, s"${nameOfType[In]}To${nameOfType[Out]}")
 
-    val unZip = builder.add(Unzip[In, SpanContextWithStack]())
-    val zip = builder.add(Zip[Out, SpanContextWithStack]())
+    val outputFlow = Flow.fromGraph {
+      GraphDSL.create() {
+        implicit builder: Builder[_] =>
+          import akka.stream.scaladsl.GraphDSL.Implicits._
 
-    val spanFlowShape = builder.add(startSpanFlow[In](flowName))
+          val unZip = builder.add(Unzip[In, SpanContextWithStack]().async)
+          val zip = builder.add(Zip[Out, SpanContextWithStack]())
 
-    val flowShape = builder.add(flow)
+          val spanFlowShape = builder.add(startSpanFlow[In](flowName))
 
-    spanFlowShape.out ~> unZip.in
+          val flowShape = builder.add(flow)
 
-    unZip.out0 ~> flowShape ~> zip.in0
-    unZip.out1       ~>        zip.in1
+          spanFlowShape.out ~> unZip.in
 
-    FlowShape(spanFlowShape.in, zip.out)
+          unZip.out0 ~> flowShape ~> zip.in0
+          unZip.out1       ~>        zip.in1
+          FlowShape(spanFlowShape.in, zip.out)
+      }
+    }
+
+    outputFlow.withAttributes(flow.traversalBuilder.attributes)
   }
 
   private def startSpanFlow[In: ClassTag](name: String): Flow[(In, SpanContextWithStack), (In, SpanContextWithStack), _] =

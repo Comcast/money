@@ -14,7 +14,7 @@ class MoneyExtensionSpec extends MoneyAkkaScope {
   "MoneyExtension should pass a span through an Akka Stream" in {
     implicit val spanContextWithStack: SpanContextWithStack = new SpanContextWithStack
 
-    testStream().get
+    testStream().get()
 
     val maybeHandler = MoneyExtension(system).handler.asInstanceOf[HandlerChain].handlers.headOption
     val maybeCollectingSpanHandler = maybeHandler.map(_.asInstanceOf[CollectingSpanHandler])
@@ -25,7 +25,7 @@ class MoneyExtensionSpec extends MoneyAkkaScope {
   "MoneyExtension should pass a span through an asynchronous Akka Stream" in {
     implicit val spanContextWithStack: SpanContextWithStack = new SpanContextWithStack
 
-    multithreadedTestStream().get
+    multithreadedTestStream().get()
 
     val maybeHandler = MoneyExtension(system).handler.asInstanceOf[HandlerChain].handlers.headOption
     val maybeCollectingSpanHandler = maybeHandler.map(_.asInstanceOf[CollectingSpanHandler])
