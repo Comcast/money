@@ -7,6 +7,7 @@ import akka.stream.scaladsl.{Concat, Flow, GraphDSL, Partition, Source, Unzip, Z
 import com.comcast.money.akka.{MoneyExtension, SpanContextWithStack}
 import com.comcast.money.core.Tracer
 
+import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.{ClassTag, classTag}
 
 trait AkkaMoney {
@@ -72,9 +73,29 @@ trait TracedStreamCombinators {
     def ~|[S >: T](inlet: Inlet[S]): Unit = fanIn.out ~> closeAllSpans[S] ~> inlet
   }
 
+  implicit class TracedFlowOps[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])
+                                                           (implicit executionContext: ExecutionContext) {
+    type TracedIn = (In, SpanContextWithStack)
+    type TracedOut = (Out, SpanContextWithStack)
+
+    def tracedMapAsyncUnordered(parallelism: Int)(f: In => Future[Out]) =
+      Flow[TracedIn].mapAsyncUnordered[TracedOut](parallelism) {
+        (tuple: TracedIn) =>
+          val (in, spanContext) = tuple
+          tracer(spanContext, moneyExtension).startSpan(getFlowName(flow))
+          f(in) flatMap {
+            out =>
+              Future {
+                tracer(spanContext, moneyExtension).stopSpan()
+                (out, spanContext)
+              }
+          }
+      }
+  }
+
   private def wrapFlowWithSpanFlow[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])
                                                                (implicit builder: Builder[_]) = {
-    val flowName = Attributes.extractName(flow.traversalBuilder, s"${nameOfType[In]}To${nameOfType[Out]}")
+    val flowName = getFlowName(flow)
 
     val outputFlow = Flow.fromGraph {
       GraphDSL.create() {
@@ -98,6 +119,9 @@ trait TracedStreamCombinators {
 
     outputFlow.withAttributes(flow.traversalBuilder.attributes)
   }
+
+  private def getFlowName[Out: ClassTag, In: ClassTag](flow: Flow[In, Out, _]) =
+    Attributes.extractName(flow.traversalBuilder, s"${nameOfType[In]}To${nameOfType[Out]}")
 
   private def startSpanFlow[In: ClassTag](name: String): Flow[(In, SpanContextWithStack), (In, SpanContextWithStack), _] =
     Flow[(In, SpanContextWithStack)] map {

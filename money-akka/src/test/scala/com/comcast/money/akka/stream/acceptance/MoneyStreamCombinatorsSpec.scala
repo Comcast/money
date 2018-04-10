@@ -13,6 +13,7 @@ import com.comcast.money.core.handlers.HandlerChain
 
 import scala.concurrent.duration.DurationDouble
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.Success
 
 class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
 
@@ -20,10 +21,9 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
 
   "Tracing stream combinators" should {
     "instrument a stream" in {
-      TestStreams.simple.run().get()
+      TestStreams.simple.run.get()
 
-      val maybeHandler = MoneyExtension(system).handler.asInstanceOf[HandlerChain].handlers.headOption
-      val maybeSpanHandler = maybeHandler.map(_.asInstanceOf[CollectingSpanHandler])
+      val maybeSpanHandler = maybeCollectingSpanHandler
 
       maybeSpanHandler should haveSomeSpanNames(Seq(stream, stringToString))
     }
@@ -31,8 +31,7 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
     "instrument a source" in {
       TestStreams.sourceEndingWithFlow.runWith(Sink.ignore).get()
 
-      val maybeHandler = MoneyExtension(system).handler.asInstanceOf[HandlerChain].handlers.headOption
-      val maybeSpanHandler = maybeHandler.map(_.asInstanceOf[CollectingSpanHandler])
+      val maybeSpanHandler = maybeCollectingSpanHandler
 
       maybeSpanHandler should haveSomeSpanNames(Seq(stream, stringToString, stringToString))
     }
@@ -40,37 +39,66 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
     "instrument a stream with a fan out and fan in" in {
       val expectedSpanNames = replicateAndAppend(Seq(stream, "FanInString", stringToString, "FanOutString"))
 
-      TestStreams.fanOutFanInWithConcat.run().get()
+      TestStreams.fanOutFanInWithConcat.run.get()
 
-      val maybeHandler = MoneyExtension(system).handler.asInstanceOf[HandlerChain].handlers.headOption
-      val maybeSpanHandler = maybeHandler.map(_.asInstanceOf[CollectingSpanHandler])
+      val maybeSpanHandler = maybeCollectingSpanHandler
 
       maybeSpanHandler should haveSomeSpanNames(expectedSpanNames)
     }
 
     "allow instrumented streams with ordered async boundaries to run asynchronously" in {
-      val expectedSpanNames = replicateAndAppend(Seq(stream, "StringtoString"))
+      val expectedSpanNames = replicateAndAppend(Seq(stream, stringToString), 3)
 
-      val orderedChunks = TestStreams.async.run().get(500 milliseconds)
+      val lessThanSequentialRuntime = 750 milliseconds
+      val orderedChunks = TestStreams.async.run.get(lessThanSequentialRuntime)
 
-      val maybeHandler = MoneyExtension(system).handler.asInstanceOf[HandlerChain].handlers.headOption
-      val maybeSpanHandler = maybeHandler.map(_.asInstanceOf[CollectingSpanHandler])
+      val maybeSpanHandler = maybeCollectingSpanHandler
 
       maybeSpanHandler should haveSomeSpanNames(expectedSpanNames)
       orderedChunks shouldBe Seq("chunk1", "chunk2", "chunk3")
     }
 
+    "instrument a out of order asynchronous Flow ensuring Spans are correctly attached to stream elements" in {
+      val secondChunkId = Some(2)
+
+      val lessThanSequentialRuntime = 500 milliseconds
+      val orderedChunks = TestStreams.asyncOutOfOrder.run.get(lessThanSequentialRuntime)
+
+      val maybeLastChunkToArriveId = orderedChunks.lastOption.map(_.last.asDigit)
+
+      maybeLastChunkToArriveId should equal(secondChunkId)
+
+      val spanHandler = maybeCollectingSpanHandler.get
+
+      val fourHundredThousandMicros = 400.milliseconds.toMicros
+      val spanInfoStack = spanHandler.spanInfoStack
+      val secondSpanDuration: Option[Long] = {
+          val streamSpans = spanInfoStack.filter(_.name == stream).sortBy(_.startTimeMicros)
+          streamSpans.tail.headOption.map(_.durationMicros)
+      }
+
+      spanInfoStack.size shouldBe 6
+      secondSpanDuration.get should be > fourHundredThousandMicros
+    }
+
     "name a Span after the name of the flow" in {
       val expectedSpanNames = Seq(stream, "SomeFlowName")
 
-      TestStreams.namedFlow.run().get()
+      TestStreams.namedFlow.run.get()
 
-      val maybeHandler = MoneyExtension(system).handler.asInstanceOf[HandlerChain].handlers.headOption
-      val maybeSpanHandler = maybeHandler.map(_.asInstanceOf[CollectingSpanHandler])
+      val maybeSpanHandler = maybeCollectingSpanHandler
 
       maybeSpanHandler should haveSomeSpanNames(expectedSpanNames)
     }
   }
+
+  private def maybeCollectingSpanHandler =
+    MoneyExtension(system)
+      .handler
+      .asInstanceOf[HandlerChain]
+      .handlers
+      .headOption
+      .map(_.asInstanceOf[CollectingSpanHandler])
 
   private def replicateAndAppend[T](seq: Seq[T], numberOfreplicas: Int = 2): Seq[T] =
     (1 to numberOfreplicas).map(_ => seq).reduce(_ ++ _)
@@ -138,7 +166,7 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
 
     def async(implicit executionContext: ExecutionContext) =
       RunnableGraph.fromGraph {
-        GraphDSL.create(Sink.seq[String].async) {
+        GraphDSL.create(Sink.seq[String]) {
           implicit builder: Builder[Future[Seq[String]]] =>
             sink =>
               val stringToFuture =
@@ -154,6 +182,29 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
 
               val iterator = List("chunk1", "chunk2", "chunk3").iterator
               (Source.fromIterator(() => iterator) |~> Flow[String].mapAsync(3)(stringToFuture)) ~| sink.in
+
+              ClosedShape
+        }
+      }
+
+    def asyncOutOfOrder(implicit executionContext: ExecutionContext) =
+      RunnableGraph.fromGraph {
+        GraphDSL.create(Sink.seq[String]) {
+          implicit builder: Builder[Future[Seq[String]]] =>
+            sink =>
+              val stringToFuture =
+                (string: String) =>
+                  Future {
+                    string.last.asDigit match {
+                      case 2 => Thread.sleep(400)
+                      case 3 => Thread.sleep(200)
+                      case _ =>
+                    }
+                    string
+                  }
+
+              val iterator = List("chunk1", "chunk2", "chunk3").iterator
+              (Source.fromIterator(() => iterator) |~> Flow[String].tracedMapAsyncUnordered(3)(stringToFuture)) ~| sink.in
 
               ClosedShape
         }
