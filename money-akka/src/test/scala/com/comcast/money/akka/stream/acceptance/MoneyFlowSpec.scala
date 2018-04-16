@@ -6,18 +6,15 @@ import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.stage.{InHandler, OutHandler}
 import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka._
-import com.comcast.money.akka.stream.{TracedFlow, TracedLogic}
+import com.comcast.money.akka.stream.{TracedFlow, TracedFlowLogic}
 import com.comcast.money.core.handlers.HandlerChain
 
-class MoneyExtensionSpec extends MoneyAkkaScope {
+class MoneyFlowSpec extends MoneyAkkaScope {
 
   "MoneyExtension should pass a span through an Akka Stream" in {
     implicit val spanContextWithStack: SpanContextWithStack = new SpanContextWithStack
 
     testStream().get()
-
-    val maybeHandler = MoneyExtension(system).handler.asInstanceOf[HandlerChain].handlers.headOption
-    val maybeCollectingSpanHandler = maybeHandler.map(_.asInstanceOf[CollectingSpanHandler])
 
     maybeCollectingSpanHandler should haveSomeSpanNames(testSpanNames)
   }
@@ -27,11 +24,11 @@ class MoneyExtensionSpec extends MoneyAkkaScope {
 
     multithreadedTestStream().get()
 
-    val maybeHandler = MoneyExtension(system).handler.asInstanceOf[HandlerChain].handlers.headOption
-    val maybeCollectingSpanHandler = maybeHandler.map(_.asInstanceOf[CollectingSpanHandler])
-
     maybeCollectingSpanHandler should haveSomeSpanNames(testSpanNames)
   }
+
+  private def maybeCollectingSpanHandler: Option[CollectingSpanHandler] =
+    MoneyExtension(system).handler.asInstanceOf[HandlerChain].handlers.headOption.map(_.asInstanceOf[CollectingSpanHandler])
 
   val testSpanNames = Seq("flow-1", "flow-2", "flow-3")
 
@@ -57,11 +54,11 @@ class MoneyExtensionSpec extends MoneyAkkaScope {
     override val inletName: String = "testin"
     override val outletName: String = "testout"
 
-    override def createLogic(inheritedAttributes: Attributes) = new TracedLogic[String, String](shape) {
+    override def createLogic(inheritedAttributes: Attributes) = new TracedFlowLogic {
       setHandler(in, new InHandler {
         override def onPush(): Unit = {
           val logic = (msg: String) => s"$msg$id"
-          if (isFinalFlow) traceStageAndStop(id, logic)
+          if (isFinalFlow) traceStageAndStopAll(id, logic)
           else traceStageAndPush(id, logic)
         }
       })
