@@ -8,7 +8,7 @@ import com.comcast.money.akka.{MoneyExtension, SpanContextWithStack}
 import com.comcast.money.core.Tracer
 
 import scala.concurrent.{ExecutionContext, Future}
-import scala.reflect.{ClassTag, classTag}
+import scala.reflect.ClassTag
 
 trait AkkaMoney {
   implicit val actorSystem: ActorSystem
@@ -23,48 +23,58 @@ trait AkkaMoney {
 trait TracedStreamCombinators {
   self: AkkaMoney =>
 
+  import DefaultSpanKeyCreators._
   import akka.stream.scaladsl.GraphDSL.Implicits._
 
   implicit class PortOpsSpanInserter[In: ClassTag](portOps: PortOps[(In, SpanContextWithStack)])
-                                                  (implicit builder: Builder[_]) {
+                                                  (implicit builder: Builder[_],
+                                                   iskc: InletSpanKeyCreator = DefaultInletSpanKeyCreator,
+                                                   fskc: FlowSpanKeyCreator = DefaultFlowSpanKeyCreator) {
     type TracedIn = (In, SpanContextWithStack)
 
-    def |~>[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[(Out, SpanContextWithStack)] =
+    def ~|>[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[(Out, SpanContextWithStack)] =
       portOps ~> wrapFlowWithSpanFlow(flow) ~> closeSpanFlow[Out]
+
+    def ~|>[T >: TracedIn](inlet: Inlet[T])(implicit ev: ClassTag[T]): Unit =
+      portOps ~> startSpanFlow[In](iskc.inletToKey(inlet)) ~> inlet
+
+    def ~<>[T >: TracedIn](inlet: Inlet[T])(implicit ev: ClassTag[T], fisck: FanInSpanKeyCreator = DefaultFanInSpanKeyCreator): Unit =
+      portOps ~> startSpanFlow[In](fisck.fanInInletToKey(inlet)) ~> inlet
 
     def ~|[T >: In](inlet: Inlet[T]): Unit = portOps ~> closeAllSpans[In] ~> inlet
 
-    def ~|>[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[Out] = (portOps |~> flow) ~> closeAllSpans[Out]
-
-    def |~\(fanIn: UniformFanInShape[TracedIn, TracedIn]): Unit = portOps ~> startSpanFlow[In](s"FanInOf${nameOfType[In]}") ~> fanIn.in(0)
-
-    def |~/(fanIn: UniformFanInShape[TracedIn, TracedIn]): Unit = portOps ~> startSpanFlow[In](s"FanInOf${nameOfType[In]}") ~> fanIn.in(1)
+    def ~|~[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[Out] = portOps ~|> flow ~> closeAllSpans[Out]
   }
 
-  implicit class SourceSpanInserter[T: ClassTag](source: Source[T, _])
-                                                (implicit builder: Builder[_]) {
-    type TracedIn = (T, SpanContextWithStack)
+  implicit class SourceSpanInserter[In: ClassTag](source: Source[In, _])
+                                                 (implicit builder: Builder[_],
+                                                  sskc: SourceSpanKeyCreator = DefaultSourceSpanKeyCreator,
+                                                  fskc: FlowSpanKeyCreator = DefaultFlowSpanKeyCreator,
+                                                  foskc: FanOutSpanKeyCreator = DefaultFanOutSpanKeyCreator) {
+    type TracedIn = (In, SpanContextWithStack)
 
-    private def createSpanContextFlow[S: ClassTag](source: Source[S, _]): Flow[S, (S, SpanContextWithStack), _] =
-      Flow.fromFunction[S, (S, SpanContextWithStack)] {
+    private def createSpanContextFlow(source: Source[In, _]): Flow[In, (In, SpanContextWithStack), _] =
+      Flow.fromFunction[In, (In, SpanContextWithStack)] {
         input =>
           val spanContext = new SpanContextWithStack
-          tracer(spanContext, moneyExtension).startSpan("Stream")
+          tracer(spanContext, moneyExtension).startSpan(sskc.sourceToKey(source))
           (input, spanContext)
       }
 
-    def |~>[Out: ClassTag](flow: Flow[T, Out, _]): PortOps[(Out, SpanContextWithStack)] = source ~> createSpanContextFlow[T](source) |~> flow
+    def ~|>[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[(Out, SpanContextWithStack)] =
+      source ~> createSpanContextFlow(source) ~|> flow
 
-    def |~>[TracedOut <: (_, SpanContextWithStack)](flow: Graph[FlowShape[TracedIn, TracedOut], _]): PortOps[TracedOut] =
-      source ~> createSpanContextFlow[T](source) ~> flow
+    def ~|>[TracedOut <: (_, SpanContextWithStack)](flow: Graph[FlowShape[TracedIn, TracedOut], _]): PortOps[TracedOut] =
+      source ~> createSpanContextFlow(source) ~> flow
 
-    def |~>(fanOut: UniformFanOutShape[TracedIn, TracedIn]): Unit =
-      (source ~> createSpanContextFlow[T](source)).outlet ~> startSpanFlow[T](s"FanOutOf${nameOfType[T]}") ~> fanOut.in
+    def ~|>(fanOut: UniformFanOutShape[TracedIn, TracedIn]): Unit =
+      (source ~> createSpanContextFlow(source)).outlet ~> startSpanFlow[In](foskc.fanOutToKey(fanOut)) ~> fanOut.in
   }
 
   implicit class OutletSpanInserter[In: ClassTag](outlet: Outlet[(In, SpanContextWithStack)])
-                                                 (implicit builder: Builder[_]) {
-    def |~>[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[(Out, SpanContextWithStack)] =
+                                                 (implicit builder: Builder[_],
+                                                  fskc: FlowSpanKeyCreator = DefaultFlowSpanKeyCreator) {
+    def ~|>[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[(Out, SpanContextWithStack)] =
       outlet ~> closeSpanFlow[In] ~> wrapFlowWithSpanFlow(flow) ~> closeSpanFlow[Out]
   }
 
@@ -74,7 +84,8 @@ trait TracedStreamCombinators {
   }
 
   implicit class TracedFlowOps[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])
-                                                           (implicit executionContext: ExecutionContext) {
+                                                           (implicit executionContext: ExecutionContext,
+                                                            fskc: FlowSpanKeyCreator = DefaultFlowSpanKeyCreator) {
     type TracedIn = (In, SpanContextWithStack)
     type TracedOut = (Out, SpanContextWithStack)
 
@@ -82,7 +93,7 @@ trait TracedStreamCombinators {
       Flow[TracedIn].mapAsyncUnordered[TracedOut](parallelism) {
         (tuple: TracedIn) =>
           val (in, spanContext) = tuple
-          tracer(spanContext, moneyExtension).startSpan(getFlowName(flow))
+          tracer(spanContext, moneyExtension).startSpan(fskc.flowToKey(flow))
           f(in) flatMap {
             out =>
               Future {
@@ -94,10 +105,9 @@ trait TracedStreamCombinators {
   }
 
   private def wrapFlowWithSpanFlow[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])
-                                                               (implicit builder: Builder[_]) = {
-    val flowName = getFlowName(flow)
-
-    val outputFlow = Flow.fromGraph {
+                                                               (implicit builder: Builder[_],
+                                                                fskc: FlowSpanKeyCreator) =
+    Flow fromGraph {
       GraphDSL.create() {
         implicit builder: Builder[_] =>
           import akka.stream.scaladsl.GraphDSL.Implicits._
@@ -105,7 +115,7 @@ trait TracedStreamCombinators {
           val unZip = builder.add(Unzip[In, SpanContextWithStack]().async)
           val zip = builder.add(Zip[Out, SpanContextWithStack]())
 
-          val spanFlowShape = builder.add(startSpanFlow[In](flowName))
+          val spanFlowShape = builder.add(startSpanFlow[In](fskc.flowToKey(flow)))
 
           val flowShape = builder.add(flow)
 
@@ -115,13 +125,7 @@ trait TracedStreamCombinators {
           unZip.out1       ~>        zip.in1
           FlowShape(spanFlowShape.in, zip.out)
       }
-    }
-
-    outputFlow.withAttributes(flow.traversalBuilder.attributes)
-  }
-
-  private def getFlowName[Out: ClassTag, In: ClassTag](flow: Flow[In, Out, _]) =
-    Attributes.extractName(flow.traversalBuilder, s"${nameOfType[In]}To${nameOfType[Out]}")
+    } withAttributes flow.traversalBuilder.attributes
 
   private def startSpanFlow[In: ClassTag](name: String): Flow[(In, SpanContextWithStack), (In, SpanContextWithStack), _] =
     Flow[(In, SpanContextWithStack)] map {
@@ -143,22 +147,20 @@ trait TracedStreamCombinators {
         spanContext.getAll.foreach(_ => tracer(spanContext, moneyExtension).stopSpan())
         input
     }
-
-  private def nameOfType[T: ClassTag]: String = classTag[T].runtimeClass.getSimpleName
 }
 
 trait TracedBuilder {
 
   implicit class TracedBuilder(builder: Builder[_]) {
-    def tracedAdd[T](partiton: Partition[T]): UniformFanOutShape[(T, SpanContextWithStack), (T, SpanContextWithStack)] =
+    def tracedAdd[T](partition: Partition[T]) =
       builder.add(
         graph = Partition[(T, SpanContextWithStack)](
-          outputPorts = partiton.outputPorts,
-          partitioner = (tWithSpan: (T, SpanContextWithStack)) => partiton.partitioner(tWithSpan._1)
+          outputPorts = partition.outputPorts,
+          partitioner = (tWithSpan: (T, SpanContextWithStack)) => partition.partitioner(tWithSpan._1)
         )
       )
 
-    def tracedConcat[T, S](concat: Graph[UniformFanInShape[T, T], _]): UniformFanInShape[(T, SpanContextWithStack), (T, SpanContextWithStack)] =
+    def tracedConcat[T](concat: Graph[UniformFanInShape[T, T], _]) =
       builder.add(
         graph = Concat[(T, SpanContextWithStack)](concat.shape.n)
       )
