@@ -14,12 +14,33 @@ trait FanOutSpanKeyCreator extends SpanKeyCreator {
   def fanOutToKey[In: ClassTag](fanOutShape: FanOutShape[In]): String
 }
 
+object FanOutSpanKeyCreator {
+  def apply(toKey: FanOutShape[_] => String): FanOutSpanKeyCreator =
+    new FanOutSpanKeyCreator {
+      override def fanOutToKey[In: ClassTag](fanOutShape: FanOutShape[In]): String = toKey(fanOutShape)
+    }
+}
+
 trait FanInSpanKeyCreator extends SpanKeyCreator {
   def fanInInletToKey[In: ClassTag](inlet: Inlet[In]): String
 }
 
+object FanInSpanKeyCreator {
+  def apply(toKey: Inlet[_] => String): FanInSpanKeyCreator =
+    new FanInSpanKeyCreator {
+      override def fanInInletToKey[In: ClassTag](inlet: Inlet[In]): String = toKey(inlet)
+    }
+}
+
 trait FlowSpanKeyCreator extends SpanKeyCreator {
   def flowToKey[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _]): String
+}
+
+object FlowSpanKeyCreator {
+  def apply(toKey: Flow[_, _, _] => String): FlowSpanKeyCreator =
+    new FlowSpanKeyCreator {
+      override def flowToKey[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _]): String = toKey(flow)
+    }
 }
 
 trait SourceSpanKeyCreator extends SpanKeyCreator {
