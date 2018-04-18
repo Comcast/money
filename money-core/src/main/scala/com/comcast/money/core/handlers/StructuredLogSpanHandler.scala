@@ -20,7 +20,21 @@ import com.comcast.money.api.{ Note, SpanInfo }
 import com.typesafe.config.Config
 import org.slf4j.{ LoggerFactory, MDC }
 
-class ElkSpanHandler extends ConfigurableHandler {
+/**
+ * Logs using sfl4j MDC (mapped disagnostic context).
+ * Logging  can be configured using a log configuration file such as logback.xml.
+ * The MDC feature allows fields to be used by the appenders.
+ * <p><p>
+ * For example:
+ * <p>
+ * {@code <pattern>... trace id: %X{trace-id} etc </pattern>}
+ * <p><p>
+ * The following encoder configuration uses the MDC fields to create ELK compliant json logs
+ * <p>
+ * {@code <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>}
+ *
+ */
+class StructuredLogSpanHandler extends ConfigurableHandler {
   import com.comcast.money.core.handlers.LoggingSpanHandler._
 
   private val logger = LoggerFactory.getLogger("money-elk")
