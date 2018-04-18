@@ -43,7 +43,6 @@ abstract class TracedFlowLogic[In, Out](implicit shape: FlowShape[(In, SpanConte
     val outMessage = stageLogic(inMessage)
     push[TracedOut](out, (outMessage, spanContext))
     tracer.stopSpan()
-    tracer.stopSpan()
   }
 
   def traceStageAndStopAll(key: String, stageLogic: In => Out, isSuccessful: Boolean = true): Unit = {
