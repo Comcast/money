@@ -5,10 +5,10 @@ import akka.actor.ActorSystem
 import akka.stream.scaladsl.GraphDSL.Builder
 import akka.stream.scaladsl.GraphDSL.Implicits.PortOps
 import akka.stream.scaladsl.{Concat, Flow, GraphDSL, Partition, RunnableGraph, Sink, Source}
-import akka.stream.{Attributes, ClosedShape, SourceShape}
+import akka.stream._
 import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka._
-import com.comcast.money.akka.stream.DefaultSpanKeyCreators.{DefaultFanInSpanKeyCreator, DefaultFanOutSpanKeyCreator}
+import com.comcast.money.akka.stream.DefaultSpanKeyCreators.{DefaultFanInSpanKeyCreator, DefaultFanOutSpanKeyCreator, DefaultFlowSpanKeyCreator, DefaultSourceSpanKeyCreator}
 import com.comcast.money.akka.stream._
 import com.comcast.money.core.handlers.HandlerChain
 
@@ -83,8 +83,6 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
 
     "adding the key for a Span" should {
       "use the name Attribute in a Flow" in {
-        implicit val fskc: FlowSpanKeyCreator = DefaultSpanKeyCreators.DefaultFlowSpanKeyCreator
-
         TestStreams.namedFlow.run.get()
 
         maybeCollectingSpanHandler should haveSomeSpanNames(Seq(stream, "SomeFlowName"))
@@ -93,7 +91,7 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
       "name Stream Shapes with an unset name Attribute" in {
         val someOtherFlowName = "SomeOtherFlowName"
 
-        implicit val fsck = FlowSpanKeyCreator(_ => someOtherFlowName)
+        implicit val fsck = FlowSpanKeyCreator((_: Flow[String, _, _]) => someOtherFlowName)
 
         TestStreams.namedFlow.run.get()
 
@@ -104,12 +102,25 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
         val someFanInName = "SomeFanInName"
         val someFanOutName = "SomeFanOutName"
 
-        implicit val fanOutSKC = FanOutSpanKeyCreator(_ => someFanOutName)
-        implicit val fanInSKC = FanInSpanKeyCreator(_ => someFanInName)
+        implicit val fanOutSKC = FanOutSpanKeyCreator((_: FanOutShape[String]) => someFanOutName)
+        implicit val fanInSKC = FanInSpanKeyCreator((_: Inlet[String]) => someFanInName)
 
         TestStreams.fanOutFanInWithConcat.run.get()
 
         maybeCollectingSpanHandler should haveSomeSpanNames(Seq(stream, someFanOutName, stringToString, someFanInName))
+      }
+
+      "name Stream Shapes by the type if there are multiple implicit names for a type of Stream Shape" in {
+        val overidingFlow = "OveridingFlow"
+        val someStream = "SomeStream"
+
+        implicit val fsck = FlowSpanKeyCreator((_: Flow[_, _, _]) => "SomeOtherFlowName")
+        implicit val ssck = SourceSpanKeyCreator((_: Source[String, _]) => someStream)
+        implicit val overidingFlowSKC = FlowSpanKeyCreator((_: Flow[String, _, _]) => overidingFlow)
+
+        TestStreams.simple.run.get()
+
+        maybeCollectingSpanHandler should haveSomeSpanNames(Seq(someStream, overidingFlow))
       }
     }
   }
@@ -135,7 +146,8 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
 
     private def source = Source(List("chunk"))
 
-    def simple =
+    def simple(implicit fskc: FlowSpanKeyCreator[String] = DefaultFlowSpanKeyCreator[String],
+               sskc: SourceSpanKeyCreator[String] = DefaultSourceSpanKeyCreator[String]) =
       RunnableGraph fromGraph {
         GraphDSL.create(sink) {
           implicit builder: Builder[Future[Done]] =>
@@ -156,8 +168,8 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
         }
       }
 
-    def fanOutFanInWithConcat(implicit fisck: FanInSpanKeyCreator = DefaultFanInSpanKeyCreator,
-                              fosck: FanOutSpanKeyCreator = DefaultFanOutSpanKeyCreator) =
+    def fanOutFanInWithConcat(implicit fisck: FanInSpanKeyCreator[String] = DefaultFanInSpanKeyCreator[String],
+                              fosck: FanOutSpanKeyCreator[String] = DefaultFanOutSpanKeyCreator[String]) =
       RunnableGraph fromGraph {
         GraphDSL.create(sink) {
           implicit builder: Builder[Future[Done]] =>
@@ -218,7 +230,7 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
         }
       }
 
-    def namedFlow(implicit fskc: FlowSpanKeyCreator) =
+    def namedFlow(implicit fskc: FlowSpanKeyCreator[String] = DefaultFlowSpanKeyCreator[String]) =
       RunnableGraph fromGraph {
         GraphDSL.create(sink) {
           implicit builder: Builder[Future[Done]] =>

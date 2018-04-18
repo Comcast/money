@@ -10,68 +10,97 @@ sealed trait SpanKeyCreator {
   def nameOfType[T: ClassTag]: String = classTag[T].runtimeClass.getSimpleName
 }
 
-trait FanOutSpanKeyCreator extends SpanKeyCreator {
-  def fanOutToKey[In: ClassTag](fanOutShape: FanOutShape[In]): String
+trait FanOutSpanKeyCreator[In] extends SpanKeyCreator {
+  def fanOutToKey(fanOutShape: FanOutShape[In])(implicit evIn: ClassTag[In]): String
 }
 
 object FanOutSpanKeyCreator {
-  def apply(toKey: FanOutShape[_] => String): FanOutSpanKeyCreator =
-    new FanOutSpanKeyCreator {
-      override def fanOutToKey[In: ClassTag](fanOutShape: FanOutShape[In]): String = toKey(fanOutShape)
+  def apply[In](toKey: FanOutShape[In] => String): FanOutSpanKeyCreator[In] =
+    new FanOutSpanKeyCreator[In] {
+      override def fanOutToKey(fanOutShape: FanOutShape[In])(implicit evIn: ClassTag[In]): String = toKey(fanOutShape)
     }
 }
 
-trait FanInSpanKeyCreator extends SpanKeyCreator {
-  def fanInInletToKey[In: ClassTag](inlet: Inlet[In]): String
+trait FanInSpanKeyCreator[In] extends SpanKeyCreator {
+  def fanInInletToKey(inlet: Inlet[In])(implicit evIn: ClassTag[In]): String
 }
 
 object FanInSpanKeyCreator {
-  def apply(toKey: Inlet[_] => String): FanInSpanKeyCreator =
-    new FanInSpanKeyCreator {
-      override def fanInInletToKey[In: ClassTag](inlet: Inlet[In]): String = toKey(inlet)
+  def apply[In](toKey: Inlet[In] => String): FanInSpanKeyCreator[In] =
+    new FanInSpanKeyCreator[In] {
+      override def fanInInletToKey(inlet: Inlet[In])(implicit evIn: ClassTag[In]): String = toKey(inlet)
     }
 }
 
-trait FlowSpanKeyCreator extends SpanKeyCreator {
-  def flowToKey[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _]): String
+trait FlowSpanKeyCreator[In] extends SpanKeyCreator {
+  def flowToKey[Out: ClassTag](flow: Flow[In, Out, _])(implicit evIn: ClassTag[In]): String
 }
 
 object FlowSpanKeyCreator {
-  def apply(toKey: Flow[_, _, _] => String): FlowSpanKeyCreator =
-    new FlowSpanKeyCreator {
-      override def flowToKey[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _]): String = toKey(flow)
+  def apply[In](toKey: Flow[In, _, _] => String): FlowSpanKeyCreator[In] =
+    new FlowSpanKeyCreator[In] {
+      override def flowToKey[Out: ClassTag](flow: Flow[In, Out, _])(implicit evIn: ClassTag[In]): String = toKey(flow)
     }
 }
 
-trait SourceSpanKeyCreator extends SpanKeyCreator {
-  def sourceToKey[In: ClassTag](source: Source[In, _]): String
+trait SourceSpanKeyCreator[In] extends SpanKeyCreator {
+  def sourceToKey(source: Source[In, _])(implicit evIn: ClassTag[In]): String
 }
 
-trait InletSpanKeyCreator extends SpanKeyCreator {
-  def inletToKey[In: ClassTag](inlet: Inlet[In]): String
+object SourceSpanKeyCreator {
+  def apply[In](toKey: Source[In, _] => String): SourceSpanKeyCreator[In] =
+    new SourceSpanKeyCreator[In] {
+      override def sourceToKey(source: Source[In, _])(implicit evIn: ClassTag[In]): String = toKey(source)
+    }
+}
+
+trait InletSpanKeyCreator[In] extends SpanKeyCreator {
+  def inletToKey(inlet: Inlet[In])(implicit evIn: ClassTag[In]): String
+}
+
+object InletSpanKeyCreator {
+  def apply[In](toKey: Inlet[In] => String): InletSpanKeyCreator[In] =
+    new InletSpanKeyCreator[In] {
+      override def inletToKey(inlet: Inlet[In])(implicit evIn: ClassTag[In]): String = toKey(inlet)
+    }
 }
 
 private[stream] object DefaultSpanKeyCreators {
 
-  object DefaultInletSpanKeyCreator extends InletSpanKeyCreator {
-    override def inletToKey[In: ClassTag](inlet: Inlet[In]): String = s"InletOf${nameOfType[In]}"
+  object DefaultInletSpanKeyCreator {
+    def apply[In]: InletSpanKeyCreator[In] =
+      new InletSpanKeyCreator[In] {
+        override def inletToKey(inlet: Inlet[In])(implicit evIn: ClassTag[In]): String = s"InletOf${nameOfType[In]}"
+      }
   }
 
-  object DefaultFanInSpanKeyCreator extends FanInSpanKeyCreator {
-    override def fanInInletToKey[In: ClassTag](inlet: Inlet[In]): String = s"FanInOf${nameOfType[In]}"
+  object DefaultFanInSpanKeyCreator {
+    def apply[In]: FanInSpanKeyCreator[In] =
+      new FanInSpanKeyCreator[In] {
+        override def fanInInletToKey(inlet: Inlet[In])(implicit evIn: ClassTag[In]): String = s"FanInOf${nameOfType[In]}"
+      }
   }
 
-  object DefaultFanOutSpanKeyCreator extends FanOutSpanKeyCreator {
-    override def fanOutToKey[In: ClassTag](fanOutShape: FanOutShape[In]): String = s"FanOutOf${nameOfType[In]}"
+  object DefaultFanOutSpanKeyCreator {
+    def apply[In]: FanOutSpanKeyCreator[In] =
+      new FanOutSpanKeyCreator[In] {
+        override def fanOutToKey(fanOutShape: FanOutShape[In])(implicit evIn: ClassTag[In]): String = s"FanOutOf${nameOfType[In]}"
+      }
   }
 
-  object DefaultFlowSpanKeyCreator extends FlowSpanKeyCreator {
-    override def flowToKey[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _]): String =
-      Attributes.extractName(flow.traversalBuilder, s"${nameOfType[In]}To${nameOfType[Out]}")
+  object DefaultFlowSpanKeyCreator {
+    def apply[In]: FlowSpanKeyCreator[In] =
+      new FlowSpanKeyCreator[In] {
+        override def flowToKey[Out: ClassTag](flow: Flow[In, Out, _])(implicit evIn: ClassTag[In]): String =
+          Attributes.extractName(flow.traversalBuilder, s"${nameOfType[In]}To${nameOfType[Out]}")
+      }
   }
 
-  object DefaultSourceSpanKeyCreator extends SourceSpanKeyCreator {
-    override def sourceToKey[In: ClassTag](source: Source[In, _]): String = "Stream"
+  object DefaultSourceSpanKeyCreator {
+    def apply[In](): SourceSpanKeyCreator[In] =
+      new SourceSpanKeyCreator[In] {
+        override def sourceToKey(source: Source[In, _])(implicit evIn: ClassTag[In]): String = "Stream"
+      }
   }
 
 }

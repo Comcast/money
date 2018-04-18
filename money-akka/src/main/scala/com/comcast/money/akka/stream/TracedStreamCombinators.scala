@@ -28,29 +28,30 @@ trait TracedStreamCombinators {
 
   implicit class PortOpsSpanInserter[In: ClassTag](portOps: PortOps[(In, SpanContextWithStack)])
                                                   (implicit builder: Builder[_],
-                                                   iskc: InletSpanKeyCreator = DefaultInletSpanKeyCreator,
-                                                   fskc: FlowSpanKeyCreator = DefaultFlowSpanKeyCreator) {
+                                                   fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
     type TracedIn = (In, SpanContextWithStack)
 
     def ~|>[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[(Out, SpanContextWithStack)] =
       portOps ~> wrapFlowWithSpanFlow(flow) ~> closeSpanFlow[Out]
 
-    def ~|>[T >: TracedIn](inlet: Inlet[T])(implicit ev: ClassTag[T]): Unit =
+    def ~|>[T >: TracedIn : ClassTag](inlet: Inlet[T])
+                                     (implicit iskc: InletSpanKeyCreator[T] = DefaultInletSpanKeyCreator[T]): Unit =
       portOps ~> startSpanFlow[In](iskc.inletToKey(inlet)) ~> inlet
 
-    def ~<>[T >: TracedIn](inlet: Inlet[T])(implicit ev: ClassTag[T], fisck: FanInSpanKeyCreator = DefaultFanInSpanKeyCreator): Unit =
+    def ~<>[T >: TracedIn : ClassTag](inlet: Inlet[T])
+                                     (implicit fisck: FanInSpanKeyCreator[T] = DefaultFanInSpanKeyCreator[T]): Unit =
       portOps ~> startSpanFlow[In](fisck.fanInInletToKey(inlet)) ~> inlet
 
     def ~|[T >: In](inlet: Inlet[T]): Unit = portOps ~> closeAllSpans[In] ~> inlet
 
-    def ~|~[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[Out] = portOps ~|> flow ~> closeAllSpans[Out]
+    def ~|~[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[Out] =
+      portOps ~|> flow ~> closeAllSpans[Out]
   }
 
   implicit class SourceSpanInserter[In: ClassTag](source: Source[In, _])
                                                  (implicit builder: Builder[_],
-                                                  sskc: SourceSpanKeyCreator = DefaultSourceSpanKeyCreator,
-                                                  fskc: FlowSpanKeyCreator = DefaultFlowSpanKeyCreator,
-                                                  foskc: FanOutSpanKeyCreator = DefaultFanOutSpanKeyCreator) {
+                                                  sskc: SourceSpanKeyCreator[In] = DefaultSourceSpanKeyCreator[In],
+                                                  fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
     type TracedIn = (In, SpanContextWithStack)
 
     private def createSpanContextFlow(source: Source[In, _]): Flow[In, (In, SpanContextWithStack), _] =
@@ -67,14 +68,15 @@ trait TracedStreamCombinators {
     def ~|>[TracedOut <: (_, SpanContextWithStack)](flow: Graph[FlowShape[TracedIn, TracedOut], _]): PortOps[TracedOut] =
       source ~> createSpanContextFlow(source) ~> flow
 
-    def ~|>(fanOut: UniformFanOutShape[TracedIn, TracedIn]): Unit =
+    def ~|>(fanOut: UniformFanOutShape[TracedIn, TracedIn])
+           (implicit foskc: FanOutSpanKeyCreator[TracedIn] = DefaultFanOutSpanKeyCreator[TracedIn]): Unit =
       (source ~> createSpanContextFlow(source)).outlet ~> startSpanFlow[In](foskc.fanOutToKey(fanOut)) ~> fanOut.in
   }
 
   implicit class OutletSpanInserter[In: ClassTag](outlet: Outlet[(In, SpanContextWithStack)])
-                                                 (implicit builder: Builder[_],
-                                                  fskc: FlowSpanKeyCreator = DefaultFlowSpanKeyCreator) {
-    def ~|>[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[(Out, SpanContextWithStack)] =
+                                                 (implicit builder: Builder[_]) {
+    def ~|>[Out: ClassTag](flow: Flow[In, Out, _])
+                          (implicit fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]): PortOps[(Out, SpanContextWithStack)] =
       outlet ~> closeSpanFlow[In] ~> wrapFlowWithSpanFlow(flow) ~> closeSpanFlow[Out]
   }
 
@@ -85,7 +87,7 @@ trait TracedStreamCombinators {
 
   implicit class TracedFlowOps[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])
                                                            (implicit executionContext: ExecutionContext,
-                                                            fskc: FlowSpanKeyCreator = DefaultFlowSpanKeyCreator) {
+                                                            fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
     type TracedIn = (In, SpanContextWithStack)
     type TracedOut = (Out, SpanContextWithStack)
 
@@ -106,7 +108,7 @@ trait TracedStreamCombinators {
 
   private def wrapFlowWithSpanFlow[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])
                                                                (implicit builder: Builder[_],
-                                                                fskc: FlowSpanKeyCreator) =
+                                                                fskc: FlowSpanKeyCreator[In]) =
     Flow fromGraph {
       GraphDSL.create() {
         implicit builder: Builder[_] =>
