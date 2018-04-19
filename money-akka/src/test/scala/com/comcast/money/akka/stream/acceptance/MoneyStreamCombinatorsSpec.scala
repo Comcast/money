@@ -10,7 +10,6 @@ import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka._
 import com.comcast.money.akka.stream.DefaultSpanKeyCreators.{DefaultFanInSpanKeyCreator, DefaultFanOutSpanKeyCreator, DefaultFlowSpanKeyCreator, DefaultSourceSpanKeyCreator}
 import com.comcast.money.akka.stream._
-import com.comcast.money.core.handlers.HandlerChain
 
 import scala.concurrent.duration.DurationDouble
 import scala.concurrent.{ExecutionContext, Future}
@@ -124,14 +123,6 @@ class MoneyStreamCombinatorsSpec extends AkkaMoneyScope {
       }
     }
   }
-
-  private def maybeCollectingSpanHandler =
-    MoneyExtension(system)
-      .handler
-      .asInstanceOf[HandlerChain]
-      .handlers
-      .headOption
-      .map(_.asInstanceOf[CollectingSpanHandler])
 
   private def replicateAndAppend[T](seq: Seq[T], numberOfreplicas: Int = 2): Seq[T] =
     (1 to numberOfreplicas).map(_ => seq).reduce(_ ++ _)

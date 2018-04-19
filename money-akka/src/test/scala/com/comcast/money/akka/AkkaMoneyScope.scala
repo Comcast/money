@@ -28,6 +28,14 @@ abstract class AkkaMoneyScope(val _system: ActorSystem) extends TestKit(_system)
 
   implicit val matierializer: ActorMaterializer = ActorMaterializer()
 
+  def maybeCollectingSpanHandler =
+    MoneyExtension(system)
+      .handler
+      .asInstanceOf[HandlerChain]
+      .handlers
+      .headOption
+      .map(_.asInstanceOf[CollectingSpanHandler])
+
   override def afterAll {
     TestKit.shutdownActorSystem(system)
   }

@@ -27,9 +27,6 @@ class MoneyFlowSpec extends AkkaMoneyScope {
     maybeCollectingSpanHandler should haveSomeSpanNames(testSpanNames)
   }
 
-  private def maybeCollectingSpanHandler: Option[CollectingSpanHandler] =
-    MoneyExtension(system).handler.asInstanceOf[HandlerChain].handlers.headOption.map(_.asInstanceOf[CollectingSpanHandler])
-
   val testSpanNames = Seq("flow-1", "flow-2", "flow-3")
 
   def testStream()(implicit spanContextWithStack: SpanContextWithStack) =

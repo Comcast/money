@@ -383,7 +383,7 @@ private[stream] trait TracedCombinatorFunctions {
     * @return Flow[(T, SpanContextWithStack), (T, SpanContextWithStack), _]
     */
 
-  def closeSpanFlow[T](implicit builder: Builder[_]): Graph[FlowShape[(T, SpanContextWithStack), (T, SpanContextWithStack)], _] =
+  def closeSpanFlow[T](implicit builder: Builder[_]): Flow[(T, SpanContextWithStack), (T, SpanContextWithStack), _] =
     Flow[(T, SpanContextWithStack)] map {
       case (input, spanContext) =>
         tracer(spanContext, moneyExtension).stopSpan()
@@ -396,12 +396,12 @@ private[stream] trait TracedCombinatorFunctions {
     * Completes the tracing of the stream by closing all the remaining Spans
     * then outputs the traced element
     *
-    * @param builder
-    * @tparam T
-    * @return
+    * @param builder Akka Streams [[Builder]] to allow us to incorporate the Flow into the stream
+    * @tparam T the type of the element being traced
+    * @return Flow[(T, SpanContextWithStack), T, _]
     */
 
-  def closeAllSpans[T](implicit builder: Builder[_]): Graph[FlowShape[(T, SpanContextWithStack), T], _] =
+  def closeAllSpans[T](implicit builder: Builder[_]): Flow[(T, SpanContextWithStack), T, _] =
     Flow fromFunction[(T, SpanContextWithStack), T] {
       case (input, spanContext) =>
         spanContext.getAll.foreach(_ => tracer(spanContext, moneyExtension).stopSpan())
