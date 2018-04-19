@@ -2,10 +2,10 @@ package com.comcast.money.akka.stream.acceptance
 
 import akka.Done
 import akka.actor.ActorSystem
+import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
 import akka.stream.scaladsl.GraphDSL.Implicits.PortOps
 import akka.stream.scaladsl.{Concat, Flow, GraphDSL, Partition, RunnableGraph, Sink, Source}
-import akka.stream._
 import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka._
 import com.comcast.money.akka.stream.DefaultSpanKeyCreators.{DefaultFanInSpanKeyCreator, DefaultFanOutSpanKeyCreator, DefaultFlowSpanKeyCreator, DefaultSourceSpanKeyCreator}
@@ -15,7 +15,7 @@ import com.comcast.money.core.handlers.HandlerChain
 import scala.concurrent.duration.DurationDouble
 import scala.concurrent.{ExecutionContext, Future}
 
-class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
+class MoneyStreamCombinatorsSpec extends AkkaMoneyScope {
 
   implicit val executionContext: ExecutionContext = _system.dispatcher
 
@@ -139,7 +139,7 @@ class MoneyStreamCombinatorsSpec extends MoneyAkkaScope {
   val stream = "Stream"
   val stringToString = "StringToString"
 
-  object TestStreams extends TracedStreamCombinators with AkkaMoney with TracedBuilder {
+  object TestStreams extends TracedStreamCombinators with AkkaMoney with TracedBuilder with AsyncFlowTracing {
     override implicit val actorSystem: ActorSystem = _system
 
     private val sink = Sink.ignore

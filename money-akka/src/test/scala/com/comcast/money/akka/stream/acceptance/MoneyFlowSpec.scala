@@ -9,7 +9,7 @@ import com.comcast.money.akka._
 import com.comcast.money.akka.stream.{TracedFlow, TracedFlowLogic}
 import com.comcast.money.core.handlers.HandlerChain
 
-class MoneyFlowSpec extends MoneyAkkaScope {
+class MoneyFlowSpec extends AkkaMoneyScope {
 
   "MoneyExtension should pass a span through an Akka Stream" in {
     implicit val spanContextWithStack: SpanContextWithStack = new SpanContextWithStack
