@@ -37,7 +37,7 @@ import org.slf4j.{ LoggerFactory, MDC }
 class StructuredLogSpanHandler extends ConfigurableHandler {
   import com.comcast.money.core.handlers.LoggingSpanHandler._
 
-  private val logger = LoggerFactory.getLogger("money-elk")
+  private val logger = LoggerFactory.getLogger(classOf[StructuredLogSpanHandler])
   protected var logFunction: LogFunction = logger.info
 
   def configure(config: Config): Unit = {
