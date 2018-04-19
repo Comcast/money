@@ -307,7 +307,11 @@ object MoneyBuild extends Build {
     val akkaHttpV = "10.1.0"
 
     val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
+<<<<<<< HEAD
     val akkaStream =      "com.typesafe.akka"         %% "akka-stream"                 % akkaV
+=======
+    val akkaStream =     "com.typesafe.akka"         %% "akka-stream"                 % akkaV
+>>>>>>> Add initial Akka Http Span creating Directive
     val akkaLog =         "com.typesafe.akka"         %% "akka-slf4j"                  % akkaV
     val akkaHttp =        "com.typesafe.akka"         %% "akka-http"                   % akkaHttpV
     val akkaHttpTestKit = "com.typesafe.akka"         %% "akka-http-testkit"           % akkaHttpV % "test"
