@@ -18,7 +18,7 @@ package com.comcast.money.core.handlers
 
 import com.comcast.money.api.{ Note, SpanInfo }
 import com.typesafe.config.Config
-import org.slf4j.{ LoggerFactory, MDC }
+import org.slf4j.{ Logger, LoggerFactory, MDC }
 
 /**
  * Logs using sfl4j MDC (mapped disagnostic context).
@@ -34,10 +34,13 @@ import org.slf4j.{ LoggerFactory, MDC }
  * {@code <encoder class="net.logstash.logback.encoder.LogstashEncoder"/>}
  *
  */
-class StructuredLogSpanHandler extends ConfigurableHandler {
+class StructuredLogSpanHandler(
+  val logger: Logger = LoggerFactory.getLogger(classOf[StructuredLogSpanHandler]),
+  val mdcFunc: (String, String) => Unit = (x: String, y: String) => MDC.put(x, y)
+)
+    extends ConfigurableHandler {
   import com.comcast.money.core.handlers.LoggingSpanHandler._
 
-  private val logger = LoggerFactory.getLogger(classOf[StructuredLogSpanHandler])
   protected var logFunction: LogFunction = logger.info
 
   def configure(config: Config): Unit = {
@@ -74,7 +77,7 @@ class StructuredLogSpanHandler extends ConfigurableHandler {
     val noteFields: Seq[(String, Any)] = spanInfo.notes.values.asScala.map(n => (n.name(), n.value())).toSeq
     val allFields = baseFields ++ noteFields
 
-    allFields.foreach(p => MDC.put(p._1, p._2.toString))
+    allFields.foreach(p => mdcFunc(p._1, p._2.toString))
 
     logFunction(allFields.map { case (k, v) => s"$k:$v" }.mkString("[", "][", "]"))
   }

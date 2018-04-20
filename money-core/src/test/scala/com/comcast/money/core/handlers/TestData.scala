@@ -55,4 +55,17 @@ trait TestData {
   )
 
   val testSpan = CoreSpan(new SpanId(), "test-span", null)
+
+  val fixedTestSpanInfo = CoreSpanInfo(
+    id = new SpanId("5092ddfe-3701-4f84-b3d2-21f5501c0d28",5176425846116696835L,5176425846116696835L),
+    startTimeMillis = 100L,
+    startTimeMicros = 100000L,
+    endTimeMillis = 300L,
+    endTimeMicros = 300000L,
+    durationMicros = 200L,
+    name = "test-span",
+    appName = "test",
+    host = "localhost",
+    notes = Map("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote)
+  )
 }
