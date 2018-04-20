@@ -19,6 +19,7 @@ package com.comcast.money.core
 import java.net.InetAddress
 
 import com.comcast.money.api.{ SpanFactory, SpanHandler }
+import com.comcast.money.core.async.{ AsyncNotificationHandler, AsyncNotifier }
 import com.comcast.money.core.handlers.HandlerChain
 import com.typesafe.config.{ Config, ConfigFactory }
 
@@ -29,7 +30,8 @@ case class Money(
   hostName: String,
   factory: SpanFactory,
   tracer: Tracer,
-  logExceptions: Boolean = false
+  logExceptions: Boolean = false,
+  asyncNotifier: AsyncNotifier = new AsyncNotifier(Seq())
 )
 
 object Money {
@@ -48,7 +50,8 @@ object Money {
         override val spanFactory: SpanFactory = factory
       }
       val logExceptions = conf.getBoolean("log-exceptions")
-      Money(enabled, handler, applicationName, hostName, factory, tracer, logExceptions)
+      val asyncNotificationHandlerChain = AsyncNotifier(conf.getConfig("async-notifier"))
+      Money(enabled, handler, applicationName, hostName, factory, tracer, logExceptions, asyncNotificationHandlerChain)
     } else {
       disabled(applicationName, hostName)
     }
@@ -56,5 +59,5 @@ object Money {
   }
 
   private def disabled(applicationName: String, hostName: String): Money =
-    Money(false, DisabledSpanHandler, applicationName, hostName, DisabledSpanFactory, DisabledTracer)
+    Money(enabled = false, DisabledSpanHandler, applicationName, hostName, DisabledSpanFactory, DisabledTracer)
 }

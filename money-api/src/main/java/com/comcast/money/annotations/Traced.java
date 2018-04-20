@@ -75,4 +75,11 @@ public @interface Traced {
      * @return The array of exception classes that will be ignored
      */
     Class[] ignoredExceptions() default {};
+
+    /**
+     * Indicates that the method being traced performs an asynchronous task and returns an instance
+     * that would indicate when the task has completed.
+     * @return Whether or not the traced method is asynchronous
+     */
+    boolean async() default false;
 }
