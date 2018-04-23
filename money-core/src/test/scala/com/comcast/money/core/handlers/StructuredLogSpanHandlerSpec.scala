@@ -16,10 +16,8 @@
 
 package com.comcast.money.core.handlers
 
-import com.comcast.money.api.SpanInfo
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.ConfigFactory
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
 import org.scalatest.{Matchers, OneInstancePerTest, WordSpec}
@@ -30,8 +28,6 @@ class StructuredLogSpanHandlerSpec extends WordSpec
 
   val mockLogger = mock[Logger]
   val sampleMessage = "sample formatted log message"
-//  val sampleFormatterConfig = ConfigFactory.parseString("formatting { this=that }")
-
 
   val logEntryCaptor = ArgumentCaptor.forClass(classOf[String])
   val underTest = new StructuredLogSpanHandler(mockLogger)
