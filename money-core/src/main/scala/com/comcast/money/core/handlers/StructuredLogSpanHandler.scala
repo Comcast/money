@@ -39,6 +39,10 @@ class StructuredLogSpanHandler(
   val mdcFunc: (String, String) => Unit = (x: String, y: String) => MDC.put(x, y)
 )
     extends ConfigurableHandler {
+
+  // Extra constructor because java spring programs have a problem with the default function in the constructor above.
+  def this() = this(LoggerFactory.getLogger(classOf[StructuredLogSpanHandler]), (k: String, v: String) => MDC.put(k, v))
+
   import com.comcast.money.core.handlers.LoggingSpanHandler._
 
   protected var logFunction: LogFunction = logger.info
