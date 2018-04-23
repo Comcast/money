@@ -73,8 +73,8 @@ class StructuredLogSpanHandler(
       ("span-name", spanInfo.name()),
       ("app", spanInfo.appName()),
       ("host", spanInfo.host()),
-      ("start-time", spanInfo.startTimeMillis()),
-      ("end-time", spanInfo.endTimeMillis()),
+      ("start-time", java.time.Instant.ofEpochMilli(spanInfo.startTimeMillis())),
+      ("end-time", java.time.Instant.ofEpochMilli(spanInfo.endTimeMillis())),
       ("span-duration", spanInfo.durationMicros()),
       ("span-success", spanInfo.success())
     )

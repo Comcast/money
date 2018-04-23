@@ -20,7 +20,7 @@ import com.typesafe.config.ConfigFactory
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
 import org.scalatest.mock.MockitoSugar
-import org.scalatest.{Matchers, OneInstancePerTest, WordSpec}
+import org.scalatest.{ Matchers, OneInstancePerTest, WordSpec }
 import org.slf4j.Logger
 
 class StructuredLogSpanHandlerSpec extends WordSpec
@@ -35,33 +35,34 @@ class StructuredLogSpanHandlerSpec extends WordSpec
   "StructuredLogSpanHandler" should {
     "log span info" in {
 
-      val handler = new StructuredLogSpanHandler(mockLogger,
-        (k,v)=>k match{
-        case "trace-id" => assert(v=="5092ddfe-3701-4f84-b3d2-21f5501c0d28")
-        case "parent-id" =>assert(v=="5176425846116696835")
-        case "span-id" => assert(v=="5176425846116696835")
-        case "span-name" => assert(v=="test-span")
-        case "start-time" => assert(v=="100")
-        case "end-time" => assert(v=="300")
-        case "span-duration" => assert(v=="200")
-        case "span-success" => assert(v=="true")
-        case "name" => assert(v=="test-span")
-        case "app" => assert(v=="test")
-        case "host" => assert(v=="localhost")
-        case "str" => assert(v=="bar")
-        case "lng" => assert(v=="200")
-        case "dbl" => assert(v=="1.2")
-        case "bool" => assert(v=="true")
-        case k => assert(false, s"Unknown property $k:$v added to MDC")
-      })
+      val handler = new StructuredLogSpanHandler(
+        mockLogger,
+        (k, v) => k match {
+          case "trace-id" => assert(v == "5092ddfe-3701-4f84-b3d2-21f5501c0d28")
+          case "parent-id" => assert(v == "5176425846116696835")
+          case "span-id" => assert(v == "5176425846116696835")
+          case "span-name" => assert(v == "test-span")
+          case "start-time" => assert(v == "1970-01-01T00:00:00.100Z")
+          case "end-time" => assert(v == "1970-01-01T00:00:00.300Z")
+          case "span-duration" => assert(v == "200")
+          case "span-success" => assert(v == "true")
+          case "name" => assert(v == "test-span")
+          case "app" => assert(v == "test")
+          case "host" => assert(v == "localhost")
+          case "str" => assert(v == "bar")
+          case "lng" => assert(v == "200")
+          case "dbl" => assert(v == "1.2")
+          case "bool" => assert(v == "true")
+          case k => assert(false, s"Unknown property $k:$v added to MDC")
+        }
+      )
 
       handler.handle(fixedTestSpanInfo)
 
       verify(mockLogger).info(logEntryCaptor.capture())
-      assert(logEntryCaptor.getValue =="[trace-id:5092ddfe-3701-4f84-b3d2-21f5501c0d28][parent-id:5176425846116696835][span-id:5176425846116696835][span-name:test-span][app:test][host:localhost][start-time:100][end-time:300][span-duration:200][span-success:true][str:bar][lng:200][dbl:1.2][bool:true]")
+      assert(logEntryCaptor.getValue == "[trace-id:5092ddfe-3701-4f84-b3d2-21f5501c0d28][parent-id:5176425846116696835][span-id:5176425846116696835][span-name:test-span][app:test][host:localhost][start-time:1970-01-01T00:00:00.100Z][end-time:1970-01-01T00:00:00.300Z][span-duration:200][span-success:true][str:bar][lng:200][dbl:1.2][bool:true]")
 
-     }
-
+    }
 
     "be configured to use error" in {
       val config = ConfigFactory.parseString(
