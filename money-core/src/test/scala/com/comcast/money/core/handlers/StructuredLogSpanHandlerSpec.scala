@@ -32,6 +32,8 @@ class StructuredLogSpanHandlerSpec extends WordSpec
   val logEntryCaptor = ArgumentCaptor.forClass(classOf[String])
   val underTest = new StructuredLogSpanHandler(mockLogger)
 
+  val expectedLogValue = "[trace-id:5092ddfe-3701-4f84-b3d2-21f5501c0d28][parent-id:5176425846116696835][span-id:5176425846116696835][span-name:test-span][app:test][host:localhost][start-time:1970-01-01T00:00:00.100Z][end-time:1970-01-01T00:00:00.300Z][span-duration:200][span-success:true][str:bar][lng:200][dbl:1.2][bool:true]"
+
   "StructuredLogSpanHandler" should {
     "log span info" in {
 
@@ -59,8 +61,7 @@ class StructuredLogSpanHandlerSpec extends WordSpec
 
       handler.handle(fixedTestSpanInfo)
 
-      verify(mockLogger).info(logEntryCaptor.capture())
-      assert(logEntryCaptor.getValue == "[trace-id:5092ddfe-3701-4f84-b3d2-21f5501c0d28][parent-id:5176425846116696835][span-id:5176425846116696835][span-name:test-span][app:test][host:localhost][start-time:1970-01-01T00:00:00.100Z][end-time:1970-01-01T00:00:00.300Z][span-duration:200][span-success:true][str:bar][lng:200][dbl:1.2][bool:true]")
+      verify(mockLogger).info(expectedLogValue)
 
     }
 
@@ -75,9 +76,9 @@ class StructuredLogSpanHandlerSpec extends WordSpec
       )
 
       underTest.configure(config)
-      underTest.handle(testSpanInfo)
+      underTest.handle(fixedTestSpanInfo)
 
-      verify(mockLogger).error(logEntryCaptor.capture())
+      verify(mockLogger).error(expectedLogValue)
     }
 
     "be configured to use warn" in {
@@ -91,9 +92,9 @@ class StructuredLogSpanHandlerSpec extends WordSpec
       )
 
       underTest.configure(config)
-      underTest.handle(testSpanInfo)
+      underTest.handle(fixedTestSpanInfo)
 
-      verify(mockLogger).warn(logEntryCaptor.capture())
+      verify(mockLogger).warn(expectedLogValue)
     }
 
     "be configured to use info" in {
@@ -107,9 +108,9 @@ class StructuredLogSpanHandlerSpec extends WordSpec
       )
 
       underTest.configure(config)
-      underTest.handle(testSpanInfo)
+      underTest.handle(fixedTestSpanInfo)
 
-      verify(mockLogger).info(logEntryCaptor.capture())
+      verify(mockLogger).info(expectedLogValue)
     }
 
     "be configured to use debug" in {
@@ -123,9 +124,9 @@ class StructuredLogSpanHandlerSpec extends WordSpec
       )
 
       underTest.configure(config)
-      underTest.handle(testSpanInfo)
+      underTest.handle(fixedTestSpanInfo)
 
-      verify(mockLogger).debug(logEntryCaptor.capture())
+      verify(mockLogger).debug(expectedLogValue)
     }
 
     "be configured to use trace" in {
@@ -139,9 +140,9 @@ class StructuredLogSpanHandlerSpec extends WordSpec
       )
 
       underTest.configure(config)
-      underTest.handle(testSpanInfo)
+      underTest.handle(fixedTestSpanInfo)
 
-      verify(mockLogger).trace(logEntryCaptor.capture())
+      verify(mockLogger).trace(expectedLogValue)
     }
 
     "be configured to default to info" in {
@@ -154,9 +155,9 @@ class StructuredLogSpanHandlerSpec extends WordSpec
       )
 
       underTest.configure(config)
-      underTest.handle(testSpanInfo)
+      underTest.handle(fixedTestSpanInfo)
 
-      verify(mockLogger).info(logEntryCaptor.capture())
+      verify(mockLogger).info(expectedLogValue)
     }
   }
 }
