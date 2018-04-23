@@ -26,7 +26,7 @@ object MoneyBuild extends Build {
     publishLocal := {},
     publish := {}
   )
-  .aggregate(moneyApi, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
+  .aggregate(moneyApi, moneyCore, moneyAkka, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
 
   lazy val moneyApi =
     Project("money-api", file("./money-api"))
