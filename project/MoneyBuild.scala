@@ -71,7 +71,6 @@ object MoneyBuild extends Build {
           akkaHttpTestKit,
           akkaLog,
           scalaTest,
-          scalaCheck,
           typesafeConfig
         )
       }
