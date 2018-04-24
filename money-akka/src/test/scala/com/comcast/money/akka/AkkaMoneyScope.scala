@@ -69,10 +69,8 @@ abstract class AkkaMoneyScope(val _system: ActorSystem) extends TestKit(_system)
         case (_, acc) => acc
       }
 
-  def haveSomeSpanNames(
-    expectedSpanNames: Seq[String],
-    checkNames: (Seq[String], Seq[String]) => Boolean = checkNames
-  ) =
+  def haveSomeSpanNames(expectedSpanNames: Seq[String],
+                        checkNames: (Seq[String], Seq[String]) => Boolean = checkNames) =
     Matcher {
       (maybeSpanHandler: Option[CollectingSpanHandler]) =>
         val maybeNames = maybeSpanHandler.map(_.spanInfoStack.map(_.name()))

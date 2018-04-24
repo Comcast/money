@@ -48,12 +48,14 @@ object MoneyExtension extends ExtensionId[MoneyExtension] with ExtensionIdProvid
   /**
    * Configures and loads the extension when the ActorSystem starts
    * required by [[ExtensionIdProvider]] which needs the "canonical reference to the extension"
+   *
    * @return MoneyExtension
    */
   override def lookup = MoneyExtension
 
   /**
    * Creates an instance of the [[MoneyExtension]] from config
+   *
    * @param system the [[ExtendedActorSystem]] the [[MoneyExtension]] is to be attached to
    * @return MoneyExtension
    */
@@ -80,6 +82,7 @@ object MoneyExtension extends ExtensionId[MoneyExtension] with ExtensionIdProvid
 
   /**
    * Returns the current instance of the [[MoneyExtension]]
+   *
    * @param system the [[ActorSystem]] the [[MoneyExtension]] is attached to
    * @return MoneyExtension
    */
