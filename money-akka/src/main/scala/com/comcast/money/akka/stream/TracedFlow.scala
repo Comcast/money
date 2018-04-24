@@ -22,12 +22,12 @@ import com.comcast.money.akka.{MoneyExtension, SpanContextWithStack}
 import com.comcast.money.core.Tracer
 
 /**
-  * TracedFlow is used to create a traced version of a user defined [[akka.stream.scaladsl.Flow]]
-  * it lessens the amount of boilerplate required to construct a new [[akka.stream.scaladsl.Flow]]
-  *
-  * @tparam In  input type of the users Flow
-  * @tparam Out output type of the users Flow
-  */
+ * TracedFlow is used to create a traced version of a user defined [[akka.stream.scaladsl.Flow]]
+ * it lessens the amount of boilerplate required to construct a new [[akka.stream.scaladsl.Flow]]
+ *
+ * @tparam In  input type of the users Flow
+ * @tparam Out output type of the users Flow
+ */
 
 trait TracedFlow[In, Out] extends GraphStage[FlowShape[(In, SpanContextWithStack), (Out, SpanContextWithStack)]] {
   val inletName: String
@@ -45,14 +45,14 @@ trait TracedFlow[In, Out] extends GraphStage[FlowShape[(In, SpanContextWithStack
 }
 
 /**
-  * TracedFlowLogic is a wrapper interface to [[GraphStageLogic]] for a [[TracedFlow]]
-  * it provides functionality for tracing and executing the Flows logic
-  *
-  * @param flowShape      the traced shape of the Flow being traced
-  * @param moneyExtension [[MoneyExtension]] to provide access to [[com.comcast.money.core.Money]]
-  * @tparam In  input type of the users Flow
-  * @tparam Out output type of the users Flow
-  */
+ * TracedFlowLogic is a wrapper interface to [[GraphStageLogic]] for a [[TracedFlow]]
+ * it provides functionality for tracing and executing the Flows logic
+ *
+ * @param flowShape      the traced shape of the Flow being traced
+ * @param moneyExtension [[MoneyExtension]] to provide access to [[com.comcast.money.core.Money]]
+ * @tparam In  input type of the users Flow
+ * @tparam Out output type of the users Flow
+ */
 
 abstract class TracedFlowLogic[In, Out](implicit flowShape: FlowShape[(In, SpanContextWithStack), (Out, SpanContextWithStack)],
                                         moneyExtension: MoneyExtension) extends GraphStageLogic(flowShape) {
@@ -63,29 +63,29 @@ abstract class TracedFlowLogic[In, Out](implicit flowShape: FlowShape[(In, SpanC
   implicit val out: Outlet[TracedOut] = flowShape.out
 
   /**
-    * Returns a [[Tracer]]
-    *
-    * used to start and stop a [[com.comcast.money.api.Span]] currently in the [[SpanContextWithStack]]
-    *
-    * @param spanContext    current [[SpanContextWithStack]]
-    * @param moneyExtension [[MoneyExtension]] to provide access to [[com.comcast.money.core.Money]]
-    * @return [[Tracer]] created from current spanContext
-    */
+   * Returns a [[Tracer]]
+   *
+   * used to start and stop a [[com.comcast.money.api.Span]] currently in the [[SpanContextWithStack]]
+   *
+   * @param spanContext    current [[SpanContextWithStack]]
+   * @param moneyExtension [[MoneyExtension]] to provide access to [[com.comcast.money.core.Money]]
+   * @return [[Tracer]] created from current spanContext
+   */
 
   private def tracer(implicit spanContext: SpanContextWithStack,
                      moneyExtension: MoneyExtension): Tracer =
     moneyExtension.tracer(spanContext)
 
   /**
-    * returns Unit
-    *
-    * Pushes an element down the stream tracing the logic passed to it.
-    * All logic to be traced must be passed as stageLogic
-    *
-    * @param key the name of the Span that information will be recorded for
-    * @param stageLogic the functionality of this [[akka.stream.scaladsl.Flow]]
-    * @param isSuccessful whether or not this Flow was successful
-    */
+   * returns Unit
+   *
+   * Pushes an element down the stream tracing the logic passed to it.
+   * All logic to be traced must be passed as stageLogic
+   *
+   * @param key the name of the Span that information will be recorded for
+   * @param stageLogic the functionality of this [[akka.stream.scaladsl.Flow]]
+   * @param isSuccessful whether or not this Flow was successful
+   */
 
   def tracedPush(key: String, stageLogic: In => Out, isSuccessful: Boolean = true): Unit = {
     implicit val (inMessage, spanContext) = grab[TracedIn](in)
@@ -96,17 +96,17 @@ abstract class TracedFlowLogic[In, Out](implicit flowShape: FlowShape[(In, SpanC
   }
 
   /**
-    * All Spans are stopped by this function
-    *
-    * returns Unit
-    *
-    * Pushes an element down the stream tracing the logic passed to it.
-    * All logic to be traced must be passed as stageLogic.
-    *
-    * @param key the name of the Span that information will be recorded for
-    * @param stageLogic the functionality of this [[akka.stream.scaladsl.Flow]]
-    * @param isSuccessful whether or not this Stream was successful
-    */
+   * All Spans are stopped by this function
+   *
+   * returns Unit
+   *
+   * Pushes an element down the stream tracing the logic passed to it.
+   * All logic to be traced must be passed as stageLogic.
+   *
+   * @param key the name of the Span that information will be recorded for
+   * @param stageLogic the functionality of this [[akka.stream.scaladsl.Flow]]
+   * @param isSuccessful whether or not this Stream was successful
+   */
 
   def stopTracePush(key: String, stageLogic: In => Out, isSuccessful: Boolean = true): Unit = {
     implicit val (inMessage, spanContext): (In, SpanContextWithStack) = grab[TracedIn](in)
