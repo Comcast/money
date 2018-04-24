@@ -97,10 +97,7 @@ object MoneyExtension extends ExtensionId[MoneyExtension] with ExtensionIdProvid
  * @param traceFunction the function used to construct a [[Tracer]]
  */
 
-class MoneyExtension(
-  money: Money,
-    traceFunction: SpanContext => Tracer
-) extends Extension {
+class MoneyExtension(money: Money, traceFunction: SpanContext => Tracer) extends Extension {
   val applicationName: String = money.applicationName
   val hostName: String = money.hostName
   val logExceptions: Boolean = money.logExceptions
