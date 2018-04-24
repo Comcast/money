@@ -43,7 +43,7 @@ class MoneyFlowSpec extends AkkaMoneyScope {
     maybeCollectingSpanHandler should haveSomeSpanNames(testSpanNames)
   }
 
-  val testSpanNames = Seq("flow-1", "flow-2", "flow-3")
+  val testSpanNames = Seq("flow-3", "flow-2", "flow-1")
 
   def testStream()(implicit spanContextWithStack: SpanContextWithStack,
                    moneyExtension: MoneyExtension) =
