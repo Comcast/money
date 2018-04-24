@@ -16,9 +16,9 @@
 
 package com.comcast.money.akka.stream
 
-import akka.stream.stage.{GraphStage, GraphStageLogic}
-import akka.stream.{FlowShape, Inlet, Outlet}
-import com.comcast.money.akka.{MoneyExtension, SpanContextWithStack}
+import akka.stream.stage.{ GraphStage, GraphStageLogic }
+import akka.stream.{ FlowShape, Inlet, Outlet }
+import com.comcast.money.akka.{ MoneyExtension, SpanContextWithStack }
 import com.comcast.money.core.Tracer
 
 /**
@@ -54,8 +54,9 @@ trait TracedFlow[In, Out] extends GraphStage[FlowShape[(In, SpanContextWithStack
  * @tparam Out output type of the users Flow
  */
 
-abstract class TracedFlowLogic[In, Out](implicit flowShape: FlowShape[(In, SpanContextWithStack), (Out, SpanContextWithStack)],
-                                        moneyExtension: MoneyExtension) extends GraphStageLogic(flowShape) {
+abstract class TracedFlowLogic[In, Out](implicit
+  flowShape: FlowShape[(In, SpanContextWithStack), (Out, SpanContextWithStack)],
+    moneyExtension: MoneyExtension) extends GraphStageLogic(flowShape) {
   type TracedOut = (Out, SpanContextWithStack)
   type TracedIn = (In, SpanContextWithStack)
 
@@ -72,8 +73,9 @@ abstract class TracedFlowLogic[In, Out](implicit flowShape: FlowShape[(In, SpanC
    * @return [[Tracer]] created from current spanContext
    */
 
-  private def tracer(implicit spanContext: SpanContextWithStack,
-                     moneyExtension: MoneyExtension): Tracer =
+  private def tracer(implicit
+    spanContext: SpanContextWithStack,
+    moneyExtension: MoneyExtension): Tracer =
     moneyExtension.tracer(spanContext)
 
   /**

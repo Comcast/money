@@ -21,11 +21,11 @@ import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import com.comcast.money.core.handlers.HandlerChain
 import com.typesafe.config.ConfigFactory
-import org.scalatest.matchers.{MatchResult, Matcher}
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
+import org.scalatest.matchers.{ MatchResult, Matcher }
+import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike }
 
 abstract class AkkaMoneyScope(val _system: ActorSystem) extends TestKit(_system) with WordSpecLike with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
-  def this() = this {
+  def this() = this{
     val configString: String =
       """
         | money {
@@ -69,20 +69,22 @@ abstract class AkkaMoneyScope(val _system: ActorSystem) extends TestKit(_system)
         case (_, acc) => acc
       }
 
-  def haveSomeSpanNames(expectedSpanNames: Seq[String],
-                        checkNames: (Seq[String], Seq[String]) => Boolean = checkNames) =
+  def haveSomeSpanNames(
+    expectedSpanNames: Seq[String],
+    checkNames: (Seq[String], Seq[String]) => Boolean = checkNames
+  ) =
     Matcher {
       (maybeSpanHandler: Option[CollectingSpanHandler]) =>
         val maybeNames = maybeSpanHandler.map(_.spanInfoStack.map(_.name()))
 
         MatchResult(
           matches = {
-            maybeNames match {
-              case Some(spanNames) if spanNames.isEmpty => false
-              case Some(spanNames) => checkNames(spanNames, expectedSpanNames)
-              case _ => false
-            }
-          },
+          maybeNames match {
+            case Some(spanNames) if spanNames.isEmpty => false
+            case Some(spanNames) => checkNames(spanNames, expectedSpanNames)
+            case _ => false
+          }
+        },
           rawFailureMessage = s"Names: $maybeNames were not Some($expectedSpanNames)",
           rawNegatedFailureMessage = s"Names: $maybeNames were Some($expectedSpanNames)"
         )

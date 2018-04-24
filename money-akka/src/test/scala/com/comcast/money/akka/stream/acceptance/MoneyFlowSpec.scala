@@ -17,11 +17,11 @@
 package com.comcast.money.akka.stream.acceptance
 
 import akka.stream.Attributes
-import akka.stream.scaladsl.{Keep, Sink, Source}
-import akka.stream.stage.{InHandler, OutHandler}
-import com.comcast.money.akka.{AkkaMoneyScope, MoneyExtension, SpanContextWithStack}
+import akka.stream.scaladsl.{ Keep, Sink, Source }
+import akka.stream.stage.{ InHandler, OutHandler }
+import com.comcast.money.akka.{ AkkaMoneyScope, MoneyExtension, SpanContextWithStack }
 import com.comcast.money.akka.Blocking.RichFuture
-import com.comcast.money.akka.stream.{TracedFlow, TracedFlowLogic}
+import com.comcast.money.akka.stream.{ TracedFlow, TracedFlowLogic }
 
 class MoneyFlowSpec extends AkkaMoneyScope {
 
@@ -45,8 +45,9 @@ class MoneyFlowSpec extends AkkaMoneyScope {
 
   val testSpanNames = Seq("flow-3", "flow-2", "flow-1")
 
-  def testStream()(implicit spanContextWithStack: SpanContextWithStack,
-                   moneyExtension: MoneyExtension) =
+  def testStream()(implicit
+    spanContextWithStack: SpanContextWithStack,
+    moneyExtension: MoneyExtension) =
     Source[(String, SpanContextWithStack)](List(("", spanContextWithStack)))
       .via(new TestFlowShape("flow-1"))
       .via(new TestFlowShape("flow-2"))
@@ -54,8 +55,9 @@ class MoneyFlowSpec extends AkkaMoneyScope {
       .toMat(Sink.seq)(Keep.right)
       .run()
 
-  def multithreadedTestStream()(implicit spanContextWithStack: SpanContextWithStack,
-                                moneyExtension: MoneyExtension) =
+  def multithreadedTestStream()(implicit
+    spanContextWithStack: SpanContextWithStack,
+    moneyExtension: MoneyExtension) =
     Source[(String, SpanContextWithStack)](List(("", spanContextWithStack)))
       .via(new TestFlowShape("flow-1").async)
       .via(new TestFlowShape("flow-2").async)
@@ -63,8 +65,7 @@ class MoneyFlowSpec extends AkkaMoneyScope {
       .toMat(Sink.seq)(Keep.right)
       .run()
 
-  class TestFlowShape(id: String, isFinalFlow: Boolean = false)
-                     (implicit moneyExtension: MoneyExtension) extends TracedFlow[String, String] {
+  class TestFlowShape(id: String, isFinalFlow: Boolean = false)(implicit moneyExtension: MoneyExtension) extends TracedFlow[String, String] {
 
     override val inletName: String = "testin"
     override val outletName: String = "testout"
