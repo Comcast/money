@@ -44,42 +44,42 @@ abstract class AkkaMoneyScope(val _system: ActorSystem) extends TestKit(_system)
 
   implicit val matierializer: ActorMaterializer = ActorMaterializer()
 
-  def maybeCollectingSpanHandler =
+  def maybeCollectingSpanHandler = maybeHandlerChain.map(_.asInstanceOf[CollectingSpanHandler])
+
+  def clearHandlerChain = maybeHandlerChain.foreach(_.asInstanceOf[CollectingSpanHandler].clear())
+
+  def maybeHandlerChain =
     MoneyExtension(system)
       .handler
       .asInstanceOf[HandlerChain]
       .handlers
       .headOption
-      .map(_.asInstanceOf[CollectingSpanHandler])
 
-  override def afterAll {
-    TestKit.shutdownActorSystem(system)
-  }
+  override def afterAll = TestKit.shutdownActorSystem(system)
 
-  override def beforeEach(): Unit =
-    MoneyExtension(system)
-      .handler
-      .asInstanceOf[HandlerChain]
-      .handlers
-      .headOption
-      .foreach(_.asInstanceOf[CollectingSpanHandler].clear())
+  override def beforeEach(): Unit = clearHandlerChain
 
-  def haveSomeSpanNames(expectedSpanNames: Seq[String]) =
+  def checkNames(names: Seq[String], expectedNames: Seq[String]): Boolean =
+    names
+      .zip(expectedNames)
+      .map { case (expectedName, actualName) => expectedName == actualName }
+      .foldLeft(true) {
+        case (_, acc) if acc == false => acc
+        case (a, _) if a == false => a
+        case (_, acc) => acc
+      }
+
+  def haveSomeSpanNames(expectedSpanNames: Seq[String],
+                        checkNames: (Seq[String], Seq[String]) => Boolean = checkNames) =
     Matcher {
       (maybeSpanHandler: Option[CollectingSpanHandler]) =>
         val maybeNames = maybeSpanHandler.map(_.spanInfoStack.map(_.name()))
-
-        def checkNames(names: Seq[String]): Boolean =
-          names
-            .zip(expectedSpanNames)
-            .map { case (expectedName, actualName) => expectedName == actualName }
-            .reduce(_ == _)
 
         MatchResult(
           matches = {
             maybeNames match {
               case Some(spanNames) if spanNames.isEmpty => false
-              case Some(spanNames) if checkNames(spanNames) => true
+              case Some(spanNames) => checkNames(spanNames, expectedSpanNames)
               case _ => false
             }
           },
@@ -87,4 +87,10 @@ abstract class AkkaMoneyScope(val _system: ActorSystem) extends TestKit(_system)
           rawNegatedFailureMessage = s"Names: $maybeNames were Some($expectedSpanNames)"
         )
     }
+
+  def haveSomeSpanNamesInNoParticularOrder(expectedSpanNames: Seq[String]) = {
+    def sortedCheckNames(names: Seq[String], expectedNames: Seq[String]) = checkNames(names.sortBy(_.hashCode), expectedNames.sortBy(_.hashCode))
+
+    haveSomeSpanNames(expectedSpanNames, sortedCheckNames)
+  }
 }

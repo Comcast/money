@@ -1,33 +1,42 @@
+/*
+ * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.comcast.money.akka.stream
 
-import akka.actor.ActorSystem
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
-import akka.stream.scaladsl.GraphDSL.Implicits.PortOps
-import akka.stream.scaladsl.{Flow, GraphDSL, Source, Unzip, Zip}
+import akka.stream.scaladsl.{Flow, GraphDSL, Sink, Source, Unzip, Zip}
 import com.comcast.money.akka.stream.DefaultSpanKeyCreators.DefaultFlowSpanKeyCreator
 import com.comcast.money.akka.{MoneyExtension, SpanContextWithStack}
-import com.comcast.money.core.Tracer
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
 
-trait AkkaMoney {
-  implicit val actorSystem: ActorSystem
+/**
+  * [[StreamTracingDSL]] are used to trace a stream that has not been built to support tracing
+  *
+  */
 
-  lazy val moneyExtension: MoneyExtension = MoneyExtension(actorSystem)
-
-  def tracer(spanContext: SpanContextWithStack, moneyExtension: MoneyExtension): Tracer = moneyExtension.tracer(spanContext)
-}
-
-trait TracedStreamCombinators extends TracedCombinatorFunctions {
-  self: AkkaMoney =>
-
+object StreamTracingDSL {
   import DefaultSpanKeyCreators._
   import akka.stream.scaladsl.GraphDSL.Implicits._
 
   implicit class PortOpsSpanInjector[In: ClassTag](portOps: PortOps[(In, SpanContextWithStack)])
                                                   (implicit builder: Builder[_],
+                                                   moneyExtension: MoneyExtension,
                                                    fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
     type TracedIn = (In, SpanContextWithStack)
 
@@ -36,12 +45,13 @@ trait TracedStreamCombinators extends TracedCombinatorFunctions {
       *
       * Example:
       * untraced using standard combinators:
-      *
-      * Source(1 to 3) ~> Flow[Int]
-      *
+      * {{{
+      *  Source(1 to 3) ~> Flow[Int]
+      * }}}
       * traced using money combinators:
-      *
+      * {{{
       * Source(1 to 3) ~|> Flow[Int]
+      * }}}
       *
       * @param flow Untraced Flow to be traced
       * @tparam Out type of the Output of the flow
@@ -55,7 +65,9 @@ trait TracedStreamCombinators extends TracedCombinatorFunctions {
       *
       * Example:
       *
-      * [[Source(1 to 3) ~|> Flow[(Int, SpanContextWithStack)].in]]
+      * {{{
+      * Source(1 to 3) ~|> Flow[(Int, SpanContextWithStack)].in
+      * }}}
       *
       * @param inlet Traced [[Inlet]] that needs a span to be started for it
       * @param iskc implicit InletSpanKeyCreator to provide a key for the started Span
@@ -75,6 +87,7 @@ trait TracedStreamCombinators extends TracedCombinatorFunctions {
       *
       * Example:
       *
+      * {{{
       * Source(1 to 3) ~|> bCast
       *
       * bCast.out(0) ~|> Flow[Int] ~<> concat.in(0)
@@ -82,18 +95,19 @@ trait TracedStreamCombinators extends TracedCombinatorFunctions {
       * bCast.out(1) ~|> Flow[Int] ~<> concat.in(1)
       *
       * concat ~| sink.in
+      * }}}
       *
       * @param inlet FanIn inlet to be traced
       * @param fisck implicit [[FanInSpanKeyCreator]] to provide a key for the started Span
       * @tparam T is covariant on [[TracedIn]] ie it must be of type (In, SpanContextWithStack) or a supertype of the Inlet
       */
 
-    def ~<>[T >: TracedIn : ClassTag](inlet: Inlet[T])
-                                     (implicit fisck: FanInSpanKeyCreator[T] = DefaultFanInSpanKeyCreator[T]): Unit =
+    def ~<>[T >: In : ClassTag](inlet: Inlet[(T, SpanContextWithStack)])
+                               (implicit fisck: FanInSpanKeyCreator[T] = DefaultFanInSpanKeyCreator[T]): Unit =
       startSpanForTracedFanInInlet(inlet)
 
-    private def startSpanForTracedFanInInlet[T >: TracedIn : ClassTag](inlet: Inlet[T])
-                                                                      (implicit fisck: FanInSpanKeyCreator[T]): Unit =
+    private def startSpanForTracedFanInInlet[T >: In : ClassTag](inlet: Inlet[(T, SpanContextWithStack)])
+                                                                (implicit fisck: FanInSpanKeyCreator[T]): Unit =
       portOps ~> startSpanFlow[In](fisck.fanInInletToKey(inlet)) ~> inlet
 
     /**
@@ -101,7 +115,9 @@ trait TracedStreamCombinators extends TracedCombinatorFunctions {
       *
       * Example:
       *
-      * Source(List("chunk")) ~|> Flow[String] ~| Sink.ignore[String].in
+      * {{{
+      * Source(List("chunk")) ~|> Flow[String] ~| Flow[String].in
+      * }}}
       *
       * @param inlet the inlet of the stream shape that you wish to end the stream with
       * @tparam T must be covariant on [[In]] ie must either be a supertype or the type of the output of the stream
@@ -112,19 +128,40 @@ trait TracedStreamCombinators extends TracedCombinatorFunctions {
     private def completeTracing[T >: In](inlet: Inlet[T]): Unit = portOps ~> closeAllSpans[In] ~> inlet
 
     /**
+      * Completes all the Spans in the SpanContextWithStack this ends the tracing of the stream
+      *
+      * Example:
+      *
+      * {{{
+      * Source(List("chunk")) ~|> Flow[String] ~| Sink.ignore[String]
+      * }}}
+      *
+      * @param sink the sink that you wish to complete the stream with
+      * @tparam T must be covariant on [[In]] ie must either be a supertype or the type of the output of the stream
+      */
+
+    def ~|[T >: In](sink: Sink[T, _]): Unit = completeTracing(sink)
+
+    private def completeTracing[T >: In](sink: Sink[T, _]): Unit = portOps ~> closeAllSpans[In] ~> sink
+
+    /**
       * Completes all the remaining spans and allows the stream to continue with regular Akka combinators
       *
       * returns [[PortOps]] of the output of the flow passed in
       *
       * Example 1:
       *
+      * {{{
       * val out: PortOps[String] = Source(List("chunk")) ~|> Flow[String] ~|~ Flow[String]
       *
       * SourceShape(out.outlet)
+      * }}}
       *
       * Example 2:
       *
+      * {{{
       *  Source(List("chunk")) ~|> Flow[String] ~|~ Flow[String] ~> Flow[String].map(someUntracedFunction) ~> Sink.seq[String]
+      * }}}
       *
       * @param flow [[Flow]] for the tracing to complete on
       * @tparam Out type of the Output of the [[Flow]]
@@ -133,12 +170,14 @@ trait TracedStreamCombinators extends TracedCombinatorFunctions {
 
     def ~|~[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[Out] = completeTracingAndContinueStream(portOps, flow)
 
-    private def completeTracingAndContinueStream[Out: ClassTag](portOps: PortOps[TracedIn], flow: Flow[In, Out, _]): PortOps[Out] =
+    private def completeTracingAndContinueStream[Out: ClassTag](portOps: PortOps[TracedIn],
+                                                                flow: Flow[In, Out, _]): PortOps[Out] =
       injectSpanInFlow(portOps, flow) ~> closeAllSpans[Out]
   }
 
   implicit class SourceSpanInjector[In: ClassTag](source: Source[In, _])
                                                  (implicit builder: Builder[_],
+                                                  moneyExtension: MoneyExtension,
                                                   sskc: SourceSpanKeyCreator[In] = DefaultSourceSpanKeyCreator[In],
                                                   fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
     type TracedIn = (In, SpanContextWithStack)
@@ -149,7 +188,9 @@ trait TracedStreamCombinators extends TracedCombinatorFunctions {
       *
       * Example:
       *
+      * {{{
       * Source(List("chunk")) ~|> Flow[String]
+      * }}}
       *
       * @param flow first [[Flow]] of the stream that the source connects
       * @tparam Out type of the Output of the [[Flow]]
@@ -163,7 +204,9 @@ trait TracedStreamCombinators extends TracedCombinatorFunctions {
       *
       * Example:
       *
+      * {{{
       * Source(List("chunk")) ~|> Flow[(String, SpanContextWithStack)]
+      * }}}
       *
       * @param flow is a [[Flow]] that takes [[TracedIn]]
       * @tparam TracedOut sub type of (_, SpanContextWithStack) forces flow to be traced all the way through
@@ -183,20 +226,22 @@ trait TracedStreamCombinators extends TracedCombinatorFunctions {
       *
       * Example:
       *
+      * {{{
       * val bCast = builder.addTraced(Broadcast(0, false))
       *
       * Source(1 to 3) ~|> bCast
+      * }}}
       *
       * @param fanOut A [[UniformFanOutShape]] that accepts [[TracedIn]] either created with [[TracedBuilder]] or manually
       * @param foskc implicit [[FanOutSpanKeyCreator]] to provide a key for the started Span
       */
 
     def ~|>(fanOut: UniformFanOutShape[TracedIn, TracedIn])
-           (implicit foskc: FanOutSpanKeyCreator[TracedIn] = DefaultFanOutSpanKeyCreator[TracedIn]): Unit =
+           (implicit foskc: FanOutSpanKeyCreator[In] = DefaultFanOutSpanKeyCreator[In]): Unit =
       sourceViaTracedFanOut(fanOut)
 
     private def sourceViaTracedFanOut(fanOut: UniformFanOutShape[TracedIn, TracedIn])
-                                     (implicit foskc: FanOutSpanKeyCreator[TracedIn]) =
+                                     (implicit foskc: FanOutSpanKeyCreator[In]) =
       startSpanContext.outlet ~> startSpanFlow[In](foskc.fanOutToKey(fanOut)) ~> fanOut.in
 
     /**
@@ -207,11 +252,11 @@ trait TracedStreamCombinators extends TracedCombinatorFunctions {
       * @return PortsOps[(In, SpanContextWithStack)]
       */
 
-    private def startSpanContext: PortOps[TracedIn] =
+    private def startSpanContext(implicit moneyExtension: MoneyExtension): PortOps[TracedIn] =
       source ~> Flow.fromFunction[In, TracedIn] {
         input =>
           val spanContext = new SpanContextWithStack
-          tracer(spanContext, moneyExtension).startSpan(sskc.sourceToKey(source))
+          moneyExtension.tracer(spanContext).startSpan(sskc.sourceToKey(source))
           (input, spanContext)
       }
   }
@@ -222,6 +267,10 @@ trait TracedStreamCombinators extends TracedCombinatorFunctions {
       * Connects an [[Outlet]] to a [[Flow]]. Injects the SpanContextWithStack in to the Flow and 
       * starts and stops a Span for the Flow
       *
+      * {{{
+      *   Flow[String].shape.out ~|> Flow[String]
+      * }}}
+      *
       * @param flow untraced flow that needs to be traced
       * @param fskc implicit [[FlowSpanKeyCreator]] to provide a key for the started Span
       * @tparam Out untraced output of the flow
@@ -229,69 +278,37 @@ trait TracedStreamCombinators extends TracedCombinatorFunctions {
       */
 
     def ~|>[Out: ClassTag](flow: Flow[In, Out, _])
-                          (implicit fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]): PortOps[(Out, SpanContextWithStack)] =
+                          (implicit fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In],
+                           moneyExtension: MoneyExtension): PortOps[(Out, SpanContextWithStack)] =
       outletViaSpanInjectedFlow(flow)
 
     private def outletViaSpanInjectedFlow[Out: ClassTag](flow: Flow[In, Out, _])
-                                                        (implicit flowSpanKeyCreator: FlowSpanKeyCreator[In]) =
+                                                        (implicit flowSpanKeyCreator: FlowSpanKeyCreator[In],
+                                                         moneyExtension: MoneyExtension) =
       outlet ~> closeSpanFlow[In] ~> injectSpan[In, Out](flow) ~> closeSpanFlow[Out]
   }
 
   implicit class UniformFanInConnector[T: ClassTag](fanIn: UniformFanInShape[(T, SpanContextWithStack), (T, SpanContextWithStack)])
-                                                   (implicit builder: Builder[_]) {
+                                                   (implicit builder: Builder[_],
+                                                    moneyExtension: MoneyExtension) {
     /**
       * Completes the tracing of the stream
+      *
+      * {{{
+      *   val merge = builder.add(Merge[String](2))
+      *   merge.out ~| Sink.ignore[String]
+      * }}}
       * 
       * @param inlet the inlet of the stream shape that you wish to end the stream with 
-      * @tparam Out Out must be covariant on [[T]] ie must either be a supertype or the type of the output of the stream
+      * @tparam Out Out must be covariant on [[T]] ie must either be a supertype or the type of the output of the stream stage
       */
     
     def ~|[Out >: T](inlet: Inlet[Out]): Unit = completeTracing(inlet)
 
-    private def completeTracing[Out >: T](inlet: Inlet[Out]) = fanIn.out ~> closeAllSpans[Out] ~> inlet
+    private def completeTracing[Out >: T](inlet: Inlet[Out])
+                                         (implicit moneyExtension: MoneyExtension) =
+      fanIn.out ~> closeAllSpans[Out] ~> inlet
   }
-
-}
-
-trait AsyncFlowTracing {
-  self: AkkaMoney =>
-
-  implicit class TracedFlowOps[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])
-                                                           (implicit executionContext: ExecutionContext,
-                                                            fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
-    type TracedIn = (In, SpanContextWithStack)
-    type TracedOut = (Out, SpanContextWithStack)
-
-    /**
-      * Applies a traced version of [[Flow.mapAsyncUnordered]] to a generic [[Flow]].
-      * Guarantees that elements are executed out of order and are attached to the SpanContext they entered with.
-      *
-      * NB: It is necessary to use flatMap as map has been found to not be guaranteed to close the Span
-      *
-      * @param parallelism the number of concurrent futures
-      * @param f the function to apply
-      * @return Flow[TracedIn, TracedOut, _]
-      */
-
-    def tracedMapAsyncUnordered(parallelism: Int)(f: In => Future[Out]): Flow[TracedIn, TracedOut, _] =
-      Flow[TracedIn].mapAsyncUnordered[TracedOut](parallelism) {
-        (tuple: TracedIn) =>
-          val (in, spanContext) = tuple
-          tracer(spanContext, moneyExtension).startSpan(fskc.flowToKey(flow))
-          f(in) flatMap {
-            out =>
-              Future {
-                tracer(spanContext, moneyExtension).stopSpan()
-                (out, spanContext)
-              }
-          }
-      }
-  }
-
-}
-
-private[stream] trait TracedCombinatorFunctions {
-  self: AkkaMoney =>
 
   /**
     * INTERNAL API
@@ -310,9 +327,10 @@ private[stream] trait TracedCombinatorFunctions {
     * @return PortOps[(Out, SpanContextWithStack)]
     */
 
-  def injectSpanInFlow[In: ClassTag, Out: ClassTag](portOps: PortOps[(In, SpanContextWithStack)],
+  private def injectSpanInFlow[In: ClassTag, Out: ClassTag](portOps: PortOps[(In, SpanContextWithStack)],
                                                     flow: Flow[In, Out, _])
                                                    (implicit builder: Builder[_],
+                                                    moneyExtension: MoneyExtension,
                                                     fskc: FlowSpanKeyCreator[In]): PortOps[(Out, SpanContextWithStack)] =
     portOps ~> injectSpan(flow) ~> closeSpanFlow[Out]
 
@@ -322,7 +340,7 @@ private[stream] trait TracedCombinatorFunctions {
     * Returns a traced [[Flow]]
     *
     * the wrapping Flow uses an [[Unzip]] to pull out the SpanContext for an element
-    * the element is then passed to the user defined flow
+    * the element is then passed to the user private defined flow
     * after it has completed the Zip will merge the SpanContext with the element it arrived with
     *
     * this is guaranteed despite the asynchronous boundary due to the order guarantees given by Akka
@@ -335,8 +353,9 @@ private[stream] trait TracedCombinatorFunctions {
     * @return Flow[(In, SpanContextWithStack), (Out, SpanContextWithStack), _]
     */
 
-  def injectSpan[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])
+  private def injectSpan[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])
                                              (implicit builder: Builder[_],
+                                              moneyExtension: MoneyExtension,
                                               fskc: FlowSpanKeyCreator[In]) =
     Flow fromGraph {
       GraphDSL.create() {
@@ -367,11 +386,11 @@ private[stream] trait TracedCombinatorFunctions {
     * @return Flow[(T, SpanContextWithStack), (T, SpanContextWithStack), _]
     */
 
-  def startSpanFlow[T: ClassTag](key: String)
-                                 (implicit builder: Builder[_]): Flow[(T, SpanContextWithStack), (T, SpanContextWithStack), _] =
+  private def startSpanFlow[T: ClassTag](key: String)
+                                (implicit builder: Builder[_], moneyExtension: MoneyExtension): Flow[(T, SpanContextWithStack), (T, SpanContextWithStack), _] =
     Flow[(T, SpanContextWithStack)] map {
       case (input, spanContext) =>
-        tracer(spanContext, moneyExtension).startSpan(key)
+        moneyExtension.tracer(spanContext).startSpan(key)
         (input, spanContext)
     }
 
@@ -383,10 +402,10 @@ private[stream] trait TracedCombinatorFunctions {
     * @return Flow[(T, SpanContextWithStack), (T, SpanContextWithStack), _]
     */
 
-  def closeSpanFlow[T](implicit builder: Builder[_]): Flow[(T, SpanContextWithStack), (T, SpanContextWithStack), _] =
+  private def closeSpanFlow[T](implicit builder: Builder[_], moneyExtension: MoneyExtension): Flow[(T, SpanContextWithStack), (T, SpanContextWithStack), _] =
     Flow[(T, SpanContextWithStack)] map {
       case (input, spanContext) =>
-        tracer(spanContext, moneyExtension).stopSpan()
+        moneyExtension.tracer(spanContext).stopSpan()
         (input, spanContext)
     }
 
@@ -401,10 +420,54 @@ private[stream] trait TracedCombinatorFunctions {
     * @return Flow[(T, SpanContextWithStack), T, _]
     */
 
-  def closeAllSpans[T](implicit builder: Builder[_]): Flow[(T, SpanContextWithStack), T, _] =
+  private def closeAllSpans[T](implicit builder: Builder[_], moneyExtension: MoneyExtension): Flow[(T, SpanContextWithStack), T, _] =
     Flow fromFunction[(T, SpanContextWithStack), T] {
       case (input, spanContext) =>
-        spanContext.getAll.foreach(_ => tracer(spanContext, moneyExtension).stopSpan())
+        spanContext.getAll.foreach(_ => moneyExtension.tracer(spanContext).stopSpan())
         input
     }
+
+}
+
+/**
+  * Async Tracing for Unordered Flows
+  */
+
+object AsyncUnorderedFlowTracing {
+
+  implicit class TracedFlowOps[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])
+                                                           (implicit moneyExtension: MoneyExtension,
+                                                            executionContext: ExecutionContext,
+                                                            fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
+    type TracedIn = (In, SpanContextWithStack)
+    type TracedOut = (Out, SpanContextWithStack)
+
+    /**
+      * Applies a traced version of [[Flow.mapAsyncUnordered]] to a generic [[Flow]].
+      * Guarantees that elements are executed out of order and are attached to the SpanContext they entered with.
+      *
+      * NB: It is necessary to use flatMap as map has been found to not be guaranteed to close the Span
+      *
+      * Example:
+      *
+      * Flow[String].tracedMapAsyncUnordered(3)(stringToFuture)
+      *
+      * @param parallelism the number of concurrent futures
+      * @param f the function to apply
+      * @return Flow[TracedIn, TracedOut, _]
+      */
+
+    def tracedMapAsyncUnordered(parallelism: Int)(f: In => Future[Out]): Flow[TracedIn, TracedOut, _] =
+      Flow[TracedIn].mapAsyncUnordered[TracedOut](parallelism) {
+        (tuple: TracedIn) =>
+          val (in, spanContext) = tuple
+          moneyExtension.tracer(spanContext).startSpan(fskc.flowToKey(flow))
+          f(in) map {
+            out =>
+                moneyExtension.tracer(spanContext).stopSpan()
+                (out, spanContext)
+          }
+      }
+  }
+
 }

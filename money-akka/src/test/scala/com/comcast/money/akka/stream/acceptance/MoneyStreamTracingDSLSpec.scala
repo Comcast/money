@@ -1,11 +1,27 @@
+/*
+ * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.comcast.money.akka.stream.acceptance
 
-import akka.Done
-import akka.actor.ActorSystem
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
 import akka.stream.scaladsl.GraphDSL.Implicits.PortOps
-import akka.stream.scaladsl.{Concat, Flow, GraphDSL, Partition, RunnableGraph, Sink, Source}
+import akka.stream.scaladsl.{Balance, Broadcast, Concat, Flow, GraphDSL, Interleave, Merge, MergePrioritized, Partition, RunnableGraph, Sink, Source}
+import akka.stream.stage.GraphStage
+import akka.{Done, NotUsed}
 import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka._
 import com.comcast.money.akka.stream.DefaultSpanKeyCreators.{DefaultFanInSpanKeyCreator, DefaultFanOutSpanKeyCreator, DefaultFlowSpanKeyCreator, DefaultSourceSpanKeyCreator}
@@ -14,7 +30,7 @@ import com.comcast.money.akka.stream._
 import scala.concurrent.duration.DurationDouble
 import scala.concurrent.{ExecutionContext, Future}
 
-class MoneyStreamCombinatorsSpec extends AkkaMoneyScope {
+class MoneyStreamTracingDSLSpec extends AkkaMoneyScope {
 
   implicit val executionContext: ExecutionContext = _system.dispatcher
 
@@ -31,12 +47,43 @@ class MoneyStreamCombinatorsSpec extends AkkaMoneyScope {
       maybeCollectingSpanHandler should haveSomeSpanNames(Seq(stream, stringToString, stringToString))
     }
 
-    "built with a fan out and fan in should create completed spans" in {
-      val expectedSpanNames = replicateAndAppend(Seq(stream, "FanInOfString", stringToString, "FanOutOfString"))
+    "built with a fan out and concat should create completed spans" in {
+      val expectedSpanNames = replicateAndAppend(Seq(stream, fanInOfString, stringToString, fanOutOfString))
 
-      TestStreams.fanOutFanInWithConcat.run.get()
+      TestStreams.fanOutFanIn().run.get()
 
       maybeCollectingSpanHandler should haveSomeSpanNames(expectedSpanNames)
+    }
+
+    "built with a fan out and fan in of a type accepted by TraceBuilder should create completed spans" in {
+      val expectedSpanNames = replicateAndAppend(Seq(stream, fanInOfString, stringToString, fanOutOfString))
+
+      val fanInShapes = List(Merge[String](2), Interleave[String](2, 1), MergePrioritized[String](Seq(1, 2)))
+
+      fanInShapes foreach {
+        fanInShape =>
+          TestStreams.fanOutFanIn(fanInRaw = Right(fanInShape)).run.get()
+
+          maybeCollectingSpanHandler should haveSomeSpanNamesInNoParticularOrder(expectedSpanNames)
+
+          clearHandlerChain
+      }
+    }
+
+    "built with a Broadcast and fan in should create completed spans" in {
+      val expectedSpanNames = replicateAndAppend(Seq(stream, fanInOfString, stringToString, stringToString, fanOutOfString))
+
+      TestStreams.fanOutFanIn(fanOutRaw = Broadcast[String](2)).run.get()
+
+      maybeCollectingSpanHandler should haveSomeSpanNamesInNoParticularOrder(expectedSpanNames)
+    }
+
+    "built with a Balance and fan in should create completed spans" in {
+      val expectedSpanNames = replicateAndAppend(Seq(stream, fanInOfString, stringToString, fanOutOfString))
+
+      TestStreams.fanOutFanIn(fanOutRaw = Balance[String](2)).run.get()
+
+      maybeCollectingSpanHandler should haveSomeSpanNamesInNoParticularOrder(expectedSpanNames)
     }
 
     "built with ordered async boundaries should run asynchronously and create completed spans" in {
@@ -100,13 +147,14 @@ class MoneyStreamCombinatorsSpec extends AkkaMoneyScope {
       "name Stream Shapes without a name Attribute" in {
         val someFanInName = "SomeFanInName"
         val someFanOutName = "SomeFanOutName"
+        val expectedSpanNames = replicateAndAppend(Seq(stream, someFanOutName, stringToString, someFanInName))
 
-        implicit val fanOutSKC = FanOutSpanKeyCreator((_: FanOutShape[String]) => someFanOutName)
-        implicit val fanInSKC = FanInSpanKeyCreator((_: Inlet[String]) => someFanInName)
+        implicit val fanOutSKC = FanOutSpanKeyCreator[String]((_: FanOutShape[_]) => someFanOutName)
 
-        TestStreams.fanOutFanInWithConcat.run.get()
+        implicit val fanInSKC = FanInSpanKeyCreator[String]((_: Inlet[_]) => someFanInName)
+        TestStreams.fanOutFanIn().run.get()
 
-        maybeCollectingSpanHandler should haveSomeSpanNames(Seq(stream, someFanOutName, stringToString, someFanInName))
+        maybeCollectingSpanHandler should haveSomeSpanNamesInNoParticularOrder(expectedSpanNames)
       }
 
       "name Stream Shapes by the type if there are multiple implicit names for a type of Stream Shape" in {
@@ -129,9 +177,16 @@ class MoneyStreamCombinatorsSpec extends AkkaMoneyScope {
 
   val stream = "Stream"
   val stringToString = "StringToString"
+  val fanInOfString = "FanInOfString"
+  val fanOutOfString = "FanOutOfString"
 
-  object TestStreams extends TracedStreamCombinators with AkkaMoney with TracedBuilder with AsyncFlowTracing {
-    override implicit val actorSystem: ActorSystem = _system
+  object TestStreams {
+
+    implicit val moneyExtension: MoneyExtension = MoneyExtension(system)
+
+    import AsyncUnorderedFlowTracing._
+    import StreamTracingDSL._
+    import TracedBuilder._
 
     private val sink = Sink.ignore
 
@@ -140,12 +195,11 @@ class MoneyStreamCombinatorsSpec extends AkkaMoneyScope {
     def simple(implicit fskc: FlowSpanKeyCreator[String] = DefaultFlowSpanKeyCreator[String],
                sskc: SourceSpanKeyCreator[String] = DefaultSourceSpanKeyCreator[String]) =
       RunnableGraph fromGraph {
-        GraphDSL.create(sink) {
-          implicit builder: Builder[Future[Done]] =>
-            sink =>
-              source ~|> Flow[String] ~| sink.in
+        GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] =>
+          sink =>
+            source ~|> Flow[String] ~| sink.in
 
-              ClosedShape
+            ClosedShape
         }
       }
 
@@ -159,32 +213,36 @@ class MoneyStreamCombinatorsSpec extends AkkaMoneyScope {
         }
       }
 
-    def fanOutFanInWithConcat(implicit fisck: FanInSpanKeyCreator[String] = DefaultFanInSpanKeyCreator[String],
-                              fosck: FanOutSpanKeyCreator[String] = DefaultFanOutSpanKeyCreator[String]) =
+    val partitioner: String => Int = {
+      case "chunk" => 0
+      case "funk" => 1
+    }
+
+    def fanOutFanIn(fanInRaw: Either[GraphStage[UniformFanInShape[String, String]], Graph[UniformFanInShape[String, String], NotUsed]] = Right(Concat[String](2)),
+                    fanOutRaw: GraphStage[UniformFanOutShape[String, String]] = Partition[String](2, partitioner))
+                   (implicit fisck: FanInSpanKeyCreator[String] = DefaultFanInSpanKeyCreator[String],
+                    fosck: FanOutSpanKeyCreator[String] = DefaultFanOutSpanKeyCreator[String]) =
+
       RunnableGraph fromGraph {
-        GraphDSL.create(sink) {
-          implicit builder: Builder[Future[Done]] =>
-            sink =>
-              val partitioner =
-                (string: String) =>
-                  string match {
-                    case "chunk" => 0
-                    case "funk" => 1
-                  }
+        GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] =>
+          sink =>
 
-              val partition = builder.tracedAdd(Partition[String](2, partitioner))
+            val fanOut = builder.tracedAdd(fanOutRaw)
 
-              val concat = builder.tracedConcat(Concat[String](2))
+            val fanIn = fanInRaw match {
+              case Right(concat) => builder.tracedConcat(concat)
+              case Left(otherFanIn) => builder.tracedAdd(otherFanIn)
+            }
 
-              Source(List("chunk", "funk")) ~|> partition
+            Source(List("chunk", "funk")) ~|> fanOut
 
-              partition.out(0) ~|> Flow[String] ~<> concat.in(0)
+            fanOut.out(0) ~|> Flow[String] ~<> fanIn.in(0)
 
-              partition.out(1) ~|> Flow[String] ~<> concat.in(1)
+            fanOut.out(1) ~|> Flow[String] ~<> fanIn.in(1)
 
-              concat ~| sink.in
+            fanIn ~| sink.in
 
-              ClosedShape
+            ClosedShape
         }
       }
 
@@ -206,30 +264,29 @@ class MoneyStreamCombinatorsSpec extends AkkaMoneyScope {
     def asyncSimple = asyncStream(builder => Left(Flow[String].mapAsync(3)(stringToFuture(sleeps = (400L, 400L)))))
 
     private def asyncStream(asyncFlowCreator: TracedBuilder => Either[Flow[String, String, _], Flow[TracedString, TracedString, _]])
-                                      (implicit executionContext: ExecutionContext) =
+                           (implicit executionContext: ExecutionContext) =
       RunnableGraph fromGraph {
-        GraphDSL.create(Sink.seq[String]) {
-          implicit builder: Builder[Future[Seq[String]]] =>
-            sink =>
-              val iterator = List("chunk1", "chunk2", "chunk3").iterator
-              asyncFlowCreator(builder) fold (
-                asyncFlow => Source.fromIterator(() => iterator) ~|> asyncFlow ~| sink.in,
-                asyncUnorderedFlow => Source.fromIterator(() => iterator) ~|> asyncUnorderedFlow ~| sink.in
-              )
+        GraphDSL.create(Sink.seq[String]) { implicit builder: Builder[Future[Seq[String]]] =>
+          sink =>
+            val iterator = List("chunk1", "chunk2", "chunk3").iterator
+            asyncFlowCreator(builder) fold(
+              asyncFlow => Source.fromIterator(() => iterator) ~|> asyncFlow ~| sink.in,
+              asyncUnorderedFlow => Source.fromIterator(() => iterator) ~|> asyncUnorderedFlow ~| sink.in
+            )
 
-              ClosedShape
+            ClosedShape
         }
       }
 
     def namedFlow(implicit fskc: FlowSpanKeyCreator[String] = DefaultFlowSpanKeyCreator[String]) =
       RunnableGraph fromGraph {
-        GraphDSL.create(sink) {
-          implicit builder: Builder[Future[Done]] =>
-            sink =>
-              source ~|> Flow[String].addAttributes(Attributes(Attributes.Name("SomeFlowName"))) ~| sink.in
+        GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] =>
+          sink =>
+            source ~|> Flow[String].addAttributes(Attributes(Attributes.Name("SomeFlowName"))) ~| sink.in
 
-              ClosedShape
+            ClosedShape
         }
       }
   }
+
 }
