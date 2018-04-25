@@ -26,7 +26,7 @@ object MoneyBuild extends Build {
     publishLocal := {},
     publish := {}
   )
-  .aggregate(moneyApi, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
+  .aggregate(moneyApi, moneyCore, moneyAkka, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
 
   lazy val moneyApi =
     Project("money-api", file("./money-api"))
@@ -65,7 +65,7 @@ object MoneyBuild extends Build {
     .settings(
       libraryDependencies <++= (scalaVersion) { _: String =>
         Seq(
-          akka,
+          akkaStream,
           akkaHttp,
           akkaHttpTestKit,
           akkaLog,
@@ -307,6 +307,7 @@ object MoneyBuild extends Build {
     val akkaHttpV = "10.1.0"
 
     val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
+    val akkaStream =      "com.typesafe.akka"         %% "akka-stream"                 % akkaV
     val akkaLog =         "com.typesafe.akka"         %% "akka-slf4j"                  % akkaV
     val akkaHttp =        "com.typesafe.akka"         %% "akka-http"                   % akkaHttpV
     val akkaHttpTestKit = "com.typesafe.akka"         %% "akka-http-testkit"           % akkaHttpV % "test"
