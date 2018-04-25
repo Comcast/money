@@ -52,7 +52,7 @@ class MoneyStreamTracingDSLSpec extends AkkaMoneyScope {
 
       TestStreams.fanOutFanIn().run.get()
 
-      maybeCollectingSpanHandler should haveSomeSpanNames(expectedSpanNames)
+      maybeCollectingSpanHandler should haveSomeSpanNamesInNoParticularOrder(expectedSpanNames)
     }
 
     "built with a fan out and fan in of a type accepted by TraceBuilder should create completed spans" in {

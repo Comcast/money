@@ -65,7 +65,6 @@ object MoneyBuild extends Build {
     .settings(
       libraryDependencies <++= (scalaVersion) { _: String =>
         Seq(
-          akka,
           akkaStreams,
           akkaHttp,
           akkaHttpTestKit,
