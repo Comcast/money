@@ -33,6 +33,9 @@ import scala.util.{ Failure, Success }
 class TraceFilter extends Filter {
 
   private val MoneyTraceHeader = "X-MoneyTrace"
+  private val B3TraceId = "X-B3-TraceId"
+  private val B3SpanId = "X-B3-SpanId"
+  private val B3ParentSpanId = "X-B3-ParentSpanId"
   private val logger = LoggerFactory.getLogger(classOf[TraceFilter])
   private val factory = Money.Environment.factory
 
@@ -40,27 +43,57 @@ class TraceFilter extends Filter {
 
   override def destroy(): Unit = {}
 
+  private val spanName = "servlet"
+
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = {
 
     SpanLocal.clear()
     val httpRequest = new HttpServletRequestWrapper(request.asInstanceOf[HttpServletRequest])
-    val incomingTraceId = Option(httpRequest.getHeader(MoneyTraceHeader)) map { incTrcaceId =>
+
+    val maybeMoney = Option(httpRequest.getHeader(MoneyTraceHeader))
+
+    val moneyHeaderVal = maybeMoney map { headerValue =>
       // attempt to parse the incoming trace id (its a Try)
-      fromHttpHeader(incTrcaceId) match {
-        case Success(spanId) => SpanLocal.push(factory.newSpan(spanId, "servlet"))
-        case Failure(ex) => logger.warn("Unable to parse money trace for request header '{}'", incTrcaceId)
+      fromHttpHeader(headerValue) match {
+        case Success(spanId) => SpanLocal.push(factory.newSpan(spanId, spanName))
+        case Failure(ex) => logger.warn("Unable to parse money trace for request header '{}'", headerValue)
       }
-      incTrcaceId
+      headerValue
     }
 
-    incomingTraceId.foreach { traceId =>
+    moneyHeaderVal.foreach { headerValue =>
       response match {
         case http: HttpServletResponse =>
-          http.addHeader(MoneyTraceHeader, traceId)
+          http.addHeader(MoneyTraceHeader, headerValue)
         case _ =>
           logger.warn("Unable to set money trace header on response, response type is not an HttpServletResponse ")
       }
     }
+
+    val maybeB3TraceId = if (maybeMoney.isEmpty) Option(httpRequest.getHeader(B3TraceId)) else None
+
+    maybeB3TraceId.foreach(traceIdVal => {
+      val maybeParentSpanId = Option(httpRequest.getHeader(B3ParentSpanId))
+      val maybeSpanId = Option(httpRequest.getHeader(B3SpanId))
+
+      fromB3HttpHeaders(traceIdVal, maybeParentSpanId, maybeSpanId) match {
+        case Success(spanId) => SpanLocal.push(factory.newSpan(spanId, spanName))
+        case Failure(ex) => logger.warn(s"Unable to parse X-B3 trace for request headers " +
+          s"${B3TraceId}:'${traceIdVal}', " +
+          s"${B3ParentSpanId}:'${maybeParentSpanId.getOrElse("Nonepcp received")}', " +
+          s"${B3SpanId}:'${maybeSpanId.getOrElse("None received")}'")
+      }
+
+      response match {
+        case http: HttpServletResponse =>
+          http.addHeader(B3TraceId, traceIdVal)
+          maybeParentSpanId.foreach(ps => http.addHeader(B3ParentSpanId, ps))
+          maybeSpanId.foreach(s => http.addHeader(B3SpanId, s))
+        case _ =>
+          logger.warn("Unable to set X-B3 trace headers on response, response type is not an HttpServletResponse ")
+      }
+
+    })
 
     chain.doFilter(request, response)
   }
