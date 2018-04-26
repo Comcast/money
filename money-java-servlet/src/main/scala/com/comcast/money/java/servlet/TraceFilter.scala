@@ -78,10 +78,11 @@ class TraceFilter extends Filter {
 
       fromB3HttpHeaders(traceIdVal, maybeParentSpanId, maybeSpanId) match {
         case Success(spanId) => SpanLocal.push(factory.newSpan(spanId, spanName))
-        case Failure(ex) => logger.warn(s"Unable to parse X-B3 trace for request headers " +
+        case Failure(ex) => logger.warn(s"Unable to parse X-B3 trace for request headers: " +
           s"${B3TraceId}:'${traceIdVal}', " +
-          s"${B3ParentSpanId}:'${maybeParentSpanId.getOrElse("Nonepcp received")}', " +
-          s"${B3SpanId}:'${maybeSpanId.getOrElse("None received")}'")
+          s"${B3ParentSpanId}:'${maybeParentSpanId.getOrElse("None received")}', " +
+          s"${B3SpanId}:'${maybeSpanId.getOrElse("None received")}'") +
+          s"${ex.getMessage}"
       }
 
       response match {

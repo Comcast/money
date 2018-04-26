@@ -22,11 +22,35 @@ import org.scalatest.{ Matchers, WordSpec }
 class FormattersSpec extends WordSpec with Matchers {
 
   "Http Formatting" should {
-    "convert from an http header" in {
+    "convert from a money  http header" in {
       val spanId = new SpanId()
       val test = Formatters.toHttpHeader(spanId)
 
       Formatters.fromHttpHeader(test).get shouldBe spanId
     }
+
+    "convert from all X-B3  http headers" in {
+      val expectedSpanId = new SpanId("a"*32,Long.MaxValue,Long.MinValue)
+
+      val actualSpanId = Formatters.fromB3HttpHeaders(expectedSpanId.traceId, Option(expectedSpanId.parentId().toString),Option(expectedSpanId.selfId().toString)).get
+      actualSpanId shouldBe expectedSpanId
+    }
+
+
+    "convert from 2 X-B3  http headers" in {
+
+      val actualSpanId = Formatters.fromB3HttpHeaders("a", Option("1"), None).get
+      actualSpanId.traceId shouldBe "a"
+      actualSpanId.parentId shouldBe 1L
+    }
+
+    "convert from 1 X-B3  http header" in {
+      val spanId = new SpanId("a",1,2)
+
+      val actualSpanId = Formatters.fromB3HttpHeaders("a",None, None).get
+      actualSpanId.traceId shouldBe "a"
+    }
   }
+
+
 }

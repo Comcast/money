@@ -38,8 +38,8 @@ object Formatters {
 
   def fromB3HttpHeaders(traceId: String, maybeParentSpanId: Option[String], maybeSpanId: Option[String]) = Try {
     (maybeParentSpanId, maybeSpanId) match {
-      case (Some(ps), Some(s)) => new SpanId(traceId, ps.toInt, s.toInt)
-      case (Some(ps), _) => new SpanId(traceId, ps.toInt)
+      case (Some(ps), Some(s)) => new SpanId(traceId, ps.toLong, s.toLong)
+      case (Some(ps), _) => new SpanId(traceId, ps.toLong)
       case _ => new SpanId(traceId)
     }
   }
