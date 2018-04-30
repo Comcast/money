@@ -67,13 +67,11 @@ object TracedBuilder {
       }
     }
 
-    def tracedAdd[T](fanInShape: GraphStage[UniformFanInShape[T, T]]): UniformFanInShape[(T, SpanContextWithStack), (T, SpanContextWithStack)] = {
+    def tracedAdd[T](fanIn: GraphStage[UniformFanInShape[T, T]]): UniformFanInShape[(T, SpanContextWithStack), (T, SpanContextWithStack)] = {
       type TracedT = (T, SpanContextWithStack)
 
-      fanInShape match {
+      fanIn match {
         case merge: Merge[T] => builder add Merge[TracedT](merge.inputPorts, merge.eagerComplete)
-
-        case interleave: Interleave[T] => builder add Interleave[TracedT](interleave.inputPorts, interleave.segmentSize, interleave.eagerClose)
 
         case mergePrioritised: MergePrioritized[T] => builder add MergePrioritized[TracedT](mergePrioritised.priorities, mergePrioritised.eagerComplete)
 
@@ -86,18 +84,35 @@ object TracedBuilder {
     }
 
     /**
-     * Takes a [[UniformFanInShape]] and creates a [[Concat]] from it
+      * creates a [[Interleave]] and adds it to the builder
+      *
+      * NB this is an edge case due to the fact that [[Interleave.apply]] creates
+      * a [[ Graph[UniformFanInShape] ]] not a [[Interleave]]
+      *
+      * @param inputPorts number of inlets
+      * @param segmentSize number of elements to send downstream before switching to next input port
+      * @param eagerClose if true, interleave completes upstream if any of its upstream completes.
+      * @tparam T type of underlying stream elements
+      * @return UniformFanInShape[(T, SpanContextWithStack), (T, SpanContextWithStack)]
+      */
+
+    def tracedInterleave[T](inputPorts: Int,
+                            segmentSize: Int,
+                            eagerClose: Boolean = false) =
+      builder add Interleave[(T, SpanContextWithStack)](inputPorts, segmentSize, eagerClose)
+
+    /**
+     * creates a [[Concat]] and adds it to the builder
      *
      * NB this is an edge case due to the fact that [[Concat.apply]] creates
      * a [[ Graph[UniformFanInShape] ]] not a Concat
      *
-     * @param concat a Concat to be traced and added to the builder
+     * @param inputPorts number of inlets
      * @tparam T type of underlying stream elements
      * @return UniformFanInShape[(T, SpanContextWithStack), (T, SpanContextWithStack)]
      */
 
-    def tracedConcat[T](concat: Graph[UniformFanInShape[T, T], _]) =
-      builder.add(Concat[(T, SpanContextWithStack)](concat.shape.n))
+    def tracedConcat[T](inputPorts: Int = 2) = builder add Concat[(T, SpanContextWithStack)](inputPorts)
   }
 
 }

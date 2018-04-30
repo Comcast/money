@@ -42,6 +42,8 @@ abstract class AkkaMoneyScope(val _system: ActorSystem) extends TestKit(_system)
     ActorSystem("MoneyAkkaScope", ConfigFactory.parseString(configString))
   }
 
+  implicit val moneyExtension: MoneyExtension = MoneyExtension(system)
+
   implicit val matierializer: ActorMaterializer = ActorMaterializer()
 
   def maybeCollectingSpanHandler = maybeHandlerChain.map(_.asInstanceOf[CollectingSpanHandler])

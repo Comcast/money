@@ -23,7 +23,7 @@ import com.comcast.money.akka.{ AkkaMoneyScope, MoneyExtension, SpanContextWithS
 import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka.stream.{ TracedFlow, TracedFlowLogic }
 
-class MoneyFlowSpec extends AkkaMoneyScope {
+class TracedFlowSpec extends AkkaMoneyScope {
 
   "MoneyExtension should pass a span through an Akka Stream" in {
     implicit val moneyExtension: MoneyExtension = MoneyExtension(system)

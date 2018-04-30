@@ -67,7 +67,7 @@ object StreamTracingDSL {
      * Example:
      *
      * {{{
-     * Source(1 to 3) ~|> Flow[(Int, SpanContextWithStack)].in
+     * Source(1 to 3) ~|> Flow[Int] ~|> Flow[(Int, SpanContextWithStack)].shape.in
      * }}}
      *
      * @param inlet Traced [[Inlet]] that needs a span to be started for it
@@ -75,12 +75,12 @@ object StreamTracingDSL {
      * @tparam T is covariant on [[TracedIn]] ie it must be of type (In, SpanContextWithStack) or a supertype of the [[Inlet]]
      */
 
-    def ~|>[T >: TracedIn : ClassTag](inlet: Inlet[T])
-                                     (implicit iskc: InletSpanKeyCreator[T] = DefaultInletSpanKeyCreator[T]): Unit =
+    def ~|>[T >: In : ClassTag](inlet: Inlet[(T, SpanContextWithStack)])
+                               (implicit iskc: InletSpanKeyCreator[T] = DefaultInletSpanKeyCreator[T]): Unit =
       startSpanForTracedInlet(inlet)
 
-    private def startSpanForTracedInlet[T >: TracedIn : ClassTag](inlet: Inlet[T])
-                                                                 (implicit iskc: InletSpanKeyCreator[T]): Unit =
+    private def startSpanForTracedInlet[T >: In : ClassTag](inlet: Inlet[(T, SpanContextWithStack)])
+                                                           (implicit iskc: InletSpanKeyCreator[T]): Unit =
       portOps ~> startSpanFlow[In](iskc.inletToKey(inlet)) ~> inlet
 
     /**
@@ -127,23 +127,6 @@ object StreamTracingDSL {
     def ~|[T >: In](inlet: Inlet[T]): Unit = completeTracing(inlet)
 
     private def completeTracing[T >: In](inlet: Inlet[T]): Unit = portOps ~> closeAllSpans[In] ~> inlet
-
-    /**
-     * Completes all the Spans in the SpanContextWithStack this ends the tracing of the stream
-     *
-     * Example:
-     *
-     * {{{
-     * Source(List("chunk")) ~|> Flow[String] ~| Sink.ignore[String]
-     * }}}
-     *
-     * @param sink the sink that you wish to complete the stream with
-     * @tparam T must be covariant on [[In]] ie must either be a supertype or the type of the output of the stream
-     */
-
-    def ~|[T >: In](sink: Sink[T, _]): Unit = completeTracing(sink)
-
-    private def completeTracing[T >: In](sink: Sink[T, _]): Unit = portOps ~> closeAllSpans[In] ~> sink
 
     /**
      * Completes all the remaining spans and allows the stream to continue with regular Akka combinators

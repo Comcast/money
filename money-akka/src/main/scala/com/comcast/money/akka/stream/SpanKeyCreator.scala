@@ -143,13 +143,13 @@ object SourceSpanKeyCreator {
  */
 
 trait InletSpanKeyCreator[In] extends SpanKeyCreator {
-  def inletToKey(inlet: Inlet[In])(implicit evIn: ClassTag[In]): String
+  def inletToKey(inlet: Inlet[(In, SpanContextWithStack)])(implicit evIn: ClassTag[In]): String
 }
 
 object InletSpanKeyCreator {
-  def apply[In](toKey: Inlet[In] => String): InletSpanKeyCreator[In] =
+  def apply[In](toKey: Inlet[(In, SpanContextWithStack)] => String): InletSpanKeyCreator[In] =
     new InletSpanKeyCreator[In] {
-      override def inletToKey(inlet: Inlet[In])(implicit evIn: ClassTag[In]): String = toKey(inlet)
+      override def inletToKey(inlet: Inlet[(In, SpanContextWithStack)])(implicit evIn: ClassTag[In]): String = toKey(inlet)
     }
 }
 
@@ -160,7 +160,7 @@ object InletSpanKeyCreator {
  * without having to define a implicit [[SpanKeyCreator]] for each [[akka.stream.Shape]] type used in the end users stream
  */
 
-private[stream] object DefaultSpanKeyCreators {
+private[akka] object DefaultSpanKeyCreators {
 
   /**
    * Returns a string to name the Span
@@ -174,7 +174,7 @@ private[stream] object DefaultSpanKeyCreators {
   object DefaultInletSpanKeyCreator {
     def apply[In]: InletSpanKeyCreator[In] =
       new InletSpanKeyCreator[In] {
-        override def inletToKey(inlet: Inlet[In])(implicit evIn: ClassTag[In]): String = s"InletOf${nameOfType[In]}"
+        override def inletToKey(inlet: Inlet[(In, SpanContextWithStack)])(implicit evIn: ClassTag[In]): String = s"InletOf${nameOfType[In]}"
       }
   }
 
