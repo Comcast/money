@@ -96,11 +96,7 @@ object TracedBuilder {
      * @return UniformFanInShape[(T, SpanContextWithStack), (T, SpanContextWithStack)]
      */
 
-    def tracedInterleave[T](
-      inputPorts: Int,
-      segmentSize: Int,
-      eagerClose: Boolean = false
-    ) =
+    def tracedInterleave[T](inputPorts: Int, segmentSize: Int, eagerClose: Boolean = false) =
       builder add Interleave[(T, SpanContextWithStack)](inputPorts, segmentSize, eagerClose)
 
     /**
