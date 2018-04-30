@@ -18,11 +18,11 @@ package com.comcast.money.akka.stream
 
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
-import akka.stream.scaladsl.{Flow, GraphDSL, Sink, Source, Unzip, Zip}
+import akka.stream.scaladsl.{ Flow, GraphDSL, Sink, Source, Unzip, Zip }
 import com.comcast.money.akka.stream.DefaultSpanKeyCreators.DefaultFlowSpanKeyCreator
-import com.comcast.money.akka.{MoneyExtension, SpanContextWithStack}
+import com.comcast.money.akka.{ MoneyExtension, SpanContextWithStack }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.reflect.ClassTag
 
 /**
@@ -35,10 +35,10 @@ object StreamTracingDSL {
   import DefaultSpanKeyCreators._
   import akka.stream.scaladsl.GraphDSL.Implicits._
 
-  implicit class PortOpsSpanInjector[In: ClassTag](portOps: PortOps[(In, SpanContextWithStack)])
-                                                  (implicit builder: Builder[_],
-                                                   moneyExtension: MoneyExtension,
-                                                   fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
+  implicit class PortOpsSpanInjector[In: ClassTag](portOps: PortOps[(In, SpanContextWithStack)])(implicit
+    builder: Builder[_],
+      moneyExtension: MoneyExtension,
+      fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
     type TracedIn = (In, SpanContextWithStack)
 
     /**
@@ -75,12 +75,10 @@ object StreamTracingDSL {
      * @tparam T is covariant on [[TracedIn]] ie it must be of type (In, SpanContextWithStack) or a supertype of the [[Inlet]]
      */
 
-    def ~|>[T >: In : ClassTag](inlet: Inlet[(T, SpanContextWithStack)])
-                               (implicit iskc: InletSpanKeyCreator[T] = DefaultInletSpanKeyCreator[T]): Unit =
+    def ~|>[T >: In: ClassTag](inlet: Inlet[(T, SpanContextWithStack)])(implicit iskc: InletSpanKeyCreator[T] = DefaultInletSpanKeyCreator[T]): Unit =
       startSpanForTracedInlet(inlet)
 
-    private def startSpanForTracedInlet[T >: In : ClassTag](inlet: Inlet[(T, SpanContextWithStack)])
-                                                           (implicit iskc: InletSpanKeyCreator[T]): Unit =
+    private def startSpanForTracedInlet[T >: In: ClassTag](inlet: Inlet[(T, SpanContextWithStack)])(implicit iskc: InletSpanKeyCreator[T]): Unit =
       portOps ~> startSpanFlow[In](iskc.inletToKey(inlet)) ~> inlet
 
     /**
@@ -103,12 +101,10 @@ object StreamTracingDSL {
      * @tparam T is covariant on [[TracedIn]] ie it must be of type (In, SpanContextWithStack) or a supertype of the Inlet
      */
 
-    def ~<>[T >: In : ClassTag](inlet: Inlet[(T, SpanContextWithStack)])
-                               (implicit fisck: FanInSpanKeyCreator[T] = DefaultFanInSpanKeyCreator[T]): Unit =
+    def ~<>[T >: In: ClassTag](inlet: Inlet[(T, SpanContextWithStack)])(implicit fisck: FanInSpanKeyCreator[T] = DefaultFanInSpanKeyCreator[T]): Unit =
       startSpanForTracedFanInInlet(inlet)
 
-    private def startSpanForTracedFanInInlet[T >: In : ClassTag](inlet: Inlet[(T, SpanContextWithStack)])
-                                                                (implicit fisck: FanInSpanKeyCreator[T]): Unit =
+    private def startSpanForTracedFanInInlet[T >: In: ClassTag](inlet: Inlet[(T, SpanContextWithStack)])(implicit fisck: FanInSpanKeyCreator[T]): Unit =
       portOps ~> startSpanFlow[In](fisck.fanInInletToKey(inlet)) ~> inlet
 
     /**
@@ -154,16 +150,18 @@ object StreamTracingDSL {
 
     def ~|~[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[Out] = completeTracingAndContinueStream(portOps, flow)
 
-    private def completeTracingAndContinueStream[Out: ClassTag](portOps: PortOps[TracedIn],
-                                                                flow: Flow[In, Out, _]): PortOps[Out] =
+    private def completeTracingAndContinueStream[Out: ClassTag](
+      portOps: PortOps[TracedIn],
+      flow: Flow[In, Out, _]
+    ): PortOps[Out] =
       injectSpanInFlow(portOps, flow) ~> closeAllSpans[Out]
   }
 
-  implicit class SourceSpanInjector[In: ClassTag](source: Source[In, _])
-                                                 (implicit builder: Builder[_],
-                                                  moneyExtension: MoneyExtension,
-                                                  sskc: SourceSpanKeyCreator[In] = DefaultSourceSpanKeyCreator[In],
-                                                  fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
+  implicit class SourceSpanInjector[In: ClassTag](source: Source[In, _])(implicit
+    builder: Builder[_],
+      moneyExtension: MoneyExtension,
+      sskc: SourceSpanKeyCreator[In] = DefaultSourceSpanKeyCreator[In],
+      fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
     type TracedIn = (In, SpanContextWithStack)
 
     /**
@@ -220,12 +218,10 @@ object StreamTracingDSL {
      * @param foskc  implicit [[FanOutSpanKeyCreator]] to provide a key for the started Span
      */
 
-    def ~|>(fanOut: UniformFanOutShape[TracedIn, TracedIn])
-           (implicit foskc: FanOutSpanKeyCreator[In] = DefaultFanOutSpanKeyCreator[In]): Unit =
+    def ~|>(fanOut: UniformFanOutShape[TracedIn, TracedIn])(implicit foskc: FanOutSpanKeyCreator[In] = DefaultFanOutSpanKeyCreator[In]): Unit =
       sourceViaTracedFanOut(fanOut)
 
-    private def sourceViaTracedFanOut(fanOut: UniformFanOutShape[TracedIn, TracedIn])
-                                     (implicit foskc: FanOutSpanKeyCreator[In]) =
+    private def sourceViaTracedFanOut(fanOut: UniformFanOutShape[TracedIn, TracedIn])(implicit foskc: FanOutSpanKeyCreator[In]) =
       startSpanContext.outlet ~> startSpanFlow[In](foskc.fanOutToKey(fanOut)) ~> fanOut.in
 
     /**
@@ -245,8 +241,7 @@ object StreamTracingDSL {
       }
   }
 
-  implicit class OutletSpanInjector[In: ClassTag](outlet: Outlet[(In, SpanContextWithStack)])
-                                                 (implicit builder: Builder[_]) {
+  implicit class OutletSpanInjector[In: ClassTag](outlet: Outlet[(In, SpanContextWithStack)])(implicit builder: Builder[_]) {
     /**
      * Connects an [[Outlet]] to a [[Flow]]. Injects the SpanContextWithStack in to the Flow and
      * starts and stops a Span for the Flow
@@ -261,20 +256,38 @@ object StreamTracingDSL {
      * @return PortOps[(Out, SpanContextWithStack)]
      */
 
-    def ~|>[Out: ClassTag](flow: Flow[In, Out, _])
-                          (implicit fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In],
-                           moneyExtension: MoneyExtension): PortOps[(Out, SpanContextWithStack)] =
+    def ~|>[Out: ClassTag](flow: Flow[In, Out, _])(implicit
+      fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In],
+      moneyExtension: MoneyExtension): PortOps[(Out, SpanContextWithStack)] =
       outletViaSpanInjectedFlow(flow)
 
-    private def outletViaSpanInjectedFlow[Out: ClassTag](flow: Flow[In, Out, _])
-                                                        (implicit flowSpanKeyCreator: FlowSpanKeyCreator[In],
-                                                         moneyExtension: MoneyExtension) =
+    private def outletViaSpanInjectedFlow[Out: ClassTag](flow: Flow[In, Out, _])(implicit
+      flowSpanKeyCreator: FlowSpanKeyCreator[In],
+      moneyExtension: MoneyExtension) =
       outlet ~> closeSpanFlow[In] ~> injectSpan[In, Out](flow) ~> closeSpanFlow[Out]
+
+    /**
+      * Completes all the Spans in the SpanContextWithStack this ends the tracing of the stream
+      *
+      * Example:
+      *
+      * {{{
+      * Source(List("chunk")) ~|> Flow[String] ~| Flow[String].in
+      * }}}
+      *
+      * @param inlet the inlet of the stream shape that you wish to end the stream with
+      * @tparam T must be covariant on [[In]] ie must either be a supertype or the type of the output of the stream
+      */
+
+    def ~|[T >: In](inlet: Inlet[T])(implicit moneyExtension: MoneyExtension): Unit = completeTracing(inlet)
+
+    private def completeTracing[T >: In](inlet: Inlet[T])(implicit moneyExtension: MoneyExtension): Unit =
+      outlet ~> closeAllSpans[In] ~> inlet
   }
 
-  implicit class UniformFanInConnector[T: ClassTag](fanIn: UniformFanInShape[(T, SpanContextWithStack), (T, SpanContextWithStack)])
-                                                   (implicit builder: Builder[_],
-                                                    moneyExtension: MoneyExtension) {
+  implicit class UniformFanInConnector[T: ClassTag](fanIn: UniformFanInShape[(T, SpanContextWithStack), (T, SpanContextWithStack)])(implicit
+    builder: Builder[_],
+      moneyExtension: MoneyExtension) {
     /**
      * Completes the tracing of the stream
      *
@@ -289,8 +302,7 @@ object StreamTracingDSL {
 
     def ~|[Out >: T](inlet: Inlet[Out]): Unit = completeTracing(inlet)
 
-    private def completeTracing[Out >: T](inlet: Inlet[Out])
-                                         (implicit moneyExtension: MoneyExtension) =
+    private def completeTracing[Out >: T](inlet: Inlet[Out])(implicit moneyExtension: MoneyExtension) =
       fanIn.out ~> closeAllSpans[Out] ~> inlet
   }
 
@@ -310,11 +322,13 @@ object StreamTracingDSL {
    * @return PortOps[(Out, SpanContextWithStack)]
    */
 
-  private def injectSpanInFlow[In: ClassTag, Out: ClassTag](portOps: PortOps[(In, SpanContextWithStack)],
-                                                    flow: Flow[In, Out, _])
-                                                   (implicit builder: Builder[_],
-                                                    moneyExtension: MoneyExtension,
-                                                    fskc: FlowSpanKeyCreator[In]): PortOps[(Out, SpanContextWithStack)] =
+  private def injectSpanInFlow[In: ClassTag, Out: ClassTag](
+    portOps: PortOps[(In, SpanContextWithStack)],
+    flow: Flow[In, Out, _]
+  )(implicit
+    builder: Builder[_],
+    moneyExtension: MoneyExtension,
+    fskc: FlowSpanKeyCreator[In]): PortOps[(Out, SpanContextWithStack)] =
     portOps ~> injectSpan(flow) ~> closeSpanFlow[Out]
 
   /**
@@ -336,10 +350,10 @@ object StreamTracingDSL {
    * @return Flow[(In, SpanContextWithStack), (Out, SpanContextWithStack), _]
    */
 
-  private def injectSpan[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])
-                                             (implicit builder: Builder[_],
-                                              moneyExtension: MoneyExtension,
-                                              fskc: FlowSpanKeyCreator[In]) =
+  private def injectSpan[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])(implicit
+    builder: Builder[_],
+    moneyExtension: MoneyExtension,
+    fskc: FlowSpanKeyCreator[In]) =
     Flow fromGraph {
       GraphDSL.create() {
         implicit builder: Builder[_] =>
@@ -355,7 +369,7 @@ object StreamTracingDSL {
           spanFlowShape.out ~> unZip.in
 
           unZip.out0 ~> flowShape ~> zip.in0
-          unZip.out1       ~>        zip.in1
+          unZip.out1 ~> zip.in1
           FlowShape(spanFlowShape.in, zip.out)
       }
     } withAttributes flow.traversalBuilder.attributes
@@ -369,8 +383,7 @@ object StreamTracingDSL {
    * @return Flow[(T, SpanContextWithStack), (T, SpanContextWithStack), _]
    */
 
-  private def startSpanFlow[T: ClassTag](key: String)
-                                (implicit builder: Builder[_], moneyExtension: MoneyExtension): Flow[(T, SpanContextWithStack), (T, SpanContextWithStack), _] =
+  private def startSpanFlow[T: ClassTag](key: String)(implicit builder: Builder[_], moneyExtension: MoneyExtension): Flow[(T, SpanContextWithStack), (T, SpanContextWithStack), _] =
     Flow[(T, SpanContextWithStack)].map {
       case (input, spanContext) =>
         moneyExtension.tracer(spanContext).startSpan(key)
@@ -418,10 +431,10 @@ object StreamTracingDSL {
 
 object AsyncUnorderedFlowTracing {
 
-  implicit class TracedFlowOps[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])
-                                                           (implicit moneyExtension: MoneyExtension,
-                                                            executionContext: ExecutionContext,
-                                                            fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
+  implicit class TracedFlowOps[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])(implicit
+    moneyExtension: MoneyExtension,
+      executionContext: ExecutionContext,
+      fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
     type TracedIn = (In, SpanContextWithStack)
     type TracedOut = (Out, SpanContextWithStack)
 

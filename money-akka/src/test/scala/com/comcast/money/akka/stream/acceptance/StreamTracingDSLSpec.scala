@@ -17,7 +17,7 @@
 package com.comcast.money.akka.stream.acceptance
 
 import akka.stream._
-import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.scaladsl.{ Flow, Sink, Source }
 import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka._
 import com.comcast.money.akka.stream._

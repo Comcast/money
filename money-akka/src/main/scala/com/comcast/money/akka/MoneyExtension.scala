@@ -16,26 +16,26 @@
 
 package com.comcast.money.akka
 
-import akka.actor.{ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider}
-import com.comcast.money.api.{SpanFactory, SpanHandler}
+import akka.actor.{ ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
+import com.comcast.money.api.{ SpanFactory, SpanHandler }
 import com.comcast.money.core.internal.SpanContext
-import com.comcast.money.core.{Money, Tracer}
-import com.typesafe.config.{Config, ConfigValueFactory}
+import com.comcast.money.core.{ Money, Tracer }
+import com.typesafe.config.{ Config, ConfigValueFactory }
 
 /**
-  * Contructs a new [[MoneyExtension]] from config and attaches it to the current [[ActorSystem]]
-  *
-  */
+ * Contructs a new [[MoneyExtension]] from config and attaches it to the current [[ActorSystem]]
+ *
+ */
 
 object MoneyExtension extends ExtensionId[MoneyExtension] with ExtensionIdProvider {
 
   /**
-    * Creates instance of [[Money]] from rewritten config
-    * MDC must be removed as it is not supported in an [[ActorSystem]]
-    *
-    * @param config Typesafe config to be rewritten and passed to Money
-    * @return Money
-    */
+   * Creates instance of [[Money]] from rewritten config
+   * MDC must be removed as it is not supported in an [[ActorSystem]]
+   *
+   * @param config Typesafe config to be rewritten and passed to Money
+   * @return Money
+   */
 
   private def toMoney(config: Config): Money =
     Money(
@@ -46,19 +46,19 @@ object MoneyExtension extends ExtensionId[MoneyExtension] with ExtensionIdProvid
     )
 
   /**
-    * Configures and loads the extension when the ActorSystem starts
-    * required by [[ExtensionIdProvider]] which needs the "canonical reference to the extension"
-    *
-    * @return MoneyExtension
-    */
+   * Configures and loads the extension when the ActorSystem starts
+   * required by [[ExtensionIdProvider]] which needs the "canonical reference to the extension"
+   *
+   * @return MoneyExtension
+   */
   override def lookup = MoneyExtension
 
   /**
-    * Creates an instance of the [[MoneyExtension]] from config
-    *
-    * @param system the [[ExtendedActorSystem]] the [[MoneyExtension]] is to be attached to
-    * @return MoneyExtension
-    */
+   * Creates an instance of the [[MoneyExtension]] from config
+   *
+   * @param system the [[ExtendedActorSystem]] the [[MoneyExtension]] is to be attached to
+   * @return MoneyExtension
+   */
   override def createExtension(system: ExtendedActorSystem): MoneyExtension = {
     val config = system.settings.config.getConfig("money")
     val money: Money = toMoney(config)
@@ -67,10 +67,10 @@ object MoneyExtension extends ExtensionId[MoneyExtension] with ExtensionIdProvid
       new MoneyExtension(
         money = money,
         traceFunction = (context: SpanContext) => new Tracer {
-          override val spanFactory: SpanFactory = money.factory
+        override val spanFactory: SpanFactory = money.factory
 
-          override val spanContext: SpanContext = context
-        }
+        override val spanContext: SpanContext = context
+      }
       )
 
     else
@@ -81,21 +81,21 @@ object MoneyExtension extends ExtensionId[MoneyExtension] with ExtensionIdProvid
   }
 
   /**
-    * Returns the current instance of the [[MoneyExtension]]
-    *
-    * @param system the [[ActorSystem]] the [[MoneyExtension]] is attached to
-    * @return MoneyExtension
-    */
+   * Returns the current instance of the [[MoneyExtension]]
+   *
+   * @param system the [[ActorSystem]] the [[MoneyExtension]] is attached to
+   * @return MoneyExtension
+   */
   override def get(system: ActorSystem): MoneyExtension = super.get(system)
 }
 
 /**
-  * [[Extension]] to the [[ActorSystem]] to allow [[Money]] to attach to the ActorSystem.
-  * The MoneyExtension is visible to any user of the ActorSystem.
-  *
-  * @param money         instance of Money to be attached to the [[ActorSystem]]
-  * @param traceFunction the function used to construct a [[Tracer]]
-  */
+ * [[Extension]] to the [[ActorSystem]] to allow [[Money]] to attach to the ActorSystem.
+ * The MoneyExtension is visible to any user of the ActorSystem.
+ *
+ * @param money         instance of Money to be attached to the [[ActorSystem]]
+ * @param traceFunction the function used to construct a [[Tracer]]
+ */
 
 class MoneyExtension(money: Money, traceFunction: SpanContext => Tracer) extends Extension {
   val applicationName: String = money.applicationName

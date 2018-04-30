@@ -84,21 +84,23 @@ object TracedBuilder {
     }
 
     /**
-      * creates a [[Interleave]] and adds it to the builder
-      *
-      * NB this is an edge case due to the fact that [[Interleave.apply]] creates
-      * a [[ Graph[UniformFanInShape] ]] not a [[Interleave]]
-      *
-      * @param inputPorts number of inlets
-      * @param segmentSize number of elements to send downstream before switching to next input port
-      * @param eagerClose if true, interleave completes upstream if any of its upstream completes.
-      * @tparam T type of underlying stream elements
-      * @return UniformFanInShape[(T, SpanContextWithStack), (T, SpanContextWithStack)]
-      */
+     * creates a [[Interleave]] and adds it to the builder
+     *
+     * NB this is an edge case due to the fact that [[Interleave.apply]] creates
+     * a [[ Graph[UniformFanInShape] ]] not a [[Interleave]]
+     *
+     * @param inputPorts number of inlets
+     * @param segmentSize number of elements to send downstream before switching to next input port
+     * @param eagerClose if true, interleave completes upstream if any of its upstream completes.
+     * @tparam T type of underlying stream elements
+     * @return UniformFanInShape[(T, SpanContextWithStack), (T, SpanContextWithStack)]
+     */
 
-    def tracedInterleave[T](inputPorts: Int,
-                            segmentSize: Int,
-                            eagerClose: Boolean = false) =
+    def tracedInterleave[T](
+      inputPorts: Int,
+      segmentSize: Int,
+      eagerClose: Boolean = false
+    ) =
       builder add Interleave[(T, SpanContextWithStack)](inputPorts, segmentSize, eagerClose)
 
     /**
