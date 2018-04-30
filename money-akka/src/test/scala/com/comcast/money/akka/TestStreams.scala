@@ -23,7 +23,7 @@ import akka.stream.scaladsl.GraphDSL.Implicits.PortOps
 import akka.stream.scaladsl.{Flow, GraphDSL, Partition, RunnableGraph, Sink, Source}
 import akka.stream.stage.GraphStage
 import com.comcast.money.akka.stream.AsyncUnorderedFlowTracing.TracedFlowOps
-import com.comcast.money.akka.stream.DefaultSpanKeyCreators.{DefaultFanInSpanKeyCreator, DefaultFanOutSpanKeyCreator, DefaultFlowSpanKeyCreator, DefaultSourceSpanKeyCreator}
+import com.comcast.money.akka.stream.DefaultSpanKeyCreators._
 import com.comcast.money.akka.stream._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -58,7 +58,7 @@ class TestStreams(implicit moneyExtension: MoneyExtension) {
       }
     }
 
-  def simpleWithInlets =
+  def simpleWithInlets(implicit inletSpanKeyCreator: InletSpanKeyCreator[String] = DefaultInletSpanKeyCreator[String]) =
     RunnableGraph fromGraph {
       GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] =>
         sink =>

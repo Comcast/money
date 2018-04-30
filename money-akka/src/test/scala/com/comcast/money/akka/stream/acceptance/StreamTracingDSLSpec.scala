@@ -131,6 +131,15 @@ class StreamTracingDSLSpec extends AkkaMoneyScope {
         maybeCollectingSpanHandler should haveSomeSpanNamesInNoParticularOrder(expectedSpanNames)
       }
 
+      "name a Inlet" in {
+        val someInlet = "SomeInlet"
+        implicit val inletSKC = InletSpanKeyCreator[String]((_: Inlet[_]) => someInlet)
+
+        testStreams.simpleWithInlets.run.get()
+
+        maybeCollectingSpanHandler should haveSomeSpanNames(Seq(stream, someInlet, stringToString))
+      }
+
       "name Stream Shapes by the type if there are multiple implicit names for a type of Stream Shape" in {
         val overidingFlow = "OveridingFlow"
         val someStream = "SomeStream"
