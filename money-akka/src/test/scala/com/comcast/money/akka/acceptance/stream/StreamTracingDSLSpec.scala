@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.comcast.money.akka.stream.acceptance
+package com.comcast.money.akka.acceptance.stream
 
 import akka.stream._
 import akka.stream.scaladsl.{ Flow, Sink, Source }
