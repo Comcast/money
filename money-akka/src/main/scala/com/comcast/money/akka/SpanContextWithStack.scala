@@ -34,6 +34,11 @@ class SpanContextWithStack() extends SpanContext {
     this
   }
 
+  def copy = {
+    val freshSpanContext = new SpanContextWithStack
+    freshSpanContext.setAll(this.getAll)
+  }
+
   def getAll: Seq[Span] = spans
 
   override def push(span: Span): Unit = spans = span +: spans
@@ -50,11 +55,4 @@ class SpanContextWithStack() extends SpanContext {
   override def current: Option[Span] = spans.headOption
 
   override def clear: Unit = spans = Seq.empty[Span]
-}
-
-object SpanContextWithStack {
-  def apply(spanContextWithStack: SpanContextWithStack): SpanContextWithStack = {
-    val freshSpanContext = new SpanContextWithStack
-    freshSpanContext.setAll(spanContextWithStack.getAll)
-  }
 }

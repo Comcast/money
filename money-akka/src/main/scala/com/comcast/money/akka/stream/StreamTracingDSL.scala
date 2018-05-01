@@ -236,7 +236,7 @@ object StreamTracingDSL {
     private def startSpanContext(implicit moneyExtension: MoneyExtension): PortOps[TracedIn] =
       source ~> Flow.fromFunction[In, TracedIn] {
         input =>
-          val freshSpanContext = SpanContextWithStack(spanContext)
+          val freshSpanContext = spanContext.copy
           moneyExtension.tracer(freshSpanContext).startSpan(sskc.sourceToKey(source))
           (input, freshSpanContext)
       }
