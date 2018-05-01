@@ -67,7 +67,9 @@ abstract class AkkaMoneyScope(override val system: ActorSystem) extends TestKit(
   override def afterAll = TestKit.shutdownActorSystem(system)
 
   override def beforeEach(): Unit = clearHandlerChain
+}
 
+object SpanHandlerMatchers {
   def checkNames(names: Seq[String], expectedNames: Seq[String]): Boolean =
     names
       .zip(expectedNames)
@@ -85,16 +87,18 @@ abstract class AkkaMoneyScope(override val system: ActorSystem) extends TestKit(
 
         MatchResult(
           matches = {
-          maybeNames match {
-            case Some(spanNames) if spanNames.isEmpty => false
-            case Some(spanNames) => checkNames(spanNames, expectedSpanNames)
-            case _ => false
-          }
-        },
+            maybeNames match {
+              case Some(spanNames) if spanNames.isEmpty => false
+              case Some(spanNames) => checkNames(spanNames, expectedSpanNames)
+              case _ => false
+            }
+          },
           rawFailureMessage = s"Names: $maybeNames were not Some($expectedSpanNames)",
           rawNegatedFailureMessage = s"Names: $maybeNames were Some($expectedSpanNames)"
         )
     }
+
+  def haveSomeSpanName(expectedName: String) = haveSomeSpanNames(Seq(expectedName))
 
   def haveSomeSpanNamesInNoParticularOrder(expectedSpanNames: Seq[String]) = {
     def sortedCheckNames(names: Seq[String], expectedNames: Seq[String]) = checkNames(names.sortBy(_.hashCode), expectedNames.sortBy(_.hashCode))

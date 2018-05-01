@@ -18,8 +18,8 @@ package com.comcast.money.akka.stream
 
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
-import akka.stream.scaladsl.{Flow, GraphDSL, Source, Unzip, Zip}
-import com.comcast.money.akka.stream.DefaultSpanKeyCreators.DefaultFlowSpanKeyCreator
+import akka.stream.scaladsl.{Flow, GraphDSL, Sink, Source, Unzip, Zip}
+import com.comcast.money.akka.stream.DefaultStreamSpanKeyCreators.DefaultFlowSpanKeyCreator
 import com.comcast.money.akka.{MoneyExtension, SpanContextWithStack}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,7 +32,7 @@ import scala.reflect.ClassTag
 
 object StreamTracingDSL {
 
-  import DefaultSpanKeyCreators._
+  import DefaultStreamSpanKeyCreators._
   import akka.stream.scaladsl.GraphDSL.Implicits._
 
   implicit class PortOpsSpanInjector[In: ClassTag](portOps: PortOps[(In, SpanContextWithStack)])
