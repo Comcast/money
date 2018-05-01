@@ -46,6 +46,7 @@ class MoneyDirectiveSpec extends AkkaMoneyScope {
     "continue a span for a request with a span" in {
       import scala.collection.immutable.Seq
       val tracedHttpRequest = "TracedHttpRequest"
+
       val span: Span = {
         implicit val spanContextWithStack = new SpanContextWithStack
         moneyExtension.tracer.startSpan(tracedHttpRequest)

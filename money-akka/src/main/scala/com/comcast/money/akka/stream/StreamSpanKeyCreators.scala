@@ -17,8 +17,8 @@
 package com.comcast.money.akka.stream
 
 import akka.stream.scaladsl.{Flow, Source}
-import akka.stream.{Attributes, FanOutShape, Inlet}
-import com.comcast.money.akka.{SpanContextWithStack, SpanKeyCreator}
+import akka.stream.{FanOutShape, Inlet}
+import com.comcast.money.akka.SpanContextWithStack
 
 import scala.reflect.ClassTag
 
@@ -125,7 +125,7 @@ object SourceSpanKeyCreator {
  *   implicit val stringISKC = InletSpanKeyCreator((_: Inlet[String]) => "SomeInlet")
  * }}}
  *
- * @tparam In
+ * @tparam In type of element accepted in the inlet
  */
 
 trait InletSpanKeyCreator[In] {

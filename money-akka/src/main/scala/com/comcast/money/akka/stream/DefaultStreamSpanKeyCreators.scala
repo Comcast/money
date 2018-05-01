@@ -2,8 +2,8 @@ package com.comcast.money.akka.stream
 
 import akka.stream.{Attributes, FanOutShape, Inlet}
 import akka.stream.scaladsl.{Flow, Source}
-import com.comcast.money.akka.SpanKeyCreator.nameOfType
-import com.comcast.money.akka.{SpanContextWithStack, SpanKeyCreator}
+import com.comcast.money.akka.TypeNamer.nameOfType
+import com.comcast.money.akka.{SpanContextWithStack, TypeNamer}
 
 import scala.reflect.ClassTag
 
@@ -12,7 +12,7 @@ import scala.reflect.ClassTag
   * INTERNAL
   *
   * Default SpanKeyCreators to be used within the package as a way to allow for usage of the [[StreamTracingDSL]]
-  * without having to define a implicit [[SpanKeyCreator]] for each [[akka.stream.Shape]] type used in the end users stream
+  * without having to define a implicit [[TypeNamer]] for each [[akka.stream.Shape]] type used in the end users stream
   */
 
 private[akka] object DefaultStreamSpanKeyCreators {
