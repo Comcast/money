@@ -66,6 +66,8 @@ class StreamTracingDSLSpec extends AkkaMoneyScope {
 
       testStreams.simpleTakingSpanContext.run.get()
 
+      moneyExtension.tracer.stopSpan()
+
       maybeCollectingSpanHandler should haveSomeSpanNames(Seq("request", stream, stringToString))
     }
 
