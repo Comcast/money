@@ -33,7 +33,7 @@ import scala.reflect.ClassTag
  * @tparam In input type of the users FanOutShape
  */
 
-trait FanOutSpanKeyCreator[In] extends SpanKeyCreator {
+trait FanOutSpanKeyCreator[In] {
   def fanOutToKey(fanOutShape: FanOutShape[(In, SpanContextWithStack)])(implicit evIn: ClassTag[In]): String
 }
 
@@ -57,7 +57,7 @@ object FanOutSpanKeyCreator {
  * @tparam In input type of the users FanInShape
  */
 
-trait FanInSpanKeyCreator[In] extends SpanKeyCreator {
+trait FanInSpanKeyCreator[In] {
   def fanInInletToKey(inlet: Inlet[(In, SpanContextWithStack)])(implicit evIn: ClassTag[In]): String
 }
 
@@ -81,7 +81,7 @@ object FanInSpanKeyCreator {
  * @tparam In input type of the users [[Flow]]
  */
 
-trait FlowSpanKeyCreator[In] extends SpanKeyCreator {
+trait FlowSpanKeyCreator[In] {
   def flowToKey[Out: ClassTag](flow: Flow[In, Out, _])(implicit evIn: ClassTag[In]): String
 }
 
@@ -107,7 +107,7 @@ object FlowSpanKeyCreator {
  * @tparam Out output type of the Source
  */
 
-trait SourceSpanKeyCreator[Out] extends SpanKeyCreator {
+trait SourceSpanKeyCreator[Out] {
   def sourceToKey(source: Source[Out, _])(implicit evIn: ClassTag[Out]): String
 }
 
@@ -128,7 +128,7 @@ object SourceSpanKeyCreator {
  * @tparam In
  */
 
-trait InletSpanKeyCreator[In] extends SpanKeyCreator {
+trait InletSpanKeyCreator[In] {
   def inletToKey(inlet: Inlet[(In, SpanContextWithStack)])(implicit evIn: ClassTag[In]): String
 }
 

@@ -30,5 +30,5 @@ object HttpRequestSpanKeyCreator {
 }
 
 object DefaultHttpRequestSpanKeyCreator extends HttpRequestSpanKeyCreator {
-  override def httpRequestToKey(request: HttpRequest): String = s"${request.method.value}to${request.uri.path.toString}"
+  override def httpRequestToKey(request: HttpRequest): String = s"${request.method.value} ${request.uri.path.toString}"
 }

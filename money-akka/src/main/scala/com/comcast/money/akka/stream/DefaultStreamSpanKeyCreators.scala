@@ -2,6 +2,7 @@ package com.comcast.money.akka.stream
 
 import akka.stream.{Attributes, FanOutShape, Inlet}
 import akka.stream.scaladsl.{Flow, Source}
+import com.comcast.money.akka.SpanKeyCreator.nameOfType
 import com.comcast.money.akka.{SpanContextWithStack, SpanKeyCreator}
 
 import scala.reflect.ClassTag

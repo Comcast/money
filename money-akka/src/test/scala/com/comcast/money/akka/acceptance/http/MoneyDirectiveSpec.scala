@@ -40,7 +40,7 @@ class MoneyDirectiveSpec extends AkkaMoneyScope {
     "start a span for a request" in {
       Get("/") ~> testRoute ~> check(responseAs[String] shouldBe "response")
 
-      maybeCollectingSpanHandler should haveSomeSpanName(getRoot)
+      maybeCollectingSpanHandler should haveSomeSpanName("GET /")
     }
 
     "continue a span for a request with a span" in {
@@ -58,15 +58,13 @@ class MoneyDirectiveSpec extends AkkaMoneyScope {
           case Error(errorInfo) => throw ParseFailure(errorInfo.summary)
         }
 
-      implicit val httpSKC = HttpRequestSpanKeyCreator((_: HttpRequest) => tracedHttpRequest)
+      implicit val httpSKC: HttpRequestSpanKeyCreator = HttpRequestSpanKeyCreator((_: HttpRequest) => tracedHttpRequest)
 
       HttpRequest(headers = Seq(header)) ~> testRoute ~> check(responseAs[String] shouldBe "response")
 
-      maybeCollectingSpanHandler should haveSomeSpanName(getRoot)
+      maybeCollectingSpanHandler should haveSomeSpanName(tracedHttpRequest)
     }
   }
-
-  val getRoot = "GET /"
 
   case class ParseFailure(msg: String) extends Throwable(msg)
 }
