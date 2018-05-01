@@ -23,7 +23,6 @@ import com.comcast.money.core.internal.SpanContext
  * A [[SpanContext]] that carries with it a stack of [[Span]]
  * allows the capacity to explicitly pass a [[SpanContext]] around
  * where a [[com.comcast.money.core.internal.SpanLocal]] would not be appropriate
- *
  */
 
 class SpanContextWithStack() extends SpanContext {
