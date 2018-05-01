@@ -58,6 +58,18 @@ class TestStreams(implicit moneyExtension: MoneyExtension) {
       }
     }
 
+  def simpleTakingSpanContext(implicit spanContextWithStack: SpanContextWithStack,
+                              fskc: FlowSpanKeyCreator[String] = DefaultFlowSpanKeyCreator[String],
+                              sskc: SourceSpanKeyCreator[String] = DefaultSourceSpanKeyCreator[String]) =
+    RunnableGraph fromGraph {
+      GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] =>
+        sink =>
+          source ~|> Flow[String] ~| sink.in
+
+          ClosedShape
+      }
+    }
+
   def simpleWithInlets(implicit inletSpanKeyCreator: InletSpanKeyCreator[String] = DefaultInletSpanKeyCreator[String]) =
     RunnableGraph fromGraph {
       GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] =>

@@ -18,7 +18,7 @@ package com.comcast.money.akka.stream
 
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
-import akka.stream.scaladsl.{Flow, GraphDSL, Sink, Source, Unzip, Zip}
+import akka.stream.scaladsl.{Flow, GraphDSL, Source, Unzip, Zip}
 import com.comcast.money.akka.stream.DefaultSpanKeyCreators.DefaultFlowSpanKeyCreator
 import com.comcast.money.akka.{MoneyExtension, SpanContextWithStack}
 
@@ -161,7 +161,8 @@ object StreamTracingDSL {
                                                  (implicit builder: Builder[_],
                                                   moneyExtension: MoneyExtension,
                                                   sskc: SourceSpanKeyCreator[In] = DefaultSourceSpanKeyCreator[In],
-                                                  fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
+                                                  fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In],
+                                                  spanContext: SpanContextWithStack = new SpanContextWithStack) {
     type TracedIn = (In, SpanContextWithStack)
 
     /**
@@ -235,9 +236,9 @@ object StreamTracingDSL {
     private def startSpanContext(implicit moneyExtension: MoneyExtension): PortOps[TracedIn] =
       source ~> Flow.fromFunction[In, TracedIn] {
         input =>
-          val spanContext = new SpanContextWithStack
-          moneyExtension.tracer(spanContext).startSpan(sskc.sourceToKey(source))
-          (input, spanContext)
+          val freshSpanContext = SpanContextWithStack(spanContext)
+          moneyExtension.tracer(freshSpanContext).startSpan(sskc.sourceToKey(source))
+          (input, freshSpanContext)
       }
   }
 
@@ -367,7 +368,7 @@ object StreamTracingDSL {
           spanFlowShape.out ~> unZip.in
 
           unZip.out0 ~> flowShape ~> zip.in0
-          unZip.out1 ~> zip.in1
+          unZip.out1        ~>       zip.in1
           FlowShape(spanFlowShape.in, zip.out)
       }
     } withAttributes flow.traversalBuilder.attributes

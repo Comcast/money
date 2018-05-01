@@ -29,6 +29,11 @@ import com.comcast.money.core.internal.SpanContext
 class SpanContextWithStack() extends SpanContext {
   private var spans = Seq.empty[Span]
 
+  private def setAll(oldSpans: Seq[Span]) = {
+    spans = oldSpans
+    this
+  }
+
   def getAll: Seq[Span] = spans
 
   override def push(span: Span): Unit = spans = span +: spans
@@ -45,4 +50,11 @@ class SpanContextWithStack() extends SpanContext {
   override def current: Option[Span] = spans.headOption
 
   override def clear: Unit = spans = Seq.empty[Span]
+}
+
+object SpanContextWithStack {
+  def apply(spanContextWithStack: SpanContextWithStack): SpanContextWithStack = {
+    val freshSpanContext = new SpanContextWithStack
+    freshSpanContext.setAll(spanContextWithStack.getAll)
+  }
 }
