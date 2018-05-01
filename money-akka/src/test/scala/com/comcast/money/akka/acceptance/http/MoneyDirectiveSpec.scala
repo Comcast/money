@@ -19,14 +19,15 @@ package com.comcast.money.akka.acceptance.http
 import akka.http.scaladsl.model.HttpHeader.ParsingResult.{Error, Ok}
 import akka.http.scaladsl.model.{HttpHeader, HttpRequest, HttpResponse}
 import akka.http.scaladsl.server.Directives._
-import com.comcast.money.akka.http.{MoneyTrace, TracedRequest, TracedResponse}
+import com.comcast.money.akka.SpanHandlerMatchers.haveSomeSpanName
+import com.comcast.money.akka.http._
 import com.comcast.money.akka.{AkkaMoneyScope, SpanContextWithStack}
 import com.comcast.money.api.Span
 import com.comcast.money.core.Formatters
 
 class MoneyDirectiveSpec extends AkkaMoneyScope {
 
-  def testRoute(implicit akkaHttpName: String = "akka-http-span") =
+  def testRoute(implicit requestSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator) =
     pathSingleSlash {
       get {
         MoneyTrace {
@@ -39,14 +40,15 @@ class MoneyDirectiveSpec extends AkkaMoneyScope {
     "start a span for a request" in {
       Get("/") ~> testRoute ~> check(responseAs[String] shouldBe "response")
 
-      maybeCollectingSpanHandler should haveSomeSpanNames(Seq("akka-http-span"))
+      maybeCollectingSpanHandler should haveSomeSpanName(getRoot)
     }
 
     "continue a span for a request with a span" in {
       import scala.collection.immutable.Seq
+      val tracedHttpRequest = "TracedHttpRequest"
       val span: Span = {
         implicit val spanContextWithStack = new SpanContextWithStack
-        moneyExtension.tracer.startSpan("TracedHttpRequest")
+        moneyExtension.tracer.startSpan(tracedHttpRequest)
         spanContextWithStack.current.get
       }
 
@@ -56,13 +58,15 @@ class MoneyDirectiveSpec extends AkkaMoneyScope {
           case Error(errorInfo) => throw ParseFailure(errorInfo.summary)
         }
 
-      implicit val akkaHttpName: String = "TracedHttpRequest"
+      implicit val httpSKC = HttpRequestSpanKeyCreator((_: HttpRequest) => tracedHttpRequest)
 
       HttpRequest(headers = Seq(header)) ~> testRoute ~> check(responseAs[String] shouldBe "response")
 
-      maybeCollectingSpanHandler should haveSomeSpanNames(Seq("TracedHttpRequest"))
+      maybeCollectingSpanHandler should haveSomeSpanName(getRoot)
     }
   }
+
+  val getRoot = "GET /"
 
   case class ParseFailure(msg: String) extends Throwable(msg)
 }

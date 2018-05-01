@@ -29,36 +29,37 @@ import scala.util.{Failure, Success}
 object MoneyTrace {
   def apply(f: TracedRequest ⇒ TracedResponse)
            (implicit moneyExtension: MoneyExtension,
-            akkaHttpSpanName: String = "akka-http-span"): Route =
+            requestSKC: HttpRequestSpanKeyCreator): Route =
     extractRequest {
       request =>
         implicit val spanContext: SpanContextWithStack = new SpanContextWithStack
         maybeAddHeaderSpan(request, moneyExtension.tracer(spanContext))
 
         val tracedResponse = f(TracedRequest(request, spanContext))
+
         moneyExtension.tracer(tracedResponse.spanContext).stopSpan(tracedResponse.isSuccess)
         complete(tracedResponse.response)
     }
 
   private def maybeAddHeaderSpan(request: HttpRequest, tracer: Tracer)
                                 (implicit spanContext: SpanContextWithStack,
-                                 akkaHttpSpanName: String) =
+                                 requestSKC: HttpRequestSpanKeyCreator) =
     request
       .headers
       .map(header => fromHttpHeader(header.value))
       .foldLeft[Option[SpanId]](None) {
-      case (_, Success(spanId)) => Some(spanId)
-      case (Some(spanId), _) => Some(spanId)
-      case (_, _: Failure[SpanId]) => None
-    }
+        case (_, Success(spanId)) => Some(spanId)
+        case (Some(spanId), _) => Some(spanId)
+        case (_, _: Failure[SpanId]) => None
+      }
       .map {
         spanId =>
           val freshSpanId = new SpanId(spanId.traceId, spanId.parentId)
-          spanContext.push(tracer.spanFactory.newSpan(freshSpanId, akkaHttpSpanName))
+          spanContext.push(tracer.spanFactory.newSpan(freshSpanId, requestSKC.httpRequestToKey(request)))
           spanContext
       }
       .getOrElse {
-        tracer.startSpan(akkaHttpSpanName)
+        tracer.startSpan(requestSKC.httpRequestToKey(request))
         spanContext
       }
 }
@@ -66,4 +67,3 @@ object MoneyTrace {
 case class TracedRequest(request: HttpRequest, spanContext: SpanContextWithStack)
 
 case class TracedResponse(response: HttpResponse, spanContext: SpanContextWithStack, isSuccess: Boolean = true)
-
