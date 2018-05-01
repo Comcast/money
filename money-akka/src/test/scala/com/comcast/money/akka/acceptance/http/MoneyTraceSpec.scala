@@ -27,26 +27,15 @@ import com.comcast.money.core.Formatters
 
 class MoneyTraceSpec extends AkkaMoneyScope {
 
-  def testRoute(implicit requestSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator) =
-    pathSingleSlash {
-      get {
-        MoneyTrace {
-          (tracedRequest: TracedRequest) => TracedResponse(HttpResponse(entity = "response"), tracedRequest.spanContext)
-        }
-      }
-    }
-
   "A Akka Http route with a MoneyDirective" should {
     "start a span for a request" in {
       Get("/") ~> testRoute ~> check(responseAs[String] shouldBe "response")
 
-      maybeCollectingSpanHandler should haveSomeSpanName("GET /")
+      maybeCollectingSpanHandler should haveSomeSpanName(getRoot)
     }
 
     "continue a span for a request with a span" in {
       import scala.collection.immutable.Seq
-      val tracedHttpRequest = "TracedHttpRequest"
-
       val span: Span = {
         implicit val spanContextWithStack = new SpanContextWithStack
         moneyExtension.tracer.startSpan(tracedHttpRequest)
@@ -59,13 +48,31 @@ class MoneyTraceSpec extends AkkaMoneyScope {
           case Error(errorInfo) => throw ParseFailure(errorInfo.summary)
         }
 
+      HttpRequest(headers = Seq(header)) ~> testRoute ~> check(responseAs[String] shouldBe "response")
+
+      maybeCollectingSpanHandler should haveSomeSpanName(getRoot)
+    }
+
+    "have the capacity to be named by a user" in {
       implicit val httpSKC: HttpRequestSpanKeyCreator = HttpRequestSpanKeyCreator((_: HttpRequest) => tracedHttpRequest)
 
-      HttpRequest(headers = Seq(header)) ~> testRoute ~> check(responseAs[String] shouldBe "response")
+      Get("/") ~> testRoute ~> check(responseAs[String] shouldBe "response")
 
       maybeCollectingSpanHandler should haveSomeSpanName(tracedHttpRequest)
     }
   }
+
+  def testRoute(implicit requestSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator) =
+    pathSingleSlash {
+      get {
+        MoneyTrace {
+          (tracedRequest: TracedRequest) => TracedResponse(HttpResponse(entity = "response"), tracedRequest.spanContext)
+        }
+      }
+    }
+
+  val getRoot = "GET /"
+  val tracedHttpRequest = "TracedHttpRequest"
 
   case class ParseFailure(msg: String) extends Throwable(msg)
 }
