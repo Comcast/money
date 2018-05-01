@@ -25,7 +25,7 @@ import com.comcast.money.akka.{AkkaMoneyScope, SpanContextWithStack}
 import com.comcast.money.api.Span
 import com.comcast.money.core.Formatters
 
-class MoneyDirectiveSpec extends AkkaMoneyScope {
+class MoneyTraceSpec extends AkkaMoneyScope {
 
   def testRoute(implicit requestSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator) =
     pathSingleSlash {
