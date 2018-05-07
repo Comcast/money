@@ -26,6 +26,7 @@ import com.comcast.money.api.{Note, SpanId}
 import com.comcast.money.core.Formatters.fromHttpHeader
 import com.comcast.money.core.Tracer
 
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
 
 /**
@@ -43,6 +44,8 @@ object MoneyTrace {
     * Returns a Route to be used to complete a Akka Http Routing DSL
     *
     * Traces application code for a synchronous Request and Response
+    *
+    * NB: Only logic called by the function f will be traced within the requests Span
     *
     * Example:
     *
@@ -75,9 +78,44 @@ object MoneyTrace {
     }
 
   /**
+    * returns a Route to complete a AkkaHttp routing DSL
+    *
+    * Traces asynchronous [[Future]] based application code
+    *
+    * NB: Only logic called by the function f will be traced within the requests Span
+    *
+    * @param f                asynchronous application logic from TracedRequest to Future[TracedResponse]
+    * @param moneyExtension [[akka.actor.ActorSystem]] extension to interact with [[com.comcast.money.core.Money]]
+    * @param requestSKC     [[HttpRequestSpanKeyCreator]] to create a key for the Span generated in the Directive
+    * @param executionContext the [[ExecutionContext]] for the [[Future]]
+    * @return [[Route]]
+    */
+
+  def apply(f: TracedRequest ⇒ Future[TracedResponse])
+           (implicit moneyExtension: MoneyExtension,
+            requestSKC: HttpRequestSpanKeyCreator,
+            executionContext: ExecutionContext): Route =
+    createDirective {
+      (request, tracer, spanContext) =>
+        val eventualTracedResponse = f(TracedRequest(request, spanContext))
+
+        eventualTracedResponse onComplete {
+          case Success(tracedResponse) =>
+            tracer.stopSpan(tracedResponse.isSuccess)
+          case Failure(e) =>
+            tracer.record(Note.of(e.getMessage, e.getStackTrace.toString))
+            tracer.stopSpan(result = false)
+        }
+
+        complete(eventualTracedResponse.map(_.response))
+    }
+
+  /**
     * Returns a Route to be used to complete a Akka Http Routing DSL
     *
     * Traces the completion of Stream being used to create a chunked Response to a client
+    *
+    * NB: Only logic called by the function f will be traced within the requests Span
     *
     * Example:
     *
@@ -131,7 +169,7 @@ object MoneyTrace {
     * is created from it and added to the [[SpanContextWithStack]] otherwise a fresh Span is started
     * and added to the [[SpanContextWithStack]]
     *
-    * @param toRoute the function that completes the [[HttpRequest]]
+    * @param toRoute        the function that completes the [[HttpRequest]]
     * @param moneyExtension [[akka.actor.ActorSystem]] extension to interact with [[com.comcast.money.core.Money]]
     * @param requestSKC     [[HttpRequestSpanKeyCreator]] to create a key for the Span generated in the Directive
     * @return Route completing Routing DSL
@@ -167,11 +205,8 @@ object MoneyTrace {
     request
       .headers
       .map(header => fromHttpHeader(header.value))
-      .foldLeft[Option[SpanId]](None) {
-        case (_, Success(spanId)) => Some(spanId)
-        case (Some(spanId), _) => Some(spanId)
-        case (_, _: Failure[SpanId]) => None
-      }
+      .flatMap(_.toOption)
+      .headOption
 }
 
 case class TracedRequest(request: HttpRequest, spanContext: SpanContextWithStack)

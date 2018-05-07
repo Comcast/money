@@ -30,7 +30,7 @@ import com.comcast.money.api.Span
 import com.comcast.money.core.Formatters
 import org.scalatest.matchers.{MatchResult, Matcher}
 
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent.duration.{DurationDouble, FiniteDuration}
 
 class MoneyTraceSpec extends AkkaMoneyScope {
@@ -79,6 +79,12 @@ class MoneyTraceSpec extends AkkaMoneyScope {
 
       maybeCollectingSpanHandler should haveARequestDurationLongerThan(120 millis)
     }
+
+    "trace a asynchronous request" in {
+      Get("/async") ~> simpleRoute() ~> check(responseAs[String] shouldBe "asyncResponse")
+
+      maybeCollectingSpanHandler should haveSomeSpanName("GET /async")
+    }
   }
 
   def haveARequestDurationLongerThan(expectedTimeTaken: FiniteDuration): Matcher[Option[CollectingSpanHandler]] =
@@ -117,7 +123,12 @@ class MoneyTraceSpec extends AkkaMoneyScope {
           MoneyTrace fromChunkedSource {
             (_: TracedRequest) => source
           }
-        }
+        } ~
+        path("async") {
+          MoneyTrace {
+            (_: TracedRequest) => Future(TracedResponse(HttpResponse(entity = "asyncResponse")))
+          }
+      }
     }
 
   val getRoot = "GET /"
