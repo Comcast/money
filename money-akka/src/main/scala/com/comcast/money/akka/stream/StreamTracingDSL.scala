@@ -18,7 +18,7 @@ package com.comcast.money.akka.stream
 
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
-import akka.stream.scaladsl.{Flow, GraphDSL, Sink, Source, Unzip, Zip}
+import akka.stream.scaladsl.{Flow, GraphDSL, Source, Unzip, Zip}
 import com.comcast.money.akka.stream.DefaultStreamSpanKeyCreators.DefaultFlowSpanKeyCreator
 import com.comcast.money.akka.{MoneyExtension, SpanContextWithStack}
 

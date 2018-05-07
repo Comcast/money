@@ -83,13 +83,13 @@ class StreamTracingDSLSpec extends AkkaMoneyScope {
       val lessThanSequentialRuntime = 500.milliseconds
 
       "run out of order" in {
-        val secondChunkId = Some(2)
+        val someSecondChunkId = Some(2)
 
         val orderedChunks = testStreams.asyncOutOfOrder.run.get(lessThanSequentialRuntime)
 
         val maybeLastChunkToArriveId = orderedChunks.lastOption.map(_.last.asDigit)
 
-        maybeLastChunkToArriveId should equal(secondChunkId)
+        maybeLastChunkToArriveId shouldBe someSecondChunkId
       }
 
       "close spans for the elements they represent" in {

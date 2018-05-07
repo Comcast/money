@@ -24,7 +24,7 @@ import org.scalatest.{Matchers, WordSpecLike}
 
 class MoneyExtensionSpec(_system: ActorSystem) extends TestKit(_system) with WordSpecLike with Matchers {
 
-  def this() = this{
+  def this() = this {
     val configString: String =
       """
         | money {
