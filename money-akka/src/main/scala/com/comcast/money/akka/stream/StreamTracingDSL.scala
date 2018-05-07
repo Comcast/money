@@ -18,7 +18,7 @@ package com.comcast.money.akka.stream
 
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
-import akka.stream.scaladsl.{Flow, GraphDSL, Sink, Source, Unzip, Zip}
+import akka.stream.scaladsl.{Flow, GraphDSL, Source, Unzip, Zip}
 import com.comcast.money.akka.stream.DefaultSpanKeyCreators.DefaultFlowSpanKeyCreator
 import com.comcast.money.akka.{MoneyExtension, SpanContextWithStack}
 
@@ -122,7 +122,7 @@ object StreamTracingDSL {
 
     def ~|[T >: In](inlet: Inlet[T]): Unit = completeTracing(inlet)
 
-    private def completeTracing[T >: In](inlet: Inlet[T]): Unit = portOps ~> closeAllSpans[In] ~> inlet
+    private def completeTracing[T >: In](inlet: Inlet[T]): Unit = portOps ~> haltTracingFlow[In] ~> inlet
 
     /**
       * Completes all the remaining spans and allows the stream to continue with regular Akka combinators
@@ -154,14 +154,15 @@ object StreamTracingDSL {
                                                                  portOps: PortOps[TracedIn],
                                                                  flow: Flow[In, Out, _]
                                                                ): PortOps[Out] =
-      injectSpanInFlow(portOps, flow) ~> closeAllSpans[Out]
+      injectSpanInFlow(portOps, flow) ~> haltTracingFlow[Out]
   }
 
   implicit class SourceSpanInjector[In: ClassTag](source: Source[In, _])
                                                  (implicit builder: Builder[_],
                                                   moneyExtension: MoneyExtension,
                                                   sskc: SourceSpanKeyCreator[In] = DefaultSourceSpanKeyCreator[In],
-                                                  fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
+                                                  fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In],
+                                                  spanContext: SpanContextWithStack = new SpanContextWithStack) {
     type TracedIn = (In, SpanContextWithStack)
 
     /**
@@ -227,7 +228,8 @@ object StreamTracingDSL {
     /**
       * Starts SpanContextWithStack for the source currently wrapped by this implicit class
       * started by attaching the source to Flow that creates a new SpanContextWithStack
-      * and adds a Span for the stream that will only be closed when the stream is completed
+      * from the existing SpanContextWithStack and adds a Span for the stream that will
+      * only be closed when the stream is completed
       *
       * @return PortsOps[(In, SpanContextWithStack)]
       */
@@ -235,9 +237,9 @@ object StreamTracingDSL {
     private def startSpanContext(implicit moneyExtension: MoneyExtension): PortOps[TracedIn] =
       source ~> Flow.fromFunction[In, TracedIn] {
         input =>
-          val spanContext = new SpanContextWithStack
-          moneyExtension.tracer(spanContext).startSpan(sskc.sourceToKey(source))
-          (input, spanContext)
+          val freshSpanContext = spanContext.copy
+          moneyExtension.tracer(freshSpanContext).startSpan(sskc.sourceToKey(source))
+          (input, freshSpanContext)
       }
   }
 
@@ -282,7 +284,7 @@ object StreamTracingDSL {
     def ~|[T >: In](inlet: Inlet[T])(implicit moneyExtension: MoneyExtension): Unit = completeTracing(inlet)
 
     private def completeTracing[T >: In](inlet: Inlet[T])(implicit moneyExtension: MoneyExtension): Unit =
-      outlet ~> closeAllSpans[In] ~> inlet
+      outlet ~> closeSpanFlow[In] ~> haltTracingFlow[In] ~> inlet
   }
 
   implicit class UniformFanInConnector[T: ClassTag](fanIn: UniformFanInShape[(T, SpanContextWithStack), (T, SpanContextWithStack)])
@@ -303,7 +305,7 @@ object StreamTracingDSL {
     def ~|[Out >: T](inlet: Inlet[Out]): Unit = completeTracing(inlet)
 
     private def completeTracing[Out >: T](inlet: Inlet[Out])(implicit moneyExtension: MoneyExtension) =
-      fanIn.out ~> closeAllSpans[Out] ~> inlet
+      fanIn.out ~> closeSpanFlow[Out] ~> haltTracingFlow[Out] ~> inlet
   }
 
   /**
@@ -367,7 +369,7 @@ object StreamTracingDSL {
           spanFlowShape.out ~> unZip.in
 
           unZip.out0 ~> flowShape ~> zip.in0
-          unZip.out1 ~> zip.in1
+          unZip.out1        ~>       zip.in1
           FlowShape(spanFlowShape.in, zip.out)
       }
     } withAttributes flow.traversalBuilder.attributes
@@ -414,10 +416,10 @@ object StreamTracingDSL {
     * @return Flow[(T, SpanContextWithStack), T, _]
     */
 
-  private def closeAllSpans[T](implicit builder: Builder[_], moneyExtension: MoneyExtension): Flow[(T, SpanContextWithStack), T, _] =
+  private def haltTracingFlow[T](implicit builder: Builder[_], moneyExtension: MoneyExtension): Flow[(T, SpanContextWithStack), T, _] =
     Flow.fromFunction[(T, SpanContextWithStack), T] {
       case (input, spanContext) =>
-        spanContext.getAll.foreach(_ => moneyExtension.tracer(spanContext).stopSpan())
+        moneyExtension.tracer(spanContext).stopSpan()
         input
     }
 

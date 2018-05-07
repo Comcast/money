@@ -29,6 +29,16 @@ import com.comcast.money.core.internal.SpanContext
 class SpanContextWithStack() extends SpanContext {
   private var spans = Seq.empty[Span]
 
+  private def setAll(oldSpans: Seq[Span]) = {
+    spans = oldSpans
+    this
+  }
+
+  def copy = {
+    val freshSpanContext = new SpanContextWithStack
+    freshSpanContext.setAll(this.getAll)
+  }
+
   def getAll: Seq[Span] = spans
 
   override def push(span: Span): Unit = spans = span +: spans
