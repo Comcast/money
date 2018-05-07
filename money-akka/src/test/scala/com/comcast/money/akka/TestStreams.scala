@@ -17,6 +17,7 @@
 package com.comcast.money.akka
 
 import akka.Done
+import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
 import akka.stream.scaladsl.GraphDSL.Implicits.PortOps
@@ -103,22 +104,23 @@ class TestStreams(implicit moneyExtension: MoneyExtension) {
                   fosck: FanOutSpanKeyCreator[String] = DefaultFanOutSpanKeyCreator[String]) =
 
     RunnableGraph fromGraph {
-      GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] =>
-        sink =>
+      GraphDSL.create(sink) {
+        implicit builder: Builder[Future[Done]] =>
+          sink =>
 
-          val fanOut = builder.tracedAdd(fanOutRaw)
+            val fanOut = builder.tracedAdd(fanOutRaw)
 
-          val fanIn: UniformFanInShape[(String, SpanContextWithStack), (String, SpanContextWithStack)] = fanInCreator(builder)
+            val fanIn: UniformFanInShape[(String, SpanContextWithStack), (String, SpanContextWithStack)] = fanInCreator(builder)
 
-          Source(List("chunk", "funk")) ~|> fanOut
+            Source(List("chunk", "funk")) ~|> fanOut
 
-          fanOut.out(0) ~|> Flow[String] ~<> fanIn.in(0)
+            fanOut.out(0) ~|> Flow[String] ~<> fanIn.in(0)
 
-          fanOut.out(1) ~|> Flow[String] ~<> fanIn.in(1)
+            fanOut.out(1) ~|> Flow[String] ~<> fanIn.in(1)
 
-          fanIn ~| sink.in
+            fanIn ~| sink.in
 
-          ClosedShape
+            ClosedShape
       }
     }
 
@@ -139,27 +141,42 @@ class TestStreams(implicit moneyExtension: MoneyExtension) {
 
   def asyncSimple(implicit executionContext: ExecutionContext) = asyncStream(_ => Left(Flow[String].mapAsync(3)(stringToFuture((400L, 400L)))))
 
-  private def asyncStream(asyncFlowCreator: TracedBuilder => Either[Flow[String, String, _], Flow[TracedString, TracedString, _]])(implicit executionContext: ExecutionContext) =
-    RunnableGraph fromGraph {
-      GraphDSL.create(Sink.seq[String]) { implicit builder: Builder[Future[Seq[String]]] =>
-        sink =>
-          val iterator = List("chunk1", "chunk2", "chunk3").iterator
-          asyncFlowCreator(builder) fold(
-            asyncFlow => Source.fromIterator(() => iterator) ~|> asyncFlow ~| sink.in,
-            asyncUnorderedFlow => Source.fromIterator(() => iterator) ~|> asyncUnorderedFlow ~| sink.in
-          )
+  def asyncManyElements(implicit executionContext: ExecutionContext) =
+    Source fromGraph {
+      GraphDSL.create() {
+        implicit builder =>
+            val iterator = (1 to 100).map(i => s"chunk$i").iterator
 
-          ClosedShape
+            val out = Source.fromIterator(() => iterator) ~|> Flow[String].mapAsync(30)(stringToFuture((60, 60))) ~|~ Flow[String].map(ChunkStreamPart(_))
+
+            SourceShape(out.outlet)
+      }
+    }
+
+  def asyncStream(asyncFlowCreator: TracedBuilder => Either[Flow[String, String, _], Flow[TracedString, TracedString, _]])
+                 (implicit executionContext: ExecutionContext) =
+    RunnableGraph fromGraph {
+      GraphDSL.create(Sink.seq[String]) {
+        implicit builder: Builder[Future[Seq[String]]] =>
+          sink =>
+            val iterator = List("chunk1", "chunk2", "chunk3").iterator
+            asyncFlowCreator(builder) fold(
+              asyncFlow => Source.fromIterator(() => iterator) ~|> asyncFlow ~| sink.in,
+              asyncUnorderedFlow => Source.fromIterator(() => iterator) ~|> asyncUnorderedFlow ~| sink.in
+            )
+
+            ClosedShape
       }
     }
 
   def namedFlow(implicit fskc: FlowSpanKeyCreator[String] = DefaultFlowSpanKeyCreator[String]) =
     RunnableGraph fromGraph {
-      GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] =>
-        sink =>
-          source ~|> Flow[String].addAttributes(Attributes(Attributes.Name("SomeFlowName"))) ~| sink.in
+      GraphDSL.create(sink) {
+        implicit builder: Builder[Future[Done]] =>
+          sink =>
+            source ~|> Flow[String].addAttributes(Attributes(Attributes.Name("SomeFlowName"))) ~| sink.in
 
-          ClosedShape
+            ClosedShape
       }
     }
 }

@@ -16,20 +16,28 @@
 
 package com.comcast.money.akka.acceptance.http
 
+import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.http.scaladsl.model.HttpHeader.ParsingResult.{Error, Ok}
-import akka.http.scaladsl.model.{HttpHeader, HttpRequest, HttpResponse}
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.unmarshalling.Unmarshal
+import akka.stream.scaladsl.Source
+import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka.SpanHandlerMatchers.haveSomeSpanName
 import com.comcast.money.akka.http._
-import com.comcast.money.akka.{AkkaMoneyScope, SpanContextWithStack}
+import com.comcast.money.akka.{AkkaMoneyScope, CollectingSpanHandler, SpanContextWithStack, TestStreams}
 import com.comcast.money.api.Span
 import com.comcast.money.core.Formatters
+import org.scalatest.matchers.{MatchResult, Matcher}
+
+import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.{DurationDouble, FiniteDuration}
 
 class MoneyTraceSpec extends AkkaMoneyScope {
 
   "A Akka Http route with a MoneyDirective" should {
     "start a span for a request" in {
-      Get("/") ~> testRoute ~> check(responseAs[String] shouldBe "response")
+      Get("/") ~> simpleRoute() ~> check(responseAs[String] shouldBe "response")
 
       maybeCollectingSpanHandler should haveSomeSpanName(getRoot)
     }
@@ -48,7 +56,7 @@ class MoneyTraceSpec extends AkkaMoneyScope {
           case Error(errorInfo) => throw ParseFailure(errorInfo.summary)
         }
 
-      HttpRequest(headers = Seq(header)) ~> testRoute ~> check(responseAs[String] shouldBe "response")
+      HttpRequest(headers = Seq(header)) ~> simpleRoute() ~> check(responseAs[String] shouldBe "response")
 
       maybeCollectingSpanHandler should haveSomeSpanName(getRoot)
     }
@@ -56,23 +64,65 @@ class MoneyTraceSpec extends AkkaMoneyScope {
     "have the capacity to be named by a user" in {
       implicit val httpSKC: HttpRequestSpanKeyCreator = HttpRequestSpanKeyCreator((_: HttpRequest) => tracedHttpRequest)
 
-      Get("/") ~> testRoute ~> check(responseAs[String] shouldBe "response")
+      Get("/") ~> simpleRoute() ~> check(responseAs[String] shouldBe "response")
 
       maybeCollectingSpanHandler should haveSomeSpanName(tracedHttpRequest)
     }
+
+    "trace a chunked response till it completes fully" in {
+      Get("/chunked") ~> simpleRoute() ~> check {
+        val pattern = "chunk([0-9]+)".r
+        val entityString = pattern.findAllIn(Unmarshal(responseEntity).to[String].get()).toSeq
+
+        entityString.take(3) shouldBe Seq("chunk1", "chunk2", "chunk3")
+      }
+
+      maybeCollectingSpanHandler should haveARequestDurationLongerThan(120 millis)
+    }
   }
 
-  def testRoute(implicit requestSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator) =
-    pathSingleSlash {
-      get {
+  def haveARequestDurationLongerThan(expectedTimeTaken: FiniteDuration): Matcher[Option[CollectingSpanHandler]] =
+    Matcher {
+      maybeCollectingSpanHandler =>
+        val requestSpanName = "GET /chunked"
+        val maybeSpanInfo =
+          maybeCollectingSpanHandler
+            .map(_.spanInfoStack)
+            .flatMap(_.find(_.name == requestSpanName))
+
+        val maybeMillis = maybeSpanInfo.map(_.durationMicros / 1000)
+        MatchResult(
+          matches =
+            maybeSpanInfo match {
+              case Some(spanInfo) => spanInfo.durationMicros >= expectedTimeTaken.toMicros
+              case None => false
+            },
+          rawFailureMessage = s"Duration of Span $requestSpanName was $maybeMillis not Some($expectedTimeTaken)",
+          rawNegatedFailureMessage = s"Duration of Span $requestSpanName was $maybeMillis equal to Some($expectedTimeTaken)"
+        )
+    }
+
+  val testStreams = new TestStreams
+
+  def simpleRoute(source: Source[ChunkStreamPart, _] = testStreams.asyncManyElements)
+                 (implicit requestSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator,
+                  executionContext: ExecutionContext) =
+    get {
+      pathSingleSlash {
         MoneyTrace {
-          (tracedRequest: TracedRequest) => TracedResponse(HttpResponse(entity = "response"), tracedRequest.spanContext)
+          (_: TracedRequest) => TracedResponse(HttpResponse(entity = "response"))
         }
-      }
+      } ~
+        path("chunked") {
+          MoneyTrace fromChunkedSource {
+            (_: TracedRequest) => source
+          }
+        }
     }
 
   val getRoot = "GET /"
   val tracedHttpRequest = "TracedHttpRequest"
 
   case class ParseFailure(msg: String) extends Throwable(msg)
+
 }
