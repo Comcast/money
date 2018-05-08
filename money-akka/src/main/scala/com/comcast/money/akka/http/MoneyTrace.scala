@@ -204,8 +204,7 @@ object MoneyTrace {
   private def maybeExtractHeaderSpanId(request: HttpRequest) =
     request
       .headers
-      .map(header => fromHttpHeader(header.value))
-      .flatMap(_.toOption)
+      .flatMap(header => fromHttpHeader(header.value).toOption)
       .headOption
 }
 
