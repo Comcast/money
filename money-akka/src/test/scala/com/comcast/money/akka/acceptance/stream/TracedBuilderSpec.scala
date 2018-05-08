@@ -62,7 +62,7 @@ class TracedBuilderSpec extends AkkaMoneyScope {
     }
 
     "create a traced version of a Broadcast shape and produce completed spans" in {
-      val expectedSpanNames = replicateAndAppend(Seq(stream, fanInOfString, stringToString, stringToString, fanOutOfString))
+      val expectedSpanNames = replicateAndAppend(Seq(stream, fanInOfString, fanInOfString, stringToString, stringToString, fanOutOfString))
 
       testStreams.fanOutFanIn(fanOutRaw = Broadcast[String](2)).run.get()
 
