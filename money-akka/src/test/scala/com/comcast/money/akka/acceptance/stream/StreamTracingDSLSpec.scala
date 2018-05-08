@@ -14,20 +14,18 @@
  * limitations under the License.
  */
 
-package com.comcast.money.akka.stream.acceptance
+package com.comcast.money.akka.acceptance.stream
 
 import akka.stream._
-import akka.stream.scaladsl.{ Flow, Sink, Source }
+import akka.stream.scaladsl.{Flow, Sink, Source}
 import com.comcast.money.akka.Blocking.RichFuture
+import com.comcast.money.akka.SpanHandlerMatchers.{haveSomeSpanNames, haveSomeSpanNamesInNoParticularOrder}
 import com.comcast.money.akka._
 import com.comcast.money.akka.stream._
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.DurationDouble
 
 class StreamTracingDSLSpec extends AkkaMoneyScope {
-
-  implicit val executionContext: ExecutionContext = _system.dispatcher
 
   val testStreams = new TestStreams
 
@@ -85,13 +83,13 @@ class StreamTracingDSLSpec extends AkkaMoneyScope {
       val lessThanSequentialRuntime = 500.milliseconds
 
       "run out of order" in {
-        val secondChunkId = Some(2)
+        val someSecondChunkId = Some(2)
 
         val orderedChunks = testStreams.asyncOutOfOrder.run.get(lessThanSequentialRuntime)
 
         val maybeLastChunkToArriveId = orderedChunks.lastOption.map(_.last.asDigit)
 
-        maybeLastChunkToArriveId should equal(secondChunkId)
+        maybeLastChunkToArriveId shouldBe someSecondChunkId
       }
 
       "close spans for the elements they represent" in {

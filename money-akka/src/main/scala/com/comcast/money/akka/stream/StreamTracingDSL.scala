@@ -19,7 +19,7 @@ package com.comcast.money.akka.stream
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
 import akka.stream.scaladsl.{Flow, GraphDSL, Source, Unzip, Zip}
-import com.comcast.money.akka.stream.DefaultSpanKeyCreators.DefaultFlowSpanKeyCreator
+import com.comcast.money.akka.stream.DefaultStreamSpanKeyCreators.DefaultFlowSpanKeyCreator
 import com.comcast.money.akka.{MoneyExtension, SpanContextWithStack}
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -32,7 +32,7 @@ import scala.reflect.ClassTag
 
 object StreamTracingDSL {
 
-  import DefaultSpanKeyCreators._
+  import DefaultStreamSpanKeyCreators._
   import akka.stream.scaladsl.GraphDSL.Implicits._
 
   implicit class PortOpsSpanInjector[In: ClassTag](portOps: PortOps[(In, SpanContextWithStack)])
@@ -79,7 +79,7 @@ object StreamTracingDSL {
       startSpanForTracedInlet(inlet)
 
     private def startSpanForTracedInlet[T >: In : ClassTag](inlet: Inlet[(T, SpanContextWithStack)])(implicit iskc: InletSpanKeyCreator[T]): Unit =
-      portOps ~> startSpanFlow[In](iskc.inletToKey(inlet)) ~> inlet
+      portOps ~> closeSpanFlow[In] ~> startSpanFlow[In](iskc.inletToKey(inlet)) ~> inlet
 
     /**
       * Starts a span for a [[FanInShape]]
@@ -105,7 +105,7 @@ object StreamTracingDSL {
       startSpanForTracedFanInInlet(inlet)
 
     private def startSpanForTracedFanInInlet[T >: In : ClassTag](inlet: Inlet[(T, SpanContextWithStack)])(implicit fisck: FanInSpanKeyCreator[T]): Unit =
-      portOps ~> startSpanFlow[In](fisck.fanInInletToKey(inlet)) ~> inlet
+      portOps ~> closeSpanFlow[In] ~> startSpanFlow[In](fisck.fanInInletToKey(inlet)) ~> inlet
 
     /**
       * Completes all the Spans in the SpanContextWithStack this ends the tracing of the stream
@@ -122,7 +122,7 @@ object StreamTracingDSL {
 
     def ~|[T >: In](inlet: Inlet[T]): Unit = completeTracing(inlet)
 
-    private def completeTracing[T >: In](inlet: Inlet[T]): Unit = portOps ~> haltTracingFlow[In] ~> inlet
+    private def completeTracing[T >: In](inlet: Inlet[T]): Unit = portOps ~> closeSpanFlow[In] ~> haltTracingFlow[In] ~> inlet
 
     /**
       * Completes all the remaining spans and allows the stream to continue with regular Akka combinators
@@ -150,11 +150,8 @@ object StreamTracingDSL {
 
     def ~|~[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[Out] = completeTracingAndContinueStream(portOps, flow)
 
-    private def completeTracingAndContinueStream[Out: ClassTag](
-                                                                 portOps: PortOps[TracedIn],
-                                                                 flow: Flow[In, Out, _]
-                                                               ): PortOps[Out] =
-      injectSpanInFlow(portOps, flow) ~> haltTracingFlow[Out]
+    private def completeTracingAndContinueStream[Out: ClassTag](portOps: PortOps[TracedIn], flow: Flow[In, Out, _]): PortOps[Out] =
+      injectSpanInFlow(portOps, flow) ~> closeSpanFlow[Out] ~> haltTracingFlow[Out]
   }
 
   implicit class SourceSpanInjector[In: ClassTag](source: Source[In, _])
@@ -180,7 +177,12 @@ object StreamTracingDSL {
       * @return PortOps[(Out, SpanContextWithStack)]
       */
 
-    def ~|>[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[(Out, SpanContextWithStack)] = injectSpanInFlow(startSpanContext, flow)
+    def ~|>[Out: ClassTag](flow: Flow[In, Out, _]): PortOps[(Out, SpanContextWithStack)] =
+      startSpanContextAndInjectSpan(flow)
+
+    private def startSpanContextAndInjectSpan[Out: ClassTag](flow: Flow[In, Out, _]) = {
+      startSpanContext ~> injectSpan(flow)
+    }
 
     /**
       * Starts a SpanContextWithStack for the stream and connects [[Source]] to a traced [[Flow]]
@@ -329,7 +331,7 @@ object StreamTracingDSL {
                                                            (implicit builder: Builder[_],
                                                             moneyExtension: MoneyExtension,
                                                             fskc: FlowSpanKeyCreator[In]): PortOps[(Out, SpanContextWithStack)] =
-    portOps ~> injectSpan(flow) ~> closeSpanFlow[Out]
+    portOps ~> closeSpanFlow[In] ~> injectSpan(flow)
 
   /**
     * DO NOT USE FOR UNORDERED ASYNC SPANCONTEXT WILL NOT BE GIVEN TO CORRECT ELEMENT

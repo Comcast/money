@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.comcast.money.akka.stream.acceptance
+package com.comcast.money.akka.acceptance.stream
 
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
@@ -24,7 +24,7 @@ import org.scalatest.{Matchers, WordSpecLike}
 
 class MoneyExtensionSpec(_system: ActorSystem) extends TestKit(_system) with WordSpecLike with Matchers {
 
-  def this() = this{
+  def this() = this {
     val configString: String =
       """
         | money {

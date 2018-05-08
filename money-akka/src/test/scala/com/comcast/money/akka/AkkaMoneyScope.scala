@@ -17,14 +17,17 @@
 package com.comcast.money.akka
 
 import akka.actor.ActorSystem
+import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import com.comcast.money.core.handlers.HandlerChain
 import com.typesafe.config.ConfigFactory
-import org.scalatest.matchers.{ MatchResult, Matcher }
-import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike }
+import org.scalatest.matchers.{MatchResult, Matcher}
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
 
-abstract class AkkaMoneyScope(val _system: ActorSystem) extends TestKit(_system) with WordSpecLike with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
+import scala.concurrent.ExecutionContextExecutor
+
+abstract class AkkaMoneyScope(override val system: ActorSystem) extends TestKit(system) with WordSpecLike with Matchers with ScalatestRouteTest with BeforeAndAfterAll with BeforeAndAfterEach {
   def this() = this{
     val configString: String =
       """
@@ -42,9 +45,13 @@ abstract class AkkaMoneyScope(val _system: ActorSystem) extends TestKit(_system)
     ActorSystem("MoneyAkkaScope", ConfigFactory.parseString(configString))
   }
 
+  implicit val actorSystem: ActorSystem = system
+
   implicit val moneyExtension: MoneyExtension = MoneyExtension(system)
 
   implicit val matierializer: ActorMaterializer = ActorMaterializer()
+
+  override implicit val executor: ExecutionContextExecutor = actorSystem.dispatcher
 
   def maybeCollectingSpanHandler = maybeHandlerChain.map(_.asInstanceOf[CollectingSpanHandler])
 
@@ -60,7 +67,9 @@ abstract class AkkaMoneyScope(val _system: ActorSystem) extends TestKit(_system)
   override def afterAll = TestKit.shutdownActorSystem(system)
 
   override def beforeEach(): Unit = clearHandlerChain
+}
 
+object SpanHandlerMatchers {
   def checkNames(names: Seq[String], expectedNames: Seq[String]): Boolean =
     names
       .zip(expectedNames)
@@ -71,26 +80,26 @@ abstract class AkkaMoneyScope(val _system: ActorSystem) extends TestKit(_system)
         case (_, acc) => acc
       }
 
-  def haveSomeSpanNames(
-    expectedSpanNames: Seq[String],
-    checkNames: (Seq[String], Seq[String]) => Boolean = checkNames
-  ) =
+  def haveSomeSpanNames(expectedSpanNames: Seq[String], checkNames: (Seq[String], Seq[String]) => Boolean = checkNames) =
     Matcher {
       (maybeSpanHandler: Option[CollectingSpanHandler]) =>
         val maybeNames = maybeSpanHandler.map(_.spanInfoStack.map(_.name()))
 
         MatchResult(
           matches = {
-          maybeNames match {
-            case Some(spanNames) if spanNames.isEmpty => false
-            case Some(spanNames) => checkNames(spanNames, expectedSpanNames)
-            case _ => false
-          }
-        },
+            maybeNames match {
+              case Some(spanNames) if spanNames.isEmpty => false
+              case Some(spanNames) if spanNames.length != expectedSpanNames.length => false
+              case Some(spanNames) => checkNames(spanNames, expectedSpanNames)
+              case _ => false
+            }
+          },
           rawFailureMessage = s"Names: $maybeNames were not Some($expectedSpanNames)",
           rawNegatedFailureMessage = s"Names: $maybeNames were Some($expectedSpanNames)"
         )
     }
+
+  def haveSomeSpanName(expectedName: String) = haveSomeSpanNames(Seq(expectedName))
 
   def haveSomeSpanNamesInNoParticularOrder(expectedSpanNames: Seq[String]) = {
     def sortedCheckNames(names: Seq[String], expectedNames: Seq[String]) = checkNames(names.sortBy(_.hashCode), expectedNames.sortBy(_.hashCode))

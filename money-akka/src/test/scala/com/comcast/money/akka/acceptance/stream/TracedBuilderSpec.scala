@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package com.comcast.money.akka.stream.acceptance
+package com.comcast.money.akka.acceptance.stream
 
-import akka.stream.{ Attributes, UniformFanInShape, UniformFanOutShape }
-import akka.stream.scaladsl.{ Balance, Broadcast, Interleave, Merge, MergePrioritized }
-import akka.stream.stage.{ GraphStage, GraphStageLogic }
+import akka.stream.scaladsl.{Balance, Broadcast, Merge, MergePrioritized}
+import akka.stream.stage.{GraphStage, GraphStageLogic}
+import akka.stream.{Attributes, UniformFanInShape, UniformFanOutShape}
 import com.comcast.money.akka.Blocking.RichFuture
-import com.comcast.money.akka.stream.{ UnsupportedUniformFanInShape, UnsupportedUniformFanOutShape }
-import com.comcast.money.akka.{ AkkaMoneyScope, TestStreams }
+import com.comcast.money.akka.SpanHandlerMatchers.haveSomeSpanNamesInNoParticularOrder
+import com.comcast.money.akka.stream.{UnsupportedUniformFanInShape, UnsupportedUniformFanOutShape}
+import com.comcast.money.akka.{AkkaMoneyScope, TestStreams}
 
 class TracedBuilderSpec extends AkkaMoneyScope {
 
@@ -61,7 +62,7 @@ class TracedBuilderSpec extends AkkaMoneyScope {
     }
 
     "create a traced version of a Broadcast shape and produce completed spans" in {
-      val expectedSpanNames = replicateAndAppend(Seq(stream, fanInOfString, stringToString, stringToString, fanOutOfString))
+      val expectedSpanNames = replicateAndAppend(Seq(stream, fanInOfString, fanInOfString, stringToString, stringToString, fanOutOfString))
 
       testStreams.fanOutFanIn(fanOutRaw = Broadcast[String](2)).run.get()
 

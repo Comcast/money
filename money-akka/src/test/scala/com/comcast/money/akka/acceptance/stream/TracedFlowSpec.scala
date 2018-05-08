@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package com.comcast.money.akka.stream.acceptance
+package com.comcast.money.akka.acceptance.stream
 
 import akka.stream.Attributes
-import akka.stream.scaladsl.{ Keep, Sink, Source }
-import akka.stream.stage.{ InHandler, OutHandler }
-import com.comcast.money.akka.{ AkkaMoneyScope, MoneyExtension, SpanContextWithStack }
+import akka.stream.scaladsl.{Keep, Sink, Source}
+import akka.stream.stage.{InHandler, OutHandler}
 import com.comcast.money.akka.Blocking.RichFuture
-import com.comcast.money.akka.stream.{ TracedFlow, TracedFlowLogic }
+import com.comcast.money.akka.SpanHandlerMatchers.haveSomeSpanNames
+import com.comcast.money.akka.stream.{TracedFlow, TracedFlowLogic}
+import com.comcast.money.akka.{AkkaMoneyScope, MoneyExtension, SpanContextWithStack}
 
 class TracedFlowSpec extends AkkaMoneyScope {
 
@@ -45,9 +46,7 @@ class TracedFlowSpec extends AkkaMoneyScope {
 
   val testSpanNames = Seq("flow-3", "flow-2", "flow-1")
 
-  def testStream()(implicit
-    spanContextWithStack: SpanContextWithStack,
-    moneyExtension: MoneyExtension) =
+  def testStream()(implicit spanContextWithStack: SpanContextWithStack, moneyExtension: MoneyExtension) =
     Source[(String, SpanContextWithStack)](List(("", spanContextWithStack)))
       .via(new TestFlowShape("flow-1"))
       .via(new TestFlowShape("flow-2"))
@@ -55,9 +54,7 @@ class TracedFlowSpec extends AkkaMoneyScope {
       .toMat(Sink.seq)(Keep.right)
       .run()
 
-  def multithreadedTestStream()(implicit
-    spanContextWithStack: SpanContextWithStack,
-    moneyExtension: MoneyExtension) =
+  def multithreadedTestStream()(implicit spanContextWithStack: SpanContextWithStack, moneyExtension: MoneyExtension) =
     Source[(String, SpanContextWithStack)](List(("", spanContextWithStack)))
       .via(new TestFlowShape("flow-1").async)
       .via(new TestFlowShape("flow-2").async)
