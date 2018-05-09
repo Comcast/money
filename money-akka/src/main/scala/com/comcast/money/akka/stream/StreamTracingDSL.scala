@@ -382,7 +382,7 @@ object StreamTracingDSL {
 
     val traversalBuilder = flow.traversalBuilder
 
-    val isAsync = {
+    val hasAsyncName = {
       Try(traversalBuilder.pendingBuilder.get) map {
         _.attributes.attributeList.foldLeft(false) {
           case (true, _) => true
@@ -394,7 +394,7 @@ object StreamTracingDSL {
 
     val hasAsyncBoundary = traversalBuilder.attributes.attributeList.contains(AsyncBoundary)
 
-    if (hasAsyncBoundary || isAsync) builder add Unzip[In, SpanContextWithStack]().async
+    if (hasAsyncBoundary || hasAsyncName) builder add Unzip[In, SpanContextWithStack]().async
     else builder add Unzip[In, SpanContextWithStack]()
   }
 
