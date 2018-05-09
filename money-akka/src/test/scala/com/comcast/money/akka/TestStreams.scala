@@ -135,11 +135,16 @@ class TestStreams(implicit moneyExtension: MoneyExtension) {
         string
       }
 
+  private def accumulatedStringToFuture(implicit executionContext: ExecutionContext) =
+    (acc: String, string: String) => stringToFuture((400L, 400L))(executionContext)(string).map(acc + _.last)
+
   type TracedString = (String, SpanContextWithStack)
 
   def asyncOutOfOrder(implicit executionContext: ExecutionContext) = asyncStream(_ => Right(Flow[String].tracedMapAsyncUnordered(3)(stringToFuture((400L, 200L)))))
 
   def asyncSimple(implicit executionContext: ExecutionContext) = asyncStream(_ => Left(Flow[String].mapAsync(3)(stringToFuture((400L, 400L)))))
+
+  def asyncScan(implicit executionContext: ExecutionContext) = asyncStream(_ => Left(Flow[String].scanAsync("")(accumulatedStringToFuture)))
 
   def asyncManyElements(implicit executionContext: ExecutionContext) =
     Source fromGraph {
