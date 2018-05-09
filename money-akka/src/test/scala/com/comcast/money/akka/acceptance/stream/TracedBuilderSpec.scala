@@ -20,7 +20,7 @@ import akka.stream.scaladsl.{Balance, Broadcast, Merge, MergePrioritized}
 import akka.stream.stage.{GraphStage, GraphStageLogic}
 import akka.stream.{Attributes, UniformFanInShape, UniformFanOutShape}
 import com.comcast.money.akka.Blocking.RichFuture
-import com.comcast.money.akka.SpanHandlerMatchers.haveSomeSpanNamesInNoParticularOrder
+import com.comcast.money.akka.SpanHandlerMatchers.{haveSomeSpanNamesInNoParticularOrder, maybeCollectingSpanHandler}
 import com.comcast.money.akka.stream.{UnsupportedUniformFanInShape, UnsupportedUniformFanOutShape}
 import com.comcast.money.akka.{AkkaMoneyScope, TestStreams}
 

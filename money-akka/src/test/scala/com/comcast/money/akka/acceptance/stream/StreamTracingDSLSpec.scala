@@ -19,7 +19,7 @@ package com.comcast.money.akka.acceptance.stream
 import akka.stream._
 import akka.stream.scaladsl.{Flow, Sink, Source}
 import com.comcast.money.akka.Blocking.RichFuture
-import com.comcast.money.akka.SpanHandlerMatchers.{haveSomeSpanNames, haveSomeSpanNamesInNoParticularOrder}
+import com.comcast.money.akka.SpanHandlerMatchers.{haveSomeSpanNames, haveSomeSpanNamesInNoParticularOrder, maybeCollectingSpanHandler}
 import com.comcast.money.akka._
 import com.comcast.money.akka.stream._
 
@@ -69,14 +69,26 @@ class StreamTracingDSLSpec extends AkkaMoneyScope {
       maybeCollectingSpanHandler should haveSomeSpanNames(Seq("request", stream, stringToString))
     }
 
-    "built with ordered async boundaries should run asynchronously and create completed spans" in {
-      val expectedSpanNames = replicateAndAppend(Seq(stream, stringToString), 3)
+    "built with ordered async boundaries" should {
+      "run asynchronously and create completed spans" in {
+        val expectedSpanNames = replicateAndAppend(Seq(stream, stringToString), 3)
 
-      val lessThanSequentialRuntime = 750 milliseconds
-      val orderedChunks = testStreams.asyncSimple.run.get(lessThanSequentialRuntime)
+        val lessThanSequentialRuntime = 750 milliseconds
+        val orderedChunks = testStreams.asyncSimple.run.get(lessThanSequentialRuntime)
 
-      maybeCollectingSpanHandler should haveSomeSpanNames(expectedSpanNames)
-      orderedChunks shouldBe Seq("chunk1", "chunk2", "chunk3")
+        maybeCollectingSpanHandler should haveSomeSpanNames(expectedSpanNames)
+        orderedChunks shouldBe Seq("chunk1", "chunk2", "chunk3")
+      }
+
+      "run asynchronously and create completed spans using a function other than map" in {
+        val expectedSpanNames = replicateAndAppend(Seq(stream, stringToString), 3)
+
+        val lessThanSequentialRuntime = 750 milliseconds
+        val orderedChunks = testStreams.asyncScan.run.get(lessThanSequentialRuntime)
+
+        maybeCollectingSpanHandler should haveSomeSpanNames(expectedSpanNames)
+        orderedChunks shouldBe Seq("", "1", "12")
+      }
     }
 
     "built with unordered async boundaries" should {

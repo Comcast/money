@@ -20,7 +20,7 @@ import akka.stream.Attributes
 import akka.stream.scaladsl.{Keep, Sink, Source}
 import akka.stream.stage.{InHandler, OutHandler}
 import com.comcast.money.akka.Blocking.RichFuture
-import com.comcast.money.akka.SpanHandlerMatchers.haveSomeSpanNames
+import com.comcast.money.akka.SpanHandlerMatchers.{haveSomeSpanNames, maybeCollectingSpanHandler}
 import com.comcast.money.akka.stream.{TracedFlow, TracedFlowLogic}
 import com.comcast.money.akka.{AkkaMoneyScope, MoneyExtension, SpanContextWithStack}
 

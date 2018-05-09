@@ -16,6 +16,7 @@
 
 package com.comcast.money.akka.stream
 
+import akka.stream.Attributes.{AsyncBoundary, Name}
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
 import akka.stream.scaladsl.{Flow, GraphDSL, Source, Unzip, Zip}
@@ -24,6 +25,7 @@ import com.comcast.money.akka.{MoneyExtension, SpanContextWithStack}
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.reflect.ClassTag
+import scala.util.Try
 
 /**
   * [[StreamTracingDSL]] are used to trace a stream that has not been built to support tracing
@@ -361,7 +363,7 @@ object StreamTracingDSL {
         implicit builder: Builder[_] =>
           import akka.stream.scaladsl.GraphDSL.Implicits._
 
-          val unZip = builder add Unzip[In, SpanContextWithStack]().async
+          val unZip = unzipForFlow(flow)
           val zip = builder add Zip[Out, SpanContextWithStack]()
 
           val spanFlowShape = builder.add(startSpanFlow[In](fskc.flowToKey(flow)))
@@ -375,6 +377,26 @@ object StreamTracingDSL {
           FlowShape(spanFlowShape.in, zip.out)
       }
     } withAttributes flow.traversalBuilder.attributes
+
+  private def unzipForFlow[Out: ClassTag, In: ClassTag](flow: Flow[In, Out, _])(implicit builder: Builder[_]) = {
+
+    val traversalBuilder = flow.traversalBuilder
+
+    val hasAsyncName = {
+      Try(traversalBuilder.pendingBuilder.get) map {
+        _.attributes.attributeList.foldLeft(false) {
+          case (true, _) => true
+          case (false, Name(name)) if name.contains("Async") => true
+          case (_, _) => false
+        }
+      } getOrElse false
+    }
+
+    val hasAsyncBoundary = traversalBuilder.attributes.attributeList.contains(AsyncBoundary)
+
+    if (hasAsyncBoundary || hasAsyncName) builder add Unzip[In, SpanContextWithStack]().async
+    else builder add Unzip[In, SpanContextWithStack]()
+  }
 
   /**
     * Returns a Flow that starts a Span in the existing SpanContext

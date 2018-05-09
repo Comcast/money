@@ -23,7 +23,7 @@ import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.scaladsl.Source
 import com.comcast.money.akka.Blocking.RichFuture
-import com.comcast.money.akka.SpanHandlerMatchers.haveSomeSpanName
+import com.comcast.money.akka.SpanHandlerMatchers.{haveSomeSpanName, maybeCollectingSpanHandler}
 import com.comcast.money.akka.http._
 import com.comcast.money.akka.{AkkaMoneyScope, CollectingSpanHandler, TestStreams}
 import com.comcast.money.api.SpanId
