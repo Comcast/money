@@ -27,17 +27,18 @@ import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecL
 import scala.concurrent.ExecutionContextExecutor
 
 abstract class AkkaMoneyScope(override val system: ActorSystem) extends TestKit(system) with WordSpecLike with Matchers with ScalatestRouteTest with BeforeAndAfterAll with BeforeAndAfterEach {
-  def this() = this{
+  def this() = this {
     val configString: String =
       """
         | money {
         |  handling = {
         |    async = false
         |    handlers = [
-        |    {
-        |      class = "com.comcast.money.akka.CollectingSpanHandler"
-        |      log-level = "INFO"
-        |    }]
+        |       {
+        |         class = "com.comcast.money.akka.CollectingSpanHandler"
+        |         log-level = "INFO"
+        |       }
+        |    ]
         |  }
         | }""".stripMargin
 
