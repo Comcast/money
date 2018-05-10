@@ -17,51 +17,51 @@ import scala.util.{Failure, Success, Try}
 class MoneyClientSpec extends AkkaMoneyScope {
 
   "A Akka Http Client traced with Money" should {
-    "send a traced request" in {
+    "send a traced request with a flow" in {
       Http().bindAndHandle(route, "localhost", 8080)
 
       val eventualMaybeResponse =
         httpStream.run flatMap {
-          case Success(response) => Unmarshal(response).to[String]
-          case Failure(e) => Future.failed(e)
+          case (Success(response), i) => Unmarshal(response).to[String].map((_, i))
+          case (Failure(e), _) => Future.failed(e)
         }
 
-      eventualMaybeResponse.get() shouldBe "response"
+      eventualMaybeResponse.get() shouldBe ("response", 1)
 
       maybeCollectingSpanHandler should haveSomeSpanNames(Seq("Stream", "GET /"))
     }
   }
 
-  def httpStream: RunnableGraph[Future[Try[HttpResponse]]] =
+  def httpStream =
     RunnableGraph fromGraph {
-      GraphDSL.create(Sink.head[Try[HttpResponse]]) {
+      GraphDSL.create(Sink.head[(Try[HttpResponse], Int)]) {
         implicit builder =>
           sink =>
             import com.comcast.money.akka.stream.StreamTracingDSL._
 
-            Source(List(HttpRequest())) ~|> tracedHttpFlow ~| sink.in
+            Source(List((HttpRequest(), 1))) ~|> tracedHttpFlow[Int] ~| sink.in
             ClosedShape
       }
     }
 
-  def tracedHttpFlow(implicit hSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator,
-                     moneyExtension: MoneyExtension): Flow[(HttpRequest, SpanContextWithStack), (Try[HttpResponse], SpanContextWithStack), _] =
-    Flow[(HttpRequest, SpanContextWithStack)]
+  def tracedHttpFlow[T](implicit hSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator,
+                        moneyExtension: MoneyExtension): Flow[((HttpRequest, T), SpanContextWithStack), ((Try[HttpResponse], T), SpanContextWithStack), _] =
+    Flow[((HttpRequest, T), SpanContextWithStack)]
       .map {
-        case (request, spanContext) =>
+        case ((request, t), spanContext) =>
           moneyExtension.tracer(spanContext).startSpan(hSKC.httpRequestToKey(request))
-          (request, spanContext)
+          (request, (t, spanContext))
       }
       .via {
         Http()
-          .cachedHostConnectionPool[SpanContextWithStack]("localhost", port = 8080)
+          .cachedHostConnectionPool[(T, SpanContextWithStack)](host = "localhost", port = 8080)
           .map {
-            case (successHttpResponse: Success[HttpResponse], spanContext) =>
+            case (successHttpResponse: Success[HttpResponse], (t, spanContext)) =>
               moneyExtension.tracer(spanContext).stopSpan()
-              (successHttpResponse, spanContext)
-            case (failed: Failure[HttpResponse], spanContext) =>
+              ((successHttpResponse, t), spanContext)
+            case (failed: Failure[HttpResponse], (t, spanContext)) =>
               moneyExtension.tracer(spanContext).stopSpan(result = false)
-              (failed, spanContext)
+              ((failed, t), spanContext)
           }
       }
 
