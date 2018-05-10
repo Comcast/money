@@ -18,7 +18,7 @@ class MoneyClientSpec extends AkkaMoneyScope {
 
   "A Akka Http Client traced with Money" should {
     "send a traced request with a flow" in {
-      Http().bindAndHandle(route, "localhost", 8080)
+      val bindFuture = Http().bindAndHandle(route, "localhost", 8080)
 
       val eventualMaybeResponse =
         httpStream.run flatMap {
@@ -27,6 +27,7 @@ class MoneyClientSpec extends AkkaMoneyScope {
         }
 
       eventualMaybeResponse.get() shouldBe ("response", 1)
+      bindFuture.flatMap(_.unbind()).get()
 
       maybeCollectingSpanHandler should haveSomeSpanNames(Seq("Stream", "GET /"))
     }
