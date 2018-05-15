@@ -21,16 +21,16 @@ import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
 import akka.http.scaladsl.unmarshalling.Unmarshal
-import akka.stream.scaladsl.{GraphDSL, RunnableGraph, Sink, Source}
-import akka.stream.{ClosedShape, StreamTcpException}
+import akka.stream.ClosedShape
+import akka.stream.scaladsl.{ GraphDSL, RunnableGraph, Sink, Source }
 import com.comcast.money.akka.Blocking.RichFuture
-import com.comcast.money.akka.SpanHandlerMatchers.{haveSomeSpanName, haveSomeSpanNames, maybeCollectingSpanHandler}
-import com.comcast.money.akka.http.client.{TracedHttpClient, TracedHttpFlow}
-import com.comcast.money.akka.{AkkaMoneyScope, CollectingSpanHandler, SpanContextWithStack}
-import org.scalatest.matchers.{MatchResult, Matcher}
+import com.comcast.money.akka.SpanHandlerMatchers.{ haveSomeSpanName, haveSomeSpanNames, maybeCollectingSpanHandler }
+import com.comcast.money.akka.http.client.{ TracedHttpClient, TracedHttpClientFlow }
+import com.comcast.money.akka.{ AkkaMoneyScope, CollectingSpanHandler, SpanContextWithStack }
+import org.scalatest.matchers.{ MatchResult, Matcher }
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 class MoneyClientSpec extends AkkaMoneyScope {
 
@@ -44,7 +44,7 @@ class MoneyClientSpec extends AkkaMoneyScope {
           }
 
         val responseEntityWithIdentifier = eventualMaybeResponse.get()
-        responseEntityWithIdentifier shouldBe("response", 1)
+        responseEntityWithIdentifier shouldBe ("response", 1)
 
         maybeCollectingSpanHandler should haveSomeSpanNames(Seq("Stream", "GET /"))
         maybeCollectingSpanHandler should not(haveFailedSpans)
@@ -56,7 +56,7 @@ class MoneyClientSpec extends AkkaMoneyScope {
           case (Failure(e), _) => Future.failed(e)
         }
 
-        Try(eventualFailure.get()) shouldBe a[Failure[StreamTcpException]]
+        Try(eventualFailure.get()) shouldBe a[Failure[_]]
 
         maybeCollectingSpanHandler should haveSomeSpanNames(Seq("Stream", "GET /"))
         maybeCollectingSpanHandler should haveFailedSpans
@@ -97,7 +97,7 @@ class MoneyClientSpec extends AkkaMoneyScope {
 
         val eventualFailure = tracedClient.get(uri = s"http://$unavailableHost:8080/")
 
-        Try(eventualFailure.get()) shouldBe a[Failure[StreamTcpException]]
+        Try(eventualFailure.get()) shouldBe a[Failure[_]]
 
         Thread.sleep(10L) // onComplete is on a separate thread and can be run after the next statements are run
 
@@ -123,16 +123,7 @@ class MoneyClientSpec extends AkkaMoneyScope {
     Matcher {
       maybeSpanHandler =>
         val maybeSpanInfoStack = maybeSpanHandler.map(_.spanInfoStack)
-
-        val hasSpanFailure =
-          maybeSpanInfoStack
-            .exists {
-              _.foldLeft(true) {
-                case (status, _) if status == false => true
-                case (_, spanInfo) if spanInfo.success == false => true
-                case (_, _) => false
-              }
-            }
+        val hasSpanFailure = maybeSpanInfoStack.exists(_.map(_.success).contains(false))
 
         MatchResult(
           matches = hasSpanFailure,
@@ -145,12 +136,11 @@ class MoneyClientSpec extends AkkaMoneyScope {
 
   def httpStream(host: String = localhost): RunnableGraph[Future[(Try[HttpResponse], Int)]] =
     RunnableGraph fromGraph {
-      GraphDSL.create(Sink.head[(Try[HttpResponse], Int)]) { implicit builder =>
-        sink =>
-          import com.comcast.money.akka.stream.StreamTracingDSL._
+      GraphDSL.create(Sink.head[(Try[HttpResponse], Int)]) { implicit builder => sink =>
+        import com.comcast.money.akka.stream.StreamTracingDSL._
 
-          Source(List((HttpRequest(), 1))) ~|> TracedHttpFlow[Int](host, 8080) ~| sink.in
-          ClosedShape
+        Source(List((HttpRequest(), 1))) ~|> TracedHttpClientFlow[Int](host, 8080) ~| sink.in
+        ClosedShape
       }
     }
 }

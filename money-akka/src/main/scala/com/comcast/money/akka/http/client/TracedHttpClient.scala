@@ -18,14 +18,14 @@ package com.comcast.money.akka.http.client
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{HttpHeader, HttpRequest, HttpResponse}
-import com.comcast.money.akka.http.{DefaultHttpRequestSpanKeyCreator, HttpRequestSpanKeyCreator}
-import com.comcast.money.akka.{MoneyExtension, SpanContextWithStack}
+import akka.http.scaladsl.model.{ HttpHeader, HttpRequest, HttpResponse }
+import com.comcast.money.akka.http.{ DefaultHttpRequestSpanKeyCreator, HttpRequestSpanKeyCreator }
+import com.comcast.money.akka.{ MoneyExtension, SpanContextWithStack }
 import com.comcast.money.api.Note
 import com.comcast.money.core.Tracer
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success }
 
 class TracedHttpClient(implicit actorSystem: ActorSystem, moneyExtension: MoneyExtension, httpRequestSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator) {
   import scala.collection.immutable.Seq

@@ -25,7 +25,7 @@ import com.comcast.money.akka.{ MoneyExtension, SpanContextWithStack }
 
 import scala.util.{ Failure, Success, Try }
 
-object TracedHttpFlow {
+object TracedHttpClientFlow {
   def apply[T](host: String, port: Int)(implicit actorSystem: ActorSystem, moneyExtension: MoneyExtension, hSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator): Flow[((HttpRequest, T), SpanContextWithStack), ((Try[HttpResponse], T), SpanContextWithStack), _] =
     Flow[((HttpRequest, T), SpanContextWithStack)]
       .map {
