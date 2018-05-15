@@ -17,9 +17,9 @@
 package com.comcast.money.akka.acceptance.stream
 
 import akka.stream._
-import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.scaladsl.{ Flow, Sink, Source }
 import com.comcast.money.akka.Blocking.RichFuture
-import com.comcast.money.akka.SpanHandlerMatchers.{haveSomeSpanNames, haveSomeSpanNamesInNoParticularOrder, maybeCollectingSpanHandler}
+import com.comcast.money.akka.SpanHandlerMatchers.{ haveSomeSpanNames, haveSomeSpanNamesInNoParticularOrder, maybeCollectingSpanHandler }
 import com.comcast.money.akka._
 import com.comcast.money.akka.stream._
 

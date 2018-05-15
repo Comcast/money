@@ -16,8 +16,8 @@
 
 package com.comcast.money.akka.stream
 
-import akka.stream.scaladsl.{Flow, Source}
-import akka.stream.{FanOutShape, Inlet}
+import akka.stream.scaladsl.{ Flow, Source }
+import akka.stream.{ FanOutShape, Inlet }
 import com.comcast.money.akka.SpanContextWithStack
 
 import scala.reflect.ClassTag
