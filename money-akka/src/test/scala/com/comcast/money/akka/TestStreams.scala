@@ -59,6 +59,17 @@ class TestStreams(implicit moneyExtension: MoneyExtension) {
       }
     }
 
+  def simpleWithAlteredElement(implicit
+             fskc: FlowSpanKeyCreator[String] = DefaultFlowSpanKeyCreator[String],
+             sskc: SourceSpanKeyCreator[String] = DefaultSourceSpanKeyCreator[String]) =
+    RunnableGraph fromGraph {
+      GraphDSL.create(Sink.seq[String]) { implicit builder: Builder[Future[Seq[String]]] => sink =>
+        source ~|> Flow[String].map(_ + "1") ~| sink.in
+
+        ClosedShape
+      }
+    }
+
   def simpleTakingSpanContext(implicit
     spanContextWithStack: SpanContextWithStack,
     fskc: FlowSpanKeyCreator[String] = DefaultFlowSpanKeyCreator[String],

@@ -38,6 +38,10 @@ class StreamTracingDSLSpec extends AkkaMoneyScope {
       maybeCollectingSpanHandler should haveSomeSpanNames(Seq(stream, stringToString))
     }
 
+    "run should return correct element" in {
+      testStreams.simpleWithAlteredElement.run.get() shouldBe Seq("chunk1")
+    }
+
     "completed with an arbitrary Sink should create completed spans" in {
       testStreams.sourceEndingWithFlow.runWith(Sink.ignore).get()
 
