@@ -19,30 +19,30 @@ package com.comcast.money.akka.http
 import akka.http.scaladsl.model.HttpRequest
 
 /**
-  * [[HttpRequestSpanKeyCreator]] carries a single function used to create a key for a Span for a [[HttpRequest]]
-  * this is used in the [[MoneyTrace]] [[akka.http.scaladsl.server.Directive]]
-  *
-  * Recommended usage through [[HttpRequestSpanKeyCreator]] object
-  *
-  * Example:
-  *
-  * HttpRequestSpanKeyCreator((_: HttpRequest) => "TracedHttpRequest")
-  *
-  */
+ * [[HttpRequestSpanKeyCreator]] carries a single function used to create a key for a Span for a [[HttpRequest]]
+ * this is used in the [[MoneyTrace]] [[akka.http.scaladsl.server.Directive]]
+ *
+ * Recommended usage through [[HttpRequestSpanKeyCreator]] object
+ *
+ * Example:
+ *
+ * HttpRequestSpanKeyCreator((_: HttpRequest) => "TracedHttpRequest")
+ *
+ */
 
 trait HttpRequestSpanKeyCreator {
   def httpRequestToKey(request: HttpRequest): String
 }
 
 /**
-  * Returns a [[HttpRequestSpanKeyCreator]]
-  *
-  * Example:
-  * {{{
-  *   HttpRequestSpanKeyCreator((_: HttpRequest) => "TracedHttpRequest")
-  * }}}
-  *
-  */
+ * Returns a [[HttpRequestSpanKeyCreator]]
+ *
+ * Example:
+ * {{{
+ *   HttpRequestSpanKeyCreator((_: HttpRequest) => "TracedHttpRequest")
+ * }}}
+ *
+ */
 
 object HttpRequestSpanKeyCreator {
   def apply(requestToName: HttpRequest => String): HttpRequestSpanKeyCreator =
@@ -52,10 +52,10 @@ object HttpRequestSpanKeyCreator {
 }
 
 /**
-  * The standard [[HttpRequest]] [[HttpRequestSpanKeyCreator]] that is used if there is not a
-  * [[HttpRequestSpanKeyCreator]] present when a [[MoneyTrace]] Directive is created
-  *
-  */
+ * The standard [[HttpRequest]] [[HttpRequestSpanKeyCreator]] that is used if there is not a
+ * [[HttpRequestSpanKeyCreator]] present when a [[MoneyTrace]] Directive is created
+ *
+ */
 
 object DefaultHttpRequestSpanKeyCreator extends HttpRequestSpanKeyCreator {
   override def httpRequestToKey(request: HttpRequest): String = s"${request.method.value} ${request.uri.path.toString}"

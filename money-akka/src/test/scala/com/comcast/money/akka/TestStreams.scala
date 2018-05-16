@@ -21,13 +21,13 @@ import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
 import akka.stream.scaladsl.GraphDSL.Implicits.PortOps
-import akka.stream.scaladsl.{Flow, GraphDSL, Partition, RunnableGraph, Sink, Source}
+import akka.stream.scaladsl.{ Flow, GraphDSL, Partition, RunnableGraph, Sink, Source }
 import akka.stream.stage.GraphStage
 import com.comcast.money.akka.stream.AsyncUnorderedFlowTracing.TracedFlowOps
 import com.comcast.money.akka.stream.DefaultStreamSpanKeyCreators._
 import com.comcast.money.akka.stream._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 object TestStreamConstants {
   def replicateAndAppend[T](seq: Seq[T], numberOfreplicas: Int = 2): Seq[T] =
@@ -48,38 +48,37 @@ class TestStreams(implicit moneyExtension: MoneyExtension) {
 
   private def source = Source(List("chunk"))
 
-  def simple(implicit fskc: FlowSpanKeyCreator[String] = DefaultFlowSpanKeyCreator[String],
-             sskc: SourceSpanKeyCreator[String] = DefaultSourceSpanKeyCreator[String]) =
+  def simple(implicit
+    fskc: FlowSpanKeyCreator[String] = DefaultFlowSpanKeyCreator[String],
+    sskc: SourceSpanKeyCreator[String] = DefaultSourceSpanKeyCreator[String]) =
     RunnableGraph fromGraph {
-      GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] =>
-        sink =>
-          source ~|> Flow[String] ~| sink.in
+      GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] => sink =>
+        source ~|> Flow[String] ~| sink.in
 
-          ClosedShape
+        ClosedShape
       }
     }
 
-  def simpleTakingSpanContext(implicit spanContextWithStack: SpanContextWithStack,
-                              fskc: FlowSpanKeyCreator[String] = DefaultFlowSpanKeyCreator[String],
-                              sskc: SourceSpanKeyCreator[String] = DefaultSourceSpanKeyCreator[String]) =
+  def simpleTakingSpanContext(implicit
+    spanContextWithStack: SpanContextWithStack,
+    fskc: FlowSpanKeyCreator[String] = DefaultFlowSpanKeyCreator[String],
+    sskc: SourceSpanKeyCreator[String] = DefaultSourceSpanKeyCreator[String]) =
     RunnableGraph fromGraph {
-      GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] =>
-        sink =>
-          source ~|> Flow[String] ~| sink.in
+      GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] => sink =>
+        source ~|> Flow[String] ~| sink.in
 
-          ClosedShape
+        ClosedShape
       }
     }
 
   def simpleWithInlets(implicit inletSpanKeyCreator: InletSpanKeyCreator[String] = DefaultInletSpanKeyCreator[String]) =
     RunnableGraph fromGraph {
-      GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] =>
-        sink =>
-          val flowShape = builder.add(Flow[(String, SpanContextWithStack)])
-          source ~|> Flow[String] ~|> flowShape.in
-          flowShape.out ~| sink.in
+      GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] => sink =>
+        val flowShape = builder.add(Flow[(String, SpanContextWithStack)])
+        source ~|> Flow[String] ~|> flowShape.in
+        flowShape.out ~| sink.in
 
-          ClosedShape
+        ClosedShape
       }
     }
 
@@ -98,29 +97,29 @@ class TestStreams(implicit moneyExtension: MoneyExtension) {
     case "funk" => 1
   }
 
-  def fanOutFanIn(fanInCreator: TracedBuilder => UniformFanInShape[(String, SpanContextWithStack), (String, SpanContextWithStack)] = _.tracedConcat(),
-                  fanOutRaw: GraphStage[UniformFanOutShape[String, String]] = Partition[String](2, partitioner))
-                 (implicit fisck: FanInSpanKeyCreator[String] = DefaultFanInSpanKeyCreator[String],
-                  fosck: FanOutSpanKeyCreator[String] = DefaultFanOutSpanKeyCreator[String]) =
+  def fanOutFanIn(
+    fanInCreator: TracedBuilder => UniformFanInShape[(String, SpanContextWithStack), (String, SpanContextWithStack)] = _.tracedConcat(),
+    fanOutRaw: GraphStage[UniformFanOutShape[String, String]] = Partition[String](2, partitioner)
+  )(implicit
+    fisck: FanInSpanKeyCreator[String] = DefaultFanInSpanKeyCreator[String],
+    fosck: FanOutSpanKeyCreator[String] = DefaultFanOutSpanKeyCreator[String]) =
 
     RunnableGraph fromGraph {
-      GraphDSL.create(sink) {
-        implicit builder: Builder[Future[Done]] =>
-          sink =>
+      GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] => sink =>
 
-            val fanOut = builder.tracedAdd(fanOutRaw)
+        val fanOut = builder.tracedAdd(fanOutRaw)
 
-            val fanIn: UniformFanInShape[(String, SpanContextWithStack), (String, SpanContextWithStack)] = fanInCreator(builder)
+        val fanIn: UniformFanInShape[(String, SpanContextWithStack), (String, SpanContextWithStack)] = fanInCreator(builder)
 
-            Source(List("chunk", "funk")) ~|> fanOut
+        Source(List("chunk", "funk")) ~|> fanOut
 
-            fanOut.out(0) ~|> Flow[String] ~<> fanIn.in(0)
+        fanOut.out(0) ~|> Flow[String] ~<> fanIn.in(0)
 
-            fanOut.out(1) ~|> Flow[String] ~<> fanIn.in(1)
+        fanOut.out(1) ~|> Flow[String] ~<> fanIn.in(1)
 
-            fanIn ~| sink.in
+        fanIn ~| sink.in
 
-            ClosedShape
+        ClosedShape
       }
     }
 
@@ -150,38 +149,33 @@ class TestStreams(implicit moneyExtension: MoneyExtension) {
     Source fromGraph {
       GraphDSL.create() {
         implicit builder =>
-            val iterator = (1 to 100).map(i => s"chunk$i").iterator
+          val iterator = (1 to 100).map(i => s"chunk$i").iterator
 
-            val out = Source.fromIterator(() => iterator) ~|> Flow[String].mapAsync(30)(stringToFuture((60, 60))) ~|~ Flow[String].map(ChunkStreamPart(_))
+          val out = Source.fromIterator(() => iterator) ~|> Flow[String].mapAsync(30)(stringToFuture((60, 60))) ~|~ Flow[String].map(ChunkStreamPart(_))
 
-            SourceShape(out.outlet)
+          SourceShape(out.outlet)
       }
     }
 
-  def asyncStream(asyncFlowCreator: TracedBuilder => Either[Flow[String, String, _], Flow[TracedString, TracedString, _]])
-                 (implicit executionContext: ExecutionContext) =
+  def asyncStream(asyncFlowCreator: TracedBuilder => Either[Flow[String, String, _], Flow[TracedString, TracedString, _]])(implicit executionContext: ExecutionContext) =
     RunnableGraph fromGraph {
-      GraphDSL.create(Sink.seq[String]) {
-        implicit builder: Builder[Future[Seq[String]]] =>
-          sink =>
-            val iterator = List("chunk1", "chunk2", "chunk3").iterator
-            asyncFlowCreator(builder) fold(
-              asyncFlow => Source.fromIterator(() => iterator) ~|> asyncFlow ~| sink.in,
-              asyncUnorderedFlow => Source.fromIterator(() => iterator) ~|> asyncUnorderedFlow ~| sink.in
-            )
+      GraphDSL.create(Sink.seq[String]) { implicit builder: Builder[Future[Seq[String]]] => sink =>
+        val iterator = List("chunk1", "chunk2", "chunk3").iterator
+        asyncFlowCreator(builder) fold (
+          asyncFlow => Source.fromIterator(() => iterator) ~|> asyncFlow ~| sink.in,
+          asyncUnorderedFlow => Source.fromIterator(() => iterator) ~|> asyncUnorderedFlow ~| sink.in
+        )
 
-            ClosedShape
+        ClosedShape
       }
     }
 
   def namedFlow(implicit fskc: FlowSpanKeyCreator[String] = DefaultFlowSpanKeyCreator[String]) =
     RunnableGraph fromGraph {
-      GraphDSL.create(sink) {
-        implicit builder: Builder[Future[Done]] =>
-          sink =>
-            source ~|> Flow[String].addAttributes(Attributes(Attributes.Name("SomeFlowName"))) ~| sink.in
+      GraphDSL.create(sink) { implicit builder: Builder[Future[Done]] => sink =>
+        source ~|> Flow[String].addAttributes(Attributes(Attributes.Name("SomeFlowName"))) ~| sink.in
 
-            ClosedShape
+        ClosedShape
       }
     }
 }

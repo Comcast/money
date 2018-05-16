@@ -22,7 +22,7 @@ import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import com.comcast.money.akka.SpanHandlerMatchers.clearHandlerChain
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
+import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike }
 
 import scala.concurrent.ExecutionContextExecutor
 
