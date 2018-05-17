@@ -32,16 +32,16 @@ import com.comcast.money.core.internal.SpanContext
 
 class SpanContextWithStack() extends SpanContext {
   /**
-    * stack is a mutable [[List]] of Spans.
-    */
+   * stack is a mutable [[List]] of Spans.
+   */
 
   private var stack: List[Span] = List.empty[Span]
 
   /**
-    * Returns a fresh copy of this [[SpanContextWithStack]].
-    *
-    * @return SpanContextWithStack
-    */
+   * Returns a fresh copy of this [[SpanContextWithStack]].
+   *
+   * @return SpanContextWithStack
+   */
 
   def copy: SpanContextWithStack = {
     val freshSpanContext = new SpanContextWithStack
@@ -49,13 +49,13 @@ class SpanContextWithStack() extends SpanContext {
   }
 
   /**
-    * INTERNAL API
-    *
-    * replaces all spans in the [[SpanContextWithStack]] necessary only for the copy method to correctly copy.
-    *
-    * @param replacementSpans spans to replace existing spans
-    * @return this SpanContextWithStack
-    */
+   * INTERNAL API
+   *
+   * replaces all spans in the [[SpanContextWithStack]] necessary only for the copy method to correctly copy.
+   *
+   * @param replacementSpans spans to replace existing spans
+   * @return this SpanContextWithStack
+   */
 
   private def setAll(replacementSpans: List[Span]): SpanContextWithStack = {
     stack = replacementSpans
@@ -63,35 +63,35 @@ class SpanContextWithStack() extends SpanContext {
   }
 
   /**
-    * Returns all spans currently stored `spans`.
-    * @return List[Span]
-    */
+   * Returns all spans currently stored `spans`.
+   * @return List[Span]
+   */
 
   def getAll: List[Span] = stack
 
   /**
-    * CAUTION THIS METHOD WILL NOT TRACK THE SPAN
-    *
-    * Returns Unit
-    *
-    * Adds a [[Span]] to the top of the Stack
-    *
-    * @param span the [[Span]] to be prepended
-    */
+   * CAUTION THIS METHOD WILL NOT TRACK THE SPAN
+   *
+   * Returns Unit
+   *
+   * Adds a [[Span]] to the top of the Stack
+   *
+   * @param span the [[Span]] to be prepended
+   */
 
   override def push(span: Span): Unit = stack = span :: stack
 
   /**
-    * CAUTION THIS METHOD WILL NOT TRACK THE SPAN
-    *
-    * Returns the last element inserted and removes it
-    *
-    * [[Some]] when Stack has at least one element
-    *
-    * [[None]] when Stack is empty
-    *
-    * @return Option[Span]
-    */
+   * CAUTION THIS METHOD WILL NOT TRACK THE SPAN
+   *
+   * Returns the last element inserted and removes it
+   *
+   * [[Some]] when Stack has at least one element
+   *
+   * [[None]] when Stack is empty
+   *
+   * @return Option[Span]
+   */
 
   override def pop: Option[Span] =
     stack.headOption match {
@@ -103,24 +103,24 @@ class SpanContextWithStack() extends SpanContext {
     }
 
   /**
-    * Returns the last element inserted
-    *
-    * [[Some]] when Stack has at least one element
-    *
-    * [[None]] when Stack is empty
-    *
-    * @return
-    */
+   * Returns the last element inserted
+   *
+   * [[Some]] when Stack has at least one element
+   *
+   * [[None]] when Stack is empty
+   *
+   * @return
+   */
 
   override def current: Option[Span] = stack.headOption
 
   /**
-    * CAUTION THIS WILL CAUSE ALL THE STARTED SPANS TO NOT BE STOPPED
-    *
-    * Returns Unit
-    *
-    * empties the Stack of all spans
-    */
+   * CAUTION THIS WILL CAUSE ALL THE STARTED SPANS TO NOT BE STOPPED
+   *
+   * Returns Unit
+   *
+   * empties the Stack of all spans
+   */
 
   override def clear: Unit = stack = List.empty[Span]
 }

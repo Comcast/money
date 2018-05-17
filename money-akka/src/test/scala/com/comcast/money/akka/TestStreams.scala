@@ -21,13 +21,13 @@ import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
 import akka.stream.scaladsl.GraphDSL.Implicits.PortOps
-import akka.stream.scaladsl.{Flow, GraphDSL, Partition, RunnableGraph, Sink, Source}
+import akka.stream.scaladsl.{ Flow, GraphDSL, Partition, RunnableGraph, Sink, Source }
 import akka.stream.stage.GraphStage
 import com.comcast.money.akka.stream.AsyncUnorderedFlowTracing.TracedFlowOps
 import com.comcast.money.akka.stream.DefaultStreamSpanKeyCreators._
 import com.comcast.money.akka.stream._
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 
 object TestStreamConstants {
   def replicateAndAppend[T](seq: Seq[T], numberOfreplicas: Int = 2): Seq[T] =
@@ -60,8 +60,8 @@ class TestStreams(implicit moneyExtension: MoneyExtension) {
     }
 
   def simpleWithAlteredElement(implicit
-             fskc: FlowSpanKeyCreator[String] = DefaultFlowSpanKeyCreator[String],
-             sskc: SourceSpanKeyCreator[String] = DefaultSourceSpanKeyCreator[String]) =
+    fskc: FlowSpanKeyCreator[String] = DefaultFlowSpanKeyCreator[String],
+    sskc: SourceSpanKeyCreator[String] = DefaultSourceSpanKeyCreator[String]) =
     RunnableGraph fromGraph {
       GraphDSL.create(Sink.seq[String]) { implicit builder: Builder[Future[Seq[String]]] => sink =>
         source ~|> Flow[String].map(_ + "1") ~| sink.in

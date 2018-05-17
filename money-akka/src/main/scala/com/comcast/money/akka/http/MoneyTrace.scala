@@ -17,17 +17,17 @@
 package com.comcast.money.akka.http
 
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
-import akka.http.scaladsl.model.{ContentTypes, HttpEntity, HttpRequest, HttpResponse}
-import akka.http.scaladsl.server.Directives.{complete, extractRequest}
+import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, HttpRequest, HttpResponse }
+import akka.http.scaladsl.server.Directives.{ complete, extractRequest }
 import akka.http.scaladsl.server.Route
-import akka.stream.scaladsl.{Sink, Source}
-import com.comcast.money.akka.{MoneyExtension, SpanContextWithStack, TraceContext}
-import com.comcast.money.api.{Note, SpanId}
+import akka.stream.scaladsl.{ Sink, Source }
+import com.comcast.money.akka.{ MoneyExtension, SpanContextWithStack, TraceContext }
+import com.comcast.money.api.{ Note, SpanId }
 import com.comcast.money.core.Formatters.fromHttpHeader
 import com.comcast.money.core.Tracer
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success}
+import scala.concurrent.{ ExecutionContext, Future }
+import scala.util.{ Failure, Success }
 
 /**
  * Traces a call to a instrumented Akka Http Routing DSL

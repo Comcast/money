@@ -16,14 +16,14 @@
 
 package com.comcast.money.akka.stream
 
-import akka.stream.Attributes.{AsyncBoundary, Name}
+import akka.stream.Attributes.{ AsyncBoundary, Name }
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
-import akka.stream.scaladsl.{Flow, GraphDSL, Source, Unzip, Zip}
+import akka.stream.scaladsl.{ Flow, GraphDSL, Source, Unzip, Zip }
 import com.comcast.money.akka.stream.DefaultStreamSpanKeyCreators.DefaultFlowSpanKeyCreator
-import com.comcast.money.akka.{FreshTraceContext, MoneyExtension, SpanContextWithStack, TraceContext}
+import com.comcast.money.akka.{ FreshTraceContext, MoneyExtension, SpanContextWithStack, TraceContext }
 
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.reflect.ClassTag
 import scala.util.Try
 
@@ -154,11 +154,11 @@ object StreamTracingDSL {
   }
 
   implicit class SourceSpanInjector[In: ClassTag](source: Source[In, _])(implicit
-                                                                         builder: Builder[_],
-                                                                         sskc: SourceSpanKeyCreator[In] = DefaultSourceSpanKeyCreator[In],
-                                                                         fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In],
-                                                                         moneyExtension: MoneyExtension,
-                                                                         spanContext: SpanContextWithStack = new SpanContextWithStack) {
+    builder: Builder[_],
+      sskc: SourceSpanKeyCreator[In] = DefaultSourceSpanKeyCreator[In],
+      fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In],
+      moneyExtension: MoneyExtension,
+      spanContext: SpanContextWithStack = new SpanContextWithStack) {
     type TracedIn = (In, TraceContext)
 
     /**
@@ -236,11 +236,12 @@ object StreamTracingDSL {
 
     private def startSpanContext: Source[TracedIn, _] =
       source map {
-        output => {
-          val traceContext = FreshTraceContext(spanContext)
-          traceContext.tracer.startSpan(sskc.sourceToKey(source))
-          (output, traceContext)
-        }
+        output =>
+          {
+            val traceContext = FreshTraceContext(spanContext)
+            traceContext.tracer.startSpan(sskc.sourceToKey(source))
+            (output, traceContext)
+          }
       }
   }
 
@@ -326,8 +327,7 @@ object StreamTracingDSL {
    * @return PortOps[(Out, TraceContext)]
    */
 
-  private def injectSpanInFlow[In: ClassTag, Out: ClassTag](portOps: PortOps[(In, TraceContext)], flow: Flow[In, Out, _])
-                                                           (implicit builder: Builder[_], fskc: FlowSpanKeyCreator[In]): PortOps[(Out, TraceContext)] =
+  private def injectSpanInFlow[In: ClassTag, Out: ClassTag](portOps: PortOps[(In, TraceContext)], flow: Flow[In, Out, _])(implicit builder: Builder[_], fskc: FlowSpanKeyCreator[In]): PortOps[(Out, TraceContext)] =
     portOps.map(stopAndStart(_, fskc.flowToKey(flow))) ~> injectSpan(flow)
 
   /**
@@ -367,16 +367,16 @@ object StreamTracingDSL {
     } withAttributes flow.traversalBuilder.attributes
 
   /**
-    * Returns a Unzip
-    *
-    * Determines by checking for a A
-    *
-    * @param flow
-    * @param builder
-    * @tparam Out
-    * @tparam In
-    * @return
-    */
+   * Returns a Unzip
+   *
+   * Determines by checking for a A
+   *
+   * @param flow
+   * @param builder
+   * @tparam Out
+   * @tparam In
+   * @return
+   */
 
   private def unzipForFlow[Out: ClassTag, In: ClassTag](flow: Flow[In, Out, _])(implicit builder: Builder[_]) = {
 
