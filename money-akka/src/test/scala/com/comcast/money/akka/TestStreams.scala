@@ -23,7 +23,7 @@ import akka.stream.scaladsl.GraphDSL.Builder
 import akka.stream.scaladsl.GraphDSL.Implicits.PortOps
 import akka.stream.scaladsl.{ Flow, GraphDSL, Partition, RunnableGraph, Sink, Source }
 import akka.stream.stage.GraphStage
-import com.comcast.money.akka.stream.AsyncUnorderedFlowTracing.TracedFlowOps
+import com.comcast.money.akka.stream.TracedFlowUnorderedAsyncImplicits.TracedFlowOps
 import com.comcast.money.akka.stream.DefaultStreamSpanKeyCreators._
 import com.comcast.money.akka.stream._
 
