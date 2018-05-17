@@ -50,7 +50,6 @@ object SpanHandlerMatchers {
         MatchResult(
           matches = {
           maybeNames match {
-            case Some(spanNames) if spanNames.isEmpty => false
             case Some(spanNames) if spanNames.length != expectedSpanNames.length => false
             case Some(spanNames) => checkNames(spanNames, expectedSpanNames)
             case _ => false
