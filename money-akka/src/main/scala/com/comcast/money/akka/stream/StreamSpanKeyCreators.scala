@@ -18,7 +18,7 @@ package com.comcast.money.akka.stream
 
 import akka.stream.scaladsl.{ Flow, Source }
 import akka.stream.{ FanOutShape, Inlet }
-import com.comcast.money.akka.SpanContextWithStack
+import com.comcast.money.akka.TraceContext
 
 import scala.reflect.ClassTag
 
@@ -34,13 +34,13 @@ import scala.reflect.ClassTag
  */
 
 trait FanOutSpanKeyCreator[In] {
-  def fanOutToKey(fanOutShape: FanOutShape[(In, SpanContextWithStack)])(implicit evIn: ClassTag[In]): String
+  def fanOutToKey(fanOutShape: FanOutShape[(In, TraceContext)])(implicit evIn: ClassTag[In]): String
 }
 
 object FanOutSpanKeyCreator {
-  def apply[In](toKey: FanOutShape[(In, SpanContextWithStack)] => String): FanOutSpanKeyCreator[In] =
+  def apply[In](toKey: FanOutShape[(In, TraceContext)] => String): FanOutSpanKeyCreator[In] =
     new FanOutSpanKeyCreator[In] {
-      override def fanOutToKey(fanOutShape: FanOutShape[(In, SpanContextWithStack)])(implicit evIn: ClassTag[In]): String = toKey(fanOutShape)
+      override def fanOutToKey(fanOutShape: FanOutShape[(In, TraceContext)])(implicit evIn: ClassTag[In]): String = toKey(fanOutShape)
     }
 }
 
@@ -58,13 +58,13 @@ object FanOutSpanKeyCreator {
  */
 
 trait FanInSpanKeyCreator[In] {
-  def fanInInletToKey(inlet: Inlet[(In, SpanContextWithStack)])(implicit evIn: ClassTag[In]): String
+  def fanInInletToKey(inlet: Inlet[(In, TraceContext)])(implicit evIn: ClassTag[In]): String
 }
 
 object FanInSpanKeyCreator {
-  def apply[In](toKey: Inlet[(In, SpanContextWithStack)] => String): FanInSpanKeyCreator[In] =
+  def apply[In](toKey: Inlet[(In, TraceContext)] => String): FanInSpanKeyCreator[In] =
     new FanInSpanKeyCreator[In] {
-      override def fanInInletToKey(inlet: Inlet[(In, SpanContextWithStack)])(implicit evIn: ClassTag[In]): String = toKey(inlet)
+      override def fanInInletToKey(inlet: Inlet[(In, TraceContext)])(implicit evIn: ClassTag[In]): String = toKey(inlet)
     }
 }
 
@@ -129,12 +129,12 @@ object SourceSpanKeyCreator {
  */
 
 trait InletSpanKeyCreator[In] {
-  def inletToKey(inlet: Inlet[(In, SpanContextWithStack)])(implicit evIn: ClassTag[In]): String
+  def inletToKey(inlet: Inlet[(In, TraceContext)])(implicit evIn: ClassTag[In]): String
 }
 
 object InletSpanKeyCreator {
-  def apply[In](toKey: Inlet[(In, SpanContextWithStack)] => String): InletSpanKeyCreator[In] =
+  def apply[In](toKey: Inlet[(In, TraceContext)] => String): InletSpanKeyCreator[In] =
     new InletSpanKeyCreator[In] {
-      override def inletToKey(inlet: Inlet[(In, SpanContextWithStack)])(implicit evIn: ClassTag[In]): String = toKey(inlet)
+      override def inletToKey(inlet: Inlet[(In, TraceContext)])(implicit evIn: ClassTag[In]): String = toKey(inlet)
     }
 }

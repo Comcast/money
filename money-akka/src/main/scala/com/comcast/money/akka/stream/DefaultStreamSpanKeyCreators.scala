@@ -19,7 +19,7 @@ package com.comcast.money.akka.stream
 import akka.stream.{ Attributes, FanOutShape, Inlet }
 import akka.stream.scaladsl.{ Flow, Source }
 import com.comcast.money.akka.TypeNamer.nameOfType
-import com.comcast.money.akka.{ SpanContextWithStack, TypeNamer }
+import com.comcast.money.akka.{ TraceContext, TypeNamer }
 
 import scala.reflect.ClassTag
 
@@ -44,7 +44,7 @@ private[akka] object DefaultStreamSpanKeyCreators {
   object DefaultInletSpanKeyCreator {
     def apply[In]: InletSpanKeyCreator[In] =
       new InletSpanKeyCreator[In] {
-        override def inletToKey(inlet: Inlet[(In, SpanContextWithStack)])(implicit evIn: ClassTag[In]): String = s"InletOf${nameOfType[In]}"
+        override def inletToKey(inlet: Inlet[(In, TraceContext)])(implicit evIn: ClassTag[In]): String = s"InletOf${nameOfType[In]}"
       }
   }
 
@@ -60,7 +60,7 @@ private[akka] object DefaultStreamSpanKeyCreators {
   object DefaultFanInSpanKeyCreator {
     def apply[In]: FanInSpanKeyCreator[In] =
       new FanInSpanKeyCreator[In] {
-        override def fanInInletToKey(inlet: Inlet[(In, SpanContextWithStack)])(implicit evIn: ClassTag[In]): String = s"FanInOf${nameOfType[In]}"
+        override def fanInInletToKey(inlet: Inlet[(In, TraceContext)])(implicit evIn: ClassTag[In]): String = s"FanInOf${nameOfType[In]}"
       }
   }
 
@@ -76,7 +76,7 @@ private[akka] object DefaultStreamSpanKeyCreators {
   object DefaultFanOutSpanKeyCreator {
     def apply[In]: FanOutSpanKeyCreator[In] =
       new FanOutSpanKeyCreator[In] {
-        override def fanOutToKey(fanOutShape: FanOutShape[(In, SpanContextWithStack)])(implicit evIn: ClassTag[In]): String = s"FanOutOf${nameOfType[In]}"
+        override def fanOutToKey(fanOutShape: FanOutShape[(In, TraceContext)])(implicit evIn: ClassTag[In]): String = s"FanOutOf${nameOfType[In]}"
       }
   }
 
