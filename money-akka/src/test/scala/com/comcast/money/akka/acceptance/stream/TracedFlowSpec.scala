@@ -16,17 +16,15 @@
 
 package com.comcast.money.akka.acceptance.stream
 
-import akka.stream.Attributes
-import akka.stream.scaladsl.{ Keep, Sink, Source }
-import akka.stream.stage.{ InHandler, OutHandler }
+import akka.stream.scaladsl.{ Sink, Source }
 import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka.SpanHandlerMatchers.{ haveSomeSpanNames, maybeCollectingSpanHandler }
-import com.comcast.money.akka.stream.{ TracedFlow, TracedFlowLogic }
+import com.comcast.money.akka.stream.{ PushLogic, TracedFlow }
 import com.comcast.money.akka.{ AkkaMoneyScope, MoneyExtension, SpanContextWithStack }
 
 class TracedFlowSpec extends AkkaMoneyScope {
 
-  "MoneyExtension should pass a span through an Akka Stream" in {
+  "A Akka Stream built with TracedFlow should create completed Spans in the SpanHandler" in {
     implicit val moneyExtension: MoneyExtension = MoneyExtension(system)
     implicit val spanContextWithStack: SpanContextWithStack = new SpanContextWithStack
 
@@ -35,54 +33,34 @@ class TracedFlowSpec extends AkkaMoneyScope {
     maybeCollectingSpanHandler should haveSomeSpanNames(testSpanNames)
   }
 
-  "MoneyExtension should pass a span through an asynchronous Akka Stream" in {
+  "A Akka Stream built with TracedFlow should only stop Spans if it is enabled" in {
+    val bothEmpty: (Seq[String], Seq[String]) => Boolean = (seq1, seq2) => seq1.isEmpty && seq2.isEmpty
+
     implicit val moneyExtension: MoneyExtension = MoneyExtension(system)
     implicit val spanContextWithStack: SpanContextWithStack = new SpanContextWithStack
 
-    multithreadedTestStream().get()
+    testStream().get()
 
-    maybeCollectingSpanHandler should haveSomeSpanNames(testSpanNames)
+    maybeCollectingSpanHandler should haveSomeSpanNames(Seq.empty, bothEmpty)
   }
 
   val testSpanNames = Seq("flow-3", "flow-2", "flow-1")
 
   def testStream()(implicit spanContextWithStack: SpanContextWithStack, moneyExtension: MoneyExtension) =
     Source[(String, SpanContextWithStack)](List(("", spanContextWithStack)))
-      .via(new TestFlowShape("flow-1"))
-      .via(new TestFlowShape("flow-2"))
-      .via(new TestFlowShape("flow-3", isFinalFlow = true))
-      .toMat(Sink.seq)(Keep.right)
-      .run()
+      .via(tracedFlow("flow-1"))
+      .via(tracedFlow("flow-2"))
+      .via(tracedFlow("flow-3"))
+      .runWith(Sink.ignore)
 
-  def multithreadedTestStream()(implicit spanContextWithStack: SpanContextWithStack, moneyExtension: MoneyExtension) =
+  def testStreamNotStoppingSpans()(implicit spanContextWithStack: SpanContextWithStack, moneyExtension: MoneyExtension) =
     Source[(String, SpanContextWithStack)](List(("", spanContextWithStack)))
-      .via(new TestFlowShape("flow-1").async)
-      .via(new TestFlowShape("flow-2").async)
-      .via(new TestFlowShape("flow-3", isFinalFlow = true).async)
-      .toMat(Sink.seq)(Keep.right)
-      .run()
+      .via(tracedFlow("flow-1"))
+      .via(tracedFlow("flow-2"))
+      .via(tracedFlow("flow-3"))
+      .runWith(Sink.ignore)
 
-  class TestFlowShape(id: String, isFinalFlow: Boolean = false)(implicit moneyExtension: MoneyExtension) extends TracedFlow[String, String] {
+  def createPushLogic(id: String) = PushLogic(key = id, inToOutWithIsSuccessful = (msg: String) => (s"$msg$id", true), shouldStop = true)
 
-    override val inletName: String = "testin"
-    override val outletName: String = "testout"
-
-    override def createLogic(inheritedAttributes: Attributes) =
-      new TracedFlowLogic {
-        setHandler(in, new InHandler {
-          override def onPush(): Unit = {
-            val logic = (msg: String) => s"$msg$id"
-            if (isFinalFlow) stopTracePush(key = id, stageLogic = logic)
-            else tracedPush(id, logic)
-          }
-        })
-
-        setHandler(out, new OutHandler {
-          override def onPull(): Unit =
-            if (isClosed(in)) completeStage()
-            else pull(in)
-        })
-      }
-  }
-
+  def tracedFlow(name: String) = TracedFlow("inlet", "outlet", createPushLogic(name))
 }
