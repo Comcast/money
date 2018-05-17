@@ -355,7 +355,7 @@ object StreamTracingDSL {
         implicit builder: Builder[_] =>
           import akka.stream.scaladsl.GraphDSL.Implicits._
 
-          val unZip = unzipForFlow(flow)
+          val unZip = unzipForMaybeAsyncFlow(flow)
           val zip = builder add Zip[Out, TraceContext]()
 
           val flowShape = builder.add(flow)
@@ -367,18 +367,22 @@ object StreamTracingDSL {
     } withAttributes flow.traversalBuilder.attributes
 
   /**
-   * Returns a Unzip
+   * Returns a [[Builder]] added Unzip
    *
-   * Determines by checking for a A
+   * Determines whether the [[Unzip]] needs to have an async boundary by checking if the [[Flow]]
+   * has any async [[Attributes]].
    *
-   * @param flow
-   * @param builder
-   * @tparam Out
-   * @tparam In
-   * @return
+   * The name of the [[Attributes.Attribute]] is used along with whether or not the attribute list
+   * contains an [[AsyncBoundary]]
+   *
+   * @param flow [[Flow]] to be checked for async [[Attributes]]
+   * @param builder [[Builder]] to add the created [[Unzip]] to the graph traversal
+   * @tparam In  the underlying Flow's [[Inlet]] type
+   * @tparam Out the underlying Flow's [[Outlet]] type
+   * @return FanOutShape2[(In, TraceContext), In, TraceContext]
    */
 
-  private def unzipForFlow[Out: ClassTag, In: ClassTag](flow: Flow[In, Out, _])(implicit builder: Builder[_]) = {
+  private def unzipForMaybeAsyncFlow[Out: ClassTag, In: ClassTag](flow: Flow[In, Out, _])(implicit builder: Builder[_]) = {
 
     val traversalBuilder = flow.traversalBuilder
 
