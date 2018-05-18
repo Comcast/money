@@ -88,7 +88,7 @@ class TraceFilter extends Filter {
           logger.warn(s"Unable to parse X-B3 trace for request headers: " +
             s"$B3TraceId:'$traceIdVal', " +
             s"$B3ParentSpanId:'$maybeB3ParentSpanId', " +
-            s"$B3SpanId:'$maybeB3SpanId'") +
+            s"$B3SpanId:'$maybeB3SpanId' ") +
             s"${ex.getMessage}"
           None
       }
