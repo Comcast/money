@@ -31,11 +31,8 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
   val mockRequest = mock[HttpServletRequest]
   val mockResponse = mock[HttpServletResponse]
   val mockFilterChain = mock[FilterChain]
-
   val existingSpanId = new SpanId()
-
   val underTest = new TraceFilter()
-
   val MoneyTraceFormat = "trace-id=%s;parent-id=%s;span-id=%s"
 
   before {
@@ -45,19 +42,18 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
   "A TraceFilter" should {
     "clear the trace context when an http request arrives" in {
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-
       SpanLocal.current shouldBe None
     }
+
     "always call the filter chain" in {
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
       verify(mockFilterChain).doFilter(mockRequest, mockResponse)
     }
+
     "set the trace context to the money trace header if present" in {
       when(mockRequest.getHeader("X-MoneyTrace"))
         .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentId, existingSpanId.selfId))
-
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-
       SpanLocal.current.value.info.id shouldEqual existingSpanId
     }
 
@@ -65,19 +61,15 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
       when(mockRequest.getHeader("X-MoneyTrace"))
         .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentId, existingSpanId.selfId))
       when(mockRequest.getHeader("X-B3-TraceId"))
-        .thenReturn(existingSpanId.traceId)
-
+        .thenReturn("1234567")
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-
       SpanLocal.current.value.info.id shouldEqual existingSpanId
     }
 
     "set the trace context to the X-B3-TraceId header if present" in {
       when(mockRequest.getHeader("X-B3-TraceId"))
         .thenReturn(existingSpanId.traceId)
-
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-
       SpanLocal.current.value.info.id.traceId() shouldEqual existingSpanId.traceId()
     }
 
@@ -101,20 +93,13 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
         .thenReturn(existingSpanId.parentId.toString)
       when(mockRequest.getHeader("X-B3-SpanId"))
         .thenReturn(existingSpanId.selfId.toString)
-
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-
       SpanLocal.current.value.info.id shouldEqual existingSpanId
     }
 
-
-
-
     "not set the trace context if the money trace header could not be parsed" in {
       when(mockRequest.getHeader("X-MoneyTrace")).thenReturn("can't parse this")
-
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-
       SpanLocal.current shouldBe None
     }
 
@@ -123,9 +108,7 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
         .thenReturn(existingSpanId.parentId.toString)
       when(mockRequest.getHeader("X-B3-SpanId"))
         .thenReturn(existingSpanId.selfId.toString)
-
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-
       SpanLocal.current shouldBe None
     }
 
@@ -136,9 +119,7 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
         .thenReturn("This is not a number")
       when(mockRequest.getHeader("X-B3-SpanId"))
         .thenReturn(existingSpanId.selfId.toString)
-
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-
       SpanLocal.current shouldBe None
     }
 
@@ -149,9 +130,7 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
         .thenReturn(existingSpanId.parentId().toString)
       when(mockRequest.getHeader("X-B3-SpanId"))
         .thenReturn("This is not a number")
-
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-
       SpanLocal.current shouldBe None
     }
 
@@ -160,15 +139,10 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
         .thenReturn(existingSpanId.traceId)
       when(mockRequest.getHeader("X-B3-SpanId"))
         .thenReturn(existingSpanId.selfId().toString)
-
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-
       SpanLocal.current.value.info.id.traceId() shouldEqual existingSpanId.traceId()
       SpanLocal.current.value.info.id.selfId() should not equal(existingSpanId.selfId())
     }
-
-
-
 
     "adds Money header to response" in {
       when(mockRequest.getHeader("X-MoneyTrace"))
@@ -179,6 +153,7 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
         MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentId, existingSpanId.selfId)
       )
     }
+
     "adds X-B3-TraceId header to response" in {
       when(mockRequest.getHeader("X-B3-TraceId"))
         .thenReturn(existingSpanId.traceId)
@@ -187,6 +162,7 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
         "X-B3-TraceId", existingSpanId.traceId
       )
     }
+
     "adds X-B3-TraceId and X-B3-ParentSpanId headers to response" in {
       when(mockRequest.getHeader("X-B3-TraceId"))
         .thenReturn(existingSpanId.traceId)
@@ -199,8 +175,8 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
       verify(mockResponse).addHeader(
         "X-B3-ParentSpanId", existingSpanId.parentId().toString
       )
-
     }
+
     "adds X-B3-TraceId, X-B3-ParentSpanId and X-B3-SpanId headers to response" in {
       when(mockRequest.getHeader("X-B3-TraceId"))
         .thenReturn(existingSpanId.traceId)
@@ -220,18 +196,15 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
       )
     }
 
-
-    "doesn't add Money header to response if response is null" in {
-      when(mockRequest.getHeader("X-MoneyTrace"))
-        .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentId, existingSpanId.selfId))
-      underTest.doFilter(mockRequest, null, mockFilterChain)
-      verifyZeroInteractions(mockResponse)
-    }
-    "doesn't add Money header to response if request does not have an X-MoneyTrace header" in {
+    "doesn't add any header to response if request does not have headers" in {
       when(mockRequest.getHeader("X-MoneyTrace")).thenReturn(null)
-      underTest.doFilter(mockRequest, null, mockFilterChain)
+      when(mockRequest.getHeader("X-B3-TraceId")).thenReturn(null)
+      when(mockRequest.getHeader("X-B3-ParentSpanId")).thenReturn(null)
+      when(mockRequest.getHeader("X-B3-SpanId")).thenReturn(null)
+      underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
       verifyZeroInteractions(mockResponse)
     }
+
     "loves us some test coverage" in {
       val mockConf = mock[FilterConfig]
       underTest.init(mockConf)
