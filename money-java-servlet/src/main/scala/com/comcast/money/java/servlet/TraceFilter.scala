@@ -50,60 +50,50 @@ class TraceFilter extends Filter {
     SpanLocal.clear()
     val httpRequest = new HttpServletRequestWrapper(request.asInstanceOf[HttpServletRequest])
 
-    val spanId: Option[SpanId] = parseMoneyTraceHeader(httpRequest).orElse(parseB3TraceHeader(httpRequest))
-    spanId.foreach(s => SpanLocal.push(factory.newSpan(s, spanName)))
+    val maybeSpanId: Option[SpanId] = parseMoneyTraceHeader(httpRequest).orElse(parseB3TraceHeader(httpRequest))
+    maybeSpanId.foreach(s => SpanLocal.push(factory.newSpan(s, spanName)))
 
     val httpResponse = response.asInstanceOf[HttpServletResponse]
+    def setResponseHeader(headerName: String) = Option(httpRequest.getHeader(headerName)).foreach(v => httpResponse.addHeader(headerName, v))
+
     setResponseHeader(MoneyTraceHeader)
     setResponseHeader(B3TraceId)
     setResponseHeader(B3ParentSpanId)
     setResponseHeader(B3SpanId)
 
-    def setResponseHeader(headerName: String) = {
-      Option(httpRequest.getHeader(headerName)).foreach(v => httpResponse.addHeader(headerName, v))
-    }
     chain.doFilter(request, response)
   }
 
   def parseMoneyTraceHeader(httpRequest: HttpServletRequest): Option[SpanId] = {
 
-    def parseHeader(headerValue: String): Option[SpanId] = {
+    def parseHeader(headerValue: String): Option[SpanId] =
       fromHttpHeader(headerValue) match {
         case Success(spanId) => Some(spanId)
-        case Failure(ex) => {
+        case Failure(ex) =>
           logger.warn("Unable to parse money trace for request header '{}'", headerValue)
           None
-        }
       }
-    }
 
-    Option(httpRequest.getHeader(MoneyTraceHeader)) match {
-      case Some(x) => parseHeader(x)
-      case _ => None
-    }
+    Option(httpRequest.getHeader(MoneyTraceHeader)).flatMap(parseHeader)
   }
 
   def parseB3TraceHeader(httpRequest: HttpServletRequest): Option[SpanId] = {
 
     def parseHeaders(traceIdVal: String): Option[SpanId] = {
-      val maybeParentSpanId = Option(httpRequest.getHeader(B3ParentSpanId))
-      val maybeSpanId = Option(httpRequest.getHeader(B3SpanId))
-      fromB3HttpHeaders(traceIdVal, maybeParentSpanId, maybeSpanId) match {
+      val maybeB3ParentSpanId = Option(httpRequest.getHeader(B3ParentSpanId))
+      val maybeB3SpanId = Option(httpRequest.getHeader(B3SpanId))
+      fromB3HttpHeaders(traceIdVal, maybeB3ParentSpanId, maybeB3SpanId) match {
         case Success(spanId) => Some(spanId)
-        case Failure(ex) => {
+        case Failure(ex) =>
           logger.warn(s"Unable to parse X-B3 trace for request headers: " +
-            s"${B3TraceId}:'${traceIdVal}', " +
-            s"${B3ParentSpanId}:'${maybeParentSpanId.getOrElse("None received")}', " +
-            s"${B3SpanId}:'${maybeSpanId.getOrElse("None received")}'") +
+            s"$B3TraceId:'$traceIdVal', " +
+            s"$B3ParentSpanId:'$maybeB3ParentSpanId', " +
+            s"$B3SpanId:'$maybeB3SpanId'") +
             s"${ex.getMessage}"
           None
-        }
       }
     }
 
-    Option(httpRequest.getHeader(B3TraceId)) match {
-      case Some(x) => parseHeaders(x)
-      case _ => None
-    }
+    Option(httpRequest.getHeader(B3TraceId)).flatMap(parseHeaders)
   }
 }
