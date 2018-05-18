@@ -35,4 +35,12 @@ object Formatters {
 
   def toHttpHeader(spanId: SpanId): String =
     HttpHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId)
+
+  def fromB3HttpHeaders(traceId: String, maybeParentSpanId: Option[String], maybeSpanId: Option[String]) = Try {
+    (maybeParentSpanId, maybeSpanId) match {
+      case (Some(ps), Some(s)) => new SpanId(traceId, ps.toLong, s.toLong)
+      case (Some(ps), _) => new SpanId(traceId, ps.toLong)
+      case _ => new SpanId(traceId)
+    }
+  }
 }

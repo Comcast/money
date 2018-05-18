@@ -21,12 +21,35 @@ import org.scalatest.{ Matchers, WordSpec }
 
 class FormattersSpec extends WordSpec with Matchers {
 
+  private val expectedTraceId = "a"
+  private val expectedParentSpanId = "1"
+  private val expectedSpanId = "2"
   "Http Formatting" should {
-    "convert from an http header" in {
+    "convert from a money  http header" in {
       val spanId = new SpanId()
       val test = Formatters.toHttpHeader(spanId)
-
       Formatters.fromHttpHeader(test).get shouldBe spanId
+    }
+
+    "convert from all X-B3  http headers" in {
+      val expectedLongTraceid = "a" * 32
+      val expectedMaxParentSpanIdVal = Long.MaxValue
+      val expectedMinSpanIdVal = Long.MinValue
+      val actualSpanId = Formatters.fromB3HttpHeaders(expectedLongTraceid, Option(expectedMaxParentSpanIdVal.toString),Option(expectedMinSpanIdVal.toString)).get
+      actualSpanId.traceId shouldBe expectedLongTraceid
+      actualSpanId.parentId shouldBe expectedMaxParentSpanIdVal.toLong
+      actualSpanId.selfId() shouldBe expectedMinSpanIdVal.toLong
+    }
+
+    "convert from 2 X-B3  http headers" in {
+      val actualSpanId = Formatters.fromB3HttpHeaders(expectedTraceId, Option(expectedParentSpanId), None).get
+      actualSpanId.traceId shouldBe expectedTraceId
+      actualSpanId.parentId shouldBe expectedParentSpanId.toLong
+    }
+
+    "convert from " + expectedParentSpanId + " X-B3  http header" in {
+      val actualSpanId = Formatters.fromB3HttpHeaders(expectedTraceId,None, None).get
+      actualSpanId.traceId shouldBe expectedTraceId
     }
   }
 }
