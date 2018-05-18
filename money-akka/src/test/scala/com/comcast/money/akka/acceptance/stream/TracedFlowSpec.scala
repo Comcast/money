@@ -20,15 +20,12 @@ import akka.stream.scaladsl.{ Sink, Source }
 import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka.SpanHandlerMatchers.{ haveSomeSpanNames, maybeCollectingSpanHandler }
 import com.comcast.money.akka.stream.{ PushLogic, TracedFlow }
-import com.comcast.money.akka.{ AkkaMoneyScope, MoneyExtension, SpanContextWithStack }
+import com.comcast.money.akka.{ AkkaMoneyScope, SpanContextWithStack, TraceContext }
 
 class TracedFlowSpec extends AkkaMoneyScope {
 
   "A Akka Stream built with TracedFlow should create completed Spans in the SpanHandler" in {
-    implicit val moneyExtension: MoneyExtension = MoneyExtension(system)
-    implicit val spanContextWithStack: SpanContextWithStack = new SpanContextWithStack
-
-    testStream().get()
+    testStream(TraceContext(new SpanContextWithStack)).get()
 
     maybeCollectingSpanHandler should haveSomeSpanNames(testSpanNames)
   }
@@ -36,31 +33,28 @@ class TracedFlowSpec extends AkkaMoneyScope {
   "A Akka Stream built with TracedFlow should only stop Spans if it is enabled" in {
     val bothEmpty: (Seq[String], Seq[String]) => Boolean = (seq1, seq2) => seq1.isEmpty && seq2.isEmpty
 
-    implicit val moneyExtension: MoneyExtension = MoneyExtension(system)
-    implicit val spanContextWithStack: SpanContextWithStack = new SpanContextWithStack
-
-    testStream().get()
+    testStreamNotStoppingSpans(TraceContext(new SpanContextWithStack)).get()
 
     maybeCollectingSpanHandler should haveSomeSpanNames(Seq.empty, bothEmpty)
   }
 
   val testSpanNames = Seq("flow-3", "flow-2", "flow-1")
 
-  def testStream()(implicit spanContextWithStack: SpanContextWithStack, moneyExtension: MoneyExtension) =
-    Source[(String, SpanContextWithStack)](List(("", spanContextWithStack)))
+  def createPushLogic(id: String, shouldStop: Boolean) = PushLogic(key = id, inToOutWithIsSuccessful = (msg: String) => (s"$msg$id", true), shouldStop)
+
+  def tracedFlow(name: String, shouldStop: Boolean = true) = TracedFlow("inlet", "outlet", createPushLogic(name, shouldStop))
+
+  def testStream(traceContext: TraceContext) =
+    Source[(String, TraceContext)](List(("", traceContext)))
       .via(tracedFlow("flow-1"))
       .via(tracedFlow("flow-2"))
       .via(tracedFlow("flow-3"))
       .runWith(Sink.ignore)
 
-  def testStreamNotStoppingSpans()(implicit spanContextWithStack: SpanContextWithStack, moneyExtension: MoneyExtension) =
-    Source[(String, SpanContextWithStack)](List(("", spanContextWithStack)))
-      .via(tracedFlow("flow-1"))
-      .via(tracedFlow("flow-2"))
-      .via(tracedFlow("flow-3"))
+  def testStreamNotStoppingSpans(traceContext: TraceContext) =
+    Source[(String, TraceContext)](List(("", traceContext)))
+      .via(tracedFlow("flow-1", shouldStop = false))
+      .via(tracedFlow("flow-2", shouldStop = false))
+      .via(tracedFlow("flow-3", shouldStop = false))
       .runWith(Sink.ignore)
-
-  def createPushLogic(id: String) = PushLogic(key = id, inToOutWithIsSuccessful = (msg: String) => (s"$msg$id", true), shouldStop = true)
-
-  def tracedFlow(name: String) = TracedFlow("inlet", "outlet", createPushLogic(name))
 }

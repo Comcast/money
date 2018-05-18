@@ -18,8 +18,7 @@ package com.comcast.money.akka.stream
 
 import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
 import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
-import com.comcast.money.akka.{ MoneyExtension, SpanContextWithStack }
-import com.comcast.money.core.Tracer
+import com.comcast.money.akka.{ MoneyExtension, TraceContext }
 
 /**
  * TracedFlow is used to create a traced version of a user defined [[akka.stream.scaladsl.Flow]]
@@ -29,12 +28,12 @@ import com.comcast.money.core.Tracer
  * @tparam Out output type of the users Flow
  */
 
-trait TracedFlow[In, Out] extends GraphStage[FlowShape[(In, SpanContextWithStack), (Out, SpanContextWithStack)]] {
+trait TracedFlow[In, Out] extends GraphStage[FlowShape[(In, TraceContext), (Out, TraceContext)]] {
   val _inletName: String
   val _outletName: String
 
-  type TracedIn = (In, SpanContextWithStack)
-  type TracedOut = (Out, SpanContextWithStack)
+  type TracedIn = (In, TraceContext)
+  type TracedOut = (Out, TraceContext)
 
   val in: Inlet[TracedIn] = Inlet(name = _inletName)
   val out: Outlet[TracedOut] = Outlet(name = _outletName)
@@ -58,34 +57,20 @@ object TracedFlow {
 }
 
 sealed trait TracedFlowLogic[In, Out] {
-  type TracedIn = (In, SpanContextWithStack)
-  type TracedOut = (Out, SpanContextWithStack)
-
-  /**
-   * Returns a [[Tracer]]
-   *
-   * used to start and stop a [[com.comcast.money.api.Span]] currently in the [[SpanContextWithStack]]
-   *
-   * @param spanContext    current [[SpanContextWithStack]]
-   * @param moneyExtension [[MoneyExtension]] to provide access to [[com.comcast.money.core.Money]]
-   * @return [[Tracer]] created from current spanContext
-   */
-
-  def tracer(implicit spanContext: SpanContextWithStack, moneyExtension: MoneyExtension): Tracer =
-    moneyExtension.tracer(spanContext)
+  type TracedIn = (In, TraceContext)
+  type TracedOut = (Out, TraceContext)
 }
 
 /**
  * TracedRetainingFlowLogic is a wrapper interface to [[GraphStageLogic]] for a [[TracedFlow]]
  * it provides functionality for tracing and executing the Flows logic
  *
- * @param flowShape      the traced shape of the Flow being traced
- * @param moneyExtension [[MoneyExtension]] to provide access to [[com.comcast.money.core.Money]]
+ * @param flowShape the traced shape of the Flow being traced
  * @tparam In  input type of the users Flow
  * @tparam Out output type of the users Flow
  */
 
-abstract class TraceRetainingFlowLogic[In, Out](implicit flowShape: FlowShape[(In, SpanContextWithStack), (Out, SpanContextWithStack)], moneyExtension: MoneyExtension) extends GraphStageLogic(flowShape) with TracedFlowLogic[In, Out] {
+abstract class TraceRetainingFlowLogic[In, Out](implicit flowShape: FlowShape[(In, TraceContext), (Out, TraceContext)]) extends GraphStageLogic(flowShape) with TracedFlowLogic[In, Out] {
   val in: Inlet[TracedIn] = flowShape.in
   val out: Outlet[TracedOut] = flowShape.out
 
@@ -100,34 +85,32 @@ abstract class TraceRetainingFlowLogic[In, Out](implicit flowShape: FlowShape[(I
 
   def tracedPush(pushLogic: PushLogic[In, Out]): Unit = {
 
-    implicit val (inMessage, spanContext) = grab[TracedIn](in)
+    implicit val (inMessage, traceContext) = grab[TracedIn](in)
 
-    tracer.startSpan(pushLogic.key)
+    traceContext.tracer.startSpan(pushLogic.key)
 
     val (outMessage, isSuccessful) = pushLogic.inToOutWithIsSuccessful(inMessage)
 
-    push[TracedOut](out, (outMessage, spanContext))
+    push[TracedOut](out, (outMessage, traceContext))
 
-    if (pushLogic.shouldStop) tracer.stopSpan(isSuccessful)
+    if (pushLogic.shouldStop) traceContext.tracer.stopSpan(isSuccessful)
   }
 }
 
 object TraceRetainingFlowLogic {
-  def apply[In, Out](pushLogic: PushLogic[In, Out])(implicit flowShape: FlowShape[(In, SpanContextWithStack), (Out, SpanContextWithStack)]): TraceRetainingFlowLogic[In, Out] =
+  def apply[In, Out](pushLogic: PushLogic[In, Out])(implicit flowShape: FlowShape[(In, TraceContext), (Out, TraceContext)]): TraceRetainingFlowLogic[In, Out] =
     new TraceRetainingFlowLogic[In, Out]() {
-      setHandler(in, new InHandler {
-        override def onPush(): Unit = tracedPush(pushLogic)
-      })
+      private val inHandler = new InHandler { override def onPush(): Unit = tracedPush(pushLogic) }
 
-      setHandler(out, new OutHandler {
-        override def onPull(): Unit =
-          if (isClosed(in)) completeStage()
-          else pull(in)
-      })
+      setHandler(in, inHandler)
+
+      def pullLogic: Unit = if (isClosed(in)) completeStage() else pull(in)
+      private val outHandler = new OutHandler { override def onPull(): Unit = pullLogic }
+      setHandler(out, outHandler)
     }
 }
 
-abstract class TraceStrippingFlowLogic[In, Out](implicit flowShape: FlowShape[(In, SpanContextWithStack), Out], moneyExtension: MoneyExtension) extends GraphStageLogic(flowShape) with TracedFlowLogic[In, Out] {
+abstract class TraceStrippingFlowLogic[In, Out](implicit flowShape: FlowShape[(In, TraceContext), Out], moneyExtension: MoneyExtension) extends GraphStageLogic(flowShape) with TracedFlowLogic[In, Out] {
   val in: Inlet[TracedIn] = flowShape.in
   val out: Outlet[Out] = flowShape.out
 
@@ -144,12 +127,12 @@ abstract class TraceStrippingFlowLogic[In, Out](implicit flowShape: FlowShape[(I
    */
 
   def stopTracePush(key: String, stageLogic: In => (Out, Boolean)): Unit = {
-    implicit val (inMessage, spanContext): (In, SpanContextWithStack) = grab[TracedIn](in)
-    tracer.startSpan(key)
+    implicit val (inMessage, traceContext): (In, TraceContext) = grab[TracedIn](in)
+    traceContext.tracer.startSpan(key)
     val (outMessage, isSuccessful) = stageLogic(inMessage)
     push[Out](out, outMessage)
-    tracer.stopSpan(isSuccessful)
-    tracer.stopSpan(isSuccessful)
+    traceContext.tracer.stopSpan(isSuccessful)
+    traceContext.tracer.stopSpan(isSuccessful)
   }
 }
 
