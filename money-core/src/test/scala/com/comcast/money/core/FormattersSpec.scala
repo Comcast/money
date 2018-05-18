@@ -21,36 +21,35 @@ import org.scalatest.{ Matchers, WordSpec }
 
 class FormattersSpec extends WordSpec with Matchers {
 
+  private val expectedTraceId = "a"
+  private val expectedParentSpanId = "1"
+  private val expectedSpanId = "2"
   "Http Formatting" should {
     "convert from a money  http header" in {
       val spanId = new SpanId()
       val test = Formatters.toHttpHeader(spanId)
-
       Formatters.fromHttpHeader(test).get shouldBe spanId
     }
 
     "convert from all X-B3  http headers" in {
-      val expectedSpanId = new SpanId("a"*32,Long.MaxValue,Long.MinValue)
-
-      val actualSpanId = Formatters.fromB3HttpHeaders(expectedSpanId.traceId, Option(expectedSpanId.parentId().toString),Option(expectedSpanId.selfId().toString)).get
-      actualSpanId shouldBe expectedSpanId
+      val expectedLongTraceid = "a" * 32
+      val expectedMaxParentSpanIdVal = Long.MaxValue
+      val expectedMinSpanIdVal = Long.MinValue
+      val actualSpanId = Formatters.fromB3HttpHeaders(expectedLongTraceid, Option(expectedMaxParentSpanIdVal.toString),Option(expectedMinSpanIdVal.toString)).get
+      actualSpanId.traceId shouldBe expectedLongTraceid
+      actualSpanId.parentId shouldBe expectedMaxParentSpanIdVal.toLong
+      actualSpanId.selfId() shouldBe expectedMinSpanIdVal.toLong
     }
-
 
     "convert from 2 X-B3  http headers" in {
-
-      val actualSpanId = Formatters.fromB3HttpHeaders("a", Option("1"), None).get
-      actualSpanId.traceId shouldBe "a"
-      actualSpanId.parentId shouldBe 1L
+      val actualSpanId = Formatters.fromB3HttpHeaders(expectedTraceId, Option(expectedParentSpanId), None).get
+      actualSpanId.traceId shouldBe expectedTraceId
+      actualSpanId.parentId shouldBe expectedParentSpanId.toLong
     }
 
-    "convert from 1 X-B3  http header" in {
-      val spanId = new SpanId("a",1,2)
-
-      val actualSpanId = Formatters.fromB3HttpHeaders("a",None, None).get
-      actualSpanId.traceId shouldBe "a"
+    "convert from " + expectedParentSpanId + " X-B3  http header" in {
+      val actualSpanId = Formatters.fromB3HttpHeaders(expectedTraceId,None, None).get
+      actualSpanId.traceId shouldBe expectedTraceId
     }
   }
-
-
 }
