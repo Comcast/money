@@ -18,7 +18,7 @@ package com.comcast.money.akka.stream
 
 import akka.stream.stage.{ GraphStage, GraphStageLogic, InHandler, OutHandler }
 import akka.stream.{ Attributes, FlowShape, Inlet, Outlet }
-import com.comcast.money.akka.{ MoneyExtension, TraceContext }
+import com.comcast.money.akka.TraceContext
 
 /**
  * TracedFlow is used to create a traced version of a user defined [[akka.stream.scaladsl.Flow]]
@@ -42,23 +42,19 @@ trait TracedFlow[In, Out] extends GraphStage[FlowShape[(In, TraceContext), (Out,
 
   implicit val flowShape: FlowShape[TracedIn, TracedOut] = shape
 
-  val _pushLogic: PushLogic[In, Out]
-
-  override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = TraceRetainingFlowLogic(_pushLogic)
+  override def createLogic(inheritedAttributes: Attributes): GraphStageLogic
 }
 
 object TracedFlow {
-  def apply[In, Out](outletName: String, inletName: String, pushLogic: PushLogic[In, Out]): TracedFlow[In, Out] =
+  def apply[In, Out](pushConfig: PushConfig[In, Out], inletName: String, outletName: String): TracedFlow[In, Out] =
     new TracedFlow[In, Out] {
       override val _inletName: String = inletName
       override val _outletName: String = outletName
-      override val _pushLogic: PushLogic[In, Out] = pushLogic
-    }
-}
 
-sealed trait TracedFlowLogic[In, Out] {
-  type TracedIn = (In, TraceContext)
-  type TracedOut = (Out, TraceContext)
+      override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = TracedFlowLogic(pushConfig)
+    }
+
+  def apply[In, Out](pushConfig: PushConfig[In, Out]): TracedFlow[In, Out] = apply(pushConfig, inletName = s"${pushConfig.key}Inlet", outletName = s"${pushConfig.key}Outlet")
 }
 
 /**
@@ -70,7 +66,10 @@ sealed trait TracedFlowLogic[In, Out] {
  * @tparam Out output type of the users Flow
  */
 
-abstract class TraceRetainingFlowLogic[In, Out](implicit flowShape: FlowShape[(In, TraceContext), (Out, TraceContext)]) extends GraphStageLogic(flowShape) with TracedFlowLogic[In, Out] {
+abstract class TracedFlowLogic[In, Out](implicit flowShape: FlowShape[(In, TraceContext), (Out, TraceContext)]) extends GraphStageLogic(flowShape) {
+  type TracedIn = (In, TraceContext)
+  type TracedOut = (Out, TraceContext)
+
   val in: Inlet[TracedIn] = flowShape.in
   val out: Outlet[TracedOut] = flowShape.out
 
@@ -80,37 +79,47 @@ abstract class TraceRetainingFlowLogic[In, Out](implicit flowShape: FlowShape[(I
    * Pushes an element down the stream tracing the logic passed to it.
    * All logic to be traced must be passed as stageLogic
    *
-   * @param pushLogic contains the [[com.comcast.money.api.Span]] key and logic to be applied to each element
+   * @param pushConfig contains the [[com.comcast.money.api.Span]] key and logic to be applied to each element
    */
 
-  def tracedPush(pushLogic: PushLogic[In, Out]): Unit = {
+  protected def tracedPush(pushConfig: PushConfig[In, Out]): Unit = {
 
-    implicit val (inMessage, traceContext) = grab[TracedIn](in)
+    val (inMessage, traceContext) = grab[TracedIn](in)
 
-    traceContext.tracer.startSpan(pushLogic.key)
+    startTrace(pushConfig.key, traceContext)
 
-    val (outMessage, isSuccessful) = pushLogic.inToOutWithIsSuccessful(inMessage)
+    val (unitOrMessage, isSuccessful) = pushConfig.stageLogic(inMessage)
 
-    push[TracedOut](out, (outMessage, traceContext))
+    unitOrMessage match {
+      case Right(message) => push[TracedOut](out, (message, traceContext))
+      case Left(_) => pull(in)
+    }
 
-    if (pushLogic.shouldStop) traceContext.tracer.stopSpan(isSuccessful)
+    if (pushConfig.tracingDSLUsage == NotUsingTracingDSL) endTrace(isSuccessful, traceContext)
   }
+
+  protected def startTrace(key: String, traceContext: TraceContext): Unit = traceContext.tracer.startSpan(key)
+
+  protected def endTrace(isSuccessful: Boolean, traceContext: TraceContext) = traceContext.tracer.stopSpan(isSuccessful)
 }
 
-object TraceRetainingFlowLogic {
-  def apply[In, Out](pushLogic: PushLogic[In, Out])(implicit flowShape: FlowShape[(In, TraceContext), (Out, TraceContext)]): TraceRetainingFlowLogic[In, Out] =
-    new TraceRetainingFlowLogic[In, Out]() {
-      private val inHandler = new InHandler { override def onPush(): Unit = tracedPush(pushLogic) }
+object TracedFlowLogic {
+  def apply[In, Out](pushConfig: PushConfig[In, Out])(implicit flowShape: FlowShape[(In, TraceContext), (Out, TraceContext)]): TracedFlowLogic[In, Out] =
+    new TracedFlowLogic[In, Out]() {
+      private val inHandler = new InHandler { override def onPush(): Unit = tracedPush(pushConfig) }
 
       setHandler(in, inHandler)
 
       def pullLogic: Unit = if (isClosed(in)) completeStage() else pull(in)
       private val outHandler = new OutHandler { override def onPull(): Unit = pullLogic }
+
       setHandler(out, outHandler)
     }
 }
 
-abstract class TraceStrippingFlowLogic[In, Out](implicit flowShape: FlowShape[(In, TraceContext), Out], moneyExtension: MoneyExtension) extends GraphStageLogic(flowShape) with TracedFlowLogic[In, Out] {
+abstract class TraceStrippingFlowLogic[In, Out](implicit flowShape: FlowShape[(In, TraceContext), Out]) extends GraphStageLogic(flowShape) {
+  type TracedIn = (In, TraceContext)
+
   val in: Inlet[TracedIn] = flowShape.in
   val out: Outlet[Out] = flowShape.out
 
@@ -136,4 +145,24 @@ abstract class TraceStrippingFlowLogic[In, Out](implicit flowShape: FlowShape[(I
   }
 }
 
-case class PushLogic[In, Out](key: String, inToOutWithIsSuccessful: In => (Out, Boolean), shouldStop: Boolean = false)
+trait PushConfig[In, Out] {
+  val key: String
+  val stageLogic: In => (Either[Unit, Out], Boolean)
+  val tracingDSLUsage: TracingDSLUsage
+}
+
+trait StatefulPusher[In, Out] {
+  def push(in: In): (Either[Unit, Out], Boolean)
+}
+
+case class StatefulPushConfig[In, Out](key: String, statefulPusher: StatefulPusher[In, Out], tracingDSLUsage: TracingDSLUsage) extends PushConfig[In, Out] {
+  override val stageLogic: In => (Either[Unit, Out], Boolean) = statefulPusher.push
+}
+
+case class StatelessPushConfig[In, Out](key: String, stageLogic: In => (Either[Unit, Out], Boolean), tracingDSLUsage: TracingDSLUsage) extends PushConfig[In, Out]
+
+trait TracingDSLUsage
+
+case object UsingTracingDSL extends TracingDSLUsage
+
+case object NotUsingTracingDSL extends TracingDSLUsage

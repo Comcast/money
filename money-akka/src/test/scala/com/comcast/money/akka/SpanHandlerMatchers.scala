@@ -60,10 +60,23 @@ object SpanHandlerMatchers {
         )
     }
 
-  def haveSomeSpanName(expectedName: String) = haveSomeSpanNames(Seq(expectedName))
+  def haveSomeSpanName(expectedName: String): Matcher[Option[CollectingSpanHandler]] = haveSomeSpanNames(Seq(expectedName))
 
-  def haveSomeSpanNamesInNoParticularOrder(expectedSpanNames: Seq[String]) = {
-    def sortedCheckNames(names: Seq[String], expectedNames: Seq[String]) = checkNames(names.sortBy(_.hashCode), expectedNames.sortBy(_.hashCode))
+  def haveFailedSpans: Matcher[Option[CollectingSpanHandler]] =
+    Matcher {
+      maybeSpanHandler =>
+        val maybeSpanInfoStack = maybeSpanHandler.map(_.spanInfoStack)
+        val hasSpanFailure = maybeSpanInfoStack.exists(_.map(_.success).contains(false))
+
+        MatchResult(
+          matches = hasSpanFailure,
+          rawFailureMessage = s"No Spans failed in $maybeSpanInfoStack",
+          rawNegatedFailureMessage = s"Spans failed in $maybeSpanInfoStack"
+        )
+    }
+
+  def haveSomeSpanNamesInNoParticularOrder(expectedSpanNames: Seq[String]): Matcher[Option[CollectingSpanHandler]] = {
+    def sortedCheckNames(names: Seq[String], expectedNames: Seq[String]): Boolean = checkNames(names.sortBy(_.hashCode), expectedNames.sortBy(_.hashCode))
 
     haveSomeSpanNames(expectedSpanNames, sortedCheckNames)
   }

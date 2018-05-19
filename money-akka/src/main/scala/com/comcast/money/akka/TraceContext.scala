@@ -32,7 +32,7 @@ case class TraceContext(tracer: Tracer, spanContext: SpanContextWithStack)
  */
 
 object TraceContext {
-  def apply(spanContext: SpanContextWithStack)(implicit moneyExtension: MoneyExtension): TraceContext =
+  def apply(spanContext: SpanContextWithStack = new SpanContextWithStack)(implicit moneyExtension: MoneyExtension): TraceContext =
     TraceContext(moneyExtension.tracer(spanContext), spanContext)
 }
 
