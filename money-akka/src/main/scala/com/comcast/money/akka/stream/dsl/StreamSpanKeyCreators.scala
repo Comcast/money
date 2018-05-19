@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.comcast.money.akka.stream
+package com.comcast.money.akka.stream.dsl
 
 import akka.stream.scaladsl.{ Flow, Source }
 import akka.stream.{ FanOutShape, Inlet }

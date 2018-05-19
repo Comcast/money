@@ -18,7 +18,8 @@ package com.comcast.money.akka.stream
 
 import akka.stream.scaladsl.Flow
 import com.comcast.money.akka.TraceContext
-import com.comcast.money.akka.stream.DefaultStreamSpanKeyCreators.DefaultFlowSpanKeyCreator
+import com.comcast.money.akka.stream.dsl.DefaultStreamSpanKeyCreators.DefaultFlowSpanKeyCreator
+import com.comcast.money.akka.stream.dsl.FlowSpanKeyCreator
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.reflect.ClassTag

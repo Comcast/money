@@ -22,6 +22,7 @@ import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka.SpanHandlerMatchers.{ haveSomeSpanNames, haveSomeSpanNamesInNoParticularOrder, maybeCollectingSpanHandler }
 import com.comcast.money.akka._
 import com.comcast.money.akka.stream._
+import com.comcast.money.akka.stream.dsl._
 
 import scala.concurrent.duration.DurationDouble
 

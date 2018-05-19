@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
-package com.comcast.money.akka.stream
+package com.comcast.money.akka.stream.dsl
 
-import akka.stream.{ Attributes, FanOutShape, Inlet }
 import akka.stream.scaladsl.{ Flow, Source }
+import akka.stream.{ Attributes, FanOutShape, Inlet }
 import com.comcast.money.akka.TypeNamer.nameOfType
 import com.comcast.money.akka.{ TraceContext, TypeNamer }
 

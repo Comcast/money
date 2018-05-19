@@ -14,16 +14,14 @@
  * limitations under the License.
  */
 
-package com.comcast.money.akka.stream
+package com.comcast.money.akka.stream.dsl
 
 import akka.stream.Attributes.{ AsyncBoundary, Name }
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
 import akka.stream.scaladsl.{ Flow, GraphDSL, Source, Unzip, Zip }
-import com.comcast.money.akka.stream.DefaultStreamSpanKeyCreators.DefaultFlowSpanKeyCreator
 import com.comcast.money.akka.{ FreshTraceContext, MoneyExtension, SpanContextWithStack, TraceContext }
 
-import scala.concurrent.{ ExecutionContext, Future }
 import scala.reflect.ClassTag
 import scala.util.Try
 

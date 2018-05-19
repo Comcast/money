@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package com.comcast.money.akka.stream
+package com.comcast.money.akka.stream.dsl
 
 import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
-import akka.stream.scaladsl.{ Balance, Broadcast, Concat, Interleave, Merge, MergePreferred, MergePrioritized, Partition }
+import akka.stream.scaladsl.{ Balance, Broadcast, Concat, Interleave, Merge, MergePrioritized, Partition }
 import akka.stream.stage.GraphStage
 import com.comcast.money.akka.TraceContext
 
