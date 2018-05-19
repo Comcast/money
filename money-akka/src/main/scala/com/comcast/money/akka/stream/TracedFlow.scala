@@ -42,7 +42,9 @@ trait TracedFlow[In, Out] extends GraphStage[FlowShape[(In, TraceContext), (Out,
 
   implicit val flowShape: FlowShape[TracedIn, TracedOut] = shape
 
-  override def createLogic(inheritedAttributes: Attributes): GraphStageLogic
+  def tracedFlowLogic: TracedFlowLogic[In, Out]
+
+  override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = tracedFlowLogic
 }
 
 object TracedFlow {
@@ -50,8 +52,7 @@ object TracedFlow {
     new TracedFlow[In, Out] {
       override val _inletName: String = inletName
       override val _outletName: String = outletName
-
-      override def createLogic(inheritedAttributes: Attributes): GraphStageLogic = TracedFlowLogic(pushConfig)
+      override def tracedFlowLogic: TracedFlowLogic[In, Out] = TracedFlowLogic(pushConfig)
     }
 
   def apply[In, Out](pushConfig: PushConfig[In, Out]): TracedFlow[In, Out] = apply(pushConfig, inletName = s"${pushConfig.key}Inlet", outletName = s"${pushConfig.key}Outlet")
@@ -88,7 +89,7 @@ abstract class TracedFlowLogic[In, Out](implicit flowShape: FlowShape[(In, Trace
 
     startTrace(pushConfig.key, traceContext)
 
-    val (unitOrMessage, isSuccessful) = pushConfig.stageLogic(inMessage)
+    val (unitOrMessage, isSuccessful) = pushConfig.pushLogic(inMessage)
 
     unitOrMessage match {
       case Right(message) => push[TracedOut](out, (message, traceContext))
@@ -147,7 +148,7 @@ abstract class TraceStrippingFlowLogic[In, Out](implicit flowShape: FlowShape[(I
 
 trait PushConfig[In, Out] {
   val key: String
-  val stageLogic: In => (Either[Unit, Out], Boolean)
+  val pushLogic: In => (Either[Unit, Out], Boolean)
   val tracingDSLUsage: TracingDSLUsage
 }
 
@@ -156,10 +157,10 @@ trait StatefulPusher[In, Out] {
 }
 
 case class StatefulPushConfig[In, Out](key: String, statefulPusher: StatefulPusher[In, Out], tracingDSLUsage: TracingDSLUsage) extends PushConfig[In, Out] {
-  override val stageLogic: In => (Either[Unit, Out], Boolean) = statefulPusher.push
+  override val pushLogic: In => (Either[Unit, Out], Boolean) = statefulPusher.push
 }
 
-case class StatelessPushConfig[In, Out](key: String, stageLogic: In => (Either[Unit, Out], Boolean), tracingDSLUsage: TracingDSLUsage) extends PushConfig[In, Out]
+case class StatelessPushConfig[In, Out](key: String, pushLogic: In => (Either[Unit, Out], Boolean), tracingDSLUsage: TracingDSLUsage) extends PushConfig[In, Out]
 
 trait TracingDSLUsage
 
