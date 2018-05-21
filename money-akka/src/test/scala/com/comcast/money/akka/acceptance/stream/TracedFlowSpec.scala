@@ -53,12 +53,26 @@ class TracedFlowSpec extends AkkaMoneyScope {
     }
 
     "not pass down the stream if the logic returns Unit" in {
-      val spanNamesWithElementNotReachingThirdFLow = replicateAndAppend(Seq(unitFlowName, "flow-1"), 3)
+      val spanNamesWithElementNotReachingThirdFLow = Seq(unitFlowName, "flow-1")
 
       testStreamWithUnitFlow(TraceContext()).get()
 
       maybeCollectingSpanHandler should haveSomeSpanNames(spanNamesWithElementNotReachingThirdFLow)
       maybeCollectingSpanHandler should haveFailedSpans
+    }
+  }
+
+  "A Akka Stream built with TraceStoppingFlow" should {
+    "remove the TraceContext and stop all stream tracing" in {
+      val stoppingAtTraceStoppingFlow = Seq(traceStoppingFlowName, "flow-1")
+
+      testSourceWithTraceStoppingFlow(TraceContext()).runWith(Sink.ignore).get()
+
+      maybeCollectingSpanHandler should haveSomeSpanNames(stoppingAtTraceStoppingFlow)
+    }
+
+    "throw an exception if tracing dsl could be stopping spans after TraceStoppingFlow runs" in {
+      an[UnsafeSpanStoppingException] should be thrownBy TraceStoppingFlow(StatelessPushConfig[String, String]("key", _ => (Right("unused"), false), UsingTracingDSL)).traceStoppingFlowLogic
     }
   }
 
@@ -99,13 +113,21 @@ class TracedFlowSpec extends AkkaMoneyScope {
       .runWith(Sink.ignore)
 
   def testStreamWithUnitFlow(traceContext: TraceContext): Future[Done] =
-    Source[(String, TraceContext)]((1 to 3).map(_ => ("", traceContext)))
+    Source[(String, TraceContext)](List(("", traceContext)))
       .via(tracedFlow("flow-1"))
       .via(unitFlow("flow-2"))
       .via(tracedFlow("flow-3"))
       .runWith(Sink.ignore)
 
+  val traceStoppingFlowName = "TraceStoppingFlow"
+
+  def testSourceWithTraceStoppingFlow(traceContext: TraceContext): Source[String, _] =
+    Source(List(("", traceContext)))
+      .via(tracedFlow("flow-1"))
+      .via(TraceStoppingFlow(createPushLogic(traceStoppingFlowName, NotUsingTracingDSL)))
+
   private val unitFlowName = "UnitFlow"
+
   private def unitFlow(key: String): TracedFlow[String, String] = TracedFlow(StatelessPushConfig(unitFlowName, _ => (Left(Unit), false), NotUsingTracingDSL))
 
   private def statefulFlow(key: String): TracedFlow[String, String] = TracedFlow(StatefulPushConfig(key, SimpleStatefulPusher, NotUsingTracingDSL))

@@ -74,6 +74,15 @@ abstract class TracedFlowLogic[In, Out](implicit flowShape: FlowShape[(In, Trace
   val in: Inlet[TracedIn] = flowShape.in
   val out: Outlet[TracedOut] = flowShape.out
 
+  val inHandler: InHandler
+
+  val outHandler: OutHandler
+
+  def setHandlers: Unit = {
+    setHandler(in, inHandler)
+    setHandler(out, outHandler)
+  }
+
   /**
    * returns Unit
    *
@@ -101,69 +110,17 @@ abstract class TracedFlowLogic[In, Out](implicit flowShape: FlowShape[(In, Trace
 
   protected def startTrace(key: String, traceContext: TraceContext): Unit = traceContext.tracer.startSpan(key)
 
-  protected def endTrace(isSuccessful: Boolean, traceContext: TraceContext) = traceContext.tracer.stopSpan(isSuccessful)
+  protected def endTrace(isSuccessful: Boolean, traceContext: TraceContext): Unit = traceContext.tracer.stopSpan(isSuccessful)
 }
 
 object TracedFlowLogic {
   def apply[In, Out](pushConfig: PushConfig[In, Out])(implicit flowShape: FlowShape[(In, TraceContext), (Out, TraceContext)]): TracedFlowLogic[In, Out] =
     new TracedFlowLogic[In, Out]() {
-      private val inHandler = new InHandler { override def onPush(): Unit = tracedPush(pushConfig) }
-
-      setHandler(in, inHandler)
+      override val inHandler: InHandler = new InHandler { override def onPush(): Unit = tracedPush(pushConfig) }
 
       def pullLogic: Unit = if (isClosed(in)) completeStage() else pull(in)
-      private val outHandler = new OutHandler { override def onPull(): Unit = pullLogic }
+      override val outHandler: OutHandler = new OutHandler { override def onPull(): Unit = pullLogic }
 
-      setHandler(out, outHandler)
+      setHandlers
     }
 }
-
-abstract class TraceStrippingFlowLogic[In, Out](implicit flowShape: FlowShape[(In, TraceContext), Out]) extends GraphStageLogic(flowShape) {
-  type TracedIn = (In, TraceContext)
-
-  val in: Inlet[TracedIn] = flowShape.in
-  val out: Outlet[Out] = flowShape.out
-
-  /**
-   * All Stream Spans are stopped by this function
-   *
-   * returns Unit
-   *
-   * Pushes an element down the stream tracing the logic passed to it.
-   * All logic to be traced must be passed as stageLogic.
-   *
-   * @param key        the name of the Span that information will be recorded for
-   * @param stageLogic the functionality of this [[akka.stream.scaladsl.Flow]]
-   */
-
-  def stopTracePush(key: String, stageLogic: In => (Out, Boolean)): Unit = {
-    implicit val (inMessage, traceContext): (In, TraceContext) = grab[TracedIn](in)
-    traceContext.tracer.startSpan(key)
-    val (outMessage, isSuccessful) = stageLogic(inMessage)
-    push[Out](out, outMessage)
-    traceContext.tracer.stopSpan(isSuccessful)
-    traceContext.tracer.stopSpan(isSuccessful)
-  }
-}
-
-trait PushConfig[In, Out] {
-  val key: String
-  val pushLogic: In => (Either[Unit, Out], Boolean)
-  val tracingDSLUsage: TracingDSLUsage
-}
-
-trait StatefulPusher[In, Out] {
-  def push(in: In): (Either[Unit, Out], Boolean)
-}
-
-case class StatefulPushConfig[In, Out](key: String, statefulPusher: StatefulPusher[In, Out], tracingDSLUsage: TracingDSLUsage) extends PushConfig[In, Out] {
-  override val pushLogic: In => (Either[Unit, Out], Boolean) = statefulPusher.push
-}
-
-case class StatelessPushConfig[In, Out](key: String, pushLogic: In => (Either[Unit, Out], Boolean), tracingDSLUsage: TracingDSLUsage) extends PushConfig[In, Out]
-
-trait TracingDSLUsage
-
-case object UsingTracingDSL extends TracingDSLUsage
-
-case object NotUsingTracingDSL extends TracingDSLUsage

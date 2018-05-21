@@ -21,7 +21,6 @@ import akka.stream.stage.{ GraphStage, GraphStageLogic }
 import akka.stream.{ Attributes, UniformFanInShape, UniformFanOutShape }
 import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka.SpanHandlerMatchers.{ haveSomeSpanNamesInNoParticularOrder, maybeCollectingSpanHandler }
-import com.comcast.money.akka.stream.UnsupportedUniformFanInShape
 import com.comcast.money.akka.stream.dsl.{ UnsupportedUniformFanInShape, UnsupportedUniformFanOutShape }
 import com.comcast.money.akka.{ AkkaMoneyScope, TestStreams }
 
