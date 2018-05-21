@@ -25,6 +25,7 @@ import akka.stream.ClosedShape
 import akka.stream.scaladsl.{ GraphDSL, RunnableGraph, Sink, Source }
 import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka.SpanHandlerMatchers.{ haveSomeSpanName, haveSomeSpanNames, maybeCollectingSpanHandler }
+import com.comcast.money.akka.http.SentRequestSpanKeyCreator
 import com.comcast.money.akka.http.client.{ TracedHttpClient, TracedHttpClientFlow }
 import com.comcast.money.akka.http.server.{ MoneyTrace, TracedResponse }
 import com.comcast.money.akka.{ AkkaMoneyScope, CollectingSpanHandler, SpanContextWithStack }
@@ -129,8 +130,6 @@ class MoneyClientSpec extends AkkaMoneyScope {
 
         eventualResponse.get() should beSuccessfulResponse
 
-        Thread.sleep(20L)
-
         maybeCollectingSpanHandler should haveSomeSpanName("SENT HEAD /")
       }
 
@@ -159,6 +158,17 @@ class MoneyClientSpec extends AkkaMoneyScope {
       TracedHttpClient().get(localHostRootUriString + "traced").get() should beSuccessfulResponse
 
       maybeCollectingSpanHandler should haveSomeSpanNames(Seq(sentGet + "traced", "RECEIVED GET /traced"))
+    }
+
+    "sending a request should use a non default span key creator if it is present" in {
+      implicit val spanContext: SpanContextWithStack = new SpanContextWithStack
+
+      val tracedRequest = "TracedRequest"
+      implicit val sentSKC: SentRequestSpanKeyCreator = SentRequestSpanKeyCreator(_ => tracedRequest)
+
+      TracedHttpClient().get(localHostRootUriString).get() should beSuccessfulResponse
+
+      maybeCollectingSpanHandler should haveSomeSpanName(tracedRequest)
     }
   }
 
