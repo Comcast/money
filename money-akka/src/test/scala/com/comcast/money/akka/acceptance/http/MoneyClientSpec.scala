@@ -67,9 +67,9 @@ class MoneyClientSpec extends AkkaMoneyScope {
       "create spans and add them to the Span Handler for a successful request without a body" in {
         implicit val spanContext: SpanContextWithStack = new SpanContextWithStack
 
-        val tracedClient = new TracedHttpClient()
+        val eventualResponse = TracedHttpClient().get(localHostRootUriString)
 
-        val responseEntity = tracedClient.get(localHostRootUriString).flatMap(Unmarshal(_).to[String]).get()
+        val responseEntity = responseToString(eventualResponse)
 
         responseEntity shouldBe "response"
 
@@ -80,9 +80,9 @@ class MoneyClientSpec extends AkkaMoneyScope {
       "create spans and add them to the Span Handler for a successful request with a body" in {
         implicit val spanContext: SpanContextWithStack = new SpanContextWithStack
 
-        val tracedClient = new TracedHttpClient()
+        val eventualResponse = TracedHttpClient().get(localHostRootUriString, Some("request"))
 
-        val responseEntity = tracedClient.get(localHostRootUriString, Some("request")).flatMap(Unmarshal(_).to[String]).get()
+        val responseEntity = responseToString(eventualResponse)
 
         responseEntity shouldBe "response"
 
@@ -93,9 +93,7 @@ class MoneyClientSpec extends AkkaMoneyScope {
       "create spans and add them to the Span Handler for a failed request" in {
         implicit val spanContext: SpanContextWithStack = new SpanContextWithStack
 
-        val tracedClient = new TracedHttpClient()
-
-        val eventualFailure = tracedClient.get(uri = s"http://$unavailableHost:8080/")
+        val eventualFailure = TracedHttpClient().get(uri = s"http://$unavailableHost:8080/")
 
         Try(eventualFailure.get()) shouldBe a[Failure[_]]
 
@@ -103,6 +101,15 @@ class MoneyClientSpec extends AkkaMoneyScope {
 
         maybeCollectingSpanHandler should haveSomeSpanName("GET /")
         maybeCollectingSpanHandler should haveFailedSpans
+      }
+
+      "trace a post request and create spans" in {
+        implicit val spanContext: SpanContextWithStack = new SpanContextWithStack
+
+        val eventualResponse = TracedHttpClient().post(localHostRootUriString)
+
+        responseToString(eventualResponse) shouldBe "response"
+        maybeCollectingSpanHandler should haveSomeSpanName("POST /")
       }
     }
   }
@@ -113,10 +120,13 @@ class MoneyClientSpec extends AkkaMoneyScope {
   val localHostRootUriString = s"http://$localhost:8080/"
 
   val route: Route =
-    get {
-      pathSingleSlash {
+    pathSingleSlash {
+      get {
         complete("response")
-      }
+      } ~
+        post {
+          complete("response")
+        }
     }
 
   def haveFailedSpans: Matcher[Option[CollectingSpanHandler]] =
@@ -143,4 +153,6 @@ class MoneyClientSpec extends AkkaMoneyScope {
         ClosedShape
       }
     }
+
+  def responseToString(eventualHttpResponse: Future[HttpResponse]): String = eventualHttpResponse.flatMap(Unmarshal(_).to[String]).get()
 }

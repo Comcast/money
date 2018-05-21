@@ -18,7 +18,8 @@ package com.comcast.money.akka.http.client
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ HttpHeader, HttpRequest, HttpResponse }
+import akka.http.scaladsl.model.{ HttpHeader, HttpMethods, HttpRequest, HttpResponse }
+import akka.http.scaladsl.settings.ConnectionPoolSettings
 import com.comcast.money.akka.http.{ DefaultHttpRequestSpanKeyCreator, HttpRequestSpanKeyCreator }
 import com.comcast.money.akka.{ MoneyExtension, SpanContextWithStack }
 import com.comcast.money.api.Note
@@ -27,15 +28,24 @@ import com.comcast.money.core.Tracer
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success }
 
-class TracedHttpClient(implicit actorSystem: ActorSystem, moneyExtension: MoneyExtension, httpRequestSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator) {
+class TracedHttpClient()(implicit actorSystem: ActorSystem, moneyExtension: MoneyExtension, httpRequestSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator) {
+
   import scala.collection.immutable.Seq
 
-  private def execute(request: HttpRequest, tracer: Tracer): Future[HttpResponse] = {
+  private def execute(request: HttpRequest, tracer: Tracer, maybeConnectionPoolSettings: Option[ConnectionPoolSettings]): Future[HttpResponse] = {
     implicit val executionContext: ExecutionContext = actorSystem.dispatcher
 
     tracer.startSpan(httpRequestSKC.httpRequestToKey(request))
 
-    val eventualResponse = Http() singleRequest request
+    val httpExt = Http()
+
+    val eventualResponse =
+      maybeConnectionPoolSettings
+        .fold {
+          httpExt singleRequest request
+        } {
+          connectionPoolSettings => httpExt.singleRequest(request, settings = connectionPoolSettings)
+        }
 
     eventualResponse onComplete {
       case Success(_) => tracer.stopSpan()
@@ -47,11 +57,24 @@ class TracedHttpClient(implicit actorSystem: ActorSystem, moneyExtension: MoneyE
     eventualResponse
   }
 
-  def get(uri: String, maybeBody: Option[String] = None, headers: Seq[HttpHeader] = Seq.empty[HttpHeader])(implicit spanContext: SpanContextWithStack): Future[HttpResponse] =
+  def get(uri: String, maybeBody: Option[String] = None, headers: Seq[HttpHeader] = Seq.empty[HttpHeader], maybeConnectionPoolSettings: Option[ConnectionPoolSettings] = None)(implicit spanContext: SpanContextWithStack): Future[HttpResponse] =
     maybeBody
       .fold {
-        execute(HttpRequest(uri = uri, headers = headers), moneyExtension.tracer)
+        execute(HttpRequest(uri = uri, headers = headers), moneyExtension.tracer, maybeConnectionPoolSettings)
       } {
-        body => execute(HttpRequest(uri = uri, entity = body, headers = headers), moneyExtension.tracer)
+        body => execute(HttpRequest(uri = uri, entity = body, headers = headers), moneyExtension.tracer, maybeConnectionPoolSettings)
       }
+
+  def post(uri: String, maybeBody: Option[String] = None, headers: Seq[HttpHeader] = Seq.empty[HttpHeader], maybeConnectionPoolSettings: Option[ConnectionPoolSettings] = None)(implicit spanContext: SpanContextWithStack): Future[HttpResponse] =
+    maybeBody
+      .fold {
+        execute(HttpRequest(HttpMethods.POST, uri, headers = headers), moneyExtension.tracer, maybeConnectionPoolSettings)
+      } {
+        body => execute(HttpRequest(HttpMethods.POST, uri, entity = body, headers = headers), moneyExtension.tracer, maybeConnectionPoolSettings)
+      }
+}
+
+object TracedHttpClient {
+  def apply()(implicit actorSystem: ActorSystem, httpRequestSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator): TracedHttpClient =
+    new TracedHttpClient()(actorSystem = actorSystem, moneyExtension = MoneyExtension(actorSystem), httpRequestSKC)
 }
