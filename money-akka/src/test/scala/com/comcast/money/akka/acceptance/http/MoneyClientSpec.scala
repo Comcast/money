@@ -71,9 +71,7 @@ class MoneyClientSpec extends AkkaMoneyScope {
 
         val eventualResponse = TracedHttpClient().get(localHostRootUriString)
 
-        val responseEntity = responseToString(eventualResponse)
-
-        responseEntity shouldBe "getResponse"
+        responseToString(eventualResponse) shouldBe "getResponse"
 
         maybeCollectingSpanHandler should haveSomeSpanName(sentGet)
         maybeCollectingSpanHandler should not(haveFailedSpans)
@@ -84,9 +82,7 @@ class MoneyClientSpec extends AkkaMoneyScope {
 
         val eventualResponse = TracedHttpClient().get(localHostRootUriString, Some("request"))
 
-        val responseEntity = responseToString(eventualResponse)
-
-        responseEntity shouldBe "getResponse"
+        responseToString(eventualResponse) shouldBe "getResponse"
 
         maybeCollectingSpanHandler should haveSomeSpanName(sentGet)
         maybeCollectingSpanHandler should not(haveFailedSpans)
