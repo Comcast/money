@@ -21,7 +21,8 @@ import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, HttpRequest, HttpRes
 import akka.http.scaladsl.server.Directives.{ complete, extractRequest }
 import akka.http.scaladsl.server.Route
 import akka.stream.scaladsl.{ Sink, Source }
-import com.comcast.money.akka.http.HttpRequestSpanKeyCreator
+import com.comcast.money.akka.http.DefaultRequestSpanKeyCreators.DefaultReceived
+import com.comcast.money.akka.http.ReceivedRequestSpanKeyCreator
 import com.comcast.money.akka.{ MoneyExtension, SpanContextWithStack }
 import com.comcast.money.api.{ Note, SpanId }
 import com.comcast.money.core.Formatters.fromHttpHeader
@@ -32,6 +33,9 @@ import scala.util.{ Failure, Success }
 
 /**
  * Traces a call to a instrumented Akka Http Routing DSL
+ *
+ * See https://doc.akka.io/docs/akka-http/current/routing-dsl/overview.html
+ *
  * The [[akka.http.scaladsl.server.Directive]] will execute application code and traces the time taken to fulfill a request.
  *
  * The directive will need to be the last directive used.
@@ -53,8 +57,8 @@ object MoneyTrace {
    * {{{
    *   get {
    *       pathSingleSlash {
-   *         MoneyTrace {
-   *           (tracedRequest: TracedRequest) => TracedResponse(HttpResponse(entity = "response"), tracedRequest.spanContext)
+   *         MoneyTrace sync {
+   *           (tracedRequest: TracedRequest) => TracedResponse(HttpResponse(entity = "response"))
    *         }
    *       }
    *     }
@@ -62,13 +66,11 @@ object MoneyTrace {
    *
    * @param f              function from [[TracedRequest]] to [[TracedResponse]] should trigger all application code
    * @param moneyExtension [[akka.actor.ActorSystem]] extension to interact with [[com.comcast.money.core.Money]]
-   * @param requestSKC     [[HttpRequestSpanKeyCreator]] to create a key for the Span generated in the Directive
+   * @param requestSKC     [[ReceivedRequestSpanKeyCreator]] to create a key for the Span generated in the Directive
    * @return [[Route]]
    */
 
-  def apply(f: TracedRequest ⇒ TracedResponse)(implicit
-    moneyExtension: MoneyExtension,
-    requestSKC: HttpRequestSpanKeyCreator): Route =
+  def sync(f: TracedRequest ⇒ TracedResponse)(implicit moneyExtension: MoneyExtension, requestSKC: ReceivedRequestSpanKeyCreator = DefaultReceived): Route =
     createDirective {
       (request, tracer, spanContext) =>
 
@@ -79,22 +81,34 @@ object MoneyTrace {
     }
 
   /**
-   * returns a Route to complete a AkkaHttp routing DSL
+   * returns a Route to complete a Akka Http routing DSL
    *
    * Traces asynchronous [[Future]] based application code
    *
    * NB: Only logic called by the function f will be traced within the requests Span
    *
+   * Example:
+   *
+   * {{{
+   *   get {
+   *       pathSingleSlash {
+   *         MoneyTrace async {
+   *           (tracedRequest: TracedRequest) => Future(TracedResponse(HttpResponse(entity = "response")))
+   *         }
+   *       }
+   *     }
+   * }}}
+   *
    * @param f                asynchronous application logic from TracedRequest to Future[TracedResponse]
-   * @param moneyExtension [[akka.actor.ActorSystem]] extension to interact with [[com.comcast.money.core.Money]]
-   * @param requestSKC     [[HttpRequestSpanKeyCreator]] to create a key for the Span generated in the Directive
+   * @param moneyExtension   [[akka.actor.ActorSystem]] extension to interact with [[com.comcast.money.core.Money]]
+   * @param requestSKC       [[ReceivedRequestSpanKeyCreator]] to create a key for the Span generated in the Directive
    * @param executionContext the [[ExecutionContext]] for the [[Future]]
    * @return [[Route]]
    */
 
-  def apply(f: TracedRequest ⇒ Future[TracedResponse])(implicit
+  def async(f: TracedRequest ⇒ Future[TracedResponse])(implicit
     moneyExtension: MoneyExtension,
-    requestSKC: HttpRequestSpanKeyCreator,
+    requestSKC: ReceivedRequestSpanKeyCreator = DefaultReceived,
     executionContext: ExecutionContext): Route =
     createDirective {
       (request, tracer, spanContext) =>
@@ -123,7 +137,7 @@ object MoneyTrace {
    *   get {
    *       path("chunked") {
    *           MoneyTrace fromChunkedSource {
-   *             (_: TracedRequest) => Source(List("a","b","c")).map(ChunkStreamPart(_))
+   *             (tracedRequest: TracedRequest) => Source(List("a","b","c")).map(ChunkStreamPart(_))
    *           }
    *         }
    *     }
@@ -131,13 +145,11 @@ object MoneyTrace {
    *
    * @param f              application code that creates the [[Source]] to be used to complete the request
    * @param moneyExtension [[akka.actor.ActorSystem]] extension to interact with [[com.comcast.money.core.Money]]
-   * @param requestSKC     [[HttpRequestSpanKeyCreator]] to create a key for the Span generated in the Directive
+   * @param requestSKC     [[ReceivedRequestSpanKeyCreator]] to create a key for the Span generated in the Directive
    * @return [[Route]]
    */
 
-  def fromChunkedSource(f: TracedRequest ⇒ Source[ChunkStreamPart, _])(implicit
-    moneyExtension: MoneyExtension,
-    requestSKC: HttpRequestSpanKeyCreator): Route =
+  def fromChunkedSource(f: TracedRequest ⇒ Source[ChunkStreamPart, _])(implicit moneyExtension: MoneyExtension, requestSKC: ReceivedRequestSpanKeyCreator = DefaultReceived): Route =
     createDirective {
       (request, tracer, spanContext) =>
         val source = f(TracedRequest(request, spanContext))
@@ -171,13 +183,11 @@ object MoneyTrace {
    *
    * @param toRoute        the function that completes the [[HttpRequest]]
    * @param moneyExtension [[akka.actor.ActorSystem]] extension to interact with [[com.comcast.money.core.Money]]
-   * @param requestSKC     [[HttpRequestSpanKeyCreator]] to create a key for the Span generated in the Directive
+   * @param requestSKC     [[ReceivedRequestSpanKeyCreator]] to create a key for the Span generated in the Directive
    * @return Route completing Routing DSL
    */
 
-  private def createDirective(toRoute: (HttpRequest, Tracer, SpanContextWithStack) => Route)(implicit
-    moneyExtension: MoneyExtension,
-    requestSKC: HttpRequestSpanKeyCreator): Route =
+  private def createDirective(toRoute: (HttpRequest, Tracer, SpanContextWithStack) => Route)(implicit moneyExtension: MoneyExtension, requestSKC: ReceivedRequestSpanKeyCreator): Route =
     extractRequest {
       request =>
         implicit val spanContext: SpanContextWithStack = new SpanContextWithStack()

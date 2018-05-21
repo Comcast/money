@@ -149,9 +149,9 @@ class TestStreams(implicit moneyExtension: MoneyExtension) {
     Source fromGraph {
       GraphDSL.create() {
         implicit builder =>
-          val iterator = (1 to 100).map(i => s"chunk$i").iterator
+          val iterator = (1 to 4).map(i => s"chunk$i").iterator
 
-          val out = Source.fromIterator(() => iterator) ~|> Flow[String].mapAsync(30)(stringToFuture((60, 60))) ~|~ Flow[String].map(ChunkStreamPart(_))
+          val out = Source.fromIterator(() => iterator) ~|> Flow[String].mapAsync(1)(stringToFuture((60, 60))) ~|~ Flow[String].map(ChunkStreamPart(_))
 
           SourceShape(out.outlet)
       }

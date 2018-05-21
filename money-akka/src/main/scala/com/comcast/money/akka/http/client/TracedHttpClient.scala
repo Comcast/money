@@ -18,9 +18,11 @@ package com.comcast.money.akka.http.client
 
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model.{ HttpHeader, HttpMethods, HttpRequest, HttpResponse }
+import akka.http.scaladsl.model.HttpMethods._
+import akka.http.scaladsl.model._
 import akka.http.scaladsl.settings.ConnectionPoolSettings
-import com.comcast.money.akka.http.{ DefaultHttpRequestSpanKeyCreator, HttpRequestSpanKeyCreator }
+import com.comcast.money.akka.http.DefaultRequestSpanKeyCreators.DefaultSent
+import com.comcast.money.akka.http.SentRequestSpanKeyCreator
 import com.comcast.money.akka.{ MoneyExtension, SpanContextWithStack }
 import com.comcast.money.api.Note
 import com.comcast.money.core.Tracer
@@ -28,7 +30,21 @@ import com.comcast.money.core.Tracer
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success }
 
-class TracedHttpClient()(implicit actorSystem: ActorSystem, moneyExtension: MoneyExtension, httpRequestSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator) {
+/**
+ * TracedHttpClient will construct a new wrapper for [[akka.http.scaladsl.HttpExt.singleRequest]]
+ *
+ * methods represent HttpRequest Methods
+ *
+ * If a fresh pool is required for a long running request it can be passed per request please be aware this is NOT recommended.
+ *
+ * A better solution is currently a WIP
+ *
+ * @param actorSystem
+ * @param moneyExtension
+ * @param httpRequestSKC
+ */
+
+class TracedHttpClient()(implicit actorSystem: ActorSystem, moneyExtension: MoneyExtension, httpRequestSKC: SentRequestSpanKeyCreator = DefaultSent) {
 
   import scala.collection.immutable.Seq
 
@@ -57,24 +73,34 @@ class TracedHttpClient()(implicit actorSystem: ActorSystem, moneyExtension: Mone
     eventualResponse
   }
 
-  def get(uri: String, maybeBody: Option[String] = None, headers: Seq[HttpHeader] = Seq.empty[HttpHeader], maybeConnectionPoolSettings: Option[ConnectionPoolSettings] = None)(implicit spanContext: SpanContextWithStack): Future[HttpResponse] =
+  private def toRequest(httpMethod: HttpMethod, uri: String, maybeBody: Option[String], headers: Seq[HttpHeader]): HttpRequest =
     maybeBody
       .fold {
-        execute(HttpRequest(uri = uri, headers = headers), moneyExtension.tracer, maybeConnectionPoolSettings)
+        HttpRequest(httpMethod, uri, headers = headers)
       } {
-        body => execute(HttpRequest(uri = uri, entity = body, headers = headers), moneyExtension.tracer, maybeConnectionPoolSettings)
+        body => HttpRequest(httpMethod, uri, entity = body, headers = headers)
       }
 
-  def post(uri: String, maybeBody: Option[String] = None, headers: Seq[HttpHeader] = Seq.empty[HttpHeader], maybeConnectionPoolSettings: Option[ConnectionPoolSettings] = None)(implicit spanContext: SpanContextWithStack): Future[HttpResponse] =
-    maybeBody
-      .fold {
-        execute(HttpRequest(HttpMethods.POST, uri, headers = headers), moneyExtension.tracer, maybeConnectionPoolSettings)
-      } {
-        body => execute(HttpRequest(HttpMethods.POST, uri, entity = body, headers = headers), moneyExtension.tracer, maybeConnectionPoolSettings)
-      }
+  def get(uri: String, maybeBody: Option[String] = None, headers: Seq[HttpHeader] = Seq.empty[HttpHeader], maybeConnectionPoolSettings: Option[ConnectionPoolSettings] = None)(implicit spanContext: SpanContextWithStack): Future[HttpResponse] =
+    execute(toRequest(GET, uri, maybeBody, headers), moneyExtension.tracer, maybeConnectionPoolSettings)
+
+  def delete(uri: String, maybeBody: Option[String] = None, headers: Seq[HttpHeader] = Seq.empty[HttpHeader], maybeConnectionPoolSettings: Option[ConnectionPoolSettings] = None)(implicit spanContext: SpanContextWithStack): Future[HttpResponse] =
+    execute(toRequest(DELETE, uri, maybeBody, headers), moneyExtension.tracer, maybeConnectionPoolSettings)
+
+  def post(uri: String, body: String, headers: Seq[HttpHeader] = Seq.empty[HttpHeader], maybeConnectionPoolSettings: Option[ConnectionPoolSettings] = None)(implicit spanContext: SpanContextWithStack): Future[HttpResponse] =
+    execute(HttpRequest(POST, uri, headers, body), moneyExtension.tracer, maybeConnectionPoolSettings)
+
+  def put(uri: String, body: String, headers: Seq[HttpHeader] = Seq.empty[HttpHeader], maybeConnectionPoolSettings: Option[ConnectionPoolSettings] = None)(implicit spanContext: SpanContextWithStack): Future[HttpResponse] =
+    execute(HttpRequest(PUT, uri, headers, body), moneyExtension.tracer, maybeConnectionPoolSettings)
+
+  def patch(uri: String, body: String, headers: Seq[HttpHeader] = Seq.empty[HttpHeader], maybeConnectionPoolSettings: Option[ConnectionPoolSettings] = None)(implicit spanContext: SpanContextWithStack): Future[HttpResponse] =
+    execute(HttpRequest(PATCH, uri, headers, body), moneyExtension.tracer, maybeConnectionPoolSettings)
+
+  def head(uri: String, headers: Seq[HttpHeader] = Seq.empty[HttpHeader], maybeConnectionPoolSettings: Option[ConnectionPoolSettings] = None)(implicit spanContext: SpanContextWithStack): Future[HttpResponse] =
+    execute(HttpRequest(HEAD, uri, headers), moneyExtension.tracer, maybeConnectionPoolSettings)
 }
 
 object TracedHttpClient {
-  def apply()(implicit actorSystem: ActorSystem, httpRequestSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator): TracedHttpClient =
+  def apply()(implicit actorSystem: ActorSystem, httpRequestSKC: SentRequestSpanKeyCreator = DefaultSent): TracedHttpClient =
     new TracedHttpClient()(actorSystem = actorSystem, moneyExtension = MoneyExtension(actorSystem), httpRequestSKC)
 }

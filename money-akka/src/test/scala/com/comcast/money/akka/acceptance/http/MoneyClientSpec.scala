@@ -26,6 +26,7 @@ import akka.stream.scaladsl.{ GraphDSL, RunnableGraph, Sink, Source }
 import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka.SpanHandlerMatchers.{ haveSomeSpanName, haveSomeSpanNames, maybeCollectingSpanHandler }
 import com.comcast.money.akka.http.client.{ TracedHttpClient, TracedHttpClientFlow }
+import com.comcast.money.akka.http.server.{ MoneyTrace, TracedResponse }
 import com.comcast.money.akka.{ AkkaMoneyScope, CollectingSpanHandler, SpanContextWithStack }
 import org.scalatest.matchers.{ MatchResult, Matcher }
 
@@ -44,9 +45,9 @@ class MoneyClientSpec extends AkkaMoneyScope {
           }
 
         val responseEntityWithIdentifier = eventualMaybeResponse.get()
-        responseEntityWithIdentifier shouldBe ("response", 1)
+        responseEntityWithIdentifier shouldBe ("getResponse", 1)
 
-        maybeCollectingSpanHandler should haveSomeSpanNames(Seq("Stream", "GET /"))
+        maybeCollectingSpanHandler should haveSomeSpanNames(Seq("Stream", sentGet))
         maybeCollectingSpanHandler should not(haveFailedSpans)
       }
 
@@ -58,7 +59,7 @@ class MoneyClientSpec extends AkkaMoneyScope {
 
         Try(eventualFailure.get()) shouldBe a[Failure[_]]
 
-        maybeCollectingSpanHandler should haveSomeSpanNames(Seq("Stream", "GET /"))
+        maybeCollectingSpanHandler should haveSomeSpanNames(Seq("Stream", sentGet))
         maybeCollectingSpanHandler should haveFailedSpans
       }
     }
@@ -71,9 +72,9 @@ class MoneyClientSpec extends AkkaMoneyScope {
 
         val responseEntity = responseToString(eventualResponse)
 
-        responseEntity shouldBe "response"
+        responseEntity shouldBe "getResponse"
 
-        maybeCollectingSpanHandler should haveSomeSpanName("GET /")
+        maybeCollectingSpanHandler should haveSomeSpanName(sentGet)
         maybeCollectingSpanHandler should not(haveFailedSpans)
       }
 
@@ -84,9 +85,9 @@ class MoneyClientSpec extends AkkaMoneyScope {
 
         val responseEntity = responseToString(eventualResponse)
 
-        responseEntity shouldBe "response"
+        responseEntity shouldBe "getResponse"
 
-        maybeCollectingSpanHandler should haveSomeSpanName("GET /")
+        maybeCollectingSpanHandler should haveSomeSpanName(sentGet)
         maybeCollectingSpanHandler should not(haveFailedSpans)
       }
 
@@ -99,20 +100,69 @@ class MoneyClientSpec extends AkkaMoneyScope {
 
         Thread.sleep(10L) // onComplete is on a separate thread and can be run after the next statements are run
 
-        maybeCollectingSpanHandler should haveSomeSpanName("GET /")
+        maybeCollectingSpanHandler should haveSomeSpanName(sentGet)
         maybeCollectingSpanHandler should haveFailedSpans
       }
 
-      "trace a post request and create spans" in {
+      "create spans and add them to the Span Handler for a post request" in {
         implicit val spanContext: SpanContextWithStack = new SpanContextWithStack
 
-        val eventualResponse = TracedHttpClient().post(localHostRootUriString)
+        val eventualResponse = TracedHttpClient().post(localHostRootUriString, "body")
 
-        responseToString(eventualResponse) shouldBe "response"
-        maybeCollectingSpanHandler should haveSomeSpanName("POST /")
+        responseToString(eventualResponse) shouldBe "postResponse"
+        maybeCollectingSpanHandler should haveSomeSpanName("SENT POST /")
+      }
+
+      "create spans and add them to the Span Handler for a put request" in {
+        implicit val spanContext: SpanContextWithStack = new SpanContextWithStack
+
+        val eventualResponse = TracedHttpClient().put(localHostRootUriString, "body")
+
+        responseToString(eventualResponse) shouldBe "putResponse"
+        maybeCollectingSpanHandler should haveSomeSpanName("SENT PUT /")
+      }
+
+      "create spans and add them to the Span Handler for a head request" in {
+        implicit val spanContext: SpanContextWithStack = new SpanContextWithStack
+
+        val eventualResponse = TracedHttpClient().head(localHostRootUriString)
+
+        eventualResponse.get() should beSuccessfulResponse
+
+        Thread.sleep(20L)
+
+        maybeCollectingSpanHandler should haveSomeSpanName("SENT HEAD /")
+      }
+
+      "create spans and add them to the Span Handler for a patch request" in {
+        implicit val spanContext: SpanContextWithStack = new SpanContextWithStack
+
+        val eventualResponse = TracedHttpClient().patch(localHostRootUriString, "body")
+
+        responseToString(eventualResponse) shouldBe "patchResponse"
+        maybeCollectingSpanHandler should haveSomeSpanName("SENT PATCH /")
+      }
+
+      "create spans and add them to the Span Handler for a delete request" in {
+        implicit val spanContext: SpanContextWithStack = new SpanContextWithStack
+
+        val eventualResponse = TracedHttpClient().delete(localHostRootUriString)
+
+        responseToString(eventualResponse) shouldBe "deleteResponse"
+        maybeCollectingSpanHandler should haveSomeSpanName("SENT DELETE /")
       }
     }
+
+    "sending a request should create a span that is clearly different from a Money Directive span" in {
+      implicit val spanContext: SpanContextWithStack = new SpanContextWithStack
+
+      TracedHttpClient().get(localHostRootUriString + "traced").get() should beSuccessfulResponse
+
+      maybeCollectingSpanHandler should haveSomeSpanNames(Seq(sentGet + "traced", "RECEIVED GET /traced"))
+    }
   }
+
+  val sentGet = "SENT GET /"
 
   val localhost = "localhost"
   val unavailableHost = "unavailableHost"
@@ -122,11 +172,29 @@ class MoneyClientSpec extends AkkaMoneyScope {
   val route: Route =
     pathSingleSlash {
       get {
-        complete("response")
+        complete("getResponse")
       } ~
         post {
-          complete("response")
+          complete("postResponse")
+        } ~
+        put {
+          complete("putResponse")
+        } ~
+        head {
+          complete("headResponse")
+        } ~
+        patch {
+          complete("patchResponse")
+        } ~
+        delete {
+          complete("deleteResponse")
         }
+    } ~ path("traced") {
+      get {
+        MoneyTrace sync {
+          _ => TracedResponse(HttpResponse())
+        }
+      }
     }
 
   def haveFailedSpans: Matcher[Option[CollectingSpanHandler]] =
@@ -139,6 +207,16 @@ class MoneyClientSpec extends AkkaMoneyScope {
           matches = hasSpanFailure,
           rawFailureMessage = s"No Spans failed in $maybeSpanInfoStack",
           rawNegatedFailureMessage = s"Spans failed in $maybeSpanInfoStack"
+        )
+    }
+
+  def beSuccessfulResponse: Matcher[HttpResponse] =
+    Matcher {
+      response =>
+        MatchResult(
+          matches = response.status.isSuccess(),
+          rawFailureMessage = s"HttpResponse Status Code was ${response.status} not expected successful code",
+          rawNegatedFailureMessage = s"HttpResponse Status Code was ${response.status} a successful code"
         )
     }
 

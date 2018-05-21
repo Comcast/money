@@ -20,13 +20,14 @@ import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
 import akka.http.scaladsl.model.{ HttpRequest, HttpResponse }
 import akka.stream.scaladsl.Flow
-import com.comcast.money.akka.http.{ DefaultHttpRequestSpanKeyCreator, HttpRequestSpanKeyCreator }
+import com.comcast.money.akka.http.DefaultRequestSpanKeyCreators.DefaultSent
+import com.comcast.money.akka.http.SentRequestSpanKeyCreator
 import com.comcast.money.akka.{ MoneyExtension, SpanContextWithStack }
 
 import scala.util.{ Failure, Success, Try }
 
 object TracedHttpClientFlow {
-  def apply[T](host: String, port: Int)(implicit actorSystem: ActorSystem, moneyExtension: MoneyExtension, hSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator): Flow[((HttpRequest, T), SpanContextWithStack), ((Try[HttpResponse], T), SpanContextWithStack), _] =
+  def apply[T](host: String, port: Int)(implicit actorSystem: ActorSystem, moneyExtension: MoneyExtension, hSKC: SentRequestSpanKeyCreator = DefaultSent): Flow[((HttpRequest, T), SpanContextWithStack), ((Try[HttpResponse], T), SpanContextWithStack), _] =
     Flow[((HttpRequest, T), SpanContextWithStack)]
       .map {
         case ((request, t), spanContext) =>
