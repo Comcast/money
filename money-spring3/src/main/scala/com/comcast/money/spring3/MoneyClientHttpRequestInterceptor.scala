@@ -19,61 +19,60 @@ package com.comcast.money.spring3
 import com.comcast.money.core.Formatters
 import com.comcast.money.core.internal.SpanLocal
 import org.springframework.http.HttpRequest
-import org.springframework.http.client.{ ClientHttpRequestExecution, ClientHttpRequestInterceptor, ClientHttpResponse }
+import org.springframework.http.client.{ClientHttpRequestExecution, ClientHttpRequestInterceptor, ClientHttpResponse}
 import org.springframework.stereotype.Component
 
 /**
-  * An Http Request interceptor implementation that adds X-B3 style distributed trace headers
-  * to http requests made to other services.
-  * This is defined as a spring component and designed to wired in to spring applications.
-  * <p>
-  *
-  *   For example, the following code will add X-B3 headers to restful http requests using "MyTemplate"
-  * <pre>
-  *
-  * {@literal @}SpringBootApplication
-  * {@literal @}ComponentScan (basePackages = {"com.comcast.money.spring3"})
-  *  public class Application {
-  *
-  *    {@literal @}Autowired MoneyClientHttpRequestInterceptor moneyClientHttpRequestInterceptor;
-  *
-  *    {@literal @}Bean ("MyTemplate")
-  *     public RestTemplate restTemplate(RestTemplateBuilder builder) {
-  *        return builder.additionalInterceptors(moneyClientHttpRequestInterceptor).build();
-  *     }
-  * }
-  * 
-  * 
-  * {@literal @}RestController
-  *  public class HelloController {
-  *  
-  *   {@literal @}Autowired
-  *   {@literal @}Qualifier("MyTemplate")
-  *    private RestTemplate myTemplate;
-  *  
-  *   
-  *   {@literal @}RequestMapping("/annotated")
-  *   {@literal @}Traced("echo from  httpbin.org/headers")
-  *    public String annotated() {
-  *         myTemplate.getForObject("http://127.0.0.1:3000", String.class);
-  *         return "Used the {@literal @}Traced annotation!";
-  *   }
-  *
-  * }
-  * </pre>
-  *
-  */
+ * An Http Request interceptor implementation that adds X-B3 style distributed trace headers
+ * to http requests made to other services.
+ * This is defined as a spring component and designed to wired in to spring applications.
+ * <p>
+ *
+ *   For example, the following code will add X-B3 headers to restful http requests using "MyTemplate"
+ * <pre>
+ *
+ * {@literal @}SpringBootApplication
+ * {@literal @}ComponentScan (basePackages = {"com.comcast.money.spring3"})
+ *  public class Application {
+ *
+ *    {@literal @}Autowired MoneyClientHttpRequestInterceptor moneyClientHttpRequestInterceptor;
+ *
+ *    {@literal @}Bean ("MyTemplate")
+ *     public RestTemplate restTemplate(RestTemplateBuilder builder) {
+ *        return builder.additionalInterceptors(moneyClientHttpRequestInterceptor).build();
+ *     }
+ * }
+ *
+ *
+ * {@literal @}RestController
+ *  public class HelloController {
+ *
+ *   {@literal @}Autowired
+ *   {@literal @}Qualifier("MyTemplate")
+ *    private RestTemplate myTemplate;
+ *
+ *
+ *   {@literal @}RequestMapping("/annotated")
+ *   {@literal @}Traced("echo from  httpbin.org/headers")
+ *    public String annotated() {
+ *         myTemplate.getForObject("http://httpbin.org/headers", String.class);
+ *         return "Used the {@literal @}Traced annotation!";
+ *   }
+ *
+ * }
+ * </pre>
+ *
+ */
 @Component
 class MoneyClientHttpRequestInterceptor extends ClientHttpRequestInterceptor {
   override def intercept(httpRequest: HttpRequest, body: Array[Byte], clientHttpRequestExecution: ClientHttpRequestExecution): ClientHttpResponse = {
-    SpanLocal.current.foreach(span => {
+    SpanLocal.current foreach { span =>
       val headers = httpRequest.getHeaders
       headers.add("X-MoneyTrace", Formatters.toHttpHeader(span.info.id))
       headers.add("X-B3-TraceId", span.info.id.traceId)
       headers.add("X-B3-ParentSpanId", span.info.id.parentId.toString)
       headers.add("X-B3-SpanId", span.info.id.selfId.toString)
-      null
-    })
+    }
     clientHttpRequestExecution.execute(httpRequest, body)
   }
 }

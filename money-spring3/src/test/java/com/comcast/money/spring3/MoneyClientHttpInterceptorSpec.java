@@ -20,6 +20,7 @@ import com.comcast.money.api.Note;
 import com.comcast.money.api.Span;
 import com.comcast.money.api.SpanId;
 import com.comcast.money.api.SpanInfo;
+import com.comcast.money.core.CoreSpanInfo;
 import com.comcast.money.core.internal.SpanLocal;
 import org.junit.After;
 import org.junit.Assert;
@@ -28,9 +29,8 @@ import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
-import java.util.Map;
+import java.util.HashMap;
 import static org.mockito.Mockito.*;
-
 
 public class MoneyClientHttpInterceptorSpec {
 
@@ -38,17 +38,26 @@ public class MoneyClientHttpInterceptorSpec {
     private final static Long expectedParentSpanId = 1L;
     private final static Long expectedSpanId = 2L;
     private final String expectedMoneyHeaderVal = String.format("trace-id=%s;parent-id=%s;span-id=%s", expectedTraceId, expectedParentSpanId, expectedSpanId);
-
     private HttpRequest httpRequest = mock(HttpRequest.class);
     private ClientHttpRequestExecution clientHttpRequestExecution = mock(ClientHttpRequestExecution.class);
     private Span span = mock(Span.class);
-
     private MoneyClientHttpRequestInterceptor moneyClientHttpRequestInterceptor = new MoneyClientHttpRequestInterceptor();
-
 
     @Before
     public void setUp() {
-        when(span.info()).thenReturn(new TestSpanInfo());
+        SpanInfo testSpanInfo = new CoreSpanInfo(
+                new SpanId(expectedTraceId,expectedParentSpanId,expectedSpanId),
+                "testName",
+                0L,
+                0L,
+                0L,
+                0L,
+                0L,
+                Boolean.TRUE,
+                new HashMap<String, Note<?>>(),
+                "testAppName",
+                "testHost");
+        when(span.info()).thenReturn(testSpanInfo);
         SpanLocal.push(span);
     }
 
@@ -58,8 +67,7 @@ public class MoneyClientHttpInterceptorSpec {
     }
 
     @Test
-    public void testInterceptor() throws Exception {
-
+    public void testMoneyAndB3HeadersAreSet() throws Exception {
         HttpHeaders httpHeaders = new HttpHeaders();
         when(httpRequest.getHeaders()).thenReturn(httpHeaders);
         moneyClientHttpRequestInterceptor.intercept(httpRequest,"abc".getBytes(), clientHttpRequestExecution);
@@ -71,17 +79,5 @@ public class MoneyClientHttpInterceptorSpec {
         Assert.assertEquals(expectedMoneyHeaderVal, httpHeaders.get("X-MoneyTrace").get(0));
     }
 
-    private static class TestSpanInfo implements SpanInfo {
-        @Override public Map<String, Note<?>> notes() {return null; }
-        @Override public Long startTimeMillis() { return null;}
-        @Override public Long startTimeMicros() { return null; }
-        @Override public Long endTimeMillis() { return null; }
-        @Override public Long endTimeMicros() { return null; }
-        @Override public Boolean success() { return null; }
-        @Override public SpanId id() { return new SpanId(expectedTraceId,expectedParentSpanId,expectedSpanId); }
-        @Override public String name() { return null; }
-        @Override public Long durationMicros() { return null; }
-        @Override public String appName() { return null; }
-        @Override public String host() { return null; }
-    }
+
 }
