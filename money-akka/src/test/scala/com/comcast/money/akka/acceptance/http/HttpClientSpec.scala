@@ -30,12 +30,13 @@ import com.comcast.money.akka.http.SentRequestSpanKeyCreator
 import com.comcast.money.akka.http.client.{ TracedHttpClient, TracedHttpClientFlow }
 import com.comcast.money.akka.http.server.{ MoneyTrace, TracedResponse }
 import com.comcast.money.akka.{ AkkaMoneyScope, CollectingSpanHandler, SpanContextWithStack }
+import org.scalatest.concurrent.Eventually.eventually
 import org.scalatest.matchers.{ MatchResult, Matcher }
 
 import scala.concurrent.{ Future, Promise }
 import scala.util.{ Failure, Success, Try }
 
-class MoneyClientSpec extends AkkaMoneyScope {
+class HttpClientSpec extends AkkaMoneyScope {
 
   "A Akka Http Client traced with Money" when {
     "sending a traced request with a flow" should {
@@ -108,7 +109,9 @@ class MoneyClientSpec extends AkkaMoneyScope {
         val eventualResponse = TracedHttpClient().post(localHostRootUriString, "body")
 
         responseToString(eventualResponse) shouldBe "postResponse"
-        maybeCollectingSpanHandler should haveSomeSpanName("SENT POST /")
+        eventually {
+          maybeCollectingSpanHandler should haveSomeSpanName("SENT POST /")
+        }
       }
 
       "create spans and add them to the Span Handler for a put request" in {
@@ -117,7 +120,10 @@ class MoneyClientSpec extends AkkaMoneyScope {
         val eventualResponse = TracedHttpClient().put(localHostRootUriString, "body")
 
         responseToString(eventualResponse) shouldBe "putResponse"
-        maybeCollectingSpanHandler should haveSomeSpanName("SENT PUT /")
+
+        eventually {
+          maybeCollectingSpanHandler should haveSomeSpanName("SENT PUT /")
+        }
       }
 
       "create spans and add them to the Span Handler for a head request" in {
@@ -127,7 +133,9 @@ class MoneyClientSpec extends AkkaMoneyScope {
 
         eventualResponse.get() should beSuccessfulResponse
 
-        maybeCollectingSpanHandler should haveSomeSpanName("SENT HEAD /")
+        eventually {
+          maybeCollectingSpanHandler should haveSomeSpanName("SENT HEAD /")
+        }
       }
 
       "create spans and add them to the Span Handler for a patch request" in {
@@ -136,7 +144,10 @@ class MoneyClientSpec extends AkkaMoneyScope {
         val eventualResponse = TracedHttpClient().patch(localHostRootUriString, "body")
 
         responseToString(eventualResponse) shouldBe "patchResponse"
-        maybeCollectingSpanHandler should haveSomeSpanName("SENT PATCH /")
+
+        eventually {
+          maybeCollectingSpanHandler should haveSomeSpanName("SENT PATCH /")
+        }
       }
 
       "create spans and add them to the Span Handler for a delete request" in {
@@ -145,7 +156,10 @@ class MoneyClientSpec extends AkkaMoneyScope {
         val eventualResponse = TracedHttpClient().delete(localHostRootUriString)
 
         responseToString(eventualResponse) shouldBe "deleteResponse"
-        maybeCollectingSpanHandler should haveSomeSpanName("SENT DELETE /")
+
+        eventually {
+          maybeCollectingSpanHandler should haveSomeSpanName("SENT DELETE /")
+        }
       }
     }
 
