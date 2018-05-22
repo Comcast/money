@@ -58,6 +58,12 @@ class StreamTracingDSLSpec extends AkkaMoneyScope {
       maybeCollectingSpanHandler should haveSomeSpanNames(Seq(stream, "InletOfString", stringToString))
     }
 
+    "built with two connected Flows should create completed spans" in {
+      testStreams.doubleFlow.run.get()
+
+      maybeCollectingSpanHandler should haveSomeSpanNames(Seq(stream, stringToString, stringToString))
+    }
+
     "a SpanContext is in scope should use that SpanContext" in {
       implicit val spanContextWithStack = new SpanContextWithStack
       moneyExtension.tracer.startSpan("request")

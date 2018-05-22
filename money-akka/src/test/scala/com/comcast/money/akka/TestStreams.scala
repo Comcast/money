@@ -82,6 +82,14 @@ class TestStreams(implicit moneyExtension: MoneyExtension) {
       }
     }
 
+  def doubleFlow =
+    RunnableGraph fromGraph {
+      GraphDSL.create(Sink.ignore) { implicit builder: Builder[Future[Done]] => sink =>
+        source ~|> Flow[String] ~|> Flow[String] ~| sink
+        ClosedShape
+      }
+    }
+
   def sourceEndingWithFlow =
     Source fromGraph {
       GraphDSL.create() {
@@ -163,7 +171,7 @@ class TestStreams(implicit moneyExtension: MoneyExtension) {
         val iterator = List("chunk1", "chunk2", "chunk3").iterator
         asyncFlowCreator(builder) fold (
           asyncFlow => Source.fromIterator(() => iterator) ~|> asyncFlow ~| sink.in,
-          asyncUnorderedFlow => Source.fromIterator(() => iterator) ~|> asyncUnorderedFlow ~| sink.in
+          asyncUnorderedFlow => Source.fromIterator(() => iterator) ~|> asyncUnorderedFlow ~| sink
         )
 
         ClosedShape
