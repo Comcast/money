@@ -109,6 +109,7 @@ class HttpClientSpec extends AkkaMoneyScope {
         val eventualResponse = TracedHttpClient().post(localHostRootUriString, "body")
 
         responseToString(eventualResponse) shouldBe "postResponse"
+
         eventually {
           maybeCollectingSpanHandler should haveSomeSpanName("SENT POST /")
         }
