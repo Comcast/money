@@ -20,6 +20,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.Route
+import akka.http.scaladsl.settings.ConnectionPoolSettings
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.ClosedShape
 import akka.stream.scaladsl.{ GraphDSL, RunnableGraph, Sink, Source }
@@ -31,7 +32,7 @@ import com.comcast.money.akka.http.server.{ MoneyTrace, TracedResponse }
 import com.comcast.money.akka.{ AkkaMoneyScope, CollectingSpanHandler, SpanContextWithStack }
 import org.scalatest.matchers.{ MatchResult, Matcher }
 
-import scala.concurrent.Future
+import scala.concurrent.{ Future, Promise }
 import scala.util.{ Failure, Success, Try }
 
 class MoneyClientSpec extends AkkaMoneyScope {
@@ -166,6 +167,17 @@ class MoneyClientSpec extends AkkaMoneyScope {
 
       maybeCollectingSpanHandler should haveSomeSpanName(tracedRequest)
     }
+
+    "sending a request with a fresh Connection Pool should result in a long running request not blocking a fast request" in {
+      val racePromise = Promise[HttpResponse]()
+      val eventualSlowResponse = TracedHttpClient().get(localHostRootUriString + "slow", maybeConnectionPoolSettings = Some(ConnectionPoolSettings(actorSystem)))(new SpanContextWithStack)
+      val eventualFastResponse = TracedHttpClient().get(localHostRootUriString + "fast")(new SpanContextWithStack)
+
+      eventualSlowResponse onComplete racePromise.tryComplete
+      eventualFastResponse onComplete racePromise.tryComplete
+
+      responseToString(racePromise.future) shouldBe "fast"
+    }
   }
 
   val sentGet = "SENT GET /"
@@ -195,13 +207,25 @@ class MoneyClientSpec extends AkkaMoneyScope {
         delete {
           complete("deleteResponse")
         }
-    } ~ path("traced") {
-      get {
-        MoneyTrace sync {
-          _ => TracedResponse(HttpResponse())
+    } ~
+      path("traced") {
+        get {
+          MoneyTrace sync {
+            _ => TracedResponse(HttpResponse())
+          }
+        }
+      } ~
+      path("fast") {
+        get {
+          complete("fast")
+        }
+      } ~
+      path("slow") {
+        get {
+          Thread.sleep(80L)
+          complete("slow")
         }
       }
-    }
 
   def haveFailedSpans: Matcher[Option[CollectingSpanHandler]] =
     Matcher {
