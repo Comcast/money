@@ -50,8 +50,10 @@ class HttpClientSpec extends AkkaMoneyScope {
         val responseEntityWithIdentifier = eventualMaybeResponse.get()
         responseEntityWithIdentifier shouldBe ("getResponse", 1)
 
-        maybeCollectingSpanHandler should haveSomeSpanNames(Seq("Stream", sentGet))
-        maybeCollectingSpanHandler should not(haveFailedSpans)
+        eventually {
+          maybeCollectingSpanHandler should haveSomeSpanNames(Seq("Stream", sentGet))
+          maybeCollectingSpanHandler should not(haveFailedSpans)
+        }
       }
 
       "complete spans and add them to the Span Handler for a failed request" in {
@@ -62,8 +64,10 @@ class HttpClientSpec extends AkkaMoneyScope {
 
         Try(eventualFailure.get()) shouldBe a[Failure[_]]
 
-        maybeCollectingSpanHandler should haveSomeSpanNames(Seq("Stream", sentGet))
-        maybeCollectingSpanHandler should haveFailedSpans
+        eventually {
+          maybeCollectingSpanHandler should haveSomeSpanNames(Seq("Stream", sentGet))
+          maybeCollectingSpanHandler should haveFailedSpans
+        }
       }
     }
 
@@ -75,8 +79,10 @@ class HttpClientSpec extends AkkaMoneyScope {
 
         responseToString(eventualResponse) shouldBe "getResponse"
 
-        maybeCollectingSpanHandler should haveSomeSpanName(sentGet)
-        maybeCollectingSpanHandler should not(haveFailedSpans)
+        eventually {
+          maybeCollectingSpanHandler should haveSomeSpanName(sentGet)
+          maybeCollectingSpanHandler should not(haveFailedSpans)
+        }
       }
 
       "create spans and add them to the Span Handler for a successful request with a body" in {
@@ -86,8 +92,10 @@ class HttpClientSpec extends AkkaMoneyScope {
 
         responseToString(eventualResponse) shouldBe "getResponse"
 
-        maybeCollectingSpanHandler should haveSomeSpanName(sentGet)
-        maybeCollectingSpanHandler should not(haveFailedSpans)
+        eventually {
+          maybeCollectingSpanHandler should haveSomeSpanName(sentGet)
+          maybeCollectingSpanHandler should not(haveFailedSpans)
+        }
       }
 
       "create spans and add them to the Span Handler for a failed request" in {
@@ -97,10 +105,10 @@ class HttpClientSpec extends AkkaMoneyScope {
 
         Try(eventualFailure.get()) shouldBe a[Failure[_]]
 
-        Thread.sleep(10L) // onComplete is on a separate thread and can be run after the next statements are run
-
-        maybeCollectingSpanHandler should haveSomeSpanName(sentGet)
-        maybeCollectingSpanHandler should haveFailedSpans
+        eventually {
+          maybeCollectingSpanHandler should haveSomeSpanName(sentGet)
+          maybeCollectingSpanHandler should haveFailedSpans
+        }
       }
 
       "create spans and add them to the Span Handler for a post request" in {
@@ -169,7 +177,9 @@ class HttpClientSpec extends AkkaMoneyScope {
 
       TracedHttpClient().get(localHostRootUriString + "traced").get() should beSuccessfulResponse
 
-      maybeCollectingSpanHandler should haveSomeSpanNames(Seq(sentGet + "traced", "RECEIVED GET /traced"))
+      eventually {
+        maybeCollectingSpanHandler should haveSomeSpanNames(Seq(sentGet + "traced", "RECEIVED GET /traced"))
+      }
     }
 
     "sending a request should use a non default span key creator if it is present" in {
@@ -180,7 +190,9 @@ class HttpClientSpec extends AkkaMoneyScope {
 
       TracedHttpClient().get(localHostRootUriString).get() should beSuccessfulResponse
 
-      maybeCollectingSpanHandler should haveSomeSpanName(tracedRequest)
+      eventually {
+        maybeCollectingSpanHandler should haveSomeSpanName(tracedRequest)
+      }
     }
 
     "sending a request with a fresh Connection Pool should result in a long running request not blocking a fast request" in {
