@@ -193,6 +193,7 @@ object MoneyBuild extends Build {
             mockito,
             springContext3,
             springAop3,
+            springWeb3,
             junit,
             junitInterface,
             springTest,
@@ -354,6 +355,7 @@ object MoneyBuild extends Build {
     val commonsIo = "commons-io" % "commons-io" % "2.4"
 
     // Spring
+    val springWeb3 = ("org.springframework" % "spring-web" % "3.2.6.RELEASE")
     val springContext3 = ("org.springframework" % "spring-context" % "3.2.6.RELEASE")
     .exclude("commons-logging", "commons-logging")
 
