@@ -78,6 +78,5 @@ public class MoneyClientHttpInterceptorSpec {
         Assert.assertEquals(expectedSpanId.toString(), httpHeaders.get("X-B3-SpanId").get(0));
         Assert.assertEquals(expectedMoneyHeaderVal, httpHeaders.get("X-MoneyTrace").get(0));
     }
-
-
 }
+
