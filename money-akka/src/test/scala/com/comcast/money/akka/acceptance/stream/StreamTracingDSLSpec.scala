@@ -17,9 +17,9 @@
 package com.comcast.money.akka.acceptance.stream
 
 import akka.stream._
-import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.scaladsl.{ Flow, Sink, Source }
 import com.comcast.money.akka.Blocking.RichFuture
-import com.comcast.money.akka.SpanHandlerMatchers.{haveSomeSpanNames, haveSomeSpanNamesInNoParticularOrder, maybeCollectingSpanHandler}
+import com.comcast.money.akka.SpanHandlerMatchers.{ haveSomeSpanNames, haveSomeSpanNamesInNoParticularOrder, maybeCollectingSpanHandler }
 import com.comcast.money.akka._
 import com.comcast.money.akka.stream._
 
@@ -56,6 +56,12 @@ class StreamTracingDSLSpec extends AkkaMoneyScope {
       testStreams.simpleWithInlets.run.get()
 
       maybeCollectingSpanHandler should haveSomeSpanNames(Seq(stream, "InletOfString", stringToString))
+    }
+
+    "built with two connected Flows should create completed spans" in {
+      testStreams.doubleFlow.run.get()
+
+      maybeCollectingSpanHandler should haveSomeSpanNames(Seq(stream, stringToString, stringToString))
     }
 
     "a SpanContext is in scope should use that SpanContext" in {

@@ -22,7 +22,7 @@ import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import com.comcast.money.akka.SpanHandlerMatchers.clearHandlerChain
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike}
+import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike }
 
 import scala.concurrent.ExecutionContextExecutor
 
@@ -34,10 +34,11 @@ abstract class AkkaMoneyScope(override val system: ActorSystem) extends TestKit(
         |  handling = {
         |    async = false
         |    handlers = [
-        |    {
-        |      class = "com.comcast.money.akka.CollectingSpanHandler"
-        |      log-level = "INFO"
-        |    }]
+        |       {
+        |         class = "com.comcast.money.akka.CollectingSpanHandler"
+        |         log-level = "INFO"
+        |       }
+        |    ]
         |  }
         | }""".stripMargin
 
@@ -52,7 +53,7 @@ abstract class AkkaMoneyScope(override val system: ActorSystem) extends TestKit(
 
   override implicit val executor: ExecutionContextExecutor = actorSystem.dispatcher
 
-  override def afterAll = TestKit.shutdownActorSystem(system)
+  override def afterAll: Unit = TestKit.shutdownActorSystem(system)
 
   override def beforeEach(): Unit = clearHandlerChain
 }

@@ -20,11 +20,11 @@ import com.comcast.money.api.Span
 import com.comcast.money.core.internal.SpanContext
 
 /**
-  * A [[SpanContext]] that carries with it a stack of [[Span]]
-  * enables explicitly passing of the [[SpanContext]].
-  * A [[com.comcast.money.core.internal.SpanLocal]] would not be appropriate
-  * as it tied to a single thread.
-  */
+ * A [[SpanContext]] that carries with it a stack of [[Span]]
+ * enables explicitly passing of the [[SpanContext]].
+ * A [[com.comcast.money.core.internal.SpanLocal]] would not be appropriate
+ * as it tied to a single thread.
+ */
 
 class SpanContextWithStack() extends SpanContext {
   private var spans = Seq.empty[Span]

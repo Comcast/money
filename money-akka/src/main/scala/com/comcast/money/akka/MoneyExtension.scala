@@ -16,11 +16,11 @@
 
 package com.comcast.money.akka
 
-import akka.actor.{ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider}
-import com.comcast.money.api.{SpanFactory, SpanHandler}
+import akka.actor.{ ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
+import com.comcast.money.api.{ SpanFactory, SpanHandler }
 import com.comcast.money.core.internal.SpanContext
-import com.comcast.money.core.{Money, Tracer}
-import com.typesafe.config.{Config, ConfigValueFactory}
+import com.comcast.money.core.{ Money, Tracer }
+import com.typesafe.config.{ Config, ConfigValueFactory }
 
 /**
  * Contructs a new [[MoneyExtension]] from config and attaches it to the current [[ActorSystem]]
