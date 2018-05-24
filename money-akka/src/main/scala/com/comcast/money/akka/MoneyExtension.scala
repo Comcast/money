@@ -104,7 +104,7 @@ class MoneyExtension(money: Money, traceFunction: SpanContext => Tracer) extends
   val handler: SpanHandler = money.handler
   val factory: SpanFactory = money.factory
 
-  def tracer(implicit spanContextWithStack: SpanContextWithStack): Tracer = traceFunction(spanContextWithStack)
+  def tracer(implicit spanContextWithStack: StackingSpanContext): Tracer = traceFunction(spanContextWithStack)
 }
 
 case class MoneyExtensionConfig(enabled: Boolean, applicationName: String, hostName: String, shouldLogExceptions: Boolean)

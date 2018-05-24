@@ -18,7 +18,7 @@ package com.comcast.money.akka.stream
 
 import akka.stream.stage.{ GraphStage, GraphStageLogic }
 import akka.stream.{ FlowShape, Inlet, Outlet }
-import com.comcast.money.akka.{ MoneyExtension, SpanContextWithStack }
+import com.comcast.money.akka.{ MoneyExtension, StackingSpanContext }
 import com.comcast.money.core.Tracer
 
 /**
@@ -29,12 +29,12 @@ import com.comcast.money.core.Tracer
  * @tparam Out output type of the users Flow
  */
 
-trait TracedFlow[In, Out] extends GraphStage[FlowShape[(In, SpanContextWithStack), (Out, SpanContextWithStack)]] {
+trait TracedFlow[In, Out] extends GraphStage[FlowShape[(In, StackingSpanContext), (Out, StackingSpanContext)]] {
   val inletName: String
   val outletName: String
 
-  type TracedIn = (In, SpanContextWithStack)
-  type TracedOut = (Out, SpanContextWithStack)
+  type TracedIn = (In, StackingSpanContext)
+  type TracedOut = (Out, StackingSpanContext)
 
   implicit val in: Inlet[TracedIn] = Inlet(name = inletName)
   implicit val out: Outlet[TracedOut] = Outlet(name = outletName)
@@ -55,10 +55,10 @@ trait TracedFlow[In, Out] extends GraphStage[FlowShape[(In, SpanContextWithStack
  */
 
 abstract class TracedFlowLogic[In, Out](implicit
-  flowShape: FlowShape[(In, SpanContextWithStack), (Out, SpanContextWithStack)],
-    moneyExtension: MoneyExtension) extends GraphStageLogic(flowShape) {
-  type TracedOut = (Out, SpanContextWithStack)
-  type TracedIn = (In, SpanContextWithStack)
+                                        flowShape: FlowShape[(In, StackingSpanContext), (Out, StackingSpanContext)],
+                                        moneyExtension: MoneyExtension) extends GraphStageLogic(flowShape) {
+  type TracedOut = (Out, StackingSpanContext)
+  type TracedIn = (In, StackingSpanContext)
 
   implicit val in: Inlet[TracedIn] = flowShape.in
   implicit val out: Outlet[TracedOut] = flowShape.out
@@ -66,14 +66,14 @@ abstract class TracedFlowLogic[In, Out](implicit
   /**
    * Returns a [[Tracer]]
    *
-   * used to start and stop a [[com.comcast.money.api.Span]] currently in the [[SpanContextWithStack]]
+   * used to start and stop a [[com.comcast.money.api.Span]] currently in the [[StackingSpanContext]]
    *
-   * @param spanContext    current [[SpanContextWithStack]]
+   * @param spanContext    current [[StackingSpanContext]]
    * @param moneyExtension [[MoneyExtension]] to provide access to [[com.comcast.money.core.Money]]
    * @return [[Tracer]] created from current spanContext
    */
 
-  private def tracer(implicit spanContext: SpanContextWithStack, moneyExtension: MoneyExtension): Tracer =
+  private def tracer(implicit spanContext: StackingSpanContext, moneyExtension: MoneyExtension): Tracer =
     moneyExtension.tracer(spanContext)
 
   /**
@@ -109,7 +109,7 @@ abstract class TracedFlowLogic[In, Out](implicit
    */
 
   def stopTracePush(key: String, stageLogic: In => Out, isSuccessful: Boolean = true): Unit = {
-    implicit val (inMessage, spanContext): (In, SpanContextWithStack) = grab[TracedIn](in)
+    implicit val (inMessage, spanContext): (In, StackingSpanContext) = grab[TracedIn](in)
     tracer.startSpan(key)
     val outMessage = stageLogic(inMessage)
     push[TracedOut](out, (outMessage, spanContext))
