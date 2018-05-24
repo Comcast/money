@@ -30,7 +30,7 @@ import com.comcast.money.core.internal.SpanContext
  *
  */
 
-class SpanContextWithStack() extends SpanContext {
+class StackingSpanContext() extends SpanContext {
   /**
    * stack is a mutable [[List]] of Spans.
    */
@@ -38,26 +38,26 @@ class SpanContextWithStack() extends SpanContext {
   private var stack: List[Span] = List.empty[Span]
 
   /**
-   * Returns a fresh copy of this [[SpanContextWithStack]].
+   * Returns a fresh copy of this [[StackingSpanContext]].
    *
    * @return SpanContextWithStack
    */
 
-  def copy: SpanContextWithStack = {
-    val freshSpanContext = new SpanContextWithStack
+  def copy: StackingSpanContext = {
+    val freshSpanContext = new StackingSpanContext
     freshSpanContext.setAll(replacementSpans = this.getAll)
   }
 
   /**
    * INTERNAL API
    *
-   * replaces all spans in the [[SpanContextWithStack]] necessary only for the copy method to correctly copy.
+   * replaces all spans in the [[StackingSpanContext]] necessary only for the copy method to correctly copy.
    *
    * @param replacementSpans spans to replace existing spans
    * @return this SpanContextWithStack
    */
 
-  private def setAll(replacementSpans: List[Span]): SpanContextWithStack = {
+  private def setAll(replacementSpans: List[Span]): StackingSpanContext = {
     stack = replacementSpans
     this
   }

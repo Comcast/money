@@ -22,13 +22,13 @@ import akka.stream.stage.{ InHandler, OutHandler }
 import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka.SpanHandlerMatchers.{ haveSomeSpanNames, maybeCollectingSpanHandler }
 import com.comcast.money.akka.stream.{ TracedFlow, TracedFlowLogic }
-import com.comcast.money.akka.{ AkkaMoneyScope, MoneyExtension, SpanContextWithStack }
+import com.comcast.money.akka.{ AkkaMoneyScope, MoneyExtension, StackingSpanContext }
 
 class TracedFlowSpec extends AkkaMoneyScope {
 
   "MoneyExtension should pass a span through an Akka Stream" in {
     implicit val moneyExtension: MoneyExtension = MoneyExtension(system)
-    implicit val spanContextWithStack: SpanContextWithStack = new SpanContextWithStack
+    implicit val spanContextWithStack: StackingSpanContext = new StackingSpanContext
 
     testStream().get()
 
@@ -37,7 +37,7 @@ class TracedFlowSpec extends AkkaMoneyScope {
 
   "MoneyExtension should pass a span through an asynchronous Akka Stream" in {
     implicit val moneyExtension: MoneyExtension = MoneyExtension(system)
-    implicit val spanContextWithStack: SpanContextWithStack = new SpanContextWithStack
+    implicit val spanContextWithStack: StackingSpanContext = new StackingSpanContext
 
     multithreadedTestStream().get()
 
@@ -46,16 +46,16 @@ class TracedFlowSpec extends AkkaMoneyScope {
 
   val testSpanNames = Seq("flow-3", "flow-2", "flow-1")
 
-  def testStream()(implicit spanContextWithStack: SpanContextWithStack, moneyExtension: MoneyExtension) =
-    Source[(String, SpanContextWithStack)](List(("", spanContextWithStack)))
+  def testStream()(implicit spanContextWithStack: StackingSpanContext, moneyExtension: MoneyExtension) =
+    Source[(String, StackingSpanContext)](List(("", spanContextWithStack)))
       .via(new TestFlowShape("flow-1"))
       .via(new TestFlowShape("flow-2"))
       .via(new TestFlowShape("flow-3", isFinalFlow = true))
       .toMat(Sink.seq)(Keep.right)
       .run()
 
-  def multithreadedTestStream()(implicit spanContextWithStack: SpanContextWithStack, moneyExtension: MoneyExtension) =
-    Source[(String, SpanContextWithStack)](List(("", spanContextWithStack)))
+  def multithreadedTestStream()(implicit spanContextWithStack: StackingSpanContext, moneyExtension: MoneyExtension) =
+    Source[(String, StackingSpanContext)](List(("", spanContextWithStack)))
       .via(new TestFlowShape("flow-1").async)
       .via(new TestFlowShape("flow-2").async)
       .via(new TestFlowShape("flow-3", isFinalFlow = true).async)

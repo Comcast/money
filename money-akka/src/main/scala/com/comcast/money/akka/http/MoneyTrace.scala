@@ -21,7 +21,7 @@ import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, HttpRequest, HttpRes
 import akka.http.scaladsl.server.Directives.{ complete, extractRequest }
 import akka.http.scaladsl.server.Route
 import akka.stream.scaladsl.{ Sink, Source }
-import com.comcast.money.akka.{ MoneyExtension, SpanContextWithStack, TraceContext }
+import com.comcast.money.akka.{ MoneyExtension, StackingSpanContext, TraceContext }
 import com.comcast.money.api.{ Note, SpanId }
 import com.comcast.money.core.Formatters.fromHttpHeader
 import com.comcast.money.core.Tracer
@@ -181,7 +181,7 @@ object MoneyTrace {
   private def createDirective(toRoute: (HttpRequest, TraceContext) => Route)(implicit moneyExtension: MoneyExtension, requestSKC: HttpRequestSpanKeyCreator): Route =
     extractRequest {
       request =>
-        val traceContext: TraceContext = TraceContext(new SpanContextWithStack)
+        val traceContext: TraceContext = TraceContext(new StackingSpanContext)
 
         maybeExtractHeaderSpanId(request) match {
           case Some(spanId) => traceContext.spanContext.push(traceContext.tracer.spanFactory.newSpan(spanId, requestSKC.httpRequestToKey(request)))

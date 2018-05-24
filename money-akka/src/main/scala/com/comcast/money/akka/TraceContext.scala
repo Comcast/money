@@ -21,18 +21,18 @@ import com.comcast.money.core.Tracer
 /**
  * [[TraceContext]] follows subject being traced to allow for more efficient access
  *
- * @param tracer      The [[Tracer]] to stop and start spans stored on the [[SpanContextWithStack]]
- * @param spanContext [[SpanContextWithStack]] that maintains a stack of spans for subject of trace
+ * @param tracer      The [[Tracer]] to stop and start spans stored on the [[StackingSpanContext]]
+ * @param spanContext [[StackingSpanContext]] that maintains a stack of spans for subject of trace
  */
 
-case class TraceContext(tracer: Tracer, spanContext: SpanContextWithStack)
+case class TraceContext(tracer: Tracer, spanContext: StackingSpanContext)
 
 /**
  * Companion object for creating a [[TraceContext]]
  */
 
 object TraceContext {
-  def apply(spanContext: SpanContextWithStack)(implicit moneyExtension: MoneyExtension): TraceContext =
+  def apply(spanContext: StackingSpanContext)(implicit moneyExtension: MoneyExtension): TraceContext =
     TraceContext(moneyExtension.tracer(spanContext), spanContext)
 }
 
@@ -45,18 +45,18 @@ object FreshTraceContext {
   /**
    * Constructs a [[TraceContext]] with an implicit [[MoneyExtension]]
    *
-   * @param spanContextWithStack [[SpanContextWithStack]] maintains a stack of Spans
+   * @param spanContextWithStack [[StackingSpanContext]] maintains a stack of Spans
    * @param moneyExtension       connects to [[com.comcast.money.core.Money]] through the [[akka.actor.ActorSystem]]
    * @return TraceContext
    */
 
-  def apply(spanContextWithStack: SpanContextWithStack)(implicit moneyExtension: MoneyExtension): TraceContext =
+  def apply(spanContextWithStack: StackingSpanContext)(implicit moneyExtension: MoneyExtension): TraceContext =
     createFreshTraceContext(moneyExtension, spanContextWithStack)
 
   /**
-   * Returns [[TraceContext]] with a copy of the passed [[SpanContextWithStack]]
+   * Returns [[TraceContext]] with a copy of the passed [[StackingSpanContext]]
    *
-   * Copies the [[SpanContextWithStack]] so that for example when being used in an Akka Stream
+   * Copies the [[StackingSpanContext]] so that for example when being used in an Akka Stream
    * a fresh copy is created for each element that passes through the stream.
    *
    * @param moneyExtension
@@ -64,7 +64,7 @@ object FreshTraceContext {
    * @return
    */
 
-  private def createFreshTraceContext(moneyExtension: MoneyExtension, spanContextWithStack: SpanContextWithStack): TraceContext = {
+  private def createFreshTraceContext(moneyExtension: MoneyExtension, spanContextWithStack: StackingSpanContext): TraceContext = {
     val copiedSpanContext = spanContextWithStack.copy
     TraceContext(moneyExtension.tracer(copiedSpanContext), copiedSpanContext)
   }

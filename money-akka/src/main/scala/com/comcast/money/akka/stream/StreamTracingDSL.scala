@@ -21,7 +21,7 @@ import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
 import akka.stream.scaladsl.{ Flow, GraphDSL, Source, Unzip, Zip }
 import com.comcast.money.akka.stream.DefaultStreamSpanKeyCreators.DefaultFlowSpanKeyCreator
-import com.comcast.money.akka.{ FreshTraceContext, MoneyExtension, SpanContextWithStack, TraceContext }
+import com.comcast.money.akka.{ FreshTraceContext, MoneyExtension, StackingSpanContext, TraceContext }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.reflect.ClassTag
@@ -158,7 +158,7 @@ object StreamTracingDSL {
       sskc: SourceSpanKeyCreator[In] = DefaultSourceSpanKeyCreator[In],
       fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In],
       moneyExtension: MoneyExtension,
-      spanContext: SpanContextWithStack = new SpanContextWithStack) {
+      spanContext: StackingSpanContext = new StackingSpanContext) {
     type TracedIn = (In, TraceContext)
 
     /**

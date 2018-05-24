@@ -55,8 +55,8 @@ trait TracedFlow[In, Out] extends GraphStage[FlowShape[(In, StackingSpanContext)
  */
 
 abstract class TracedFlowLogic[In, Out](implicit
-                                        flowShape: FlowShape[(In, StackingSpanContext), (Out, StackingSpanContext)],
-                                        moneyExtension: MoneyExtension) extends GraphStageLogic(flowShape) {
+  flowShape: FlowShape[(In, StackingSpanContext), (Out, StackingSpanContext)],
+    moneyExtension: MoneyExtension) extends GraphStageLogic(flowShape) {
   type TracedOut = (Out, StackingSpanContext)
   type TracedIn = (In, StackingSpanContext)
 

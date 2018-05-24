@@ -63,7 +63,7 @@ class StreamTracingDSLSpec extends AkkaMoneyScope {
     }
 
     "a SpanContext is in scope should use that SpanContext" in {
-      implicit val traceContext: TraceContext = TraceContext(new SpanContextWithStack)
+      implicit val traceContext: TraceContext = TraceContext(new StackingSpanContext)
       traceContext.tracer.startSpan("request")
 
       testStreams.simpleTakingSpanContext.run.get()
