@@ -22,6 +22,7 @@ import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka.SpanHandlerMatchers.{ haveSomeSpanNames, haveSomeSpanNamesInNoParticularOrder, maybeCollectingSpanHandler }
 import com.comcast.money.akka._
 import com.comcast.money.akka.stream._
+import org.scalatest.matchers.{ MatchResult, Matcher }
 
 import scala.concurrent.duration.DurationDouble
 
@@ -38,7 +39,13 @@ class StreamTracingDSLSpec extends AkkaMoneyScope {
       maybeCollectingSpanHandler should haveSomeSpanNames(Seq(stream, stringToString))
     }
 
-    "run should return correct element" in {
+    "run with one element should create completed spans with a shared parent-id" in {
+      testStreams.simpleWithInlets.run.get()
+
+      maybeCollectingSpanHandler should haveSpansWithSharedParent
+    }
+
+    "run should return correct elements" in {
       testStreams.simpleWithAlteredElement.run.get() shouldBe Seq("chunk1")
     }
 
@@ -179,5 +186,20 @@ class StreamTracingDSLSpec extends AkkaMoneyScope {
       }
     }
   }
+
+  def haveSpansWithSharedParent: Matcher[Option[CollectingSpanHandler]] =
+    Matcher {
+      maybeSpanHandler =>
+        val maybeParentIds = maybeSpanHandler.map(_.spanInfoStack.map(_.id.parentId))
+        val isMatch = maybeParentIds.fold(false) {
+          parentIds => parentIds.forall(_ == parentIds.head)
+        }
+
+        MatchResult(
+          matches = isMatch,
+          rawFailureMessage = s"All span ids did not share a parent: $maybeParentIds",
+          rawNegatedFailureMessage = s"All span ids share a parent: $maybeParentIds"
+        )
+    }
 
 }
