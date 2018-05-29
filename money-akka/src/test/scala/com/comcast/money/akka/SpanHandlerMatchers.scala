@@ -17,7 +17,7 @@
 package com.comcast.money.akka
 
 import akka.actor.ActorSystem
-import com.comcast.money.core.handlers.HandlerChain
+import com.comcast.money.core.handlers.{ AsyncSpanHandler, HandlerChain }
 import org.scalatest.matchers.{ MatchResult, Matcher }
 
 object SpanHandlerMatchers {
@@ -28,6 +28,8 @@ object SpanHandlerMatchers {
   def maybeHandlerChain(implicit actorSystem: ActorSystem) =
     MoneyExtension(actorSystem)
       .handler
+      .asInstanceOf[AsyncSpanHandler]
+      .wrapped
       .asInstanceOf[HandlerChain]
       .handlers
       .headOption

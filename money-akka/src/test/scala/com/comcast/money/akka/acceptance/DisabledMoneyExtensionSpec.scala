@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-package com.comcast.money.akka.acceptance.stream
+package com.comcast.money.akka.acceptance
 
 import akka.actor.ActorSystem
 import akka.testkit.TestKit
 import com.comcast.money.akka.MoneyExtension
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{ Matchers, WordSpecLike }
+import org.scalatest.{Matchers, WordSpecLike}
 
-class MoneyExtensionSpec(_system: ActorSystem) extends TestKit(_system) with WordSpecLike with Matchers {
+class DisabledMoneyExtensionSpec(_system: ActorSystem) extends TestKit(_system) with WordSpecLike with Matchers {
 
   def this() = this{
     val configString: String =
@@ -31,13 +31,10 @@ class MoneyExtensionSpec(_system: ActorSystem) extends TestKit(_system) with Wor
         |  enabled = false
         | }""".stripMargin
 
-    ActorSystem("MoneyExtensionSpec", ConfigFactory.parseString(configString))
+    ActorSystem("DisabledMoneyExtensionSpec", ConfigFactory.parseString(configString))
   }
 
-  "A MoneyExtension" should {
-    "construct a new MoneyExtension from an ActorSystem without Money config" in {
+  "A MoneyExtension construct a new MoneyExtension from an ActorSystem without Money config" in {
       MoneyExtension(system) shouldBe a[MoneyExtension]
     }
-  }
-
 }

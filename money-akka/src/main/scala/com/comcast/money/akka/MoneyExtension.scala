@@ -16,11 +16,12 @@
 
 package com.comcast.money.akka
 
-import akka.actor.{ ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider }
-import com.comcast.money.api.{ SpanFactory, SpanHandler }
+import akka.actor.{ActorSystem, ExtendedActorSystem, Extension, ExtensionId, ExtensionIdProvider}
+import com.comcast.money.api.{SpanFactory, SpanHandler}
+import com.comcast.money.core.handlers.AsyncSpanHandler
 import com.comcast.money.core.internal.SpanContext
-import com.comcast.money.core.{ Money, Tracer }
-import com.typesafe.config.{ Config, ConfigValueFactory }
+import com.comcast.money.core.{Money, Tracer}
+import com.typesafe.config.{Config, ConfigValueFactory}
 
 /**
  * Contructs a new [[MoneyExtension]] from config and attaches it to the current [[ActorSystem]]
@@ -65,12 +66,15 @@ object MoneyExtension extends ExtensionId[MoneyExtension] with ExtensionIdProvid
 
     if (money.enabled)
       new MoneyExtension(
-        money = money,
+        money = money.handler match {
+          case asyncHandler: AsyncSpanHandler => money.copy(handler = asyncHandler)
+          case handler => money.copy(handler = new AsyncSpanHandler(system.dispatcher, handler))
+        },
         traceFunction = (context: SpanContext) => new Tracer {
-        override val spanFactory: SpanFactory = money.factory
+          override val spanFactory: SpanFactory = money.factory
 
-        override val spanContext: SpanContext = context
-      }
+          override val spanContext: SpanContext = context
+        }
       )
 
     else
