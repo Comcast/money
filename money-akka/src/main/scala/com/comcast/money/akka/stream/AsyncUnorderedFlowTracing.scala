@@ -29,9 +29,8 @@ import scala.reflect.ClassTag
 
 object AsyncUnorderedFlowTracing {
 
-  implicit class TracedFlowOps[In: ClassTag, Out: ClassTag](flow: Flow[In, Out, _])(implicit executionContext: ExecutionContext, fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
+  implicit class TracedFlowOps[In: ClassTag](flow: Flow[In, _, _])(implicit executionContext: ExecutionContext, fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In]) {
     type TracedIn = (In, TraceContext)
-    type TracedOut = (Out, TraceContext)
 
     /**
      * Applies a traced version of [[Flow.mapAsyncUnordered]] to a generic [[Flow]].
@@ -41,15 +40,17 @@ object AsyncUnorderedFlowTracing {
      *
      * Example:
      *
-     * Flow[String].tracedMapAsyncUnordered(3)(stringToFuture)
+     * {{{
+     *   Flow[String].tracedMapAsyncUnordered(3)(stringToFuture)
+     * }}}
      *
      * @param parallelism the number of concurrent futures
      * @param f           the function to apply
      * @return Flow[TracedIn, TracedOut, _]
      */
 
-    def tracedMapAsyncUnordered(parallelism: Int)(f: In => Future[Out]): Flow[TracedIn, TracedOut, _] =
-      Flow[TracedIn].mapAsyncUnordered[TracedOut](parallelism) {
+    def tracedMapAsyncUnordered[Out: ClassTag](parallelism: Int)(f: In => Future[Out]): Flow[TracedIn, (Out, TraceContext), _] =
+      Flow[TracedIn].mapAsyncUnordered[(Out, TraceContext)](parallelism) {
         (tuple: TracedIn) =>
           val (in, traceContext) = tuple
           traceContext.tracer.startSpan(fskc.flowToKey(flow))
