@@ -18,12 +18,14 @@ package com.comcast.money.core
 
 import com.comcast.money.api.SpanId
 import org.scalatest.{ Matchers, WordSpec }
+import Formatters.StringHexHelpers
 
 class FormattersSpec extends WordSpec with Matchers {
 
-  private val expectedTraceId = "a"
-  private val expectedParentSpanId = "1"
-  private val expectedSpanId = "2"
+  private val expectedB3TraceIdHeaderVal = "61616161616161616161616161616161"
+  private val expectedTraceIdGuid = "61616161-6161-6161-6161-616161616161"
+  private val expectedParentSpanId = 1
+  private val expectedSpanId = 2
   "Http Formatting" should {
     "convert from a money  http header" in {
       val spanId = new SpanId()
@@ -31,25 +33,83 @@ class FormattersSpec extends WordSpec with Matchers {
       Formatters.fromHttpHeader(test).get shouldBe spanId
     }
 
-    "convert from all X-B3  http headers" in {
-      val expectedLongTraceid = "a" * 32
+    "convert from all X-B3 http headers" in {
       val expectedMaxParentSpanIdVal = Long.MaxValue
       val expectedMinSpanIdVal = Long.MinValue
-      val actualSpanId = Formatters.fromB3HttpHeaders(expectedLongTraceid, Option(expectedMaxParentSpanIdVal.toString),Option(expectedMinSpanIdVal.toString)).get
-      actualSpanId.traceId shouldBe expectedLongTraceid
-      actualSpanId.parentId shouldBe expectedMaxParentSpanIdVal.toLong
-      actualSpanId.selfId() shouldBe expectedMinSpanIdVal.toLong
+
+      val actualSpanId = Formatters.fromB3HttpHeaders(expectedB3TraceIdHeaderVal, Option(expectedMaxParentSpanIdVal.toHexString), Option(expectedMinSpanIdVal.toHexString)).get
+      actualSpanId.traceId shouldBe expectedTraceIdGuid
+      actualSpanId.parentId shouldBe expectedMaxParentSpanIdVal
+      actualSpanId.selfId() shouldBe expectedMinSpanIdVal
     }
 
-    "convert from 2 X-B3  http headers" in {
-      val actualSpanId = Formatters.fromB3HttpHeaders(expectedTraceId, Option(expectedParentSpanId), None).get
-      actualSpanId.traceId shouldBe expectedTraceId
+    "convert from 2 X-B3 http headers" in {
+      val actualSpanId = Formatters.fromB3HttpHeaders(expectedB3TraceIdHeaderVal, Option(expectedParentSpanId.toHexString), None).get
+      actualSpanId.traceId shouldBe expectedTraceIdGuid
       actualSpanId.parentId shouldBe expectedParentSpanId.toLong
     }
 
-    "convert from " + expectedParentSpanId + " X-B3  http header" in {
-      val actualSpanId = Formatters.fromB3HttpHeaders(expectedTraceId,None, None).get
-      actualSpanId.traceId shouldBe expectedTraceId
+    "convert from 1 X-B3 http header" in {
+      val actualSpanId = Formatters.fromB3HttpHeaders(expectedB3TraceIdHeaderVal, None, None).get
+      actualSpanId.traceId shouldBe expectedTraceIdGuid
+    }
+
+    "convert to x-b3 headers 16 character traceId" in {
+      val spanId = new SpanId(expectedTraceIdGuid, expectedParentSpanId, expectedSpanId)
+      Formatters.toB3Headers(spanId)(
+        _ shouldBe expectedB3TraceIdHeaderVal,
+        _ shouldBe expectedParentSpanId.toHexString,
+        _ shouldBe expectedSpanId.toHexString
+      )
+    }
+
+    "convert to x-b3 headers 8 character traceId" in {
+      val expectedShortB3TraceIdHeaderVal = "6161616161616161"
+      val expectedShortTraceIdGuid = "61616161-6161-6161-0000-000000000000"
+      val spanId = new SpanId(expectedShortTraceIdGuid, expectedParentSpanId, expectedSpanId)
+      Formatters.toB3Headers(spanId)(
+        _ shouldBe expectedShortB3TraceIdHeaderVal,
+        _ shouldBe expectedParentSpanId.toHexString,
+        _ shouldBe expectedSpanId.toHexString
+      )
+    }
+
+    "convert a string from hexadecimal to long" in {
+      "61".fromHexStringToLong shouldBe 97
+      "6162".fromHexStringToLong shouldBe 24930
+    }
+
+    "fail to convert a non-hex string from hexadecimal to long" in {
+      intercept[NumberFormatException] { "".fromHexStringToLong }
+      intercept[NumberFormatException] { "z".fromHexStringToLong }
+    }
+
+    "convert an empty string to guid format" in {
+      "".toGuid shouldBe "00000000-0000-0000-0000-000000000000"
+    }
+
+    "convert a single character string to guid format" in {
+      "a".toGuid shouldBe "a0000000-0000-0000-0000-000000000000"
+    }
+
+    "convert a 32 character string to guid format" in {
+      "abcdefghijklmnopqrstuvwxyzabcdefg".toGuid shouldBe "abcdefgh-ijkl-mnop-qrst-uvwxyzabcdef"
+    }
+
+    "convert a 33 character string to guid format" in {
+      "abcdefghijklmnopqrstuvwxyzabcdefgh".toGuid shouldBe "abcdefgh-ijkl-mnop-qrst-uvwxyzabcdef"
+    }
+
+    "convert an empty string from guid format" in {
+      "".fromGuid shouldBe ""
+    }
+
+    "convert a single character string from guid format" in {
+      "a".fromGuid shouldBe "a"
+    }
+
+    "convert a 32 character string from guid format" in {
+      "abcdefgh-ijkl-mnop-qrst-uvwxyzabcdef".fromGuid shouldBe "abcdefghijklmnopqrstuvwxyzabcdef"
     }
   }
 }

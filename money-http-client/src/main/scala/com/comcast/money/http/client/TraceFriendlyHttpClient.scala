@@ -60,9 +60,11 @@ object TraceFriendlyHttpSupport {
       SpanLocal.current.foreach {
         span =>
           httpRequest.setHeader("X-MoneyTrace", Formatters.toHttpHeader(span.info.id))
-          httpRequest.setHeader("X-B3-TraceId", span.info.id.traceId())
-          httpRequest.setHeader("X-B3-ParentSpanId", span.info.id.parentId.toString)
-          httpRequest.setHeader("X-B3-SpanId", span.info.id.selfId.toString)
+          Formatters.toB3Headers(span.info.id)(
+            httpRequest.setHeader("X-B3-TraceId", _),
+            httpRequest.setHeader("X-B3-ParentSpanId", _),
+            httpRequest.setHeader("X-B3-SpanId", _)
+          )
       }
     }
   }

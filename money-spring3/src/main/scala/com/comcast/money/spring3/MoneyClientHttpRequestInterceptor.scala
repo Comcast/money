@@ -19,7 +19,7 @@ package com.comcast.money.spring3
 import com.comcast.money.core.Formatters
 import com.comcast.money.core.internal.SpanLocal
 import org.springframework.http.HttpRequest
-import org.springframework.http.client.{ClientHttpRequestExecution, ClientHttpRequestInterceptor, ClientHttpResponse}
+import org.springframework.http.client.{ ClientHttpRequestExecution, ClientHttpRequestInterceptor, ClientHttpResponse }
 import org.springframework.stereotype.Component
 
 /**
@@ -69,9 +69,11 @@ class MoneyClientHttpRequestInterceptor extends ClientHttpRequestInterceptor {
     SpanLocal.current foreach { span =>
       val headers = httpRequest.getHeaders
       headers.add("X-MoneyTrace", Formatters.toHttpHeader(span.info.id))
-      headers.add("X-B3-TraceId", span.info.id.traceId)
-      headers.add("X-B3-ParentSpanId", span.info.id.parentId.toString)
-      headers.add("X-B3-SpanId", span.info.id.selfId.toString)
+      Formatters.toB3Headers(span.info.id)(
+        headers.add("X-B3-TraceId", _),
+        headers.add("X-B3-ParentSpanId", _),
+        headers.add("X-B3-SpanId", _)
+      )
     }
     clientHttpRequestExecution.execute(httpRequest, body)
   }
