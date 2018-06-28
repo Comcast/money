@@ -68,12 +68,8 @@ class MoneyClientHttpRequestInterceptor extends ClientHttpRequestInterceptor {
   override def intercept(httpRequest: HttpRequest, body: Array[Byte], clientHttpRequestExecution: ClientHttpRequestExecution): ClientHttpResponse = {
     SpanLocal.current foreach { span =>
       val headers = httpRequest.getHeaders
-      headers.add("X-MoneyTrace", Formatters.toHttpHeader(span.info.id))
-      Formatters.toB3Headers(span.info.id)(
-        headers.add("X-B3-TraceId", _),
-        headers.add("X-B3-ParentSpanId", _),
-        headers.add("X-B3-SpanId", _)
-      )
+      Formatters.toMoneyHeader(span.info.id, headers.add)
+      Formatters.toB3Headers(span.info.id, headers.add)
     }
     clientHttpRequestExecution.execute(httpRequest, body)
   }

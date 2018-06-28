@@ -33,15 +33,15 @@ class CoreSpanFactory(handler: SpanHandler) extends SpanFactory {
    * value or a root span if header is malformed.
    *
    * @param childName - the name of the child span to create
-   * @param traceContextHeader - value of x-moneytrace header
+   * @param getHeader - function for retrieving value of x-moneytrace header
    * @return a child span with trace id and parent id from trace context header or a new root span if the
    * traceContextHeader is malformed.
    */
-  def newSpanFromHeader(childName: String, traceContextHeader: String): Span =
-    Formatters.fromHttpHeader(traceContextHeader) match {
-      case Success(spanId) => newSpan(new SpanId(spanId.traceId, spanId.parentId), childName)
-      case Failure(e) => {
-        logger.warn(s"creating root span because x-moneytrace header '$traceContextHeader' was malformed")
+  def newSpanFromHeader(childName: String, getHeader: String => String): Span =
+    Formatters.fromMoneyHeader(getHeader, logger.warn) match {
+      case Some(spanId) => newSpan(new SpanId(spanId.traceId, spanId.parentId), childName)
+      case None => {
+        logger.warn(s"creating root span because x-moneytrace header '${getHeader}' was malformed")
         newSpan(childName)
       }
     }

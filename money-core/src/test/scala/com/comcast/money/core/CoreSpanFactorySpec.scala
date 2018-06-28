@@ -69,18 +69,19 @@ class CoreSpanFactorySpec extends WordSpec with Matchers with MockitoSugar with 
 
     "create a child span from a well-formed x-moneytrace header" in {
       val parentSpan = underTest.newSpan("parent")
-      val traceContextHeader = Formatters.toHttpHeader(parentSpan.info.id)
-      val childSpan = underTest.newSpanFromHeader("child", traceContextHeader)
+      Formatters.toMoneyHeader(parentSpan.info.id, (_, traceContextHeader) => {
+        val childSpan = underTest.newSpanFromHeader("child", _ => traceContextHeader)
 
-      childSpan.info.id.traceId shouldBe parentSpan.info.id.traceId
-      childSpan.info.id.parentId shouldBe parentSpan.info.id.selfId
-      childSpan.info.id.selfId == parentSpan.info.id.selfId shouldBe false
+        childSpan.info.id.traceId shouldBe parentSpan.info.id.traceId
+        childSpan.info.id.parentId shouldBe parentSpan.info.id.selfId
+        childSpan.info.id.selfId == parentSpan.info.id.selfId shouldBe false
+      })
     }
 
     "create a root span from a malformed x-moneytrace header" in {
       val parentSpan = underTest.newSpan("parent")
       val traceContextHeader = "mangled header value"
-      val childSpan = underTest.newSpanFromHeader("child", traceContextHeader)
+      val childSpan = underTest.newSpanFromHeader("child", _ => traceContextHeader)
 
       childSpan.info.id.traceId == parentSpan.info.id.traceId shouldBe false
       childSpan.info.id.parentId == parentSpan.info.id.selfId shouldBe false

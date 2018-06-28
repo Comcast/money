@@ -21,7 +21,7 @@ import javax.servlet.{ FilterChain, FilterConfig }
 
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.internal.SpanLocal
-import com.comcast.money.core.Formatters.StringHexHelpers
+import com.comcast.money.core.Formatters.StringWithB3HeaderConversion
 import org.mockito.Mockito._
 import org.scalatest.OptionValues._
 import org.scalatest.mock.MockitoSugar

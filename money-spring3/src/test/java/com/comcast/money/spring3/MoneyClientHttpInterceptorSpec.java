@@ -23,7 +23,6 @@ import com.comcast.money.api.SpanInfo;
 import com.comcast.money.core.CoreSpanInfo;
 import com.comcast.money.core.Formatters;
 import com.comcast.money.core.internal.SpanLocal;
-import com.comcast.money.core.Formatters.StringHexHelpers;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -75,7 +74,7 @@ public class MoneyClientHttpInterceptorSpec {
         moneyClientHttpRequestInterceptor.intercept(httpRequest,"abc".getBytes(), clientHttpRequestExecution);
         verify(httpRequest).getHeaders();
         Assert.assertEquals(4,httpHeaders.size());
-        Assert.assertEquals(Formatters.StringHexHelpers(expectedTraceId).fromGuid(), httpHeaders.get("X-B3-TraceId").get(0));
+        Assert.assertEquals(expectedTraceId, httpHeaders.get("X-B3-TraceId").get(0));
         Assert.assertEquals(expectedParentSpanId.toString(), httpHeaders.get("X-B3-ParentSpanId").get(0));
         Assert.assertEquals(expectedSpanId.toString(), httpHeaders.get("X-B3-SpanId").get(0));
         Assert.assertEquals(expectedMoneyHeaderVal, httpHeaders.get("X-MoneyTrace").get(0));
