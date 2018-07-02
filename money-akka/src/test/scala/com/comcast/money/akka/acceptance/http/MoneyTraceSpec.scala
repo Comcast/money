@@ -17,21 +17,21 @@
 package com.comcast.money.akka.acceptance.http
 
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
-import akka.http.scaladsl.model.HttpHeader.ParsingResult.{Error, Ok}
+import akka.http.scaladsl.model.HttpHeader.ParsingResult.{ Error, Ok }
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.scaladsl.Source
 import com.comcast.money.akka.Blocking.RichFuture
-import com.comcast.money.akka.SpanHandlerMatchers.{haveSomeSpanName, maybeCollectingSpanHandler}
+import com.comcast.money.akka.SpanHandlerMatchers.{ haveSomeSpanName, maybeCollectingSpanHandler }
 import com.comcast.money.akka.http._
-import com.comcast.money.akka.{AkkaMoneyScope, CollectingSpanHandler, TestStreams}
+import com.comcast.money.akka.{ AkkaMoneyScope, CollectingSpanHandler, TestStreams }
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.Formatters
-import org.scalatest.matchers.{MatchResult, Matcher}
+import org.scalatest.matchers.{ MatchResult, Matcher }
 
-import scala.concurrent.duration.{DurationDouble, FiniteDuration}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.{ DurationDouble, FiniteDuration }
+import scala.concurrent.{ ExecutionContext, Future }
 
 class MoneyTraceSpec extends AkkaMoneyScope {
 
@@ -46,15 +46,17 @@ class MoneyTraceSpec extends AkkaMoneyScope {
       import scala.collection.immutable.Seq
       val parentSpanId: SpanId = new SpanId()
 
-      val parentSpanIdHeader =
-        HttpHeader.parse(name = "X-MoneyTrace", value = Formatters.toHttpHeader(parentSpanId)) match {
+      Formatters.toHttpHeaders(parentSpanId, (name, value) => {
+        val parentSpanIdHeader = HttpHeader.parse(name, value) match {
           case Ok(parsedHeader, _) => parsedHeader
           case Error(errorInfo) => throw ParseFailure(errorInfo.summary)
         }
 
-      HttpRequest(headers = Seq(parentSpanIdHeader)) ~> simpleRoute() ~> check(responseAs[String] shouldBe "response")
+        HttpRequest(headers = Seq(parentSpanIdHeader)) ~> simpleRoute() ~> check(responseAs[String] shouldBe "response")
 
-      maybeCollectingSpanHandler should haveParentSpanId(parentSpanId)
+        maybeCollectingSpanHandler should haveParentSpanId(parentSpanId)
+      })
+
     }
 
     "have the capacity to be named by a user" in {
@@ -116,10 +118,10 @@ class MoneyTraceSpec extends AkkaMoneyScope {
         val maybeMillis = maybeSpanInfo.map(_.durationMicros / 1000)
         MatchResult(
           matches =
-            maybeSpanInfo match {
-              case Some(spanInfo) => spanInfo.durationMicros >= expectedTimeTaken.toMicros
-              case None => false
-            },
+          maybeSpanInfo match {
+            case Some(spanInfo) => spanInfo.durationMicros >= expectedTimeTaken.toMicros
+            case None => false
+          },
           rawFailureMessage = s"Duration of Span $requestSpanName was $maybeMillis not Some($expectedTimeTaken)",
           rawNegatedFailureMessage = s"Duration of Span $requestSpanName was $maybeMillis equal to Some($expectedTimeTaken)"
         )
@@ -127,9 +129,9 @@ class MoneyTraceSpec extends AkkaMoneyScope {
 
   val testStreams = new TestStreams
 
-  def simpleRoute(source: Source[ChunkStreamPart, _] = testStreams.asyncManyElements)
-                 (implicit requestSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator,
-                  executionContext: ExecutionContext) =
+  def simpleRoute(source: Source[ChunkStreamPart, _] = testStreams.asyncManyElements)(implicit
+    requestSKC: HttpRequestSpanKeyCreator = DefaultHttpRequestSpanKeyCreator,
+    executionContext: ExecutionContext) =
     get {
       pathSingleSlash {
         MoneyTrace {

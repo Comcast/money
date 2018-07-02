@@ -46,7 +46,7 @@ class TraceFilter extends Filter {
     SpanLocal.clear()
     val httpRequest = new HttpServletRequestWrapper(request.asInstanceOf[HttpServletRequest])
 
-    val maybeSpanId: Option[SpanId] = fromMoneyHeader(httpRequest.getHeader, logger.warn).orElse(fromB3HttpHeaders(httpRequest.getHeader, logger.warn))
+    val maybeSpanId: Option[SpanId] = fromHttpHeaders(httpRequest.getHeader, logger.warn)
     maybeSpanId.foreach(s => SpanLocal.push(factory.newSpan(s, spanName)))
 
     val httpResponse = response.asInstanceOf[HttpServletResponse]

@@ -45,16 +45,15 @@ object Formatters {
 
   private[core] val HttpHeaderFormat = "trace-id=%s;parent-id=%s;span-id=%s"
 
-  def fromHttpHeaders(getHeader: String => String, log: String => Unit) {
+  def fromHttpHeaders(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId] =
     fromMoneyHeader(getHeader, log).orElse(fromB3HttpHeaders(getHeader, log))
-  }
 
   def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit = {
     toMoneyHeader(spanId, addHeader)
     toB3Headers(spanId, addHeader)
   }
 
-  def fromMoneyHeader(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId] = {
+  private[core] def fromMoneyHeader(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId] = {
 
     def spanIdfromMoneyHeader(httpHeader: String) = Try {
       val parts = httpHeader.split(';')
@@ -76,11 +75,11 @@ object Formatters {
     Option(getHeader(MoneyTraceHeader)).flatMap(parseHeader)
   }
 
-  def toMoneyHeader(spanId: SpanId, addHeader: (String, String) => Unit): Unit = {
+  private[core] def toMoneyHeader(spanId: SpanId, addHeader: (String, String) => Unit): Unit = {
     addHeader(MoneyTraceHeader, HttpHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId))
   }
 
-  def fromB3HttpHeaders(getHeader: String => String, log: String => Unit): Option[SpanId] = {
+  private[core] def fromB3HttpHeaders(getHeader: String => String, log: String => Unit): Option[SpanId] = {
 
     def spanIdFromB3Headers(traceId: String, maybeParentSpanId: Option[String], maybeSpanId: Option[String]): Try[SpanId] = Try {
       (maybeParentSpanId, maybeSpanId) match {
@@ -109,7 +108,7 @@ object Formatters {
     Option(getHeader(B3TraceIdHeader)).flatMap(parseHeaders)
   }
 
-  def toB3Headers(spanId: SpanId, addHeader: (String, String) => Unit): Unit = {
+  private[core] def toB3Headers(spanId: SpanId, addHeader: (String, String) => Unit): Unit = {
     val formatGuid = {
       // X-B3 style traceId's can be 8 octets long
       val traceIdHex = spanId.traceId.fromGuid
@@ -123,12 +122,7 @@ object Formatters {
   }
 
   def setResponseHeaders(getHeader: String => String, addHeader: (String, String) => Unit) {
-
     def setResponseHeader(headerName: String) = Option(getHeader(headerName)).foreach(v => addHeader(headerName, v))
-
-    setResponseHeader(MoneyTraceHeader)
-    setResponseHeader(B3TraceIdHeader)
-    setResponseHeader(B3ParentSpanIdHeader)
-    setResponseHeader(B3SpanIdHeader)
+    Seq(MoneyTraceHeader, B3TraceIdHeader, B3ParentSpanIdHeader, B3SpanIdHeader).foreach(setResponseHeader(_))
   }
 }

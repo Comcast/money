@@ -17,7 +17,6 @@
 package com.comcast.money.core
 
 import com.comcast.money.api.{ Span, SpanFactory, SpanHandler, SpanId }
-import scala.util.{ Success, Failure }
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConversions._
@@ -38,10 +37,10 @@ class CoreSpanFactory(handler: SpanHandler) extends SpanFactory {
    * traceContextHeader is malformed.
    */
   def newSpanFromHeader(childName: String, getHeader: String => String): Span =
-    Formatters.fromMoneyHeader(getHeader, logger.warn) match {
+    Formatters.fromHttpHeaders(getHeader, logger.warn) match {
       case Some(spanId) => newSpan(new SpanId(spanId.traceId, spanId.parentId), childName)
       case None => {
-        logger.warn(s"creating root span because x-moneytrace header '${getHeader}' was malformed")
+        logger.warn(s"creating root span because http header '${getHeader}' was malformed")
         newSpan(childName)
       }
     }
