@@ -16,78 +16,102 @@
 
 package com.comcast.money.core
 
+import java.util.UUID
+
 import com.comcast.money.api.SpanId
 import org.scalatest.{ Matchers, WordSpec }
 import Formatters._
+import org.scalacheck.Arbitrary
+import org.scalacheck.Test.Failed
+import org.scalatest.prop.GeneratorDrivenPropertyChecks
 
-class FormattersSpec extends WordSpec with Matchers {
+class FormattersSpec extends WordSpec with Matchers with GeneratorDrivenPropertyChecks with TraceGenerators {
 
-  private val expectedB3TraceIdHeaderVal = "61616161616161616161616161616161"
-  private val expectedTraceIdGuid = "61616161-6161-6161-6161-616161616161"
-  private val expectedParentSpanId = 1
-  private val expectedSpanId = 2
+  implicit val arbitraryUUID: Arbitrary[UUID] = Arbitrary(genUUID)
+
   "Http Formatting" should {
-    "convert from a money  http header" in {
-      val spanId = new SpanId()
-      Formatters.toMoneyHeader(spanId, (_, test) =>
-        Formatters.fromMoneyHeader(_ => test).get shouldBe spanId)
-    }
-
-    def getTestHeader(header: String): String = header match {
-      case B3TraceIdHeader => expectedB3TraceIdHeaderVal
-      case B3ParentSpanIdHeader => expectedParentSpanId.toHexString
-      case B3SpanIdHeader => expectedSpanId.toHexString
-    }
-
-    "convert from all X-B3 http headers" in {
-      val expectedMaxParentSpanIdVal = Long.MaxValue
-      val expectedMinSpanIdVal = Long.MinValue
-      def getMaxMinHeader(header: String): String = header match {
-        case B3TraceIdHeader => expectedB3TraceIdHeaderVal
-        case B3ParentSpanIdHeader => expectedMaxParentSpanIdVal.toHexString
-        case B3SpanIdHeader => expectedMinSpanIdVal.toHexString
+    "read a money  http header" in {
+      forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
+        val expectedSpanId = new SpanId(traceIdValue.toString, parentSpanIdValue, spanIdValue)
+        val spanId = fromMoneyHeader(header => header match {
+          case MoneyTraceHeader => MoneyHeaderFormat.format(expectedSpanId.traceId, expectedSpanId.parentId, expectedSpanId.selfId)
+        }, _ => {})
+        spanId shouldBe Some(expectedSpanId)
       }
-
-      val actualSpanId = Formatters.fromB3HttpHeaders(getMaxMinHeader, s => { println(s) }).get
-      actualSpanId.traceId shouldBe expectedTraceIdGuid
-      actualSpanId.parentId shouldBe expectedMaxParentSpanIdVal
-      actualSpanId.selfId() shouldBe expectedMinSpanIdVal
     }
 
-    "convert from 2 X-B3 http headers" in {
-      val actualSpanId = Formatters.fromB3HttpHeaders(getTestHeader, s => {}).get
-      actualSpanId.traceId shouldBe expectedTraceIdGuid
-      actualSpanId.parentId shouldBe expectedParentSpanId.toLong
+    "fail to read a badly formatted money  http header" in {
+      forAll { (traceIdValue: String, parentSpanIdValue: String, spanIdValue: String) =>
+        val spanId = fromMoneyHeader(header => header match {
+          case MoneyTraceHeader => MoneyHeaderFormat.format(traceIdValue, parentSpanIdValue, spanIdValue)
+        }, _ => {})
+        spanId shouldBe None
+      }
     }
 
-    "convert from 1 X-B3 http header" in {
-      val actualSpanId = Formatters.fromB3HttpHeaders(getTestHeader, s => {}).get
-      actualSpanId.traceId shouldBe expectedTraceIdGuid
+    "create a money  http header" in {
+      forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
+        val spanId = new SpanId(traceIdValue.toString, parentSpanIdValue, spanIdValue)
+        toMoneyHeader(spanId, (header, value) => {
+          header shouldBe Formatters.MoneyTraceHeader
+          value shouldBe MoneyHeaderFormat.format(traceIdValue, parentSpanIdValue, spanIdValue)
+        })
+      }
     }
 
-    "convert to x-b3 headers 16 character traceId" in {
-      val spanId = new SpanId(expectedTraceIdGuid, expectedParentSpanId, expectedSpanId)
-      Formatters.toB3Headers(spanId, (k, v) => k match {
-        case B3TraceIdHeader => v shouldBe expectedB3TraceIdHeaderVal
-        case B3ParentSpanIdHeader => v shouldBe expectedParentSpanId.toHexString
-        case B3SpanIdHeader => v shouldBe expectedSpanId.toHexString
-      })
+    "read B3 headers correctly for any valid hex encoded headers: trace-Id , parent id and span ID" in {
+      forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
+        val expectedSpanId = new SpanId(traceIdValue.toString, parentSpanIdValue, spanIdValue)
+        val spanId = fromB3HttpHeaders(header => header match {
+          case B3TraceIdHeader => traceIdValue.toString.fromGuid
+          case B3ParentSpanIdHeader => parentSpanIdValue.toHexString
+          case B3SpanIdHeader => spanIdValue.toHexString
+        }, _ => {})
+        spanId shouldBe Some(expectedSpanId)
+        val maybeRootSpanId = fromB3HttpHeaders(header => header match {
+          case B3TraceIdHeader => traceIdValue.toString.fromGuid
+          case B3SpanIdHeader => spanIdValue.toHexString
+          case _ => null
+        }, _ => {})
+        val rootSpanId = maybeRootSpanId
+        rootSpanId should not be None
+        rootSpanId.get.traceId shouldBe traceIdValue.toString
+        rootSpanId.get.parentId shouldBe spanIdValue
+        rootSpanId.get.selfId shouldBe spanIdValue
+      }
     }
 
-    "convert to x-b3 headers 8 character traceId" in {
-      val expectedShortB3TraceIdHeaderVal = "6161616161616161"
-      val expectedShortTraceIdGuid = "61616161-6161-6161-0000-000000000000"
-      val spanId = new SpanId(expectedShortTraceIdGuid, expectedParentSpanId, expectedSpanId)
-      Formatters.toB3Headers(spanId, (k, v) => k match {
-        case Formatters.B3TraceIdHeader => v shouldBe expectedShortB3TraceIdHeaderVal
-        case Formatters.B3ParentSpanIdHeader => v shouldBe expectedParentSpanId.toHexString
-        case Formatters.B3SpanIdHeader => v shouldBe expectedSpanId.toHexString
-      })
+    "fail to read B3 headers correctly for invalid headers" in {
+      forAll { (traceIdValue: String, parentSpanIdValue: String, spanIdValue: String) =>
+        val spanId = fromB3HttpHeaders(header => header match {
+          case B3TraceIdHeader => traceIdValue
+          case B3ParentSpanIdHeader => parentSpanIdValue
+          case B3SpanIdHeader => spanIdValue
+        }, _ => {})
+        spanId shouldBe None
+      }
+    }
+
+    "create B3 headers correctly given any valid character UUID for trace-Id and any valid long integers for parent and span ID, where if parent == span id, parent will not be emitted" in {
+      forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
+        val expectedSpanId = new SpanId(traceIdValue.toString, parentSpanIdValue, spanIdValue)
+        Formatters.toB3Headers(expectedSpanId, (k, v) => k match {
+          case B3TraceIdHeader if traceIdValue.getLeastSignificantBits == 0 => v shouldBe traceIdValue.toString.fromGuid.substring(0, 16)
+          case B3TraceIdHeader => v shouldBe traceIdValue.toString.fromGuid
+          case B3ParentSpanIdHeader if expectedSpanId.isRoot => Failed
+          case B3ParentSpanIdHeader => parentSpanIdValue.toHexString
+          case B3SpanIdHeader => v shouldBe spanIdValue.toHexString
+        })
+      }
     }
 
     "convert a string from hexadecimal to long" in {
-      "61".fromHexStringToLong shouldBe 97
-      "6162".fromHexStringToLong shouldBe 24930
+      forAll(genHexStrFromLong) { hexStr: String =>
+        {
+          val actualLong = hexStr.fromHexStringToLong
+          actualLong.toHexString shouldBe hexStr
+        }
+      }
     }
 
     "fail to convert a non-hex string from hexadecimal to long" in {
@@ -95,32 +119,25 @@ class FormattersSpec extends WordSpec with Matchers {
       intercept[NumberFormatException] { "z".fromHexStringToLong }
     }
 
-    "convert an empty string to guid format" in {
-      "".toGuid shouldBe "00000000-0000-0000-0000-000000000000"
+    "convert a string to guid format" in {
+      forAll { str: String =>
+        {
+          val guid = str.toGuid
+          guid.length shouldBe 36
+          List(8, 13, 18, 23).foreach(ix => guid.charAt(ix) shouldBe '-')
+        }
+      }
     }
 
-    "convert a single character string to guid format" in {
-      "a".toGuid shouldBe "a0000000-0000-0000-0000-000000000000"
-    }
-
-    "convert a 32 character string to guid format" in {
-      "abcdefghijklmnopqrstuvwxyzabcdefg".toGuid shouldBe "abcdefgh-ijkl-mnop-qrst-uvwxyzabcdef"
-    }
-
-    "convert a 33 character string to guid format" in {
-      "abcdefghijklmnopqrstuvwxyzabcdefgh".toGuid shouldBe "abcdefgh-ijkl-mnop-qrst-uvwxyzabcdef"
-    }
-
-    "convert an empty string from guid format" in {
-      "".fromGuid shouldBe ""
-    }
-
-    "convert a single character string from guid format" in {
-      "a".fromGuid shouldBe "a"
-    }
-
-    "convert a 32 character string from guid format" in {
-      "abcdefgh-ijkl-mnop-qrst-uvwxyzabcdef".fromGuid shouldBe "abcdefghijklmnopqrstuvwxyzabcdef"
+    "convert a string from guid format" in {
+      forAll { uuid: UUID =>
+        {
+          val guid = uuid.toString
+          val str = guid.fromGuid
+          str.length shouldBe 32
+          str.indexOf("-") shouldBe -1
+        }
+      }
     }
   }
 }

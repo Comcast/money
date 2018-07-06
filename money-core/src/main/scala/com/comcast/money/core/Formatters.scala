@@ -43,7 +43,7 @@ object Formatters {
     def fromGuid: String = s.replace("-", "")
   }
 
-  private[core] val HttpHeaderFormat = "trace-id=%s;parent-id=%s;span-id=%s"
+  private[core] val MoneyHeaderFormat = "trace-id=%s;parent-id=%s;span-id=%s"
 
   def fromHttpHeaders(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId] =
     fromMoneyHeader(getHeader, log).orElse(fromB3HttpHeaders(getHeader, log))
@@ -76,7 +76,7 @@ object Formatters {
   }
 
   private[core] def toMoneyHeader(spanId: SpanId, addHeader: (String, String) => Unit): Unit = {
-    addHeader(MoneyTraceHeader, HttpHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId))
+    addHeader(MoneyTraceHeader, MoneyHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId))
   }
 
   private[core] def fromB3HttpHeaders(getHeader: String => String, log: String => Unit): Option[SpanId] = {
