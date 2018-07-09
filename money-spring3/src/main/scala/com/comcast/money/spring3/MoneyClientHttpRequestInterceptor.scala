@@ -23,12 +23,12 @@ import org.springframework.http.client.{ ClientHttpRequestExecution, ClientHttpR
 import org.springframework.stereotype.Component
 
 /**
- * An Http Request interceptor implementation that adds X-B3 style distributed trace headers
+ * An Http Request interceptor implementation that adds distributed trace headers
  * to http requests made to other services.
  * This is defined as a spring component and designed to wired in to spring applications.
  * <p>
  *
- *   For example, the following code will add X-B3 headers to restful http requests using "MyTemplate"
+ *   For example, the following code will add headers to restful http requests using "MyTemplate"
  * <pre>
  *
  * {@literal @}SpringBootApplication
