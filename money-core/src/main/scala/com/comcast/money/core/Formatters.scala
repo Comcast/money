@@ -79,7 +79,7 @@ object Formatters {
     addHeader(MoneyTraceHeader, MoneyHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId))
   }
 
-  private[core] def fromB3HttpHeaders(getHeader: String => String, log: String => Unit): Option[SpanId] = {
+  private[core] def fromB3HttpHeaders(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId] = {
 
     def spanIdFromB3Headers(traceId: String, maybeParentSpanId: Option[String], maybeSpanId: Option[String]): Try[SpanId] = Try {
       (maybeParentSpanId, maybeSpanId) match {
@@ -96,11 +96,13 @@ object Formatters {
       spanIdFromB3Headers(traceIdVal, maybeB3ParentSpanId, maybeB3SpanId) match {
         case Success(spanId) => Some(spanId)
         case Failure(ex) =>
-          log(s"Unable to parse X-B3 trace for request headers: " +
+          log(
+            s"Unable to parse X-B3 trace for request headers: " +
             s"$B3TraceIdHeader:'$traceIdVal', " +
             s"$B3ParentSpanIdHeader:'$maybeB3ParentSpanId', " +
-            s"$B3SpanIdHeader:'$maybeB3SpanId' ") +
+            s"$B3SpanIdHeader:'$maybeB3SpanId' " +
             s"${ex.getMessage}"
+          )
           None
       }
     }
@@ -123,6 +125,6 @@ object Formatters {
 
   def setResponseHeaders(getHeader: String => String, addHeader: (String, String) => Unit) {
     def setResponseHeader(headerName: String) = Option(getHeader(headerName)).foreach(v => addHeader(headerName, v))
-    Seq(MoneyTraceHeader, B3TraceIdHeader, B3ParentSpanIdHeader, B3SpanIdHeader).foreach(setResponseHeader(_))
+    Seq(MoneyTraceHeader, B3TraceIdHeader, B3ParentSpanIdHeader, B3SpanIdHeader).foreach(setResponseHeader)
   }
 }

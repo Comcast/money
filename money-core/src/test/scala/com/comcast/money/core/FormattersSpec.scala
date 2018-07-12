@@ -30,49 +30,58 @@ class FormattersSpec extends WordSpec with Matchers with GeneratorDrivenProperty
   implicit val arbitraryUUID: Arbitrary[UUID] = Arbitrary(genUUID)
 
   "Http Formatting" should {
-    "read a money  http header" in {
+    "read a money http header" in {
       forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
         val expectedSpanId = new SpanId(traceIdValue.toString, parentSpanIdValue, spanIdValue)
-        val spanId = fromMoneyHeader(header => header match {
-          case MoneyTraceHeader => MoneyHeaderFormat.format(expectedSpanId.traceId, expectedSpanId.parentId, expectedSpanId.selfId)
-        }, _ => {})
+          val spanId = fromMoneyHeader(
+            getHeader =  {
+            case MoneyTraceHeader => MoneyHeaderFormat.format(expectedSpanId.traceId, expectedSpanId.parentId, expectedSpanId.selfId)
+          }
+          )
         spanId shouldBe Some(expectedSpanId)
       }
     }
 
-    "fail to read a badly formatted money  http header" in {
+    "fail to read a badly formatted money http header" in {
       forAll { (traceIdValue: String, parentSpanIdValue: String, spanIdValue: String) =>
-        val spanId = fromMoneyHeader(header => header match {
+        val spanId = fromMoneyHeader(
+          getHeader =  {
           case MoneyTraceHeader => MoneyHeaderFormat.format(traceIdValue, parentSpanIdValue, spanIdValue)
-        }, _ => {})
+        }
+        )
         spanId shouldBe None
       }
     }
 
-    "create a money  http header" in {
+    "create a money http header" in {
       forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
         val spanId = new SpanId(traceIdValue.toString, parentSpanIdValue, spanIdValue)
         toMoneyHeader(spanId, (header, value) => {
           header shouldBe Formatters.MoneyTraceHeader
           value shouldBe MoneyHeaderFormat.format(traceIdValue, parentSpanIdValue, spanIdValue)
-        })
+        }
+        )
       }
     }
 
     "read B3 headers correctly for any valid hex encoded headers: trace-Id , parent id and span ID" in {
       forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
         val expectedSpanId = new SpanId(traceIdValue.toString, parentSpanIdValue, spanIdValue)
-        val spanId = fromB3HttpHeaders(header => header match {
+        val spanId = fromB3HttpHeaders(
+          getHeader = {
           case B3TraceIdHeader => traceIdValue.toString.fromGuid
           case B3ParentSpanIdHeader => parentSpanIdValue.toHexString
           case B3SpanIdHeader => spanIdValue.toHexString
-        }, _ => {})
+        }
+        )
         spanId shouldBe Some(expectedSpanId)
-        val maybeRootSpanId = fromB3HttpHeaders(header => header match {
+        val maybeRootSpanId = fromB3HttpHeaders(
+          getHeader = {
           case B3TraceIdHeader => traceIdValue.toString.fromGuid
           case B3SpanIdHeader => spanIdValue.toHexString
           case _ => null
-        }, _ => {})
+        }
+        )
         val rootSpanId = maybeRootSpanId
         rootSpanId should not be None
         rootSpanId.get.traceId shouldBe traceIdValue.toString
@@ -83,11 +92,13 @@ class FormattersSpec extends WordSpec with Matchers with GeneratorDrivenProperty
 
     "fail to read B3 headers correctly for invalid headers" in {
       forAll { (traceIdValue: String, parentSpanIdValue: String, spanIdValue: String) =>
-        val spanId = fromB3HttpHeaders(header => header match {
+        val spanId = fromB3HttpHeaders(
+          getHeader = {
           case B3TraceIdHeader => traceIdValue
           case B3ParentSpanIdHeader => parentSpanIdValue
           case B3SpanIdHeader => spanIdValue
-        }, _ => {})
+        }
+        )
         spanId shouldBe None
       }
     }
