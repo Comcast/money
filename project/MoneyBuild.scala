@@ -53,6 +53,7 @@ object MoneyBuild extends Build {
             metricsCore,
             typesafeConfig,
             scalaTest,
+            scalaCheck,
             mockito
           )
         }
@@ -364,7 +365,8 @@ object MoneyBuild extends Build {
 
     // Test
     val mockito = "org.mockito" % "mockito-core" % "1.9.5" % "test"
-    val scalaTest = "org.scalatest" %% "scalatest" % "2.2.6" % "it,test"
+    val scalaTest = "org.scalatest" %% "scalatest" % "3.0.4" % "it,test"
+    val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.13.5" % "test"
     val junit = "junit" % "junit" % "4.11" % "test"
     val junitInterface = "com.novocode" % "junit-interface" % "0.11" % "test->default"
     val springTest = ("org.springframework" % "spring-test" % "3.2.6.RELEASE")

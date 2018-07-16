@@ -19,16 +19,16 @@ package com.comcast.money.spring3
 import com.comcast.money.core.Formatters
 import com.comcast.money.core.internal.SpanLocal
 import org.springframework.http.HttpRequest
-import org.springframework.http.client.{ClientHttpRequestExecution, ClientHttpRequestInterceptor, ClientHttpResponse}
+import org.springframework.http.client.{ ClientHttpRequestExecution, ClientHttpRequestInterceptor, ClientHttpResponse }
 import org.springframework.stereotype.Component
 
 /**
- * An Http Request interceptor implementation that adds X-B3 style distributed trace headers
+ * An Http Request interceptor implementation that adds distributed trace headers
  * to http requests made to other services.
  * This is defined as a spring component and designed to wired in to spring applications.
  * <p>
  *
- *   For example, the following code will add X-B3 headers to restful http requests using "MyTemplate"
+ *   For example, the following code will add headers to restful http requests using "MyTemplate"
  * <pre>
  *
  * {@literal @}SpringBootApplication
@@ -68,10 +68,7 @@ class MoneyClientHttpRequestInterceptor extends ClientHttpRequestInterceptor {
   override def intercept(httpRequest: HttpRequest, body: Array[Byte], clientHttpRequestExecution: ClientHttpRequestExecution): ClientHttpResponse = {
     SpanLocal.current foreach { span =>
       val headers = httpRequest.getHeaders
-      headers.add("X-MoneyTrace", Formatters.toHttpHeader(span.info.id))
-      headers.add("X-B3-TraceId", span.info.id.traceId)
-      headers.add("X-B3-ParentSpanId", span.info.id.parentId.toString)
-      headers.add("X-B3-SpanId", span.info.id.selfId.toString)
+      Formatters.toHttpHeaders(span.info.id, headers.add)
     }
     clientHttpRequestExecution.execute(httpRequest, body)
   }

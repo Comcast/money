@@ -134,7 +134,7 @@ class HttpTraceAspect {
     if (httpRequest != null) {
       SpanLocal.current.foreach {
         span =>
-          httpRequest.setHeader("X-MoneyTrace", Formatters.toHttpHeader(span.info.id))
+          Formatters.toHttpHeaders(span.info.id, httpRequest.setHeader)
       }
     }
   }

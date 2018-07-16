@@ -77,6 +77,8 @@ public class SpanId {
         return new SpanId(traceId, selfId);
     }
 
+    public boolean isRoot() {return  parentId == selfId;}
+
     @Override
     public String toString() {
         return String.format(STRING_FORMAT, traceId, parentId, selfId);

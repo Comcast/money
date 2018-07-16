@@ -16,6 +16,8 @@
 
 package com.comcast.money.api;
 
+import scala.Function1;
+
 public interface SpanFactory {
 
     Span newSpan(String spanName);
@@ -27,11 +29,11 @@ public interface SpanFactory {
      * value.
      *
      * @param childName - the name of the child span to create
-     * @param traceContextHeader - value of x-moneytrace header
+     * @param getHeader - function for retrieving value of x-moneytrace header
      * @return a child span with trace id and parent id from trace context header or a new root span if the
      * traceContextHeader is malformed.
      */
-    Span newSpanFromHeader(String childName, String traceContextHeader);
+    Span newSpanFromHeader(String childName, Function1<String,String> getHeader);
 
     Span childSpan(String childName, Span span);
 
