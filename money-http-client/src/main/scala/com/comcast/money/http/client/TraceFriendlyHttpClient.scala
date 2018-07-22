@@ -58,8 +58,7 @@ object TraceFriendlyHttpSupport {
 
     if (httpRequest != null) {
       SpanLocal.current.foreach {
-        span =>
-          httpRequest.setHeader("X-MoneyTrace", Formatters.toHttpHeader(span.info.id))
+        span => Formatters.toHttpHeaders(span.info.id, httpRequest.setHeader)
       }
     }
   }

@@ -46,15 +46,17 @@ class MoneyTraceSpec extends AkkaMoneyScope {
       import scala.collection.immutable.Seq
       val parentSpanId: SpanId = new SpanId()
 
-      val parentSpanIdHeader =
-        HttpHeader.parse(name = "X-MoneyTrace", value = Formatters.toHttpHeader(parentSpanId)) match {
+      Formatters.toHttpHeaders(parentSpanId, (name, value) => {
+        val parentSpanIdHeader = HttpHeader.parse(name, value) match {
           case Ok(parsedHeader, _) => parsedHeader
           case Error(errorInfo) => throw ParseFailure(errorInfo.summary)
         }
 
-      HttpRequest(headers = Seq(parentSpanIdHeader)) ~> simpleRoute() ~> check(responseAs[String] shouldBe "response")
+        HttpRequest(headers = Seq(parentSpanIdHeader)) ~> simpleRoute() ~> check(responseAs[String] shouldBe "response")
 
-      maybeCollectingSpanHandler should haveParentSpanId(parentSpanId)
+        maybeCollectingSpanHandler should haveParentSpanId(parentSpanId)
+      })
+
     }
 
     "have the capacity to be named by a user" in {

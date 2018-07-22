@@ -16,23 +16,22 @@
 
 package com.comcast.money.java.servlet
 
-import javax.servlet._
-import javax.servlet.http.{ HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse }
-
+import com.comcast.money.api.SpanId
 import com.comcast.money.core.Formatters._
 import com.comcast.money.core.Money
 import com.comcast.money.core.internal.SpanLocal
+import javax.servlet._
+import javax.servlet.http.{ HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse }
 import org.slf4j.LoggerFactory
 
 import scala.util.{ Failure, Success }
 
 /**
  * A Java Servlet 2.5 Filter.  Examines the inbound http request, and will set the
- * trace context for the request if the money trace header is found
+ * trace context for the request if the money trace header or X-B3 style headers are found
  */
 class TraceFilter extends Filter {
 
-  private val MoneyTraceHeader = "X-MoneyTrace"
   private val logger = LoggerFactory.getLogger(classOf[TraceFilter])
   private val factory = Money.Environment.factory
 
@@ -40,28 +39,20 @@ class TraceFilter extends Filter {
 
   override def destroy(): Unit = {}
 
+  private val spanName = "servlet"
+
   override def doFilter(request: ServletRequest, response: ServletResponse, chain: FilterChain): Unit = {
 
     SpanLocal.clear()
     val httpRequest = new HttpServletRequestWrapper(request.asInstanceOf[HttpServletRequest])
-    val incomingTraceId = Option(httpRequest.getHeader(MoneyTraceHeader)) map { incTrcaceId =>
-      // attempt to parse the incoming trace id (its a Try)
-      fromHttpHeader(incTrcaceId) match {
-        case Success(spanId) => SpanLocal.push(factory.newSpan(spanId, "servlet"))
-        case Failure(ex) => logger.warn("Unable to parse money trace for request header '{}'", incTrcaceId)
-      }
-      incTrcaceId
-    }
 
-    incomingTraceId.foreach { traceId =>
-      response match {
-        case http: HttpServletResponse =>
-          http.addHeader(MoneyTraceHeader, traceId)
-        case _ =>
-          logger.warn("Unable to set money trace header on response, response type is not an HttpServletResponse ")
-      }
-    }
+    val maybeSpanId: Option[SpanId] = fromHttpHeaders(httpRequest.getHeader, logger.warn)
+    maybeSpanId.foreach(s => SpanLocal.push(factory.newSpan(s, spanName)))
+
+    val httpResponse = response.asInstanceOf[HttpServletResponse]
+    setResponseHeaders(httpRequest.getHeader, httpResponse.addHeader)
 
     chain.doFilter(request, response)
   }
+
 }

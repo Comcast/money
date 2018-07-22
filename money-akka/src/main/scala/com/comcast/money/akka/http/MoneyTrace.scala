@@ -21,6 +21,7 @@ import akka.http.scaladsl.model.{ ContentTypes, HttpEntity, HttpRequest, HttpRes
 import akka.http.scaladsl.server.Directives.{ complete, extractRequest }
 import akka.http.scaladsl.server.Route
 import akka.stream.scaladsl.{ Sink, Source }
+
 import com.comcast.money.akka.{ MoneyExtension, SpanContextWithStack, TraceContext }
 import com.comcast.money.api.{ Note, SpanId }
 import com.comcast.money.core.Formatters.fromHttpHeader
@@ -35,6 +36,7 @@ import scala.util.{ Failure, Success }
  *
  * The directive will need to be the last directive used.
  *
+
  * The [[TraceContext]] created can be used to start and stop spans in other sections of the codebase
  */
 
@@ -99,6 +101,7 @@ object MoneyTrace {
    * @return [[Route]]
    */
 
+
   def apply(f: TracedRequest => Future[TracedResponse])(implicit moneyExtension: MoneyExtension, requestSKC: HttpRequestSpanKeyCreator, executionContext: ExecutionContext): Route =
     createDirective {
       (request, traceContext) =>
@@ -139,6 +142,7 @@ object MoneyTrace {
    * @param requestSKC     [[HttpRequestSpanKeyCreator]] to create a key for the Span generated in the Directive
    * @return [[Route]]
    */
+
 
   def fromChunkedSource(f: TracedRequest => Source[ChunkStreamPart, _])(implicit moneyExtension: MoneyExtension, requestSKC: HttpRequestSpanKeyCreator): Route =
     createDirective {
@@ -201,10 +205,10 @@ object MoneyTrace {
    * @return Option[SpanId]
    */
 
-  private def maybeExtractHeaderSpanId(request: HttpRequest) =
+  private def maybeExtractHeaderSpanId(request: HttpRequest): Option[SpanId] =
     request
       .headers
-      .flatMap(header => fromHttpHeader(header.value).toOption)
+      .flatMap(header => fromHttpHeaders(_ => header.value))
       .headOption
 }
 
