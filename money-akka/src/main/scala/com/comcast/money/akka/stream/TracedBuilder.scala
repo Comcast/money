@@ -20,7 +20,7 @@ import akka.stream._
 import akka.stream.scaladsl.GraphDSL.Builder
 import akka.stream.scaladsl.{ Balance, Broadcast, Concat, Interleave, Merge, MergePreferred, MergePrioritized, Partition }
 import akka.stream.stage.GraphStage
-import com.comcast.money.akka.SpanContextWithStack
+import com.comcast.money.akka.TraceContext
 
 object TracedBuilder {
 
@@ -44,12 +44,12 @@ object TracedBuilder {
      *
      * @param fanOutShape supported shape to be converted to
      * @tparam T type of underlying stream elements
-     * @return UniformFanOutShape[(T, SpanContextWithStack), (T, SpanContextWithStack)]
+     * @return UniformFanOutShape[(T, TraceContext), (T, TraceContext)]
      * @throws UnsupportedUniformFanOutShape if a FanOut shape that is not Partition, Broadcast or Balance is passed
      */
 
-    def tracedAdd[T](fanOutShape: GraphStage[UniformFanOutShape[T, T]]): UniformFanOutShape[(T, SpanContextWithStack), (T, SpanContextWithStack)] = {
-      type TracedT = (T, SpanContextWithStack)
+    def tracedAdd[T](fanOutShape: GraphStage[UniformFanOutShape[T, T]]): UniformFanOutShape[(T, TraceContext), (T, TraceContext)] = {
+      type TracedT = (T, TraceContext)
 
       fanOutShape match {
         case partition: Partition[T] =>
@@ -67,8 +67,8 @@ object TracedBuilder {
       }
     }
 
-    def tracedAdd[T](fanIn: GraphStage[UniformFanInShape[T, T]]): UniformFanInShape[(T, SpanContextWithStack), (T, SpanContextWithStack)] = {
-      type TracedT = (T, SpanContextWithStack)
+    def tracedAdd[T](fanIn: GraphStage[UniformFanInShape[T, T]]): UniformFanInShape[(T, TraceContext), (T, TraceContext)] = {
+      type TracedT = (T, TraceContext)
 
       fanIn match {
         case merge: Merge[T] => builder add Merge[TracedT](merge.inputPorts, merge.eagerComplete)
@@ -93,11 +93,11 @@ object TracedBuilder {
      * @param segmentSize number of elements to send downstream before switching to next input port
      * @param eagerClose if true, interleave completes upstream if any of its upstream completes.
      * @tparam T type of underlying stream elements
-     * @return UniformFanInShape[(T, SpanContextWithStack), (T, SpanContextWithStack)]
+     * @return UniformFanInShape[(T, TraceContext), (T, TraceContext)]
      */
 
     def tracedInterleave[T](inputPorts: Int, segmentSize: Int, eagerClose: Boolean = false) =
-      builder add Interleave[(T, SpanContextWithStack)](inputPorts, segmentSize, eagerClose)
+      builder add Interleave[(T, TraceContext)](inputPorts, segmentSize, eagerClose)
 
     /**
      * creates a [[Concat]] and adds it to the builder
@@ -107,10 +107,10 @@ object TracedBuilder {
      *
      * @param inputPorts number of inlets
      * @tparam T type of underlying stream elements
-     * @return UniformFanInShape[(T, SpanContextWithStack), (T, SpanContextWithStack)]
+     * @return UniformFanInShape[(T, TraceContext), (T, TraceContext)]
      */
 
-    def tracedConcat[T](inputPorts: Int = 2) = builder add Concat[(T, SpanContextWithStack)](inputPorts)
+    def tracedConcat[T](inputPorts: Int = 2) = builder add Concat[(T, TraceContext)](inputPorts)
   }
 
 }

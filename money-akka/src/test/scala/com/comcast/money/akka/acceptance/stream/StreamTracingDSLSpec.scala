@@ -17,9 +17,9 @@
 package com.comcast.money.akka.acceptance.stream
 
 import akka.stream._
-import akka.stream.scaladsl.{Flow, Sink, Source}
+import akka.stream.scaladsl.{ Flow, Sink, Source }
 import com.comcast.money.akka.Blocking.RichFuture
-import com.comcast.money.akka.SpanHandlerMatchers.{haveSomeSpanNames, haveSomeSpanNamesInNoParticularOrder, maybeCollectingSpanHandler}
+import com.comcast.money.akka.SpanHandlerMatchers.{ haveSomeSpanNames, haveSomeSpanNamesInNoParticularOrder, maybeCollectingSpanHandler }
 import com.comcast.money.akka._
 import com.comcast.money.akka.stream._
 
@@ -36,6 +36,10 @@ class StreamTracingDSLSpec extends AkkaMoneyScope {
       testStreams.simple.run.get()
 
       maybeCollectingSpanHandler should haveSomeSpanNames(Seq(stream, stringToString))
+    }
+
+    "run should return correct element" in {
+      testStreams.simpleWithAlteredElement.run.get() shouldBe Seq("chunk1")
     }
 
     "completed with an arbitrary Sink should create completed spans" in {
@@ -59,12 +63,12 @@ class StreamTracingDSLSpec extends AkkaMoneyScope {
     }
 
     "a SpanContext is in scope should use that SpanContext" in {
-      implicit val spanContextWithStack = new SpanContextWithStack
-      moneyExtension.tracer.startSpan("request")
+      implicit val traceContext: TraceContext = TraceContext(new SpanContextWithStack)
+      traceContext.tracer.startSpan("request")
 
       testStreams.simpleTakingSpanContext.run.get()
 
-      moneyExtension.tracer.stopSpan()
+      traceContext.tracer.stopSpan()
 
       maybeCollectingSpanHandler should haveSomeSpanNames(Seq("request", stream, stringToString))
     }
