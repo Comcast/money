@@ -69,7 +69,6 @@ object MoneyBuild extends Build {
           akkaStream,
           akkaHttp,
           akkaHttpTestKit,
-          akkaLog,
           scalaTest,
           typesafeConfig
         )
@@ -220,7 +219,7 @@ object MoneyBuild extends Build {
   def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings ++ Seq(
     organization := "com.comcast.money",
     version := "0.9.0-RC2",
-    crossScalaVersions := Seq("2.10.6", "2.11.8"),
+    crossScalaVersions := Seq("2.11.12"),
     scalaVersion := "2.11.8",
     resolvers ++= Seq(
       "spray repo" at "http://repo.spray.io/",
@@ -308,9 +307,7 @@ object MoneyBuild extends Build {
     val akkaV = "2.5.11"
     val akkaHttpV = "10.1.0"
 
-    val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
     val akkaStream =      "com.typesafe.akka"         %% "akka-stream"                 % akkaV
-    val akkaLog =         "com.typesafe.akka"         %% "akka-slf4j"                  % akkaV
     val akkaHttp =        "com.typesafe.akka"         %% "akka-http"                   % akkaHttpV
     val akkaHttpTestKit = "com.typesafe.akka"         %% "akka-http-testkit"           % akkaHttpV % "test"
 
@@ -364,21 +361,14 @@ object MoneyBuild extends Build {
     val springContext = "org.springframework" % "spring-context" % "4.1.1.RELEASE"
 
     // Test
-    val mockito = "org.mockito" % "mockito-core" % "1.9.5" % "test"
-    val scalaTest = "org.scalatest" %% "scalatest" % "3.0.4" % "it,test"
+    val mockito = "org.mockito" % "mockito-core" % "2.21.0" % "test"
+    val scalaTest = "org.scalatest" %% "scalatest" % "3.0.5" % "it,test"
     val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.13.5" % "test"
-    val junit = "junit" % "junit" % "4.11" % "test"
+    val junit = "junit" % "junit" % "4.12" % "test"
     val junitInterface = "com.novocode" % "junit-interface" % "0.11" % "test->default"
     val springTest = ("org.springframework" % "spring-test" % "3.2.6.RELEASE")
       .exclude("commons-logging", "commons-logging")
     val springOckito = "org.kubek2k" % "springockito" % "1.0.9" % "test"
     val assertj = "org.assertj" % "assertj-core" % "1.7.1" % "it,test"
-
-    def getAkkaVersion(scalaVersion: String) = {
-      scalaVersion match {
-        case version if version.startsWith("2.10") => "2.2.3"
-        case version if version.startsWith("2.11") => "2.3.4"
-      }
-    }
   }
 }

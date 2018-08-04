@@ -20,7 +20,7 @@ import com.comcast.money.api.SpanId
 import com.comcast.money.core.SpecHelpers
 import com.comcast.money.core.internal.SpanLocal
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ BeforeAndAfterEach, Matchers, OneInstancePerTest, WordSpec }
 import org.slf4j.MDC
 

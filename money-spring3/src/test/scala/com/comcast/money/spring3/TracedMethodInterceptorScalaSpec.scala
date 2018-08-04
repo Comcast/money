@@ -18,12 +18,10 @@ package com.comcast.money.spring3
 
 import com.comcast.money.annotations.{ Traced, TracedData }
 import com.comcast.money.api.Note
-import com.comcast.money.core._
 import com.sun.istack.internal.NotNull
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ BeforeAndAfterEach, Matchers, WordSpec }
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component

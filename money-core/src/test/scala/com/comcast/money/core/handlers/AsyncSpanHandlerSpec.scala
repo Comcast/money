@@ -18,7 +18,7 @@ package com.comcast.money.core.handlers
 
 import com.comcast.money.api.{ SpanHandler, SpanInfo }
 import com.comcast.money.core.SpecHelpers
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ Matchers, WordSpec }
 
 class AsyncSpanHandlerSpec extends WordSpec with Matchers with MockitoSugar with TestData with SpecHelpers {

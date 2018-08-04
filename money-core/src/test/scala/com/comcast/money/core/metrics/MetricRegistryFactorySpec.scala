@@ -21,7 +21,7 @@ import com.typesafe.config.Config
 import org.mockito.Mockito._
 import org.scalatest.Matchers._
 import org.scalatest._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 
 object MockMetricRegistryFactory extends MetricRegistryFactory with MockitoSugar {
   lazy val mockRegistry = mock[MetricRegistry]

@@ -21,7 +21,7 @@ import java.util.concurrent.{ Callable, ExecutorService }
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.SpecHelpers
 import com.comcast.money.core.internal.SpanLocal
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ Matchers, OneInstancePerTest, WordSpecLike }
 import org.slf4j.MDC
 

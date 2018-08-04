@@ -23,7 +23,7 @@ import org.aspectj.lang.ProceedingJoinPoint
 import org.mockito.Mockito._
 import org.scalatest._
 import org.scalatest.concurrent.Eventually
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.slf4j.MDC
 
 import scala.concurrent.{ Await, Future, Promise }

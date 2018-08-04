@@ -17,7 +17,7 @@
 package com.comcast.money.core.logging
 
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ Matchers, OneInstancePerTest, WordSpec }
 import org.slf4j.Logger
 

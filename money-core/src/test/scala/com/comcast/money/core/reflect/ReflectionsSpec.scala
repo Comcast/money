@@ -22,7 +22,7 @@ import com.comcast.money.core._
 import com.sun.istack.internal.NotNull
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ Matchers, OneInstancePerTest, WordSpec }
 
 class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneInstancePerTest {

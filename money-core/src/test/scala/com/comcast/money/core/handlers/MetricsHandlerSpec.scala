@@ -20,7 +20,7 @@ import com.codahale.metrics.{ Meter, Histogram, MetricRegistry }
 import com.typesafe.config.Config
 import org.mockito.Mockito._
 import org.mockito.Matchers._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ OneInstancePerTest, Matchers, WordSpec }
 
 class MetricsHandlerSpec extends WordSpec with Matchers with MockitoSugar with TestData with OneInstancePerTest {
