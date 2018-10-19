@@ -19,7 +19,7 @@ package com.comcast.money.core.async
 import com.comcast.money.core.SpecHelpers
 import com.comcast.money.core.concurrent.ConcurrentSupport
 import org.scalatest.{ Matchers, OneInstancePerTest, WordSpecLike }
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 
 class DirectExecutionContextSpec
   extends WordSpecLike

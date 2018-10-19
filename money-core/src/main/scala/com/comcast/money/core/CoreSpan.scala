@@ -20,7 +20,7 @@ import java.lang.Long
 
 import com.comcast.money.api._
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
 
 /**
@@ -84,7 +84,7 @@ case class CoreSpan(
       endTimeMicros,
       calculateDuration,
       success,
-      noted.toMap[String, Note[_]])
+      noted.toMap[String, Note[_]].asJava)
 
   private def calculateDuration: Long =
     if (endTimeMicros <= 0L && startTimeMicros <= 0L)

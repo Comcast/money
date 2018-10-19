@@ -17,7 +17,7 @@ lazy val money = Project("money", file("."))
   publishLocal := {},
   publish := {}
 )
-.aggregate(moneyApi, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyKafka, moneySpring, moneySpring3, moneyWire)
+.aggregate(moneyApi, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyWire, moneyKafka, moneySpring, moneySpring3)
 
 lazy val moneyApi =
   Project("money-api", file("./money-api"))

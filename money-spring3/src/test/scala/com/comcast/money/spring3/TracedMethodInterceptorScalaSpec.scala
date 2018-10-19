@@ -23,7 +23,7 @@ import com.sun.istack.internal.NotNull
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ BeforeAndAfterEach, Matchers, WordSpec }
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component

@@ -16,11 +16,11 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ SpanInfo, SpanHandler, Note, SpanId }
+import com.comcast.money.api.{ SpanInfo, SpanHandler, SpanId }
 import com.comcast.money.core.handlers.TestData
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ Matchers, WordSpec }
 
 class CoreSpanSpec extends WordSpec with Matchers with TestData with MockitoSugar {

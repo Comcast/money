@@ -20,7 +20,7 @@ import com.comcast.money.api.{ SpanHandler, SpanInfo }
 import com.typesafe.config.Config
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 case class HandlerChain(handlers: Seq[SpanHandler]) extends SpanHandler {
 
@@ -42,7 +42,7 @@ object HandlerChain {
   import HandlerFactory.create
 
   def apply(config: Config): SpanHandler = {
-    val handlers = config.getConfigList("handlers").map(create)
+    val handlers = config.getConfigList("handlers").asScala.map(create)
 
     if (config.getBoolean("async")) {
       new AsyncSpanHandler(scala.concurrent.ExecutionContext.global, HandlerChain(handlers))

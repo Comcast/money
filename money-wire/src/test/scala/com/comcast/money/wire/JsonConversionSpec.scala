@@ -24,7 +24,7 @@ class JsonConversionSpec extends WordSpec with Matchers with Inspectors {
 
   import JsonConversions._
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   val orig = CoreSpanInfo(
     id = new SpanId("foo", 1L),
@@ -34,13 +34,13 @@ class JsonConversionSpec extends WordSpec with Matchers with Inspectors {
     startTimeMillis = 1L,
     success = true,
     durationMicros = 35L,
-    notes = Map(
+    notes = Map[String, Note[_]](
       "what" -> Note.of("what", 1L),
       "when" -> Note.of("when", 2L),
       "bob" -> Note.of("bob", "craig"),
       "none" -> Note.of("none", null),
       "bool" -> Note.of("bool", true),
-      "dbl" -> Note.of("dbl", 1.0))).asInstanceOf[SpanInfo]
+      "dbl" -> Note.of("dbl", 1.0)).asJava).asInstanceOf[SpanInfo]
 
   "Json Conversion" should {
     "roundtrip" in {
