@@ -29,6 +29,8 @@ import org.apache.avro.Schema
 import org.apache.avro.io.{ DecoderFactory, EncoderFactory }
 import org.apache.avro.specific.{ SpecificDatumReader, SpecificDatumWriter }
 
+import scala.collection.JavaConverters._
+
 trait TypeConverter[From, To] {
 
   def convert(from: From): To
@@ -55,8 +57,6 @@ object JsonConversions extends SpanJsonConverters {
 }
 
 trait SpanWireConverters {
-
-  import scala.collection.JavaConversions._
 
   implicit val noteToWire: TypeConverter[api.Note[_], avro.Note] = TypeConverter.instance { from: api.Note[_] =>
     def avroNote(noteValue: avro.NoteValue): avro.Note = new avro.Note(from.name, from.timestamp, noteValue)
@@ -113,14 +113,14 @@ trait SpanWireConverters {
       span.success,
       span.startTimeMillis,
       implicitly[TypeConverter[api.SpanId, avro.SpanId]].convert(span.id),
-      span.notes.values.toList.map(implicitly[TypeConverter[api.Note[_], avro.Note]].convert))
+      span.notes.values.asScala.toList.map(implicitly[TypeConverter[api.Note[_], avro.Note]].convert).asJava)
   }
 
   implicit val wireToSpan: TypeConverter[avro.Span, SpanInfo] = TypeConverter.instance { from: avro.Span =>
 
     def toNotesMap(notes: java.util.List[avro.Note]): java.util.Map[String, api.Note[_]] = {
       val res = new java.util.HashMap[String, api.Note[_]]
-      notes.foreach(n => res.put(n.getName, implicitly[TypeConverter[avro.Note, api.Note[_]]].convert(n)))
+      notes.asScala.foreach(n => res.put(n.getName, implicitly[TypeConverter[avro.Note, api.Note[_]]].convert(n)))
       res
     }
 
@@ -173,12 +173,12 @@ trait SpanJsonConverters extends SpanWireConverters {
     val jsonMapper: ObjectMapper = new ObjectMapper()
       .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
 
-    // We need to ignore the getSchema Javabean Properties or else serdes will fail
-    jsonMapper.addMixInAnnotations(classOf[avro.Span], classOf[IgnoreSpanProperties]);
-    jsonMapper.addMixInAnnotations(classOf[avro.SpanId], classOf[IgnoreSpanProperties]);
-    jsonMapper.addMixInAnnotations(classOf[avro.Note], classOf[IgnoreSpanProperties]);
-    jsonMapper.addMixInAnnotations(classOf[avro.NoteValue], classOf[IgnoreSpanProperties]);
-
+    jsonMapper.setMixIns(
+      Map[Class[_], Class[_]](
+        classOf[avro.Span] -> classOf[IgnoreSpanProperties],
+        classOf[avro.SpanId] -> classOf[IgnoreSpanProperties],
+        classOf[avro.Note] -> classOf[IgnoreSpanProperties],
+        classOf[avro.NoteValue] -> classOf[IgnoreSpanProperties]).asJava)
     jsonMapper
   }
 

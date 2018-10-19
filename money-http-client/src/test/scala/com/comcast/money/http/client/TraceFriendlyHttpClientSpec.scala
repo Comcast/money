@@ -28,7 +28,7 @@ import org.apache.http.protocol.HttpContext
 import org.apache.http.{ HttpHost, HttpResponse, StatusLine }
 import org.mockito.Mockito._
 import org.scalatest._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 
 class TraceFriendlyHttpClientSpec extends WordSpec with SpecHelpers
   with Matchers with MockitoSugar with OneInstancePerTest with BeforeAndAfterEach {

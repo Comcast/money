@@ -24,7 +24,7 @@ import com.comcast.money.core.internal.SpanLocal
 import com.comcast.money.core.Formatters.StringWithB3HeaderConversion
 import org.mockito.Mockito._
 import org.scalatest.OptionValues._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ BeforeAndAfter, Matchers, OneInstancePerTest, WordSpec }
 
 class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest with BeforeAndAfter with MockitoSugar {

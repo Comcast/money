@@ -34,7 +34,7 @@ class NonConfiguredHandler extends SpanHandler {
 
 trait TestData {
 
-  import scala.collection.JavaConversions._
+  import scala.collection.JavaConverters._
 
   val testStringNote = Note.of("str", "bar")
   val testLongNote = Note.of("lng", 200L)
@@ -51,7 +51,7 @@ trait TestData {
     name = "test-span",
     appName = "test",
     host = "localhost",
-    notes = Map("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote))
+    notes = Map[String, Note[_]]("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote).asJava)
 
   val testSpan = CoreSpan(new SpanId(), "test-span", null)
 
@@ -65,5 +65,5 @@ trait TestData {
     name = "test-span",
     appName = "test",
     host = "localhost",
-    notes = Map("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote))
+    notes = Map[String, Note[_]]("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote).asJava)
 }

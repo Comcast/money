@@ -16,16 +16,17 @@
 
 package com.comcast.money.kafka
 
+import com.comcast.money.api.Note
 import com.comcast.money.{ api, core }
-import com.typesafe.config.{ ConfigFactory, Config }
-import kafka.message.{ GZIPCompressionCodec, CompressionCodec }
+import com.typesafe.config.{ Config, ConfigFactory }
+import kafka.message.{ CompressionCodec, GZIPCompressionCodec }
 import kafka.producer.{ KeyedMessage, Producer }
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 trait MockProducerMaker extends ProducerMaker {
 
@@ -66,7 +67,7 @@ class KafkaSpanHandlerSpec extends WordSpec
       startTimeMillis = 1L,
       success = true,
       durationMicros = 35L,
-      notes = Map("what" -> api.Note.of("what", 1L), "when" -> api.Note.of("when", 2L), "bob" -> api.Note.of("bob", "craig")))
+      notes = Map[String, Note[_]]("what" -> api.Note.of("what", 1L), "when" -> api.Note.of("when", 2L), "bob" -> api.Note.of("bob", "craig")).asJava)
   }
 
   "A KafkaEmitter" should {

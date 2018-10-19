@@ -18,7 +18,7 @@ package com.comcast.money.core.async
 
 import com.typesafe.config.Config
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 case class AsyncNotifier(handlers: Seq[AsyncNotificationHandler]) {
   def resolveHandler(future: AnyRef): Option[AsyncNotificationHandler] =
@@ -29,7 +29,7 @@ object AsyncNotifier {
   import AsyncNotificationHandlerFactory.create
 
   def apply(config: Config): AsyncNotifier = {
-    val handlers = config.getConfigList("handlers").map(create)
-    new AsyncNotifier(handlers)
+    val handlers = config.getConfigList("handlers").asScala.map(create)
+    AsyncNotifier(handlers)
   }
 }

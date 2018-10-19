@@ -21,7 +21,7 @@ import com.comcast.money.core.CoreSpanInfo
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{ Matchers, WordSpec }
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 import scala.collection._
 
 class SpanLogFormatterSpec extends WordSpec with Matchers {
@@ -45,7 +45,7 @@ class SpanLogFormatterSpec extends WordSpec with Matchers {
     name = "key",
     appName = "unknown",
     host = "host",
-    notes = Map("bob" -> Note.of("bob", "craig"), "what" -> Note.of("what", 1L), "when" -> Note.of("when", 2L)),
+    notes = Map[String, Note[_]]("bob" -> Note.of("bob", "craig"), "what" -> Note.of("what", 1L), "when" -> Note.of("when", 2L)).asJava,
     success = true)
 
   val withNull = CoreSpanInfo(
@@ -58,7 +58,7 @@ class SpanLogFormatterSpec extends WordSpec with Matchers {
     name = "key",
     appName = "unknown",
     host = "host",
-    notes = Map("empty" -> Note.of("empty", null)),
+    notes = Map[String, Note[_]]("empty" -> Note.of("empty", null)).asJava,
     success = true)
 
   "A LogEmitter must" must {

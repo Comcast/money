@@ -18,7 +18,7 @@ package com.comcast.money.core.internal
 
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.handlers.TestData
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ OneInstancePerTest, BeforeAndAfterEach, Matchers, WordSpec }
 import org.slf4j.MDC
 

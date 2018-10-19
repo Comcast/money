@@ -16,7 +16,7 @@
 
 package com.comcast.money.spring3
 
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ Matchers, WordSpec }
 import org.springframework.aop.support.StaticMethodMatcherPointcut
 

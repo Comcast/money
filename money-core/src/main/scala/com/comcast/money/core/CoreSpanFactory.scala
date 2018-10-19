@@ -19,7 +19,7 @@ package com.comcast.money.core
 import com.comcast.money.api.{ Span, SpanFactory, SpanHandler, SpanId }
 import org.slf4j.LoggerFactory
 
-import scala.collection.JavaConversions._
+import scala.collection.JavaConverters._
 
 class CoreSpanFactory(handler: SpanHandler) extends SpanFactory {
 
@@ -52,7 +52,7 @@ class CoreSpanFactory(handler: SpanHandler) extends SpanFactory {
     val child = newSpan(info.id.newChildId, childName)
 
     if (sticky) {
-      info.notes.values
+      info.notes.values.asScala
         .filter(_.isSticky)
         .foreach(child.record)
     }
@@ -61,7 +61,7 @@ class CoreSpanFactory(handler: SpanHandler) extends SpanFactory {
   }
 
   def newSpan(spanId: SpanId, spanName: String): Span =
-    new CoreSpan(
+    CoreSpan(
       id = spanId,
       name = spanName,
       handler = handler)

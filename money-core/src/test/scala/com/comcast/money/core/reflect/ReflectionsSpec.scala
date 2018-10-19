@@ -22,7 +22,7 @@ import com.comcast.money.core._
 import com.sun.istack.internal.NotNull
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
-import org.scalatest.mock.MockitoSugar
+import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ Matchers, OneInstancePerTest, WordSpec }
 
 class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneInstancePerTest {
@@ -100,25 +100,21 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
       tds.size shouldBe 5
 
       val strNote = tds(0).get
-      strNote shouldBe a[Note[String]]
       strNote.value shouldBe "str"
       strNote.name shouldBe "STRING"
       strNote.isSticky shouldBe false
 
       val lngNote = tds(1).get
-      lngNote shouldBe a[Note[Long]]
       lngNote.value shouldBe 100L
       lngNote.name shouldBe "LONG"
       lngNote.isSticky shouldBe false
 
       val dblNote = tds(2).get
-      dblNote shouldBe a[Note[Double]]
       dblNote.value shouldBe 3.14
       dblNote.name shouldBe "DOUBLE"
       dblNote.isSticky shouldBe false
 
       val boolNote = tds(3).get
-      boolNote shouldBe a[Note[java.lang.Boolean]]
       boolNote.value shouldBe true
       boolNote.name shouldBe "BOOLEAN"
       boolNote.isSticky shouldBe false

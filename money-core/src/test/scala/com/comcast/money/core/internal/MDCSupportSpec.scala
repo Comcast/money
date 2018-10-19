@@ -20,6 +20,7 @@ import com.comcast.money.api.SpanId
 import org.scalatest.{ BeforeAndAfterEach, Matchers, OneInstancePerTest, WordSpec }
 import org.slf4j.MDC
 
+import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class MDCSupportSpec extends WordSpec with Matchers with BeforeAndAfterEach with OneInstancePerTest {
@@ -49,19 +50,15 @@ class MDCSupportSpec extends WordSpec with Matchers with BeforeAndAfterEach with
       MDC.get("moneyTrace") shouldBe null
     }
     "not propogate MDC if disabled" in {
-      import scala.collection.JavaConversions._
-
       val mdcContext: mutable.Map[_, _] = mutable.HashMap("FINGERPRINT" -> "print")
       val disabled = new MDCSupport(false)
-      disabled.propogateMDC(Some(mdcContext))
+      disabled.propogateMDC(Some(mdcContext.asJava))
       MDC.get("FINGERPRINT") shouldBe null
     }
     "propogate MDC if not disabled" in {
-      import scala.collection.JavaConversions._
-
       val mdcContext: mutable.Map[_, _] = mutable.HashMap("FINGERPRINT" -> "print")
 
-      testMDCSupport.propogateMDC(Some(mdcContext))
+      testMDCSupport.propogateMDC(Some(mdcContext.asJava))
       MDC.get("FINGERPRINT") shouldBe "print"
     }
     "clear MDC if given an empty context" in {
