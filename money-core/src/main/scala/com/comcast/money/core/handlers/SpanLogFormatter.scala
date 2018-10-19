@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,8 +35,7 @@ object SpanLogFormatter {
       startTimeKey = configValue("formatting.keys.start-time", "start-time"),
       spanDurationKey = configValue("formatting.keys.span-duration", "span-duration"),
       spanDurationMsKey = configValue("formatting.keys.span-duration-ms", "span-duration-ms"),
-      spanSuccessKey = configValue("formatting.keys.span-success", "span-success")
-    )
+      spanSuccessKey = configValue("formatting.keys.span-success", "span-success"))
   }
 
   private def configValue(key: String, defaultValue: String)(implicit conf: Config) =
@@ -53,20 +52,19 @@ object SpanLogFormatter {
 }
 
 class SpanLogFormatter(
-    val spanStart: String,
-    val nullValue: String,
-    val logTemplate: String,
-    val spanDurationMsEnabled: Boolean,
-    val spanIdKey: String,
-    val traceIdKey: String,
-    val parentIdKey: String,
-    val spanNameKey: String,
-    val appNameKey: String,
-    val startTimeKey: String,
-    val spanDurationKey: String,
-    val spanDurationMsKey: String,
-    val spanSuccessKey: String
-) {
+  val spanStart: String,
+  val nullValue: String,
+  val logTemplate: String,
+  val spanDurationMsEnabled: Boolean,
+  val spanIdKey: String,
+  val traceIdKey: String,
+  val parentIdKey: String,
+  val spanNameKey: String,
+  val appNameKey: String,
+  val startTimeKey: String,
+  val spanDurationKey: String,
+  val spanDurationMsKey: String,
+  val spanSuccessKey: String) {
 
   def buildMessage(spanInfo: SpanInfo): String = {
     implicit val builder = new StringBuilder()

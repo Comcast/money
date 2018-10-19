@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,8 +151,7 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
       verify(mockResponse).addHeader(
         "X-MoneyTrace",
-        MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentId, existingSpanId.selfId)
-      )
+        MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentId, existingSpanId.selfId))
     }
 
     "adds X-B3-TraceId header to response" in {
@@ -160,8 +159,7 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
         .thenReturn(existingSpanId.traceId.fromGuid)
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
       verify(mockResponse).addHeader(
-        "X-B3-TraceId", existingSpanId.traceId.fromGuid
-      )
+        "X-B3-TraceId", existingSpanId.traceId.fromGuid)
     }
 
     "adds X-B3-TraceId and X-B3-ParentSpanId headers to response" in {
@@ -171,11 +169,9 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
         .thenReturn(existingSpanId.parentId.toHexString)
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
       verify(mockResponse).addHeader(
-        "X-B3-TraceId", existingSpanId.traceId.fromGuid
-      )
+        "X-B3-TraceId", existingSpanId.traceId.fromGuid)
       verify(mockResponse).addHeader(
-        "X-B3-ParentSpanId", existingSpanId.parentId().toHexString
-      )
+        "X-B3-ParentSpanId", existingSpanId.parentId().toHexString)
     }
 
     "adds X-B3-TraceId, X-B3-ParentSpanId and X-B3-SpanId headers to response" in {
@@ -187,14 +183,11 @@ class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest wit
         .thenReturn(existingSpanId.selfId().toHexString)
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
       verify(mockResponse).addHeader(
-        "X-B3-TraceId", existingSpanId.traceId.fromGuid
-      )
+        "X-B3-TraceId", existingSpanId.traceId.fromGuid)
       verify(mockResponse).addHeader(
-        "X-B3-ParentSpanId", existingSpanId.parentId().toHexString
-      )
+        "X-B3-ParentSpanId", existingSpanId.parentId().toHexString)
       verify(mockResponse).addHeader(
-        "X-B3-SpanId", existingSpanId.selfId().toHexString
-      )
+        "X-B3-SpanId", existingSpanId.selfId().toHexString)
     }
 
     "doesn't add any header to response if request does not have headers" in {

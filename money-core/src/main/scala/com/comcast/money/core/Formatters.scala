@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,7 @@ object Formatters {
         spad.substring(8, 12),
         spad.substring(12, 16),
         spad.substring(16, 20),
-        spad.substring(20, 32)
-      )
+        spad.substring(20, 32))
     }
     def fromGuid: String = s.replace("-", "")
   }
@@ -98,11 +97,10 @@ object Formatters {
         case Failure(ex) =>
           log(
             s"Unable to parse X-B3 trace for request headers: " +
-            s"$B3TraceIdHeader:'$traceIdVal', " +
-            s"$B3ParentSpanIdHeader:'$maybeB3ParentSpanId', " +
-            s"$B3SpanIdHeader:'$maybeB3SpanId' " +
-            s"${ex.getMessage}"
-          )
+              s"$B3TraceIdHeader:'$traceIdVal', " +
+              s"$B3ParentSpanIdHeader:'$maybeB3ParentSpanId', " +
+              s"$B3SpanIdHeader:'$maybeB3SpanId' " +
+              s"${ex.getMessage}")
           None
       }
     }

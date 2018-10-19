@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.slf4j.MDC
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 
 class TraceFriendlyExecutionContextExecutor(wrapped: ExecutionContext)
-    extends ExecutionContextExecutor with TraceLogging {
+  extends ExecutionContextExecutor with TraceLogging {
 
   lazy val mdcSupport = new MDCSupport()
 
@@ -48,8 +48,7 @@ class TraceFriendlyExecutionContextExecutor(wrapped: ExecutionContext)
             MDC.clear()
           }
         }
-      }
-    )
+      })
   }
 
   override def reportFailure(t: Throwable): Unit = wrapped.reportFailure(t)

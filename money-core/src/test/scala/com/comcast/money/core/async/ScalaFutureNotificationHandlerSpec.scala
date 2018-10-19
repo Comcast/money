@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Failure, Try }
 
 class ScalaFutureNotificationHandlerSpec
-    extends WordSpecLike
-    with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest with SpecHelpers {
+  extends WordSpecLike
+  with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest with SpecHelpers {
 
   val underTest = new ScalaFutureNotificationHandler()
   implicit val executionContext: ExecutionContext = new DirectExecutionContext()

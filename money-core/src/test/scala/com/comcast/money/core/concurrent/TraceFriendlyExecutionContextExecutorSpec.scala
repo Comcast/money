@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,12 +28,12 @@ import scala.concurrent.duration._
 import scala.concurrent.{ Await, ExecutionContext, Future }
 
 class TraceFriendlyExecutionContextExecutorSpec extends WordSpec
-    with Matchers
-    with MockitoSugar
-    with OneInstancePerTest
-    with ConcurrentSupport
-    with SpecHelpers
-    with BeforeAndAfterEach {
+  with Matchers
+  with MockitoSugar
+  with OneInstancePerTest
+  with ConcurrentSupport
+  with SpecHelpers
+  with BeforeAndAfterEach {
 
   import com.comcast.money.core.concurrent.TraceFriendlyExecutionContextExecutor.Implicits.global
 

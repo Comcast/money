@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -63,20 +63,15 @@ trait SpanWireConverters {
 
     from.value match {
       case l: Long => avroNote(
-        new avro.NoteValue(avro.NoteType.Long, l.toString)
-      )
+        new avro.NoteValue(avro.NoteType.Long, l.toString))
       case s: String => avroNote(
-        new avro.NoteValue(avro.NoteType.String, s)
-      )
+        new avro.NoteValue(avro.NoteType.String, s))
       case b: java.lang.Boolean => avroNote(
-        new avro.NoteValue(avro.NoteType.Boolean, b.toString)
-      )
+        new avro.NoteValue(avro.NoteType.Boolean, b.toString))
       case d: Double => avroNote(
-        new avro.NoteValue(avro.NoteType.Double, d.toString)
-      )
+        new avro.NoteValue(avro.NoteType.Double, d.toString))
       case null => avroNote(
-        new avro.NoteValue(avro.NoteType.String, null)
-      )
+        new avro.NoteValue(avro.NoteType.String, null))
 
     }
   }
@@ -91,15 +86,12 @@ trait SpanWireConverters {
 
     from.getValue.getType match {
       case NoteType.Boolean => api.Note.of(
-        from.getName, from.getValue.getData.toBoolean, from.getTimestamp
-      )
+        from.getName, from.getValue.getData.toBoolean, from.getTimestamp)
       case NoteType.Long => api.Note.of(from.getName, from.getValue.getData.toLong, from.getTimestamp)
       case NoteType.String => api.Note.of(
-        from.getName, from.getValue.getData, from.getTimestamp
-      )
+        from.getName, from.getValue.getData, from.getTimestamp)
       case NoteType.Double => api.Note.of(
-        from.getName, from.getValue.getData.toDouble, from.getTimestamp
-      )
+        from.getName, from.getValue.getData.toDouble, from.getTimestamp)
     }
   }
 
@@ -121,8 +113,7 @@ trait SpanWireConverters {
       span.success,
       span.startTimeMillis,
       implicitly[TypeConverter[api.SpanId, avro.SpanId]].convert(span.id),
-      span.notes.values.toList.map(implicitly[TypeConverter[api.Note[_], avro.Note]].convert)
-    )
+      span.notes.values.toList.map(implicitly[TypeConverter[api.Note[_], avro.Note]].convert))
   }
 
   implicit val wireToSpan: TypeConverter[avro.Span, SpanInfo] = TypeConverter.instance { from: avro.Span =>
@@ -141,8 +132,7 @@ trait SpanWireConverters {
       startTimeMillis = from.getStartTime,
       success = from.getSuccess,
       durationMicros = from.getDuration,
-      notes = toNotesMap(from.getNotes)
-    )
+      notes = toNotesMap(from.getNotes))
   }
 }
 

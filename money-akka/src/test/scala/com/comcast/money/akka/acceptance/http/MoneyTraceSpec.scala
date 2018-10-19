@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -102,8 +102,7 @@ class MoneyTraceSpec extends AkkaMoneyScope {
         MatchResult(
           matches = maybeParentId.getOrElse(false),
           rawFailureMessage = s"Parent Span Id was $maybeParentId not Some($parentId)",
-          rawNegatedFailureMessage = s"Parent Span Id was $maybeParentId equal to Some($parentId)"
-        )
+          rawNegatedFailureMessage = s"Parent Span Id was $maybeParentId equal to Some($parentId)")
     }
 
   def haveARequestDurationLongerThan(expectedTimeTaken: FiniteDuration): Matcher[Option[CollectingSpanHandler]] =
@@ -118,13 +117,12 @@ class MoneyTraceSpec extends AkkaMoneyScope {
         val maybeMillis = maybeSpanInfo.map(_.durationMicros / 1000)
         MatchResult(
           matches =
-          maybeSpanInfo match {
-            case Some(spanInfo) => spanInfo.durationMicros >= expectedTimeTaken.toMicros
-            case None => false
-          },
+            maybeSpanInfo match {
+              case Some(spanInfo) => spanInfo.durationMicros >= expectedTimeTaken.toMicros
+              case None => false
+            },
           rawFailureMessage = s"Duration of Span $requestSpanName was $maybeMillis not Some($expectedTimeTaken)",
-          rawNegatedFailureMessage = s"Duration of Span $requestSpanName was $maybeMillis equal to Some($expectedTimeTaken)"
-        )
+          rawNegatedFailureMessage = s"Duration of Span $requestSpanName was $maybeMillis equal to Some($expectedTimeTaken)")
     }
 
   val testStreams = new TestStreams

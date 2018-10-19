@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -155,10 +155,10 @@ object StreamTracingDSL {
 
   implicit class SourceSpanInjector[In: ClassTag](source: Source[In, _])(implicit
     builder: Builder[_],
-      sskc: SourceSpanKeyCreator[In] = DefaultSourceSpanKeyCreator[In],
-      fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In],
-      moneyExtension: MoneyExtension,
-      spanContext: SpanContextWithStack = new SpanContextWithStack) {
+    sskc: SourceSpanKeyCreator[In] = DefaultSourceSpanKeyCreator[In],
+    fskc: FlowSpanKeyCreator[In] = DefaultFlowSpanKeyCreator[In],
+    moneyExtension: MoneyExtension,
+    spanContext: SpanContextWithStack = new SpanContextWithStack) {
     type TracedIn = (In, TraceContext)
 
     /**

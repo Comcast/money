@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ class MDCSupport(enabled: Boolean = Money.Environment.enabled) {
 
   def propogateMDC(submittingThreadsContext: Option[Map[_, _]]): Unit = if (enabled) {
     submittingThreadsContext match {
-      case Some(context: Map[_, _]) => MDC.setContextMap(context)
+      case Some(context: Map[String, String]) => MDC.setContextMap(context)
       case None => MDC.clear()
     }
   }

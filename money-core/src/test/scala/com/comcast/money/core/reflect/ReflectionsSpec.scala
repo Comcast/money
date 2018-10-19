@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,8 +37,7 @@ class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneI
   val clazz = samples.getClass
   val methodWithoutArguments = clazz.getMethod("methodWithoutArguments")
   val methodWithTracedData = clazz.getMethod(
-    "methodWithTracedData", classOf[String], classOf[Long], classOf[Double], classOf[Boolean], classOf[Double]
-  )
+    "methodWithTracedData", classOf[String], classOf[Long], classOf[Double], classOf[Boolean], classOf[Double])
   val methodWithMultipleAnnotations = clazz.getMethod("methodWithMultipleAnnotations", classOf[String])
   val methodWithNoTracedDataArguments = clazz.getMethod("methodWithNoTracedDataArguments", classOf[String])
   val methodWithTracedDataPropagate = clazz.getMethod("methodWithTracedDataPropagate", classOf[String])

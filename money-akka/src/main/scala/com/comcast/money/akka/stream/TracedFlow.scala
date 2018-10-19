@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ trait TracedFlow[In, Out] extends GraphStage[FlowShape[(In, SpanContextWithStack
 
 abstract class TracedFlowLogic[In, Out](implicit
   flowShape: FlowShape[(In, SpanContextWithStack), (Out, SpanContextWithStack)],
-    moneyExtension: MoneyExtension) extends GraphStageLogic(flowShape) {
+  moneyExtension: MoneyExtension) extends GraphStageLogic(flowShape) {
   type TracedOut = (Out, SpanContextWithStack)
   type TracedIn = (In, SpanContextWithStack)
 

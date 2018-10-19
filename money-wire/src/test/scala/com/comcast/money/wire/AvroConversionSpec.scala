@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -42,9 +42,7 @@ class AvroConversionSpec extends WordSpec with Matchers with Inspectors {
           "bob" -> Note.of("bob", "craig"),
           "none" -> Note.of("none", null),
           "bool" -> Note.of("bool", true),
-          "dbl" -> Note.of("dbl", 1.0)
-        )
-      ).asInstanceOf[SpanInfo]
+          "dbl" -> Note.of("dbl", 1.0))).asInstanceOf[SpanInfo]
 
       val bytes = orig.convertTo[Array[Byte]]
       val roundtrip = bytes.convertTo[SpanInfo]

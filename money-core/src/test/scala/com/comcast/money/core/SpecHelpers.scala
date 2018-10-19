@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -73,29 +73,25 @@ trait SpecHelpers extends Eventually { this: Matchers =>
   def expectSpanInfoThat(message: String, condition: SpanInfo => Boolean, wait: FiniteDuration = 2.seconds): Unit = {
     awaitCond(
       LogRecord.contains(condition), wait, 100 milliseconds,
-      s"Expected span info that $message not found after $wait"
-    )
+      s"Expected span info that $message not found after $wait")
   }
 
   def dontExpectSpanInfoThat(message: String, condition: SpanInfo => Boolean, wait: FiniteDuration = 2.seconds): Unit = {
     awaitCond(
       !LogRecord.contains(condition), wait, 100 milliseconds,
-      s"Not expected span info that $message found after $wait"
-    )
+      s"Not expected span info that $message found after $wait")
   }
 
   def expectLogMessageContaining(contains: String, wait: FiniteDuration = 2.seconds) {
     awaitCond(
       LogRecord.contains("log")(_.contains(contains)), wait, 100 milliseconds,
-      s"Expected log message containing string $contains not found after $wait"
-    )
+      s"Expected log message containing string $contains not found after $wait")
   }
 
   def expectLogMessageContainingStrings(strings: Seq[String], wait: FiniteDuration = 2.seconds) {
     awaitCond(
       LogRecord.contains("log")(s => strings.forall(s.contains)), wait, 100 milliseconds,
-      s"Expected log message containing $strings not found after $wait"
-    )
+      s"Expected log message containing $strings not found after $wait")
   }
 
   def testSpan(id: SpanId) = Money.Environment.factory.newSpan(id, "test")

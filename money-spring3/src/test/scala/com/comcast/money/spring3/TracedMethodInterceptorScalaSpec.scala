@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -148,8 +148,7 @@ class SampleScalaBean {
     @TracedData("STRING") str: String,
     @TracedData("BOOLEAN") bool: Boolean,
     @TracedData("LONG") lng: Long,
-    @TracedData("DOUBLE") dbl: Double
-  ) {
+    @TracedData("DOUBLE") dbl: Double) {
 
     return
   }
@@ -159,8 +158,7 @@ class SampleScalaBean {
     @TracedData("STRING") str: String,
     @TracedData("BOOLEAN") bool: java.lang.Boolean,
     @TracedData("LONG") lng: java.lang.Long,
-    @TracedData("DOUBLE") dbl: java.lang.Double
-  ) {
+    @TracedData("DOUBLE") dbl: java.lang.Double) {
 
     return
   }
@@ -168,8 +166,7 @@ class SampleScalaBean {
   @Traced("SampleTrace")
   def doSomethingWithTracedParamsAndNonTracedParams(
     @TracedData("STRING")@NotNull str: String,
-    @NotNull nn: String
-  ): Unit = {
+    @NotNull nn: String): Unit = {
 
     return
   }
@@ -177,8 +174,7 @@ class SampleScalaBean {
   @Traced("SampleTrace")
   def doSomethingWithTracedParamsPropagated(
     @TracedData(value = "STRING", propagate = true)@NotNull str: String,
-    @NotNull nn: String
-  ): Unit = {
+    @NotNull nn: String): Unit = {
 
     return
   }

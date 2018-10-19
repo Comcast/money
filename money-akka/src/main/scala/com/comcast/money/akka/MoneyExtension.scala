@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,9 +41,7 @@ object MoneyExtension extends ExtensionId[MoneyExtension] with ExtensionIdProvid
     Money(
       conf = config.withValue(
         "mdc.enabled",
-        ConfigValueFactory.fromAnyRef(false, "SLF4J's MDC is not supported in an actor system")
-      )
-    )
+        ConfigValueFactory.fromAnyRef(false, "SLF4J's MDC is not supported in an actor system")))
 
   /**
    * Configures and loads the extension when the ActorSystem starts
@@ -67,17 +65,15 @@ object MoneyExtension extends ExtensionId[MoneyExtension] with ExtensionIdProvid
       new MoneyExtension(
         money = money,
         traceFunction = (context: SpanContext) => new Tracer {
-        override val spanFactory: SpanFactory = money.factory
+          override val spanFactory: SpanFactory = money.factory
 
-        override val spanContext: SpanContext = context
-      }
-      )
+          override val spanContext: SpanContext = context
+        })
 
     else
       new MoneyExtension(
         money = money,
-        traceFunction = (_: SpanContext) => money.tracer
-      )
+        traceFunction = (_: SpanContext) => money.tracer)
   }
 
   /**
