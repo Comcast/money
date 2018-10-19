@@ -63,7 +63,7 @@ object Dependencies {
   .exclude("commons-logging", "commons-logging")
 
   val springAop3 = "org.springframework" % "spring-aop" % "3.2.18.RELEASE"
-  val springContext = "org.springframework" % "spring-context" % "4.1.9.RELEASE"
+  val springContext = "org.springframework" % "spring-context" % "4.3.17.RELEASE"
 
   // Test
   val mockito = "org.mockito" % "mockito-core" % "1.9.5" % "test"
