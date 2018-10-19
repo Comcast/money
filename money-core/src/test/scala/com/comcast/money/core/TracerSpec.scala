@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.scalatest.mock.MockitoSugar
 import org.scalatest.{ OneInstancePerTest, BeforeAndAfterEach, Matchers, WordSpec }
 
 class TracerSpec extends WordSpec
-    with Matchers with MockitoSugar with TestData with BeforeAndAfterEach with OneInstancePerTest {
+  with Matchers with MockitoSugar with TestData with BeforeAndAfterEach with OneInstancePerTest {
 
   val mockSpanFactory = mock[SpanFactory]
   val mockSpan = mock[Span]

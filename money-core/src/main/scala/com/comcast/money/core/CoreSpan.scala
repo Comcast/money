@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,10 +31,9 @@ import scala.collection.concurrent.TrieMap
  * @param handler The [[SpanHandler]] responsible for processing the span once it is stopped
  */
 case class CoreSpan(
-    id: SpanId,
-    name: String,
-    handler: SpanHandler
-) extends Span {
+  id: SpanId,
+  name: String,
+  handler: SpanHandler) extends Span {
 
   private var startTimeMillis: Long = 0L
   private var startTimeMicros: Long = 0L
@@ -85,8 +84,7 @@ case class CoreSpan(
       endTimeMicros,
       calculateDuration,
       success,
-      noted.toMap[String, Note[_]]
-    )
+      noted.toMap[String, Note[_]])
 
   private def calculateDuration: Long =
     if (endTimeMicros <= 0L && startTimeMicros <= 0L)

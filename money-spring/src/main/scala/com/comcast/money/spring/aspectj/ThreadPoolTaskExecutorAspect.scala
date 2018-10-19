@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -41,8 +41,7 @@ class ThreadPoolTaskExecutorAspect {
       f => {
         f.setAccessible(true)
         f.get(instance).asInstanceOf[T]
-      }
-    ).getOrElse(null.asInstanceOf[T])
+      }).getOrElse(null.asInstanceOf[T])
   }
 
   def setFieldValue[T](instance: AnyRef, fieldName: String, value: T) = {
@@ -50,13 +49,11 @@ class ThreadPoolTaskExecutorAspect {
       f => {
         f.setAccessible(true)
         f.set(instance, value)
-      }
-    )
+      })
   }
 
   @Pointcut(
-    "execution(* org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor+.initializeExecutor(java.util.concurrent.ThreadFactory, java.util.concurrent.RejectedExecutionHandler)) && args(threadFactory,rejectedExecutionHandler)"
-  )
+    "execution(* org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor+.initializeExecutor(java.util.concurrent.ThreadFactory, java.util.concurrent.RejectedExecutionHandler)) && args(threadFactory,rejectedExecutionHandler)")
   def initializeExecutor(threadFactory: ThreadFactory, rejectedExecutionHandler: RejectedExecutionHandler) = {}
 
   @Around("initializeExecutor(threadFactory, rejectedExecutionHandler)")
@@ -78,8 +75,7 @@ class ThreadPoolTaskExecutorAspect {
       }
 
     val executor: ThreadPoolExecutor = new TraceFriendlyThreadPoolExecutor(
-      corePoolSize, maxPoolSize, keepAliveSeconds, TimeUnit.SECONDS, queue, threadFactory, rejectedExecutionHandler
-    )
+      corePoolSize, maxPoolSize, keepAliveSeconds, TimeUnit.SECONDS, queue, threadFactory, rejectedExecutionHandler)
     if (allowCoreThreadTimeOut) {
       executor.allowCoreThreadTimeOut(true)
     }

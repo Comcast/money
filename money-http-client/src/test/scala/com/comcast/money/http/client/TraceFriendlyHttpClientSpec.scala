@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import org.scalatest._
 import org.scalatest.mock.MockitoSugar
 
 class TraceFriendlyHttpClientSpec extends WordSpec with SpecHelpers
-    with Matchers with MockitoSugar with OneInstancePerTest with BeforeAndAfterEach {
+  with Matchers with MockitoSugar with OneInstancePerTest with BeforeAndAfterEach {
 
   val httpClient = mock[CloseableHttpClient]
   val httpUriRequest = mock[HttpUriRequest]

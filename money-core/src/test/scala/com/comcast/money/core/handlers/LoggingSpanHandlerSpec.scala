@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.scalatest.{ Matchers, OneInstancePerTest, WordSpec }
 import org.slf4j.Logger
 
 class LoggingSpanHandlerSpec extends WordSpec
-    with Matchers with MockitoSugar with OneInstancePerTest with TestData {
+  with Matchers with MockitoSugar with OneInstancePerTest with TestData {
 
   val mockLogger = mock[Logger]
   val mockFormatter = mock[SpanLogFormatter]
@@ -65,8 +65,7 @@ class LoggingSpanHandlerSpec extends WordSpec
           |formatting {
           | this=that
           |}
-        """.stripMargin
-      )
+        """.stripMargin)
 
       underTest.configure(config)
       underTest.handle(testSpanInfo)
@@ -81,8 +80,7 @@ class LoggingSpanHandlerSpec extends WordSpec
           |formatting {
           | this=that
           |}
-        """.stripMargin
-      )
+        """.stripMargin)
 
       underTest.configure(config)
       underTest.handle(testSpanInfo)
@@ -97,8 +95,7 @@ class LoggingSpanHandlerSpec extends WordSpec
           |formatting {
           | this=that
           |}
-        """.stripMargin
-      )
+        """.stripMargin)
 
       underTest.configure(config)
       underTest.handle(testSpanInfo)
@@ -113,8 +110,7 @@ class LoggingSpanHandlerSpec extends WordSpec
           |formatting {
           | this=that
           |}
-        """.stripMargin
-      )
+        """.stripMargin)
 
       underTest.configure(config)
       underTest.handle(testSpanInfo)
@@ -129,8 +125,7 @@ class LoggingSpanHandlerSpec extends WordSpec
           |formatting {
           | this=that
           |}
-        """.stripMargin
-      )
+        """.stripMargin)
 
       underTest.configure(config)
       underTest.handle(testSpanInfo)
@@ -144,8 +139,7 @@ class LoggingSpanHandlerSpec extends WordSpec
           |formatting {
           | this=that
           |}
-        """.stripMargin
-      )
+        """.stripMargin)
 
       underTest.configure(config)
       underTest.handle(testSpanInfo)

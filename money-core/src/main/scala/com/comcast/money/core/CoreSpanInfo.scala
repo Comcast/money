@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,5 +29,4 @@ case class CoreSpanInfo(
   success: java.lang.Boolean = true,
   notes: java.util.Map[String, Note[_]] = new java.util.HashMap[String, Note[_]](),
   appName: String = Money.Environment.applicationName,
-  host: String = Money.Environment.hostName
-) extends SpanInfo
+  host: String = Money.Environment.hostName) extends SpanInfo

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,16 +49,15 @@ object SpanHandlerMatchers {
 
         MatchResult(
           matches = {
-          maybeNames match {
-            case Some(spanNames) if spanNames.isEmpty => false
-            case Some(spanNames) if spanNames.length != expectedSpanNames.length => false
-            case Some(spanNames) => checkNames(spanNames, expectedSpanNames)
-            case _ => false
-          }
-        },
+            maybeNames match {
+              case Some(spanNames) if spanNames.isEmpty => false
+              case Some(spanNames) if spanNames.length != expectedSpanNames.length => false
+              case Some(spanNames) => checkNames(spanNames, expectedSpanNames)
+              case _ => false
+            }
+          },
           rawFailureMessage = s"Names: $maybeNames were not Some($expectedSpanNames)",
-          rawNegatedFailureMessage = s"Names: $maybeNames were Some($expectedSpanNames)"
-        )
+          rawNegatedFailureMessage = s"Names: $maybeNames were Some($expectedSpanNames)")
     }
 
   def haveSomeSpanName(expectedName: String) = haveSomeSpanNames(Seq(expectedName))

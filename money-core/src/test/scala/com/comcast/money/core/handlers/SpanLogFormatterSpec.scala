@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,7 @@ class SpanLogFormatterSpec extends WordSpec with Matchers {
             log-level="INFO"
             emitter="com.comcast.money.emitters.LogRecorder"
           }
-    """
-  )
+    """)
   val spanLogFormatter = SpanLogFormatter(emitterConf)
 
   val sampleData = CoreSpanInfo(
@@ -47,8 +46,7 @@ class SpanLogFormatterSpec extends WordSpec with Matchers {
     appName = "unknown",
     host = "host",
     notes = Map("bob" -> Note.of("bob", "craig"), "what" -> Note.of("what", 1L), "when" -> Note.of("when", 2L)),
-    success = true
-  )
+    success = true)
 
   val withNull = CoreSpanInfo(
     id = SpanId.fromString("SpanId~1~1~1"),
@@ -61,8 +59,7 @@ class SpanLogFormatterSpec extends WordSpec with Matchers {
     appName = "unknown",
     host = "host",
     notes = Map("empty" -> Note.of("empty", null)),
-    success = true
-  )
+    success = true)
 
   "A LogEmitter must" must {
     "have a correctly formatted message" in {
@@ -70,8 +67,7 @@ class SpanLogFormatterSpec extends WordSpec with Matchers {
 
       assert(
         actualMessage === ("Span: [ span-id=1 ][ trace-id=1 ][ parent-id=1 ][ span-name=key ][ app-name=unknown ][ " +
-          "start-time=1 ][ span-duration=35000 ][ span-success=true ][ bob=craig ][ what=1 ][ when=2 ]")
-      )
+          "start-time=1 ][ span-duration=35000 ][ span-success=true ][ bob=craig ][ what=1 ][ when=2 ]"))
     }
     "honor key names from the config" in {
       val conf = ConfigFactory.parseString(
@@ -91,15 +87,13 @@ class SpanLogFormatterSpec extends WordSpec with Matchers {
                   }
                 }
               }
-        """
-      )
+        """)
       val spanLogFormatter = SpanLogFormatter(conf)
 
       val actualMessage = spanLogFormatter.buildMessage(sampleData)
       assert(
         actualMessage === ("Span: [ spanId=1 ][ traceId=1 ][ parentId=1 ][ spanName=key ][ appName=unknown ][ " +
-          "startTime=1 ][ spanDuration=35000 ][ spanSuccess=true ][ bob=craig ][ what=1 ][ when=2 ]")
-      )
+          "startTime=1 ][ spanDuration=35000 ][ spanSuccess=true ][ bob=craig ][ what=1 ][ when=2 ]"))
     }
     "honor the span-start from the config" in {
       val conf = ConfigFactory.parseString(
@@ -110,14 +104,12 @@ class SpanLogFormatterSpec extends WordSpec with Matchers {
                   span-start = "Start :|: "
                 }
               }
-        """
-      )
+        """)
       val spanLogFormatter = SpanLogFormatter(conf)
       val actualMessage = spanLogFormatter.buildMessage(sampleData)
       assert(
         actualMessage === ("Start :|: [ span-id=1 ][ trace-id=1 ][ parent-id=1 ][ span-name=key ][ app-name=unknown ][ " +
-          "start-time=1 ][ span-duration=35000 ][ span-success=true ][ bob=craig ][ what=1 ][ when=2 ]")
-      )
+          "start-time=1 ][ span-duration=35000 ][ span-success=true ][ bob=craig ][ what=1 ][ when=2 ]"))
     }
     "honor the log-template from the config" in {
       val conf = ConfigFactory.parseString(
@@ -128,15 +120,13 @@ class SpanLogFormatterSpec extends WordSpec with Matchers {
                   log-template = "%s=\"%s\" "
                 }
               }
-        """
-      )
+        """)
       val spanLogFormatter = SpanLogFormatter(conf)
       val actualMessage = spanLogFormatter.buildMessage(sampleData)
       assert(
         actualMessage === ("""Span: span-id="1" trace-id="1" parent-id="1" span-name="key" """ +
           """app-name="unknown" start-time="1" span-duration="35000" span-success="true" """ +
-          """bob="craig" what="1" when="2" """)
-      )
+          """bob="craig" what="1" when="2" """))
     }
     "honor the span-duration-ms settings in the config" in {
       val conf = ConfigFactory.parseString(
@@ -150,8 +140,7 @@ class SpanLogFormatterSpec extends WordSpec with Matchers {
                   }
                 }
               }
-        """
-      )
+        """)
       val spanLogFormatter = SpanLogFormatter(conf)
       val actualMessage = spanLogFormatter.buildMessage(sampleData)
 
@@ -172,8 +161,7 @@ class SpanLogFormatterSpec extends WordSpec with Matchers {
                   null-value = "null_value"
                 }
               }
-        """
-      )
+        """)
       val spanLogFormatter = SpanLogFormatter(conf)
       val expectedLogMessage = spanLogFormatter.buildMessage(withNull)
 

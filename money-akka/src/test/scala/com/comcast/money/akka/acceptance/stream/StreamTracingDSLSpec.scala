@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import com.comcast.money.akka.Blocking.RichFuture
 import com.comcast.money.akka.SpanHandlerMatchers.{ haveSomeSpanNames, haveSomeSpanNamesInNoParticularOrder, maybeCollectingSpanHandler }
 import com.comcast.money.akka._
 import com.comcast.money.akka.stream._
+import org.scalatest.Ignore
 
 import scala.concurrent.duration.DurationDouble
 

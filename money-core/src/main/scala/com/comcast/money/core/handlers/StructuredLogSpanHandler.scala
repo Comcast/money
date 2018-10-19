@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,8 @@ import org.slf4j.{ Logger, LoggerFactory, MDC }
  */
 class StructuredLogSpanHandler(
   val logger: Logger = LoggerFactory.getLogger(classOf[StructuredLogSpanHandler]),
-  val mdcFunc: (String, String) => Unit = (x: String, y: String) => MDC.put(x, y)
-)
-    extends ConfigurableHandler {
+  val mdcFunc: (String, String) => Unit = (x: String, y: String) => MDC.put(x, y))
+  extends ConfigurableHandler {
 
   // Extra constructor because java spring programs have a problem with the default function in the constructor above.
   def this() = this(LoggerFactory.getLogger(classOf[StructuredLogSpanHandler]), (k: String, v: String) => MDC.put(k, v))
@@ -76,8 +75,7 @@ class StructuredLogSpanHandler(
       ("start-time", java.time.Instant.ofEpochMilli(spanInfo.startTimeMillis())),
       ("end-time", java.time.Instant.ofEpochMilli(spanInfo.endTimeMillis())),
       ("span-duration", spanInfo.durationMicros()),
-      ("span-success", spanInfo.success())
-    )
+      ("span-success", spanInfo.success()))
     val noteFields: Seq[(String, Any)] = spanInfo.notes.values.asScala.map(n => (n.name(), n.value())).toSeq
     val allFields = baseFields ++ noteFields
 

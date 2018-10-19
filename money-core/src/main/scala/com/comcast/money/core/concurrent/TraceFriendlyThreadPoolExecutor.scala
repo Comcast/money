@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,7 @@ object TraceFriendlyThreadPoolExecutor {
    */
   def newFixedThreadPool(nThreads: Int): ExecutorService = {
     new TraceFriendlyThreadPoolExecutor(
-      nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable]
-    )
+      nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue[Runnable])
   }
 
   /**
@@ -51,8 +50,8 @@ object TraceFriendlyThreadPoolExecutor {
  */
 class TraceFriendlyThreadPoolExecutor(corePoolSize: Int, maximumPoolSize: Int, keepAliveTime: Long, unit: TimeUnit,
   workQueue: BlockingQueue[Runnable])
-    extends ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue)
-    with TraceLogging {
+  extends ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue)
+  with TraceLogging {
 
   lazy val mdcSupport = new MDCSupport()
 
@@ -85,7 +84,6 @@ class TraceFriendlyThreadPoolExecutor(corePoolSize: Int, maximumPoolSize: Int, k
             MDC.clear()
           }
         }
-      }
-    )
+      })
   }
 }

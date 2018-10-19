@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.scalatest.{ Matchers, OneInstancePerTest, WordSpec }
 import org.slf4j.Logger
 
 class StructuredLogSpanHandlerSpec extends WordSpec
-    with Matchers with MockitoSugar with OneInstancePerTest with TestData {
+  with Matchers with MockitoSugar with OneInstancePerTest with TestData {
 
   val mockLogger = mock[Logger]
   val sampleMessage = "sample formatted log message"
@@ -56,8 +56,7 @@ class StructuredLogSpanHandlerSpec extends WordSpec
           case "dbl" => assert(v == "1.2")
           case "bool" => assert(v == "true")
           case k => assert(false, s"Unknown property $k:$v added to MDC")
-        }
-      )
+        })
 
       handler.handle(fixedTestSpanInfo)
 
@@ -72,8 +71,7 @@ class StructuredLogSpanHandlerSpec extends WordSpec
           |formatting {
           | this=that
           |}
-        """.stripMargin
-      )
+        """.stripMargin)
 
       underTest.configure(config)
       underTest.handle(fixedTestSpanInfo)
@@ -88,8 +86,7 @@ class StructuredLogSpanHandlerSpec extends WordSpec
           |formatting {
           | this=that
           |}
-        """.stripMargin
-      )
+        """.stripMargin)
 
       underTest.configure(config)
       underTest.handle(fixedTestSpanInfo)
@@ -104,8 +101,7 @@ class StructuredLogSpanHandlerSpec extends WordSpec
           |formatting {
           | this=that
           |}
-        """.stripMargin
-      )
+        """.stripMargin)
 
       underTest.configure(config)
       underTest.handle(fixedTestSpanInfo)
@@ -120,8 +116,7 @@ class StructuredLogSpanHandlerSpec extends WordSpec
           |formatting {
           | this=that
           |}
-        """.stripMargin
-      )
+        """.stripMargin)
 
       underTest.configure(config)
       underTest.handle(fixedTestSpanInfo)
@@ -136,8 +131,7 @@ class StructuredLogSpanHandlerSpec extends WordSpec
           |formatting {
           | this=that
           |}
-        """.stripMargin
-      )
+        """.stripMargin)
 
       underTest.configure(config)
       underTest.handle(fixedTestSpanInfo)
@@ -151,8 +145,7 @@ class StructuredLogSpanHandlerSpec extends WordSpec
           |formatting {
           | this=that
           |}
-        """.stripMargin
-      )
+        """.stripMargin)
 
       underTest.configure(config)
       underTest.handle(fixedTestSpanInfo)

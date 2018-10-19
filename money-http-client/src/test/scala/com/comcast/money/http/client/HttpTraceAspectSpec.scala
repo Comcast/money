@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,14 +34,14 @@ import org.scalatest.mock.MockitoSugar
 import scala.concurrent.duration._
 
 class HttpTraceAspectSpec
-    extends FeatureSpec
-    with SpecHelpers
-    with Matchers
-    with MockitoSugar
-    with OneInstancePerTest
-    with GivenWhenThen
-    with BeforeAndAfter
-    with BeforeAndAfterAll {
+  extends FeatureSpec
+  with SpecHelpers
+  with Matchers
+  with MockitoSugar
+  with OneInstancePerTest
+  with GivenWhenThen
+  with BeforeAndAfter
+  with BeforeAndAfterAll {
 
   val mockHttpClient: HttpClient = mock[HttpClient]
   val mockHttpRequest: HttpUriRequest = mock[HttpUriRequest]

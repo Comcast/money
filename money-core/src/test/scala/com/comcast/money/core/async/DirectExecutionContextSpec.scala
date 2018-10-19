@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,8 +22,8 @@ import org.scalatest.{ Matchers, OneInstancePerTest, WordSpecLike }
 import org.scalatest.mock.MockitoSugar
 
 class DirectExecutionContextSpec
-    extends WordSpecLike
-    with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest with SpecHelpers {
+  extends WordSpecLike
+  with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest with SpecHelpers {
 
   val underTest = new DirectExecutionContext()
 

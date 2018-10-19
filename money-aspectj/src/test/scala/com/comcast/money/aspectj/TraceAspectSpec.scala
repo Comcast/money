@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,8 +31,8 @@ import scala.concurrent.duration._
 import scala.util.{ Failure, Try }
 
 class TraceAspectSpec extends WordSpec
-    with GivenWhenThen with OneInstancePerTest with BeforeAndAfterEach with Matchers with MockitoSugar with Eventually
-    with SpecHelpers {
+  with GivenWhenThen with OneInstancePerTest with BeforeAndAfterEach with Matchers with MockitoSugar with Eventually
+  with SpecHelpers {
 
   @Traced("methodWithArguments")
   def methodWithArguments(@TracedData("foo") foo: String, @TracedData("CUSTOM_NAME") bar: String) = {
@@ -59,50 +59,43 @@ class TraceAspectSpec extends WordSpec
   @Traced("methodWithArgumentsPropagated")
   def methodWithArgumentsPropagated(
     @TracedData(value = "PROPAGATE", propagate = true) foo: String,
-    @TracedData("CUSTOM_NAME") bar: String
-  ) = {
+    @TracedData("CUSTOM_NAME") bar: String) = {
     Thread.sleep(50)
     methodWithoutArguments()
   }
 
   @Traced(
     value = "methodWithIgnoredException",
-    ignoredExceptions = Array(classOf[IllegalArgumentException])
-  )
+    ignoredExceptions = Array(classOf[IllegalArgumentException]))
   def methodWithIgnoredException() = {
     throw new IllegalArgumentException("ignored")
   }
 
   @Traced(
     value = "methodWithNonMatchingIgnoredException",
-    ignoredExceptions = Array(classOf[IllegalArgumentException])
-  )
+    ignoredExceptions = Array(classOf[IllegalArgumentException]))
   def methodWithNonMatchingIgnoredException() = {
     throw new RuntimeException("not-ignored")
   }
 
   @Traced(
     value = "asyncMethodReturnsFuture",
-    async = true
-  )
+    async = true)
   def asyncMethodReturnsFuture(future: Future[String]): Future[String] = future
 
   @Traced(
     value = "asyncMethodReturnsNull",
-    async = true
-  )
+    async = true)
   def asyncMethodReturnsNull(): Future[String] = null
 
   @Traced(
     value = "asyncMethodReturnsNonFuture",
-    async = true
-  )
+    async = true)
   def asyncMethodReturnsNonFuture(): AnyRef = new Object
 
   @Traced(
     value = "asyncMethodThrowingException",
-    async = true
-  )
+    async = true)
   def asyncMethodThrowingException(): AnyRef = {
     Thread.sleep(50)
     throw new RuntimeException()
@@ -111,8 +104,7 @@ class TraceAspectSpec extends WordSpec
   @Traced(
     value = "asyncMethodWithIgnoredException",
     async = true,
-    ignoredExceptions = Array(classOf[IllegalArgumentException])
-  )
+    ignoredExceptions = Array(classOf[IllegalArgumentException]))
   def asyncMethodWithIgnoredException(): AnyRef = {
     throw new IllegalArgumentException("ignored")
   }
@@ -120,8 +112,7 @@ class TraceAspectSpec extends WordSpec
   @Traced(
     value = "asyncMethodWithNonMatchingIgnoredException",
     async = true,
-    ignoredExceptions = Array(classOf[IllegalArgumentException])
-  )
+    ignoredExceptions = Array(classOf[IllegalArgumentException]))
   def asyncMethodWithNonMatchingIgnoredException(): AnyRef = {
     throw new RuntimeException("not-ignored")
   }
@@ -129,8 +120,7 @@ class TraceAspectSpec extends WordSpec
   @Traced(
     value = "asyncMethodWithIgnoredException",
     async = true,
-    ignoredExceptions = Array(classOf[IllegalArgumentException])
-  )
+    ignoredExceptions = Array(classOf[IllegalArgumentException]))
   def asyncMethodWithIgnoredException(future: Future[String]): Future[String] = future
 
   @Timed("methodWithTiming")
@@ -352,8 +342,7 @@ class TraceAspectSpec extends WordSpec
         expectLogMessageContaining("hello")
 
         And(
-          "the values of the arguments that have a custom name for the TracedData annotation log using the custom name"
-        )
+          "the values of the arguments that have a custom name for the TracedData annotation log using the custom name")
         expectLogMessageContaining("CUSTOM_NAME=bob")
       }
       "record parameters whose value is null" in {

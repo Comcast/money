@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -62,8 +62,7 @@ object TracedBuilder {
         case unsupportedShape =>
           throw UnsupportedUniformFanOutShape(
             s"Attempted tracedAdd of unsupported UniformFanOutShape: $unsupportedShape.\n" +
-              s"Supported shapes are Partition, Broadcast and Balance"
-          )
+              s"Supported shapes are Partition, Broadcast and Balance")
       }
     }
 
@@ -78,8 +77,7 @@ object TracedBuilder {
         case unsupportedShape =>
           throw UnsupportedUniformFanInShape(
             s"Attempted tracedAdd of unsupported UniformFanInShape: $unsupportedShape.\n" +
-              s"Supported shapes are Merge, Interleave and MergePrioritised"
-          )
+              s"Supported shapes are Merge, Interleave and MergePrioritised")
       }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -107,8 +107,7 @@ class TestStreams(implicit moneyExtension: MoneyExtension) {
 
   def fanOutFanIn(
     fanInCreator: TracedBuilder => UniformFanInShape[(String, TraceContext), (String, TraceContext)] = _.tracedConcat(),
-    fanOutRaw: GraphStage[UniformFanOutShape[String, String]] = Partition[String](2, partitioner)
-  )(implicit
+    fanOutRaw: GraphStage[UniformFanOutShape[String, String]] = Partition[String](2, partitioner))(implicit
     fisck: FanInSpanKeyCreator[String] = DefaultFanInSpanKeyCreator[String],
     fosck: FanOutSpanKeyCreator[String] = DefaultFanOutSpanKeyCreator[String]) =
 
@@ -171,8 +170,7 @@ class TestStreams(implicit moneyExtension: MoneyExtension) {
         val iterator = List("chunk1", "chunk2", "chunk3").iterator
         asyncFlowCreator(builder) fold (
           asyncFlow => Source.fromIterator(() => iterator) ~|> asyncFlow ~| sink.in,
-          asyncUnorderedFlow => Source.fromIterator(() => iterator) ~|> asyncUnorderedFlow ~| sink.in
-        )
+          asyncUnorderedFlow => Source.fromIterator(() => iterator) ~|> asyncUnorderedFlow ~| sink.in)
 
         ClosedShape
       }

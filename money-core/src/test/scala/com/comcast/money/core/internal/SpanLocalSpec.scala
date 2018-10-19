@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.scalatest.{ OneInstancePerTest, BeforeAndAfterEach, Matchers, WordSpe
 import org.slf4j.MDC
 
 class SpanLocalSpec extends WordSpec
-    with Matchers with OneInstancePerTest with BeforeAndAfterEach with MockitoSugar with TestData {
+  with Matchers with OneInstancePerTest with BeforeAndAfterEach with MockitoSugar with TestData {
 
   override def afterEach() = {
     SpanLocal.clear()

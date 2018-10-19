@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,9 +46,9 @@ class TestKafkaSpanHandler extends KafkaSpanHandler {
 }
 
 class KafkaSpanHandlerSpec extends WordSpec
-    with Matchers
-    with MockitoSugar
-    with BeforeAndAfterAll {
+  with Matchers
+  with MockitoSugar
+  with BeforeAndAfterAll {
 
   trait KafkaFixture {
     val testConfig = mock[Config]
@@ -66,8 +66,7 @@ class KafkaSpanHandlerSpec extends WordSpec
       startTimeMillis = 1L,
       success = true,
       durationMicros = 35L,
-      notes = Map("what" -> api.Note.of("what", 1L), "when" -> api.Note.of("when", 2L), "bob" -> api.Note.of("bob", "craig"))
-    )
+      notes = Map("what" -> api.Note.of("what", 1L), "when" -> api.Note.of("when", 2L), "bob" -> api.Note.of("bob", "craig")))
   }
 
   "A KafkaEmitter" should {
@@ -93,8 +92,7 @@ class KafkaSpanHandlerSpec extends WordSpec
           | message.send.max.retries = "3"
           | request.required.acks = "0"
           | metadata.broker.list = "localhost:9092"
-        """.stripMargin
-      )
+        """.stripMargin)
       val testHandler = new KafkaSpanHandler()
       testHandler.configure(config)
 

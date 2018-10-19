@@ -1,12 +1,11 @@
 language: scala
-jdk: oraclejdk7
+jdk: oraclejdk8
 
 scala:
-  - 2.10.6
-  - 2.11.7
+  - 2.12.6
 
 script:
-  -  sbt ++$TRAVIS_SCALA_VERSION clean coverage test it:test coverageReport
+  -  sbt ++$TRAVIS_SCALA_VERSION clean coverage test coverageReport
   -  sbt ++$TRAVIS_SCALA_VERSION coverageAggregate
 
 after_success:

@@ -1,0 +1,2 @@
+-XX:MaxMetaspaceSize=512M
+-Djava.net.preferIPv4Stack=true

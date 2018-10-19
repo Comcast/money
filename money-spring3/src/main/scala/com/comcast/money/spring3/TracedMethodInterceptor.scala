@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,8 +34,8 @@ import org.springframework.stereotype.Component
  */
 @Component
 class TracedMethodInterceptor @Autowired() (@Qualifier("springTracer") val tracer: SpringTracer)
-    extends MethodInterceptor
-    with Reflections with TraceLogging {
+  extends MethodInterceptor
+  with Reflections with TraceLogging {
 
   val mdcSupport = new MDCSupport()
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012-2015 Comcast Cable Communications Management, LLC
+ * Copyright 2012 Comcast Cable Communications Management, LLC
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,11 +33,10 @@ class FormattersSpec extends WordSpec with Matchers with GeneratorDrivenProperty
     "read a money http header" in {
       forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
         val expectedSpanId = new SpanId(traceIdValue.toString, parentSpanIdValue, spanIdValue)
-          val spanId = fromMoneyHeader(
-            getHeader =  {
+        val spanId = fromMoneyHeader(
+          getHeader = {
             case MoneyTraceHeader => MoneyHeaderFormat.format(expectedSpanId.traceId, expectedSpanId.parentId, expectedSpanId.selfId)
-          }
-          )
+          })
         spanId shouldBe Some(expectedSpanId)
       }
     }
@@ -45,10 +44,9 @@ class FormattersSpec extends WordSpec with Matchers with GeneratorDrivenProperty
     "fail to read a badly formatted money http header" in {
       forAll { (traceIdValue: String, parentSpanIdValue: String, spanIdValue: String) =>
         val spanId = fromMoneyHeader(
-          getHeader =  {
-          case MoneyTraceHeader => MoneyHeaderFormat.format(traceIdValue, parentSpanIdValue, spanIdValue)
-        }
-        )
+          getHeader = {
+            case MoneyTraceHeader => MoneyHeaderFormat.format(traceIdValue, parentSpanIdValue, spanIdValue)
+          })
         spanId shouldBe None
       }
     }
@@ -59,8 +57,7 @@ class FormattersSpec extends WordSpec with Matchers with GeneratorDrivenProperty
         toMoneyHeader(spanId, (header, value) => {
           header shouldBe Formatters.MoneyTraceHeader
           value shouldBe MoneyHeaderFormat.format(traceIdValue, parentSpanIdValue, spanIdValue)
-        }
-        )
+        })
       }
     }
 
@@ -69,19 +66,17 @@ class FormattersSpec extends WordSpec with Matchers with GeneratorDrivenProperty
         val expectedSpanId = new SpanId(traceIdValue.toString, parentSpanIdValue, spanIdValue)
         val spanId = fromB3HttpHeaders(
           getHeader = {
-          case B3TraceIdHeader => traceIdValue.toString.fromGuid
-          case B3ParentSpanIdHeader => parentSpanIdValue.toHexString
-          case B3SpanIdHeader => spanIdValue.toHexString
-        }
-        )
+            case B3TraceIdHeader => traceIdValue.toString.fromGuid
+            case B3ParentSpanIdHeader => parentSpanIdValue.toHexString
+            case B3SpanIdHeader => spanIdValue.toHexString
+          })
         spanId shouldBe Some(expectedSpanId)
         val maybeRootSpanId = fromB3HttpHeaders(
           getHeader = {
-          case B3TraceIdHeader => traceIdValue.toString.fromGuid
-          case B3SpanIdHeader => spanIdValue.toHexString
-          case _ => null
-        }
-        )
+            case B3TraceIdHeader => traceIdValue.toString.fromGuid
+            case B3SpanIdHeader => spanIdValue.toHexString
+            case _ => null
+          })
         val rootSpanId = maybeRootSpanId
         rootSpanId should not be None
         rootSpanId.get.traceId shouldBe traceIdValue.toString
@@ -94,11 +89,10 @@ class FormattersSpec extends WordSpec with Matchers with GeneratorDrivenProperty
       forAll { (traceIdValue: String, parentSpanIdValue: String, spanIdValue: String) =>
         val spanId = fromB3HttpHeaders(
           getHeader = {
-          case B3TraceIdHeader => traceIdValue
-          case B3ParentSpanIdHeader => parentSpanIdValue
-          case B3SpanIdHeader => spanIdValue
-        }
-        )
+            case B3TraceIdHeader => traceIdValue
+            case B3ParentSpanIdHeader => parentSpanIdValue
+            case B3SpanIdHeader => spanIdValue
+          })
         spanId shouldBe None
       }
     }
