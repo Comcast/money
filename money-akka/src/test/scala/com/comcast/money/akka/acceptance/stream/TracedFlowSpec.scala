@@ -52,16 +52,14 @@ class TracedFlowSpec extends AkkaMoneyScope {
       .via(new TestFlowShape("flow-1"))
       .via(new TestFlowShape("flow-2"))
       .via(new TestFlowShape("flow-3", isFinalFlow = true))
-      .toMat(Sink.seq)(Keep.right)
-      .run()
+      .runWith(Sink.seq)
 
   def multithreadedTestStream()(implicit spanContextWithStack: SpanContextWithStack, moneyExtension: MoneyExtension) =
     Source[(String, SpanContextWithStack)](List(("", spanContextWithStack)))
       .via(new TestFlowShape("flow-1").async)
       .via(new TestFlowShape("flow-2").async)
       .via(new TestFlowShape("flow-3", isFinalFlow = true).async)
-      .toMat(Sink.seq)(Keep.right)
-      .run()
+      .runWith(Sink.seq)
 
   class TestFlowShape(id: String, isFinalFlow: Boolean = false)(implicit moneyExtension: MoneyExtension) extends TracedFlow[String, String] {
 

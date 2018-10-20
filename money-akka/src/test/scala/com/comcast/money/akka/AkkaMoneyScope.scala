@@ -44,7 +44,7 @@ abstract class AkkaMoneyScope extends WordSpecLike with Matchers with BeforeAndA
 
   implicit val matierializer: ActorMaterializer = ActorMaterializer()
 
-  override def afterAll = TestKit.shutdownActorSystem(actorSystem)
+  override def afterAll(): Unit = TestKit.shutdownActorSystem(actorSystem)
 
   override def beforeEach(): Unit = clearHandlerChain
 }
