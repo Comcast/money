@@ -28,7 +28,7 @@ import org.scalatest.Ignore
 class TracedFlowSpec extends AkkaMoneyScope {
 
   "MoneyExtension should pass a span through an Akka Stream" in {
-    implicit val moneyExtension: MoneyExtension = MoneyExtension(system)
+    implicit val moneyExtension: MoneyExtension = MoneyExtension(actorSystem)
     implicit val spanContextWithStack: SpanContextWithStack = new SpanContextWithStack
 
     testStream().get()
@@ -37,7 +37,7 @@ class TracedFlowSpec extends AkkaMoneyScope {
   }
 
   "MoneyExtension should pass a span through an asynchronous Akka Stream" in {
-    implicit val moneyExtension: MoneyExtension = MoneyExtension(system)
+    implicit val moneyExtension: MoneyExtension = MoneyExtension(actorSystem)
     implicit val spanContextWithStack: SpanContextWithStack = new SpanContextWithStack
 
     multithreadedTestStream().get()
