@@ -16,24 +16,48 @@
 
 package com.comcast.money.akka.acceptance.http
 
+import akka.actor.ActorSystem
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.http.scaladsl.model.HttpHeader.ParsingResult.{ Error, Ok }
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
+import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.http.scaladsl.unmarshalling.Unmarshal
 import akka.stream.scaladsl.Source
 import com.comcast.money.akka.Blocking.RichFuture
-import com.comcast.money.akka.SpanHandlerMatchers.{ haveSomeSpanName, maybeCollectingSpanHandler }
+import com.comcast.money.akka.SpanHandlerMatchers.{ clearHandlerChain, haveSomeSpanName, maybeCollectingSpanHandler }
 import com.comcast.money.akka.http._
-import com.comcast.money.akka.{ AkkaMoneyScope, CollectingSpanHandler, TestStreams }
+import com.comcast.money.akka.{ CollectingSpanHandler, MoneyExtension, TestStreams }
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.Formatters
+import com.typesafe.config.{ Config, ConfigFactory }
 import org.scalatest.matchers.{ MatchResult, Matcher }
+import org.scalatest.{ BeforeAndAfterEach, Matchers, WordSpecLike }
 
 import scala.concurrent.duration.{ DurationDouble, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
 
-class MoneyTraceSpec extends AkkaMoneyScope {
+class MoneyTraceSpec extends WordSpecLike with ScalatestRouteTest with BeforeAndAfterEach with Matchers {
+
+  override def testConfig: Config = {
+    val configString: String =
+      """
+        | money {
+        |  handling = {
+        |    async = false
+        |    handlers = [
+        |    {
+        |      class = "com.comcast.money.akka.CollectingSpanHandler"
+        |      log-level = "INFO"
+        |    }]
+        |  }
+        | }""".stripMargin
+    ConfigFactory.parseString(configString)
+  }
+
+  override def beforeEach(): Unit = clearHandlerChain
+
+  implicit val moneyExtension: MoneyExtension = MoneyExtension(system)
 
   "A Akka Http route with a MoneyDirective" should {
     "start a span for a request" in {
@@ -133,17 +157,17 @@ class MoneyTraceSpec extends AkkaMoneyScope {
     get {
       pathSingleSlash {
         MoneyTrace {
-          (_: TracedRequest) => TracedResponse(HttpResponse(entity = "response"))
+          _: TracedRequest => TracedResponse(HttpResponse(entity = "response"))
         }
       } ~
         path("chunked") {
           MoneyTrace fromChunkedSource {
-            (_: TracedRequest) => source
+            _: TracedRequest => source
           }
         } ~
         path("async") {
           MoneyTrace {
-            (_: TracedRequest) => Future(TracedResponse(HttpResponse(entity = "asyncResponse")))
+            _: TracedRequest => Future(TracedResponse(HttpResponse(entity = "asyncResponse")))
           }
         }
     }

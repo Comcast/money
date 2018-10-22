@@ -17,42 +17,34 @@
 package com.comcast.money.akka
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.testkit.ScalatestRouteTest
 import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import com.comcast.money.akka.SpanHandlerMatchers.clearHandlerChain
 import com.typesafe.config.ConfigFactory
 import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike }
 
-import scala.concurrent.ExecutionContextExecutor
+abstract class AkkaMoneyScope extends WordSpecLike with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
 
-abstract class AkkaMoneyScope(override val system: ActorSystem) extends TestKit(system) with WordSpecLike with Matchers with ScalatestRouteTest with BeforeAndAfterAll with BeforeAndAfterEach {
-  def this() = this{
-    val configString: String =
-      """
-        | money {
-        |  handling = {
-        |    async = false
-        |    handlers = [
-        |    {
-        |      class = "com.comcast.money.akka.CollectingSpanHandler"
-        |      log-level = "INFO"
-        |    }]
-        |  }
-        | }""".stripMargin
+  val configString: String =
+    """
+      | money {
+      |  handling = {
+      |    async = false
+      |    handlers = [
+      |    {
+      |      class = "com.comcast.money.akka.CollectingSpanHandler"
+      |      log-level = "INFO"
+      |    }]
+      |  }
+      | }""".stripMargin
 
-    ActorSystem("MoneyAkkaScope", ConfigFactory.parseString(configString))
-  }
+  implicit val actorSystem: ActorSystem = ActorSystem("MoneyAkkaScope", ConfigFactory.parseString(configString))
 
-  implicit val actorSystem: ActorSystem = system
-
-  implicit val moneyExtension: MoneyExtension = MoneyExtension(system)
+  implicit val moneyExtension: MoneyExtension = MoneyExtension(actorSystem)
 
   implicit val matierializer: ActorMaterializer = ActorMaterializer()
 
-  override implicit val executor: ExecutionContextExecutor = actorSystem.dispatcher
-
-  override def afterAll = TestKit.shutdownActorSystem(system)
+  override def afterAll(): Unit = TestKit.shutdownActorSystem(actorSystem)
 
   override def beforeEach(): Unit = clearHandlerChain
 }

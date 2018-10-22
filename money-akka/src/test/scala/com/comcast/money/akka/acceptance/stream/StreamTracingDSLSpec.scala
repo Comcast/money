@@ -24,11 +24,13 @@ import com.comcast.money.akka._
 import com.comcast.money.akka.stream._
 import org.scalatest.Ignore
 
+import scala.concurrent.ExecutionContextExecutor
 import scala.concurrent.duration.DurationDouble
 
 class StreamTracingDSLSpec extends AkkaMoneyScope {
 
   val testStreams = new TestStreams
+  implicit val executor: ExecutionContextExecutor = actorSystem.dispatcher
 
   import TestStreamConstants._
 
