@@ -16,18 +16,18 @@
 
 package com.comcast.money.http.client
 
-import java.io.Closeable
+import java.io.{Closeable, IOException}
 
-import com.comcast.money.core.{ Formatters, Tracer, Money }
+import com.comcast.money.core.{Formatters, Money, Tracer}
 import com.comcast.money.core.Tracers._
 import com.comcast.money.core.internal.SpanLocal
 import org.apache.http.client.methods.HttpUriRequest
-import org.apache.http.client.{ HttpClient, ResponseHandler }
+import org.apache.http.client.{ClientProtocolException, HttpClient, ResponseHandler}
 import org.apache.http.conn.ClientConnectionManager
-import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.params.HttpParams
 import org.apache.http.protocol.HttpContext
-import org.apache.http.{ HttpHost, HttpRequest, HttpResponse }
+import org.apache.http.{HttpHost, HttpRequest, HttpResponse}
 
 import scala.util.Try
 
@@ -77,18 +77,26 @@ class TraceFriendlyHttpClient(wrapee: HttpClient) extends HttpClient with java.i
 
   override def getConnectionManager: ClientConnectionManager = wrapee.getConnectionManager
 
+  @throws(classOf[IOException])
+  @throws(classOf[ClientProtocolException])
   override def execute(request: HttpUriRequest): HttpResponse = wrapSimpleExecute(request, tracer) {
     wrapee.execute(request)
   }
 
+  @throws(classOf[IOException])
+  @throws(classOf[ClientProtocolException])
   override def execute(request: HttpUriRequest, context: HttpContext): HttpResponse = wrapSimpleExecute(request, tracer) {
     wrapee.execute(request, context)
   }
 
+  @throws(classOf[IOException])
+  @throws(classOf[ClientProtocolException])
   override def execute(target: HttpHost, request: HttpRequest): HttpResponse = wrapSimpleExecute(request, tracer) {
     wrapee.execute(target, request)
   }
 
+  @throws(classOf[IOException])
+  @throws(classOf[ClientProtocolException])
   override def execute(target: HttpHost, request: HttpRequest, context: HttpContext): HttpResponse = wrapSimpleExecute(
     request, tracer) {
     wrapee.execute(target, request, context)
@@ -101,24 +109,33 @@ class TraceFriendlyHttpClient(wrapee: HttpClient) extends HttpClient with java.i
    * then we are screwed
    */
 
+  @throws(classOf[IOException])
+  @throws(classOf[ClientProtocolException])
   override def execute[T](request: HttpUriRequest, responseHandler: ResponseHandler[_ <: T]): T = {
     wrapee.execute(request, responseHandler)
   }
 
+  @throws(classOf[IOException])
+  @throws(classOf[ClientProtocolException])
   override def execute[T](request: HttpUriRequest, responseHandler: ResponseHandler[_ <: T],
     context: HttpContext): T = {
     wrapee.execute(request, responseHandler, context)
   }
 
+  @throws(classOf[IOException])
+  @throws(classOf[ClientProtocolException])
   override def execute[T](target: HttpHost, request: HttpRequest, responseHandler: ResponseHandler[_ <: T]): T = {
     wrapee.execute(target, request, responseHandler)
   }
 
+  @throws(classOf[IOException])
+  @throws(classOf[ClientProtocolException])
   override def execute[T](target: HttpHost, request: HttpRequest, responseHandler: ResponseHandler[_ <: T],
     context: HttpContext): T = {
     wrapee.execute(target, request, responseHandler, context)
   }
 
+  @throws(classOf[IOException])
   override def close(): Unit = {
     if (wrapee.isInstanceOf[CloseableHttpClient])
       wrapee.asInstanceOf[CloseableHttpClient].close()
