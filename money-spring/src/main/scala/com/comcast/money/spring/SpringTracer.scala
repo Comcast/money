@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.comcast.money.spring3
+package com.comcast.money.spring
 
 import com.comcast.money.api.Note
 import com.comcast.money.core._
@@ -30,7 +30,7 @@ class SpringTracer extends Tracer {
   override val spanFactory = Money.Environment.factory
   private var tracer = Money.Environment.tracer
 
-  private[spring3] def setTracer(toSet: Tracer): Unit =
+  private[spring] def setTracer(toSet: Tracer): Unit =
     tracer = toSet
 
   /**

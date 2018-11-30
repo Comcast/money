@@ -8,10 +8,10 @@
 		http://www.mockito.org/spring/mockito http://www.mockito.org/spring/mockito.xsd">
 
     <context:annotation-config/>
-    <context:component-scan base-package="com.comcast.money.spring3"/>
+    <context:component-scan base-package="com.comcast.money.spring"/>
 
     <!-- Uses SpringOckito to supplant the real spring tracer for a mock so we can verify -->
-    <mockito:mock id="springTracer" class="com.comcast.money.spring3.SpringTracer" />
+    <mockito:mock id="springTracer" class="com.comcast.money.spring.SpringTracer" />
 
     <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator">
         <property name="proxyTargetClass" value="true"/>

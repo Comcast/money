@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package com.comcast.money.spring3
+package com.comcast.money.spring
 
 import com.comcast.money.core.Formatters
 import com.comcast.money.core.internal.SpanLocal
-import org.springframework.http.HttpRequest
-import org.springframework.http.client.{ ClientHttpRequestExecution, ClientHttpRequestInterceptor, ClientHttpResponse }
 import org.springframework.stereotype.Component
 
 /**
@@ -32,7 +30,7 @@ import org.springframework.stereotype.Component
  * <pre>
  *
  * {@literal @}SpringBootApplication
- * {@literal @}ComponentScan (basePackages = {"com.comcast.money.spring3"})
+ * {@literal @}ComponentScan (basePackages = {"com.comcast.money.spring"})
  *  public class Application {
  *
  *    {@literal @}Autowired MoneyClientHttpRequestInterceptor moneyClientHttpRequestInterceptor;

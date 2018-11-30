@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.comcast.money.spring3;
+package com.comcast.money.spring;
 
 import org.junit.After;
 import org.junit.Before;
@@ -30,11 +30,9 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import com.comcast.money.api.Note;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Matchers.anyBoolean;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration("classpath:test-context.xml")

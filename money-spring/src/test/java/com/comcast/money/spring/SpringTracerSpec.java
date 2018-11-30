@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.comcast.money.spring3;
+package com.comcast.money.spring;
 
 import org.junit.Before;
 import org.junit.Test;

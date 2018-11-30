@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.comcast.money.spring3
+package com.comcast.money.spring
 
 import java.lang.reflect.Method
 

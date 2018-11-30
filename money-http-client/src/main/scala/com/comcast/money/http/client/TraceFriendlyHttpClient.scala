@@ -16,18 +16,18 @@
 
 package com.comcast.money.http.client
 
-import java.io.{Closeable, IOException}
+import java.io.{ Closeable, IOException }
 
-import com.comcast.money.core.{Formatters, Money, Tracer}
+import com.comcast.money.core.{ Formatters, Money, Tracer }
 import com.comcast.money.core.Tracers._
 import com.comcast.money.core.internal.SpanLocal
 import org.apache.http.client.methods.HttpUriRequest
-import org.apache.http.client.{ClientProtocolException, HttpClient, ResponseHandler}
+import org.apache.http.client.{ ClientProtocolException, HttpClient, ResponseHandler }
 import org.apache.http.conn.ClientConnectionManager
 import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.params.HttpParams
 import org.apache.http.protocol.HttpContext
-import org.apache.http.{HttpHost, HttpRequest, HttpResponse}
+import org.apache.http.{ HttpHost, HttpRequest, HttpResponse }
 
 import scala.util.Try
 
