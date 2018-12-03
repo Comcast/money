@@ -18,6 +18,8 @@ package com.comcast.money.spring
 
 import com.comcast.money.core.Formatters
 import com.comcast.money.core.internal.SpanLocal
+import org.springframework.http.HttpRequest
+import org.springframework.http.client.{ ClientHttpRequestExecution, ClientHttpRequestInterceptor, ClientHttpResponse }
 import org.springframework.stereotype.Component
 
 /**

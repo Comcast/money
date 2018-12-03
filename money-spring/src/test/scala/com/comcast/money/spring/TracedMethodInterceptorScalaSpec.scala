@@ -25,6 +25,7 @@ import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ BeforeAndAfterEach, Matchers, WordSpec }
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
+import org.springframework.test.context.{ ContextConfiguration, TestContextManager }
 
 @ContextConfiguration(Array("classpath:test-context.xml"))
 class TracedMethodInterceptorScalaSpec extends WordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
