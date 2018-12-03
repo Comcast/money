@@ -155,9 +155,15 @@ lazy val moneySpring =
       libraryDependencies ++=
         Seq(
           typesafeConfig,
+          springWeb,
+          springAop,
+          springContext,
+          junit,
           scalaTest,
           mockito,
-          springContext
+          assertj,
+          springTest,
+          springOckito
         )
     )
     .dependsOn(moneyCore)
