@@ -185,7 +185,7 @@ def aspectjProjectSettings = projectSettings ++ Seq(
 
 def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings ++ Seq(
   organization := "com.comcast.money",
-  version := "0.9.0-RC3",
+  version := "0.9.0-SNAPSHOT",
   scalaVersion := "2.12.6",
   resolvers ++= Seq(
     "spray repo" at "http://repo.spray.io/",

@@ -1,29 +1,25 @@
 package com.comcast.money.samples.springmvc.config;
 
-import java.util.concurrent.ExecutorService;
-
+import com.comcast.money.core.concurrent.TraceFriendlyThreadPoolExecutor;
+import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
 
-import com.comcast.money.api.TraceFriendlyExecutors;
-import com.comcast.money.spring.TracedMethodInterceptor;
-import com.comcast.money.spring.TracedMethodAdvisor;
-import com.comcast.money.spring.SpringTracer;
+import java.util.concurrent.ExecutorService;
 
 @Configuration
 @ComponentScan(basePackages = {"com.comcast.money.samples.springmvc", "com.comcast.money.spring"})
 public class AppConfig {
 
     @Bean(destroyMethod = "shutdown")
-    public ExecutorService asyncRootService() {
-        return TraceFriendlyExecutors.newCachedThreadPool();
+    public ExecutorService nestedServiceExecutor() {
+        return TraceFriendlyThreadPoolExecutor.newCachedThreadPool();
     }
 
     @Bean(destroyMethod = "shutdown")
-    public ExecutorService asyncNestedService(){
-        return TraceFriendlyExecutors.newCachedThreadPool();
+    public ExecutorService rootServiceExecutor(){
+        return TraceFriendlyThreadPoolExecutor.newCachedThreadPool();
     }
 
     @Bean
