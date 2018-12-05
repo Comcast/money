@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package com.comcast.money.spring3
+package com.comcast.money.spring
 
 import com.comcast.money.annotations.{ Traced, TracedData }
 import com.comcast.money.api.Note
-import com.comcast.money.core._
 import com.sun.istack.internal.NotNull
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
 import org.scalatest.{ BeforeAndAfterEach, Matchers, WordSpec }
@@ -44,7 +42,7 @@ class TracedMethodInterceptorScalaSpec extends WordSpec with Matchers with Mocki
     reset(springTracer)
   }
 
-  "Spring3 Tracing in scala" should {
+  "Spring Tracing in scala" should {
     "record traced data parameters" in {
       val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
 

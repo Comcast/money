@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package com.comcast.money.spring3;
+package com.comcast.money.spring;
 
 import com.comcast.money.api.Note;
 import com.comcast.money.api.Span;
 import com.comcast.money.api.SpanId;
 import com.comcast.money.api.SpanInfo;
 import com.comcast.money.core.CoreSpanInfo;
-import com.comcast.money.core.Formatters;
 import com.comcast.money.core.internal.SpanLocal;
 import org.junit.After;
 import org.junit.Assert;

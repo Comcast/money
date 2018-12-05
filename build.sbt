@@ -17,7 +17,7 @@ lazy val money = Project("money", file("."))
   publishLocal := {},
   publish := {}
 )
-.aggregate(moneyApi, moneyAkka, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyWire, moneyKafka, moneySpring, moneySpring3)
+.aggregate(moneyApi, moneyAkka, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyWire, moneyKafka, moneySpring)
 
 lazy val moneyApi =
   Project("money-api", file("./money-api"))
@@ -155,32 +155,16 @@ lazy val moneySpring =
       libraryDependencies ++=
         Seq(
           typesafeConfig,
-          scalaTest,
-          mockito,
-          springContext
-        )
-    )
-    .dependsOn(moneyCore)
-
-lazy val moneySpring3 =
-  Project("money-spring3", file("./money-spring3"))
-    .enablePlugins(AutomateHeaderPlugin)
-    .settings(projectSettings: _*)
-    .settings(
-      libraryDependencies ++=
-        Seq(
-          typesafeConfig,
-          scalaTest,
-          mockito,
-          springContext3,
-          springAop3,
-          springWeb3,
+          springWeb,
+          springAop,
+          springContext,
           junit,
           junitInterface,
-          springTest,
+          scalaTest,
           mockito,
-          springOckito,
-          assertj
+          assertj,
+          springTest,
+          springOckito
         ),
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
     )

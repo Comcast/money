@@ -7,13 +7,13 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator;
 
-import com.comcast.money.japi.TraceFriendlyExecutors;
-import com.comcast.money.spring3.TracedMethodInterceptor;
-import com.comcast.money.spring3.TracedMethodAdvisor;
-import com.comcast.money.spring3.SpringTracer;
+import com.comcast.money.api.TraceFriendlyExecutors;
+import com.comcast.money.spring.TracedMethodInterceptor;
+import com.comcast.money.spring.TracedMethodAdvisor;
+import com.comcast.money.spring.SpringTracer;
 
 @Configuration
-@ComponentScan(basePackages = {"com.comcast.money.samples.springmvc", "com.comcast.money.spring3"})
+@ComponentScan(basePackages = {"com.comcast.money.samples.springmvc", "com.comcast.money.spring"})
 public class AppConfig {
 
     @Bean(destroyMethod = "shutdown")
