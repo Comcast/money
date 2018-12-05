@@ -68,8 +68,8 @@ object Dependencies {
   val mockito = "org.mockito" % "mockito-core" % "1.9.5" % "test"
   val scalaTest = "org.scalatest" %% "scalatest" % "3.0.4" % "test"
   val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.13.5" % "test"
-  val junit = "junit" % "junit" % "4.11" % "test"
-  val junitInterface = "com.novocode" % "junit-interface" % "0.11" % "test->default"
+  val junit = "junit" % "junit" % "4.12" % "test"
+  val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test exclude("junit", "junit-dep")
   val springTest = ("org.springframework" % "spring-test" % "4.3.17.RELEASE")
     .exclude("commons-logging", "commons-logging")
   val springOckito = "org.kubek2k" % "springockito" % "1.0.9" % "test"

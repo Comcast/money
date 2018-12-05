@@ -159,12 +159,14 @@ lazy val moneySpring =
           springAop,
           springContext,
           junit,
+          junitInterface,
           scalaTest,
           mockito,
           assertj,
           springTest,
           springOckito
-        )
+        ),
+      testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
     )
     .dependsOn(moneyCore)
 
