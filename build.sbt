@@ -12,7 +12,7 @@ lazy val copyApiDocsTask = taskKey[Unit]("Copies the scala docs from each projec
 lazy val props = new SystemProperties()
 
 lazy val money = Project("money", file("."))
-.settings(basicSettings: _*)
+.settings(projectSettings: _*)
 .settings(
   publishLocal := {},
   publish := {}
@@ -211,14 +211,6 @@ def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings +
   pomIncludeRepository := { _ => false },
   pomExtra := (
     <url>https://github.com/Comcast/money</url>
-      <licenses>
-        <license>
-          <name>Apache License, Version 2.0</name>
-          <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
-          <distribution>repo</distribution>
-          <comments>A business-friendly OSS license</comments>
-        </license>
-      </licenses>
       <scm>
         <url>git@github.com:Comcast/money.git</url>
         <connection>scm:git:git@github.com:Comcast/money.git</connection>
