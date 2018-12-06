@@ -3,8 +3,6 @@ Released 0.9.0!  A lot of updates here.  Many things are not backward compatible
 with 0.8.x, in particular the configuration.  See the `sample` for information
 on usage and configuration changes.
 
-### Availability
-We have requests in to deploy to a public repo, that should be available shortly
 
 ## Distributed Tracing Reads
 [Distributed Trace For Video Systems](http://www.nctatechnicalpapers.com/Paper/2015/2015-distributed-trace-for-video-systems/download)
