@@ -16,7 +16,10 @@ Currently updating the documentation to be current.  A lot of out of data materi
 - *aspectj* - use java annotations and aspectj to non-intrusively add distributed tracing to your application
 - *kafka* - we do provide support for sending money data directly to kafka.  **Note: this module is dated and could use some love**
 
-You can also find [Go-lang](https://github.com/Comcast/golang-money) support as well in a separate repository.
+In addition to what you find in this repository, there are also other repositories:
+
+- [Go-lang](https://github.com/Comcast/golang-money) support as well in a separate repository.
+- [Purely Functional Money](https://github.com/ccadllc/cedi-dtrace) is a library that supports tracing for principled functional programming in Scala.  If this repository is too side effecting for you to stomach, this is where you should go.
 
 
 ## Distributed Tracing Reads
