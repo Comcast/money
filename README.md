@@ -3,6 +3,21 @@ Released 0.9.0!  A lot of updates here.  Many things are not backward compatible
 with 0.8.x, in particular the configuration.  See the `sample` for information
 on usage and configuration changes.
 
+**In-progress**
+Currently updating the documentation to be current.  A lot of out of data material in the wiki.
+
+## What it has
+
+- *http-client* - support for apache http clients, to inject money and/or B3 http headers seamlessly
+- *java-servlet* - support for java servlet filters, to automatically parse money and/or B3 http headers from HTTP requests, and inject them into your process to continue the trace
+- *akka* - support for instrumenting akka actor applications for trace continuations
+- *avro* - support for serialization of money data to avro
+- *spring* - easily instrument your applications using Spring AOP / spring beans.  Sample MVC application included under `samples` directory
+- *aspectj* - use java annotations and aspectj to non-intrusively add distributed tracing to your application
+- *kafka* - we do provide support for sending money data directly to kafka.  **Note: this module is dated and could use some love**
+
+You can also find [Go-lang](https://github.com/Comcast/golang-money) support as well in a separate repository.
+
 
 ## Distributed Tracing Reads
 [Distributed Trace For Video Systems](http://www.nctatechnicalpapers.com/Paper/2015/2015-distributed-trace-for-video-systems/download)
