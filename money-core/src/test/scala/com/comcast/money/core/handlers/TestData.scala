@@ -54,6 +54,7 @@ trait TestData {
     notes = Map[String, Note[_]]("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote).asJava)
 
   val testSpan = CoreSpan(new SpanId(), "test-span", null)
+  val childSpan = CoreSpan(new SpanId(), "child-span", null)
 
   val fixedTestSpanInfo = CoreSpanInfo(
     id = new SpanId("5092ddfe-3701-4f84-b3d2-21f5501c0d28", 5176425846116696835L, 5176425846116696835L),
