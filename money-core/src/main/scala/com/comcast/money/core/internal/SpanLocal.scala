@@ -51,6 +51,7 @@ object SpanLocal extends SpanContext {
         case Some(stack) =>
           stack.push(span)
           setSpanMDC(Some(span.info.id))
+          setSpanNameMDC(Some(span.info.name))
         case None =>
           threadLocalCtx.set(new Stack[Span]())
           push(span)
@@ -63,7 +64,9 @@ object SpanLocal extends SpanContext {
         val spanId = stack.pop()
 
         // rolls back the mdc span to the parent if present, if none then it will be cleared
-        setSpanMDC(stack.headOption.map(_.info.id))
+        val head = stack.headOption
+        setSpanMDC(head.map(_.info.id))
+        setSpanNameMDC(head.map(_.info.name))
 
         spanId
     }
@@ -75,5 +78,6 @@ object SpanLocal extends SpanContext {
     if (threadLocalCtx != null) threadLocalCtx.remove()
 
     setSpanMDC(None)
+    setSpanNameMDC(None)
   }
 }

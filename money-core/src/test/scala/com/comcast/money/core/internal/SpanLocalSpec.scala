@@ -66,20 +66,36 @@ class SpanLocalSpec extends WordSpec
         SpanLocal.push(testSpan)
 
         MDC.get("moneyTrace") shouldEqual MDCSupport.format(testSpan.id)
+        MDC.get("spanName") shouldEqual testSpan.name
       }
       "remove the MDC value on pop" in {
         SpanLocal.push(testSpan)
         SpanLocal.pop()
 
         MDC.get("moneyTrace") shouldBe null
+        MDC.get("spanName") shouldBe null
+      }
+      "reset the MDC value on pop" in {
+        SpanLocal.push(testSpan)
+        SpanLocal.push(childSpan)
+
+        MDC.get("moneyTrace") shouldEqual MDCSupport.format(childSpan.id)
+        MDC.get("spanName") shouldEqual childSpan.name
+
+        SpanLocal.pop()
+
+        MDC.get("moneyTrace") shouldEqual MDCSupport.format(testSpan.id)
+        MDC.get("spanName") shouldEqual testSpan.name
       }
       "remove the MDC value on clear" in {
         SpanLocal.push(testSpan)
 
         MDC.get("moneyTrace") shouldEqual MDCSupport.format(testSpan.id)
+        MDC.get("spanName") shouldEqual testSpan.name
         SpanLocal.clear()
 
         MDC.get("moneyTrace") shouldBe null
+        MDC.get("spanName") shouldBe null
       }
     }
   }
