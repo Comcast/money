@@ -259,6 +259,21 @@ public class JMoney {
         return newSpan(spanName, true);
     }
 
+    /**
+     * Creates a new span that can be used in Java that is closeable.  Once the try
+     * block completes the span will automatically be stopped with the specified
+     * success indicator unless changed on the returned span.
+     *
+     * <pre>
+     *     try (JMoney.TraceSpan span = JMoney.newSpan("some-name", false)) {
+     *         JMoney.record("some, 1);
+     *         span.success();
+     *     }
+     * </pre>
+     * @param spanName The name of the span
+     * @param success An indicator of whether or not the span was successful by default
+     * @return a {@link com.comcast.money.core.japi.JMoney.TraceSpan} that really can only be closed to stop the span
+     */
     public static TraceSpan newSpan(String spanName, boolean success) {
         startSpan(spanName);
         return new TraceSpan(success);
@@ -282,6 +297,19 @@ public class JMoney {
         return new TraceTimer(timerName);
     }
 
+    /**
+     * Creates a span to measure the computation of a task which may throw an exception
+     *
+     * <pre>
+     *     JMoney.trace("span-name", () -> {
+     *         // do something here
+     *     });
+     * </pre>
+     * @param spanName The name of the span
+     * @param runnable The task to complete
+     * @param <E> the type of checked exception
+     * @throws E if unable to complete the task
+     */
     public static <E extends Exception> void trace(String spanName, CheckedRunnable<E> runnable) throws E {
         try (TraceSpan span = newSpan(spanName, false)) {
             runnable.run();
@@ -289,6 +317,23 @@ public class JMoney {
         }
     }
 
+    /**
+     * Creates a span to measure the computation of a task which may throw an exception
+     *
+     * <pre>
+     *     JMoney.trace("span-name", span -> {
+     *         try {
+     *             // do something here
+     *         } catch (Exception exception) {
+     *             span.fail();
+     *         }
+     *     });
+     * </pre>
+     * @param spanName The name of the span
+     * @param consumer The task to complete
+     * @param <E> the type of checked exception
+     * @throws E if unable to complete the task
+     */
     public static <E extends Exception> void trace(String spanName, CheckedConsumer<TraceSpan, E> consumer) throws E {
         try (TraceSpan span = newSpan(spanName)) {
             try {
@@ -302,6 +347,22 @@ public class JMoney {
         }
     }
 
+    /**
+     * Creates a span to measure the computation of a task which returns a result and may throw an exception
+     *
+     * <pre>
+     *     String value = JMoney.trace("span-name", () -> {
+     *         // do something here
+     *         return "Result";
+     *     });
+     * </pre>
+     * @param spanName The name of the span
+     * @param callable The task to compute the result
+     * @param <V> the type of the result
+     * @param <E> the type of checked exception
+     * @return the computed result of the task
+     * @throws E if unable to complete the task
+     */
     public static <V, E extends Exception> V trace(String spanName, CheckedCallable<V, E> callable) throws E {
         try (TraceSpan span = newSpan(spanName, false)) {
             V result = callable.call();
@@ -310,6 +371,25 @@ public class JMoney {
         }
     }
 
+    /**
+     * Creates a span to measure the computation of a task which returns a result and may throw an exception
+     *
+     * <pre>
+     *     String value = JMoney.trace("span-name", span -> {
+     *         String result = calculateSomeResult();
+     *         if (result == null) {
+     *             span.fail();
+     *         }
+     *         return result;
+     *     });
+     * </pre>
+     * @param spanName The name of the span
+     * @param function The task to compute the result
+     * @param <V> the type of the result
+     * @param <E> the type of checked exception
+     * @return the computed result of the task
+     * @throws E if unable to complete the task
+     */
     public static <V, E extends Exception> V trace(String spanName, CheckedFunction<TraceSpan, V, E> function) throws E {
         try (TraceSpan span = newSpan(spanName)) {
             try {
@@ -323,12 +403,41 @@ public class JMoney {
         }
     }
 
+    /**
+     * Creates a timer to measure the duration of a task
+     *
+     * <pre>
+     *     JMoney.time("timer-name", () -> {
+     *         // do something here
+     *     });
+     * </pre>
+     * @param timerName The name of the timer
+     * @param runnable The task to be timed
+     * @param <E> the type of checked exception
+     * @throws E if unable to complete the task
+     */
     public static <E extends Exception> void time(String timerName, CheckedRunnable<E> runnable) throws E {
         try (TraceTimer timer = newTimer(timerName)) {
             runnable.run();
         }
     }
 
+    /**
+     * Creates a timer to measure the duration of a task that computes a result
+     *
+     * <pre>
+     *     String result = JMoney.time("timer-name", () -> {
+     *         // do something here
+     *         return "Result";
+     *     });
+     * </pre>
+     * @param timerName The name of the timer
+     * @param callable The task to be timed
+     * @param <V> the type of the result
+     * @param <E> the type of checked exception
+     * @return the computed result of the task
+     * @throws E if unable to complete the task
+     */
     public static <V, E extends Exception> V time(String timerName, CheckedCallable<V, E> callable) throws E {
         try (TraceTimer timer = newTimer(timerName)) {
             return callable.call();
@@ -388,23 +497,63 @@ public class JMoney {
         }
     }
 
+    /**
+     * A task that returns a result and may throw an exception.
+     * @param <V> the type of the result
+     * @param <E> the type of checked exception
+     */
     @FunctionalInterface
     public interface CheckedCallable<V, E extends Exception> {
+        /**
+         * Computes a result or throws a checked exception
+         * @return the computed result
+         * @throws E if unable to compute a result
+         */
         V call() throws E;
     }
 
+    /**
+     * A task that does not return a result and may throw an exception
+     * @param <E> the type of checked exception
+     */
     @FunctionalInterface
     public interface CheckedRunnable<E extends Exception> {
+        /**
+         * Runs a task or throws a checked exception
+         * @throws E if unable to complete the task
+         */
         void run() throws E;
     }
 
+    /**
+     * A task that accepts a single input, does not return a result and may throw an exception
+     * @param <V> the type of the input to the task
+     * @param <E> the type of checked exception
+     */
     @FunctionalInterface
     public interface CheckedConsumer<V, E extends Exception> {
+        /**
+         * Runs a task with the accepted input
+         * @param value the input argument
+         * @throws E if unable to complete the task
+         */
         void accept(V value) throws E;
     }
 
+    /**
+     * A task that accepts a single input, returns a result and may throw an exception
+     * @param <V> the type of the input to the task
+     * @param <R> the type of the result
+     * @param <E> the type of checked exception
+     */
     @FunctionalInterface
     public interface CheckedFunction<V, R, E extends Exception> {
+        /**
+         * Runs a task with the accepted input and computes a result
+         * @param value the input argument
+         * @return the computed result
+         * @throws E if unable to complete the task
+         */
         R apply(V value) throws E;
     }
 
