@@ -24,7 +24,7 @@ import com.comcast.money.core.Tracer;
  * Java API for working directly with money from Java code
  */
 public class JMoney {
-    private static Tracer tracer;
+    private static Tracer tracer = Money.Environment().tracer();
 
     private JMoney() { }
 
@@ -37,17 +37,15 @@ public class JMoney {
      * @return the {@link com.comcast.money.core.Tracer} to use for tracing
      */
     public static Tracer tracer() {
-
-        Tracer current = tracer;
-        if (current == null) {
-            return Money.Environment().tracer();
-        }
-        return current;
+        return tracer;
     }
 
     protected static void setTracer(Tracer tracer) {
-
-        JMoney.tracer = tracer;
+        if (tracer != null) {
+            JMoney.tracer = tracer;
+        } else {
+            JMoney.tracer = Money.Environment().tracer();
+        }
     }
 
     /**
