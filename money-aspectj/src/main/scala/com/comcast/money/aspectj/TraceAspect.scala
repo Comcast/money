@@ -109,7 +109,8 @@ class TraceAspect extends Reflections with TraceLogging {
    */
   private def traceAsyncResult(joinPoint: JoinPoint, traceAnnotation: Traced, returnValue: AnyRef): Option[AnyRef] =
     for {
-      returnType <- joinPointReturnType(joinPoint)
+      methodSignature <- Option(joinPoint.getSignature.asInstanceOf[MethodSignature])
+      returnType = methodSignature.getReturnType
       handler <- asyncNotifier.resolveHandler(returnType, returnValue)
 
       // pop the current span from the stack as it will not be stopped by the tracer
@@ -135,15 +136,4 @@ class TraceAspect extends Reflections with TraceLogging {
         MDC.clear()
       })
     } yield result
-
-  /**
-   *
-   * @param joinPoint
-   * @return An `Option` of the return `Class`
-   */
-  private def joinPointReturnType(joinPoint: JoinPoint): Option[Class[_]] =
-    joinPoint.getSignature match {
-      case methodSignature: MethodSignature => Some(methodSignature.getReturnType)
-      case _ => None
-    }
 }
