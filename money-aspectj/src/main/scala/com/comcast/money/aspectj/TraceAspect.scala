@@ -54,9 +54,8 @@ class TraceAspect extends Reflections with TraceLogging {
       traceMethodArguments(joinPoint)
 
       val returnValue = joinPoint.proceed()
-
       if (traceAnnotation.async()) {
-        traceAsyncResult(traceAnnotation, returnValue) match {
+        traceAsyncResult(joinPoint, traceAnnotation, returnValue) match {
           case Some(asyncResult) =>
             // Do not stop the span when the advice returns as the span will
             // be stopped by the callback registered to the `AsyncNotificationHandler`
@@ -102,38 +101,49 @@ class TraceAspect extends Reflections with TraceLogging {
   /**
    * Binds the duration and result of the current span to the return value of the traced method
    *
+   * @param joinPoint       The `JoinPoint` of the annotated method
    * @param traceAnnotation The `@Traced` annotation applied to the method
-   * @param returnValue The return value from the `@Traced` method
+   * @param returnValue     The return value from the `@Traced` method
    * @return An option with the result from the `AsyncNotificationHandler`, or `None` if no handler
    *         supports the return value
    */
-  private def traceAsyncResult(traceAnnotation: Traced, returnValue: AnyRef): Option[AnyRef] =
-    // attempt to resolve the AsyncNotificationHandler for the return value
-    asyncNotifier.resolveHandler(returnValue).map {
-      handler =>
-        // pop the current span from the stack as it will not be stopped by the tracer
-        val span = SpanLocal.pop()
-        // capture the current MDC context to be applied on the callback thread
-        val mdc = Option(MDC.getCopyOfContextMap)
+  private def traceAsyncResult(joinPoint: JoinPoint, traceAnnotation: Traced, returnValue: AnyRef): Option[AnyRef] =
+    for {
+      returnType <- joinPointReturnType(joinPoint)
+      handler <- asyncNotifier.resolveHandler(returnType, returnValue)
 
-        // register callback to be invoked when the future is completed
-        handler.whenComplete(returnValue, completed => {
+      // pop the current span from the stack as it will not be stopped by the tracer
+      span = SpanLocal.pop()
+      // capture the current MDC context to be applied on the callback thread
+      mdc = Option(MDC.getCopyOfContextMap)
 
-          // reapply the MDC onto the callback thread
-          mdcSupport.propogateMDC(mdc)
+      result = handler.whenComplete(returnType, returnValue, completed => {
+        // reapply the MDC onto the callback thread
+        mdcSupport.propogateMDC(mdc)
 
-          // determine if the future completed successfully or exceptionally
-          val result = completed match {
-            case Success(_) => true
-            case Failure(exception) =>
-              logException(exception)
-              exceptionMatches(exception, traceAnnotation.ignoredExceptions())
-          }
+        // determine if the future completed successfully or exceptionally
+        val result = completed match {
+          case Success(_) => true
+          case Failure(exception) =>
+            logException(exception)
+            exceptionMatches(exception, traceAnnotation.ignoredExceptions())
+        }
 
-          // stop the captured span with the success/failure flag
-          span.foreach(_.stop(result))
-          // clear the MDC from the callback thread
-          MDC.clear()
-        })
+        // stop the captured span with the success/failure flag
+        span.foreach(_.stop(result))
+        // clear the MDC from the callback thread
+        MDC.clear()
+      })
+    } yield result
+
+  /**
+   *
+   * @param joinPoint
+   * @return An `Option` of the return `Class`
+   */
+  private def joinPointReturnType(joinPoint: JoinPoint): Option[Class[_]] =
+    joinPoint.getSignature match {
+      case methodSignature: MethodSignature => Some(methodSignature.getReturnType)
+      case _ => None
     }
 }

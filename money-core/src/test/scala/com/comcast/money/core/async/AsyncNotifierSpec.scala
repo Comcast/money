@@ -79,11 +79,11 @@ class AsyncNotifierSpec
       val future = mock[Future[String]]
 
       val asyncNotifier = AsyncNotifier(Seq(mockHandler))
-      doReturn(true).when(mockHandler).supports(future)
+      doReturn(true).when(mockHandler).supports(classOf[Future[_]], future)
 
-      val result = asyncNotifier.resolveHandler(future)
+      val result = asyncNotifier.resolveHandler(classOf[Future[_]], future)
 
-      verify(mockHandler, times(1)).supports(future)
+      verify(mockHandler, times(1)).supports(classOf[Future[_]], future)
 
       result.isDefined shouldEqual true
       result.get shouldEqual mockHandler
@@ -92,23 +92,23 @@ class AsyncNotifierSpec
       val mockHandler = mock[AsyncNotificationHandler]
 
       val asyncNotifier = AsyncNotifier(Seq(mockHandler))
-      doReturn(true).when(mockHandler).supports(any)
+      doReturn(true).when(mockHandler).supports(any[Class[_]], any)
 
-      val result = asyncNotifier.resolveHandler(null)
+      val result = asyncNotifier.resolveHandler(null, null)
 
       result.isEmpty shouldEqual true
-      verify(mockHandler, never).supports(any)
+      verify(mockHandler, never).supports(any[Class[_]], any)
     }
     "not find AsyncNotificationHandler when not supported" in {
       val mockHandler = mock[AsyncNotificationHandler]
 
       val asyncNotifier = AsyncNotifier(Seq(mockHandler))
-      doReturn(false).when(mockHandler).supports(any)
+      doReturn(false).when(mockHandler).supports(any[Class[_]], any)
 
-      val result = asyncNotifier.resolveHandler(new Object)
+      val result = asyncNotifier.resolveHandler(classOf[Object], new Object)
 
       result.isEmpty shouldEqual true
-      verify(mockHandler, times(1)).supports(any)
+      verify(mockHandler, times(1)).supports(any[Class[_]], any)
     }
   }
 }

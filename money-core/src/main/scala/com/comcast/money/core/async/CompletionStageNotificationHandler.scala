@@ -15,10 +15,16 @@
  */
 
 package com.comcast.money.core.async
+import java.util.concurrent.CompletionStage
 
-import scala.util.Try
+import scala.util.{ Failure, Success, Try }
 
-trait AsyncNotificationHandler {
-  def supports(futureType: Class[_], future: AnyRef): Boolean
-  def whenComplete(futureType: Class[_], future: AnyRef, f: Try[_] => Unit): AnyRef
+class CompletionStageNotificationHandler extends AbstractAsyncNotificationHandler[CompletionStage[_]] {
+
+  override def whenComplete(future: CompletionStage[_], f: Try[_] => Unit): CompletionStage[_] =
+    future.whenComplete((result, exception) =>
+      if (exception != null)
+        f(Failure(exception))
+      else
+        f(Success(result)))
 }

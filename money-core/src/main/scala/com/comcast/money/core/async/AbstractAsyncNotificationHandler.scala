@@ -16,9 +16,18 @@
 
 package com.comcast.money.core.async
 
+import scala.reflect.ClassTag
 import scala.util.Try
 
-trait AsyncNotificationHandler {
-  def supports(futureType: Class[_], future: AnyRef): Boolean
-  def whenComplete(futureType: Class[_], future: AnyRef, f: Try[_] => Unit): AnyRef
+abstract class AbstractAsyncNotificationHandler[T <: AnyRef](implicit ev: ClassTag[T]) extends AsyncNotificationHandler {
+  override def supports(futureType: Class[_], future: AnyRef): Boolean =
+    futureType != null && futureType == ev.runtimeClass && futureType.isInstance(future)
+
+  override def whenComplete(futureType: Class[_], future: AnyRef, f: Try[_] => Unit): AnyRef =
+    future match {
+      case matched: T => whenComplete(matched, f)
+      case _ => future
+    }
+
+  def whenComplete(future: T, f: Try[_] => Unit): T
 }

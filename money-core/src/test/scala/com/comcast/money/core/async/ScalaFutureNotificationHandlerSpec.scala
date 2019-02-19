@@ -31,29 +31,40 @@ class ScalaFutureNotificationHandlerSpec
   with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest with SpecHelpers {
 
   val underTest = new ScalaFutureNotificationHandler()
+  val futureClass: Class[_] = classOf[Future[_]]
+  val success: Future[String] = Future.successful("success")
   implicit val executionContext: ExecutionContext = new DirectExecutionContext()
 
   "ScalaFutureNotificationHandler" should {
     "support scala.concurrent.Future" in {
-      val future = Future.successful("success")
-      val result = underTest.supports(future)
+      val result = underTest.supports(futureClass, success)
 
       result shouldEqual true
     }
     "support descendents of scala.concurrent.Future" in {
       val future = mock[MyFuture[String]]
-      val result = underTest.supports(future)
+      val result = underTest.supports(futureClass, future)
 
       result shouldEqual true
     }
+    "does not support descendent classes of scala.concurrent.Future" in {
+      val result = underTest.supports(classOf[Promise[_]], success)
+
+      result shouldEqual false
+    }
     "does not support non-Futures" in {
       val nonFuture = new Object()
-      val result = underTest.supports(nonFuture)
+      val result = underTest.supports(classOf[Object], nonFuture)
+
+      result shouldEqual false
+    }
+    "does not support null class" in {
+      val result = underTest.supports(null, success)
 
       result shouldEqual false
     }
     "does not support null" in {
-      val result = underTest.supports(null)
+      val result = underTest.supports(futureClass, null)
 
       result shouldEqual false
     }
@@ -61,15 +72,16 @@ class ScalaFutureNotificationHandlerSpec
       val future = mock[Future[String]]
       doReturn(future).when(future).transform(any(), any())(argEq(underTest.executionContext))
 
-      val result = underTest.whenComplete(future, _ => {})
+      val result = underTest.whenComplete(futureClass, future, _ => {})
 
-      verify(result, times(1)).transform(any(), any())(argEq(underTest.executionContext))
+      verify(future, times(1)).transform(any(), any())(argEq(underTest.executionContext))
+      result shouldEqual future
     }
     "calls registered completion function for already completed future" in {
-      val future = Future.successful("success")
+      val future = success
       val func = mock[Try[_] => Unit]
 
-      underTest.whenComplete(future, func)
+      underTest.whenComplete(futureClass, future, func)
 
       verify(func, times(1)).apply(argEq(Try("success")))
     }
@@ -79,7 +91,7 @@ class ScalaFutureNotificationHandlerSpec
       val func = mock[Try[_] => Unit]
       val executionContext = new DirectExecutionContext()
 
-      underTest.whenComplete(future, func)
+      underTest.whenComplete(futureClass, future, func)
 
       verify(func, times(1)).apply(argEq(Failure(ex)))
     }
@@ -89,7 +101,7 @@ class ScalaFutureNotificationHandlerSpec
 
       val func = mock[Try[_] => Unit]
 
-      underTest.whenComplete(future, func)
+      underTest.whenComplete(futureClass, future, func)
       verify(func, never()).apply(any())
 
       promise.complete(Try("success"))
@@ -102,7 +114,7 @@ class ScalaFutureNotificationHandlerSpec
 
       val func = mock[Try[_] => Unit]
 
-      underTest.whenComplete(future, func)
+      underTest.whenComplete(futureClass, future, func)
       verify(func, never()).apply(any())
 
       val exception = new RuntimeException()
