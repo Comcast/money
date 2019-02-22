@@ -42,7 +42,7 @@ class JavaFutureNotificationHandler extends AbstractAsyncNotificationHandler[Fut
     }
 }
 
-private case class TracingFuture(future: Future[_], f: Try[_] => Unit) extends Future[Any] {
+case class TracingFuture(future: Future[_], f: Try[_] => Unit) extends Future[Any] {
   private val completed = new AtomicBoolean(false)
 
   override def cancel(mayInterruptIfRunning: Boolean): Boolean = future.cancel(mayInterruptIfRunning)
@@ -71,6 +71,7 @@ private case class TracingFuture(future: Future[_], f: Try[_] => Unit) extends F
     } catch {
       case exception: ExecutionException =>
         notifyException(exception)
+        throw exception
     }
   }
 
@@ -80,6 +81,7 @@ private case class TracingFuture(future: Future[_], f: Try[_] => Unit) extends F
     } catch {
       case exception: ExecutionException =>
         notifyException(exception)
+        throw exception
     }
   }
 
@@ -101,12 +103,8 @@ private case class TracingFuture(future: Future[_], f: Try[_] => Unit) extends F
     result
   }
 
-  private def notifyException(exception: Throwable): Unit = {
-    if (completed.compareAndSet(false, true)) {
-      f(Failure(unwrapExecutionException(exception)))
-    }
-    throw exception
-  }
+  private def notifyException(exception: Throwable): Unit =
+    if (completed.compareAndSet(false, true)) f(Failure(unwrapExecutionException(exception)))
 }
 
 private object ExecutionExceptionUnwrapper {

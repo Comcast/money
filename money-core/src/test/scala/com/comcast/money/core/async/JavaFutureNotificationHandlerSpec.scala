@@ -16,17 +16,17 @@
 
 package com.comcast.money.core.async
 
-import java.util.concurrent.{ CompletableFuture, Future, TimeUnit }
+import java.util.concurrent.{CompletableFuture, Future, TimeUnit, TimeoutException}
 
 import com.comcast.money.core.SpecHelpers
 import com.comcast.money.core.concurrent.ConcurrentSupport
-import org.mockito.Matchers.{ any, eq => argEq }
-import org.mockito.Mockito.{ doReturn, never, times, verify }
-import org.scalatest.{ Matchers, OneInstancePerTest, WordSpecLike }
+import org.mockito.Matchers.{any, eq => argEq}
+import org.mockito.Mockito._
+import org.scalatest.{Matchers, OneInstancePerTest, WordSpecLike}
 import org.scalatest.mockito.MockitoSugar
 
 import scala.concurrent.ExecutionException
-import scala.util.{ Failure, Try }
+import scala.util.{Failure, Success, Try}
 
 class JavaFutureNotificationHandlerSpec
   extends WordSpecLike
@@ -124,9 +124,217 @@ class JavaFutureNotificationHandlerSpec
 
       verify(func, times(1)).apply(argEq(Failure(exception)))
     }
+    "calls whenComplete function for already completed CompletableFuture" in {
+      val future = spy(CompletableFuture.completedFuture("success"))
+      val func = mock[Try[_] => Unit]
+
+      underTest.whenComplete(classOf[Future[String]], future)(func)
+
+      verify(future).whenComplete(any())
+      verify(func, times(1)).apply(argEq(Try("success")))
+    }
+  }
+  "TracingFuture" should {
+    "delegates hashCode" in {
+      val future = mock[Future[String]]
+      val func = mock[Try[_] => Unit]
+
+      val expected = future.hashCode()
+      val wrapped = TracingFuture(future, func)
+
+      val result = wrapped.hashCode()
+      result shouldBe expected
+    }
+    "delegates toString" in {
+      val future = mock[Future[String]]
+      val func = mock[Try[_] => Unit]
+
+      val expected = future.toString
+      val wrapped = TracingFuture(future, func)
+
+      val result = wrapped.toString()
+      result shouldBe expected
+    }
+    "delegates equals" in {
+      val future = mock[Future[String]]
+      val func = mock[Try[_] => Unit]
+
+      val wrapped = TracingFuture(future, func)
+
+      val result = wrapped.equals(future)
+      result shouldBe true
+    }
+    "delegates cancel" in {
+      val future = mock[Future[String]]
+      val func = mock[Try[_] => Unit]
+      doReturn(true).when(future).cancel(true)
+
+      val wrapped = TracingFuture(future, func)
+
+      val result = wrapped.cancel(true)
+      result shouldBe true
+      verify(future).cancel(true)
+    }
+    "get triggers completion" in {
+      val future = CompletableFuture.completedFuture("success")
+      val func = mock[Try[_] => Unit]
+      doReturn(()).when(func)(any[Try[_]])
+
+      val wrapped = TracingFuture(future, func)
+
+      val result = wrapped.get()
+      result shouldBe "success"
+      verify(func)(Success("success"))
+    }
+    "get triggers exceptional completion" in {
+      val future = new CompletableFuture[String]()
+      val exception = new RuntimeException
+      future.completeExceptionally(exception)
+      val func = mock[Try[_] => Unit]
+
+      val wrapped = TracingFuture(future, func)
+
+      assertThrows[ExecutionException] {
+        wrapped.get()
+      }
+      verify(func)(Failure(exception))
+    }
+    "get interrupted does not trigger completion" in {
+      val future = mock[Future[String]]
+      doThrow(classOf[InterruptedException]).when(future).get
+      val func = mock[Try[_] => Unit]
+
+      val wrapped = TracingFuture(future, func)
+
+      assertThrows[InterruptedException] {
+        wrapped.get()
+      }
+      verifyZeroInteractions(func)
+    }
+    "get with timeout triggers completion" in {
+      val future = CompletableFuture.completedFuture("success")
+      val func = mock[Try[_] => Unit]
+
+      val wrapped = TracingFuture(future, func)
+
+      val result = wrapped.get(1, TimeUnit.SECONDS)
+      result shouldBe "success"
+      verify(func)(Success("success"))
+    }
+    "get with timeout triggers exceptional completion" in {
+      val future = new CompletableFuture[String]()
+      val exception = new RuntimeException
+      future.completeExceptionally(exception)
+      val func = mock[Try[_] => Unit]
+
+      val wrapped = TracingFuture(future, func)
+
+      assertThrows[ExecutionException] {
+        val result = wrapped.get(1, TimeUnit.SECONDS)
+      }
+      verify(func)(Failure(exception))
+    }
+    "get with timeout interrupted does not trigger completion" in {
+      val future = mock[Future[String]]
+      doThrow(classOf[InterruptedException]).when(future).get
+      val func = mock[Try[_] => Unit]
+
+      val wrapped = TracingFuture(future, func)
+
+      assertThrows[InterruptedException] {
+        wrapped.get()
+      }
+      verifyZeroInteractions(func)
+    }
+    "get with timeout times out does not trigger completion" in {
+      val future = mock[Future[String]]
+      doThrow(classOf[TimeoutException]).when(future).get
+      val func = mock[Try[_] => Unit]
+
+      val wrapped = TracingFuture(future, func)
+
+      assertThrows[TimeoutException] {
+        wrapped.get()
+      }
+      verifyZeroInteractions(func)
+    }
+    "isDone triggers completion" in {
+      val future = mock[Future[String]]
+      val func = mock[Try[_] => Unit]
+      doReturn(false).when(future).isDone
+
+      val wrapped = TracingFuture(future, func)
+
+      val result1 = wrapped.isDone
+      result1 shouldBe false
+      verifyZeroInteractions(func)
+
+      doReturn(true).when(future).isDone
+      doReturn("success").when(future).get
+
+      val result2 = wrapped.isDone
+      result2 shouldBe true
+      verify(func)(Success("success"))
+    }
+    "isDone triggers exceptional completion" in {
+      val future = mock[Future[String]]
+      val func = mock[Try[_] => Unit]
+      doReturn(false).when(future).isDone
+
+      val wrapped = TracingFuture(future, func)
+
+      val result1 = wrapped.isDone
+      result1 shouldBe false
+      verifyZeroInteractions(func)
+
+      doReturn(true).when(future).isDone
+      val exception = new RuntimeException
+      doThrow(new ExecutionException(exception)).when(future).get
+
+      val result2 = wrapped.isDone
+      result2 shouldBe true
+      verify(func)(Failure(exception))
+    }
+    "isCancelled triggers completion" in {
+      val future = mock[Future[String]]
+      val func = mock[Try[_] => Unit]
+      doReturn(false).when(future).isCancelled
+
+      val wrapped = TracingFuture(future, func)
+
+      val result1 = wrapped.isCancelled
+      result1 shouldBe false
+      verifyZeroInteractions(func)
+
+      doReturn(true).when(future).isCancelled
+      doReturn("success").when(future).get
+
+      val result2 = wrapped.isCancelled
+      result2 shouldBe true
+      verify(func)(Success("success"))
+    }
+    "isCancelled triggers exceptional completion" in {
+      val future = mock[Future[String]]
+      val func = mock[Try[_] => Unit]
+      doReturn(false).when(future).isCancelled
+
+      val wrapped = TracingFuture(future, func)
+
+      val result1 = wrapped.isCancelled
+      result1 shouldBe false
+      verifyZeroInteractions(func)
+
+      doReturn(true).when(future).isCancelled
+      val exception = new RuntimeException
+      doThrow(new ExecutionException(exception)).when(future).get
+
+      val result2 = wrapped.isCancelled
+      result2 shouldBe true
+      verify(func)(Failure(exception))
+    }
   }
 
-  private abstract class MyFuture[T] extends Future[T] {}
+  private abstract class MyFuture[T] extends Future[T] { }
 
   private final class WrappedFuture[T](parent: CompletableFuture[T]) extends Future[T] {
     override def cancel(mayInterruptIfRunning: Boolean): Boolean = parent.cancel(mayInterruptIfRunning)
