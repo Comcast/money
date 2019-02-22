@@ -20,5 +20,5 @@ import scala.util.Try
 
 trait AsyncNotificationHandler {
   def supports(futureType: Class[_], future: AnyRef): Boolean
-  def whenComplete(futureType: Class[_], future: AnyRef, f: Try[_] => Unit): AnyRef
+  def whenComplete(futureType: Class[_], future: AnyRef)(f: Try[_] => Unit): AnyRef
 }

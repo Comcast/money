@@ -21,7 +21,7 @@ import scala.util.{ Failure, Success, Try }
 
 class CompletionStageNotificationHandler extends AbstractAsyncNotificationHandler[CompletionStage[_]] {
 
-  override def whenComplete(future: CompletionStage[_], f: Try[_] => Unit): CompletionStage[_] =
+  override def whenComplete(future: CompletionStage[_])(f: Try[_] => Unit): CompletionStage[_] =
     future.whenComplete((result, exception) =>
       if (exception != null)
         f(Failure(exception))

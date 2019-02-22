@@ -559,27 +559,5 @@ class TraceAspectSpec extends WordSpec
         traceAspect.timed(null)
       }
     }
-    "advising methods" should {
-      "set span name in MDC" in {
-        val jp = mock[ProceedingJoinPoint]
-        val ann = mock[Traced]
-        doReturn("testSpanName").when(ann).value()
-        doReturn(None).when(mockMdcSupport).getSpanNameMDC
-        testTraceAspect.adviseMethodsWithTracing(jp, ann)
-
-        verify(mockMdcSupport).setSpanNameMDC(Some("testSpanName"))
-        verify(mockMdcSupport).setSpanNameMDC(None)
-      }
-      "save the current span name and reset after the child span is complete" in {
-        val jp = mock[ProceedingJoinPoint]
-        val ann = mock[Traced]
-        doReturn("testSpanName").when(ann).value()
-        doReturn(Some("parentSpan")).when(mockMdcSupport).getSpanNameMDC
-
-        testTraceAspect.adviseMethodsWithTracing(jp, ann)
-
-        verify(mockMdcSupport).setSpanNameMDC(Some("parentSpan"))
-      }
-    }
   }
 }

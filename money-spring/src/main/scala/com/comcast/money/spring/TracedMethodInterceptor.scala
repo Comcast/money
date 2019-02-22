@@ -19,9 +19,7 @@ package com.comcast.money.spring
 import java.lang.reflect.Method
 
 import com.comcast.money.annotations.Traced
-import com.comcast.money.core.internal.MDCSupport
-import com.comcast.money.core.logging.TraceLogging
-import com.comcast.money.core.reflect.Reflections
+import com.comcast.money.core.internal.MethodTracer
 import org.aopalliance.aop.Advice
 import org.aopalliance.intercept.{ MethodInterceptor, MethodInvocation }
 import org.springframework.aop.Pointcut
@@ -33,31 +31,14 @@ import org.springframework.stereotype.Component
  * Intercepts methods to start and stop a trace span around the method invocation
  */
 @Component
-class TracedMethodInterceptor @Autowired() (@Qualifier("springTracer") val tracer: SpringTracer)
+class TracedMethodInterceptor @Autowired() (@Qualifier("springTracer") override val tracer: SpringTracer)
   extends MethodInterceptor
-  with Reflections with TraceLogging {
-
-  val mdcSupport = new MDCSupport()
+  with MethodTracer {
 
   override def invoke(invocation: MethodInvocation): AnyRef = {
 
     Option(invocation.getStaticPart.getAnnotation(classOf[Traced])) map { annotation =>
-      var result = true
-      val oldSpanName = mdcSupport.getSpanNameMDC
-      try {
-        tracer.startSpan(annotation.value())
-        mdcSupport.setSpanNameMDC(Some(annotation.value()))
-        recordTracedParameters(invocation.getStaticPart.asInstanceOf[Method], invocation.getArguments, tracer)
-        invocation.proceed()
-      } catch {
-        case t: Throwable =>
-          logException(t)
-          result = if (exceptionMatches(t, annotation.ignoredExceptions())) true else false
-          throw t
-      } finally {
-        mdcSupport.setSpanNameMDC(oldSpanName)
-        tracer.stopSpan(result)
-      }
+      traceMethod(invocation.getMethod, annotation, invocation.getArguments, invocation.proceed)
     } getOrElse {
       invocation.proceed()
     }

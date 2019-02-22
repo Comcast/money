@@ -23,11 +23,11 @@ abstract class AbstractAsyncNotificationHandler[T <: AnyRef](implicit ev: ClassT
   override def supports(futureType: Class[_], future: AnyRef): Boolean =
     futureType != null && futureType == ev.runtimeClass && futureType.isInstance(future)
 
-  override def whenComplete(futureType: Class[_], future: AnyRef, f: Try[_] => Unit): AnyRef =
+  override def whenComplete(futureType: Class[_], future: AnyRef)(f: Try[_] => Unit): AnyRef =
     future match {
-      case matched: T => whenComplete(matched, f)
+      case matched: T => whenComplete(matched)(f)
       case _ => future
     }
 
-  def whenComplete(future: T, f: Try[_] => Unit): T
+  def whenComplete(future: T)(f: Try[_] => Unit): T
 }

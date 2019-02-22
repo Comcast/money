@@ -22,7 +22,7 @@ import scala.util.{ Failure, Success, Try }
 class ScalaFutureNotificationHandler extends AbstractAsyncNotificationHandler[Future[_]] {
   implicit val executionContext: ExecutionContext = new DirectExecutionContext
 
-  override def whenComplete(future: Future[_], f: Try[_] => Unit): Future[_] =
+  override def whenComplete(future: Future[_])(f: Try[_] => Unit): Future[_] =
     future.transform(result => {
       f(Success(result))
       result

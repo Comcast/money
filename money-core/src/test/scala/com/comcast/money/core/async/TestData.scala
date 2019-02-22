@@ -24,10 +24,10 @@ class ConfiguredNotificationHandler extends ConfigurableNotificationHandler {
 
   override def configure(config: Config): Unit = calledConfigure = true
   override def supports(futureType: Class[_], future: AnyRef): Boolean = false
-  override def whenComplete(futureType: Class[_], future: AnyRef, f: Try[_] => Unit): AnyRef = null
+  override def whenComplete(futureType: Class[_], future: AnyRef)(f: Try[_] => Unit): AnyRef = null
 }
 
 class NonConfiguredNotificationHandler extends AsyncNotificationHandler {
   override def supports(futureType: Class[_], future: AnyRef): Boolean = false
-  override def whenComplete(futureType: Class[_], future: AnyRef, f: Try[_] => Unit): AnyRef = null
+  override def whenComplete(futureType: Class[_], future: AnyRef)(f: Try[_] => Unit): AnyRef = null
 }

@@ -16,43 +16,43 @@
 
 package com.comcast.money.core.async
 
+import java.util.concurrent.{ CompletableFuture, CompletionStage }
+
 import com.comcast.money.core.SpecHelpers
 import com.comcast.money.core.concurrent.ConcurrentSupport
+import org.mockito.Matchers.{ any, eq => argEq }
+import org.mockito.Mockito.{ doReturn, never, times, verify }
 import org.scalatest.{ Matchers, OneInstancePerTest, WordSpecLike }
 import org.scalatest.mockito.MockitoSugar
-import org.mockito.Mockito._
-import org.mockito.Matchers.{ any, eq => argEq }
 
-import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Failure, Try }
 
-class ScalaFutureNotificationHandlerSpec
+class CompletableFutureNotificationHandlerSpec
   extends WordSpecLike
   with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest with SpecHelpers {
 
-  val underTest = new ScalaFutureNotificationHandler()
-  val futureClass: Class[_] = classOf[Future[_]]
-  val success: Future[String] = Future.successful("success")
-  implicit val executionContext: ExecutionContext = new DirectExecutionContext()
+  val underTest = new CompletableFutureNotificationHandler()
+  val futureClass: Class[_] = classOf[CompletableFuture[_]]
+  val success: CompletableFuture[String] = CompletableFuture.completedFuture("success")
 
-  "ScalaFutureNotificationHandler" should {
-    "support scala.concurrent.Future" in {
+  "CompletionStageNotificationHandler" should {
+    "support java.util.concurrent.CompletableFuture" in {
       val result = underTest.supports(futureClass, success)
 
       result shouldEqual true
     }
-    "support descendents of scala.concurrent.Future" in {
-      val future = mock[MyFuture[String]]
+    "support descendents of java.util.concurrent.CompletableFuture" in {
+      val future = mock[MyCompletableFuture[String]]
       val result = underTest.supports(futureClass, future)
 
       result shouldEqual true
     }
-    "does not support descendent classes of scala.concurrent.Future" in {
-      val result = underTest.supports(classOf[Promise[_]], success)
+    "does not support descendent classes of java.util.concurrent.CompletableFuture" in {
+      val result = underTest.supports(classOf[MyCompletableFuture[_]], success)
 
       result shouldEqual false
     }
-    "does not support non-Futures" in {
+    "does not support non-CompletableFutures" in {
       val nonFuture = new Object()
       val result = underTest.supports(classOf[Object], nonFuture)
 
@@ -68,13 +68,13 @@ class ScalaFutureNotificationHandlerSpec
 
       result shouldEqual false
     }
-    "calls transform method on the future" in {
-      val future = mock[Future[String]]
-      doReturn(future).when(future).transform(any(), any())(argEq(underTest.executionContext))
+    "calls whenComplete method on the future" in {
+      val future = mock[CompletableFuture[String]]
+      doReturn(future).when(future).whenComplete(any())
 
       val result = underTest.whenComplete(futureClass, future) { _ => {} }
 
-      verify(future, times(1)).transform(any(), any())(argEq(underTest.executionContext))
+      verify(future, times(1)).whenComplete(any())
       result shouldEqual future
     }
     "calls registered completion function for already completed future" in {
@@ -87,7 +87,8 @@ class ScalaFutureNotificationHandlerSpec
     }
     "calls registered completion function for already exceptionally completed future" in {
       val ex = new RuntimeException
-      val future = Future.failed(ex)
+      val future = new CompletableFuture[String]()
+      future.completeExceptionally(ex)
       val func = mock[Try[_] => Unit]
       val executionContext = new DirectExecutionContext()
 
@@ -96,21 +97,19 @@ class ScalaFutureNotificationHandlerSpec
       verify(func, times(1)).apply(argEq(Failure(ex)))
     }
     "calls registered completion function when the future completes successfully" in {
-      val promise = Promise[String]()
-      val future = promise.future
+      val future = new CompletableFuture[String]()
 
       val func = mock[Try[_] => Unit]
 
       underTest.whenComplete(futureClass, future)(func)
       verify(func, never()).apply(any())
 
-      promise.complete(Try("success"))
+      future.complete("success")
 
       verify(func, times(1)).apply(argEq(Try("success")))
     }
     "calls registered completion function when the future completes exceptionally" in {
-      val promise = Promise[String]()
-      val future = promise.future
+      val future = new CompletableFuture[String]()
 
       val func = mock[Try[_] => Unit]
 
@@ -118,11 +117,11 @@ class ScalaFutureNotificationHandlerSpec
       verify(func, never()).apply(any())
 
       val exception = new RuntimeException()
-      promise.complete(Failure(exception))
+      future.completeExceptionally(exception)
 
       verify(func, times(1)).apply(argEq(Failure(exception)))
     }
   }
 
-  private abstract class MyFuture[T] extends Future[T] {}
+  private abstract class MyCompletableFuture[T] extends CompletableFuture[T] {}
 }
