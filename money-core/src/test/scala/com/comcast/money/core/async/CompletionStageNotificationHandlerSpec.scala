@@ -90,7 +90,6 @@ class CompletionStageNotificationHandlerSpec
       val stage = new CompletableFuture[String]()
       stage.completeExceptionally(ex)
       val func = mock[Try[_] => Unit]
-      val executionContext = new DirectExecutionContext()
 
       underTest.whenComplete(futureClass, stage)(func)
 

@@ -33,19 +33,13 @@ class TraceAspect extends MethodTracer {
 
   @Around("traced(traceAnnotation)")
   def adviseMethodsWithTracing(joinPoint: ProceedingJoinPoint, traceAnnotation: Traced): AnyRef = {
-    joinPoint.getSignature match {
-      case methodSignature: MethodSignature =>
-        traceMethod(methodSignature.getMethod, traceAnnotation, joinPoint.getArgs, joinPoint.proceed)
-      case _ => joinPoint.proceed()
-    }
+    val methodSignature = joinPoint.getSignature.asInstanceOf[MethodSignature]
+    traceMethod(methodSignature.getMethod, traceAnnotation, joinPoint.getArgs, joinPoint.proceed)
   }
 
   @Around("timed(timedAnnotation)")
   def adviseMethodsWithTiming(joinPoint: ProceedingJoinPoint, timedAnnotation: Timed): AnyRef = {
-    joinPoint.getSignature match {
-      case methodSignature: MethodSignature =>
-        timeMethod(methodSignature.getMethod, timedAnnotation, joinPoint.proceed)
-      case _ => joinPoint.proceed()
-    }
+    val methodSignature = joinPoint.getSignature.asInstanceOf[MethodSignature]
+    timeMethod(methodSignature.getMethod, timedAnnotation, joinPoint.proceed)
   }
 }

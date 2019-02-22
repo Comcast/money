@@ -16,7 +16,7 @@
 
 package com.comcast.money.core.async
 
-import java.util.concurrent.{ CompletableFuture, CompletionStage }
+import java.util.concurrent.{ CompletableFuture, Future }
 
 import com.comcast.money.core.SpecHelpers
 import com.comcast.money.core.concurrent.ConcurrentSupport
@@ -35,9 +35,14 @@ class CompletableFutureNotificationHandlerSpec
   val futureClass: Class[_] = classOf[CompletableFuture[_]]
   val success: CompletableFuture[String] = CompletableFuture.completedFuture("success")
 
-  "CompletionStageNotificationHandler" should {
+  "CompletableFutureNotificationHandler" should {
     "support java.util.concurrent.CompletableFuture" in {
       val result = underTest.supports(futureClass, success)
+
+      result shouldEqual true
+    }
+    "support java.util.concurrent.Future with a value of CompletableFuture" in {
+      val result = underTest.supports(classOf[Future[_]], success)
 
       result shouldEqual true
     }
@@ -90,7 +95,6 @@ class CompletableFutureNotificationHandlerSpec
       val future = new CompletableFuture[String]()
       future.completeExceptionally(ex)
       val func = mock[Try[_] => Unit]
-      val executionContext = new DirectExecutionContext()
 
       underTest.whenComplete(futureClass, future)(func)
 

@@ -15,11 +15,13 @@
  */
 
 package com.comcast.money.core.async
-import java.util.concurrent.CompletableFuture
+import java.util.concurrent.{ CompletableFuture, Future }
 
 import scala.util.{ Failure, Success, Try }
 
 class CompletableFutureNotificationHandler extends AbstractAsyncNotificationHandler[CompletableFuture[_]] {
+  override def supports(futureType: Class[_], future: AnyRef): Boolean =
+    (futureType == classOf[Future[_]] || futureType == classOf[CompletableFuture[_]]) && future.isInstanceOf[CompletableFuture[_]]
 
   override def whenComplete(future: CompletableFuture[_])(f: Try[_] => Unit): CompletableFuture[_] =
     future.whenComplete((result, exception) =>

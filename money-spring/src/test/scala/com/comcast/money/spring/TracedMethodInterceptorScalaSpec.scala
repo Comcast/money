@@ -16,9 +16,12 @@
 
 package com.comcast.money.spring
 
+import java.lang.reflect.AccessibleObject
+
 import com.comcast.money.annotations.{ Traced, TracedData }
 import com.comcast.money.api.Note
 import com.sun.istack.internal.NotNull
+import org.aopalliance.intercept.MethodInvocation
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
@@ -124,6 +127,20 @@ class TracedMethodInterceptorScalaSpec extends WordSpec with Matchers with Mocki
       noteCaptor.getValue.isSticky shouldBe true
     }
   }
+  "TracedMethodInterceptor" should {
+    "not intercept a method not annotated by " in {
+
+      val interceptor = new TracedMethodInterceptor(springTracer)
+      val invocation = mock[MethodInvocation]
+      val method = classOf[SampleScalaBean].getMethod("notTraced")
+      when(invocation.getStaticPart).thenReturn(method, null)
+
+      interceptor.invoke(invocation)
+
+      verify(invocation, times(1)).proceed()
+      verifyZeroInteractions(springTracer)
+    }
+  }
 }
 
 @Component
@@ -182,4 +199,6 @@ class SampleScalaBean {
 
     return
   }
+
+  def notTraced(): Unit = {}
 }
