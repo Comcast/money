@@ -25,7 +25,7 @@ import com.comcast.money.core.logging.TraceLogging
 import com.comcast.money.core.reflect.Reflections
 import org.slf4j.MDC
 
-import scala.util.{ Failure, Success }
+import scala.util.{ Failure, Success, Try }
 
 trait MethodTracer extends Reflections with TraceLogging {
   val tracer: Tracer = Money.Environment.tracer
@@ -34,39 +34,34 @@ trait MethodTracer extends Reflections with TraceLogging {
 
   def traceMethod(method: Method, annotation: Traced, args: Array[AnyRef], proceed: () => AnyRef): AnyRef = {
     val key = annotation.value()
-    var spanResult: Option[Boolean] = Some(true)
 
     tracer.startSpan(key)
     recordTracedParameters(method, args, tracer)
 
-    try {
-      val result = proceed()
-      if (annotation.async()) {
+    Try { proceed() } match {
+      case Success(result) if annotation.async() =>
         traceAsyncResult(method, annotation, result) match {
-          case Some(asyncResult) =>
-            spanResult = None
-            asyncResult
+          case Some(future) =>
+            future
           case None =>
+            tracer.stopSpan(true)
             result
         }
-      } else {
+      case Success(result) =>
+        tracer.stopSpan(true)
         result
-      }
-    } catch {
-      case exception: Throwable =>
-        spanResult = Some(exceptionMatches(exception, annotation.ignoredExceptions()))
+      case Failure(exception) =>
         logException(exception)
+        tracer.stopSpan(exceptionMatches(exception, annotation.ignoredExceptions()))
         throw exception
-    } finally {
-      spanResult.foreach(tracer.stopSpan)
     }
   }
 
-  def timeMethod(method: Method, annotation: Timed, invoke: () => AnyRef): AnyRef = {
+  def timeMethod(method: Method, annotation: Timed, proceed: () => AnyRef): AnyRef = {
     val key = annotation.value()
     try {
       tracer.startTimer(key)
-      invoke()
+      proceed()
     } finally {
       tracer.startTimer(key)
     }
