@@ -126,8 +126,6 @@ class TracedMethodInterceptorScalaSpec extends WordSpec with Matchers with Mocki
       noteCaptor.getValue.value shouldBe "prop"
       noteCaptor.getValue.isSticky shouldBe true
     }
-  }
-  "TracedMethodInterceptor" should {
     "not intercept a method not annotated by " in {
 
       val interceptor = new TracedMethodInterceptor(springTracer)
