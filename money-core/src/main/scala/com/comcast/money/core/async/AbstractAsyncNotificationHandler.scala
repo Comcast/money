@@ -19,15 +19,46 @@ package com.comcast.money.core.async
 import scala.reflect.ClassTag
 import scala.util.Try
 
+/**
+ * Provides a simple implementation of `AsyncNotificationHandler` where the future type matches the
+ * generic type argument
+ *
+ * @param ev the generic future type class tag
+ * @tparam T the generic future type
+ */
 abstract class AbstractAsyncNotificationHandler[T <: AnyRef](implicit ev: ClassTag[T]) extends AsyncNotificationHandler {
+  /**
+   * Determines if this handler can support the type and instance of the given future
+   * returned by the method bring traced
+   *
+   * @param futureType the type of the future as declared on the method being traced
+   * @param future the future instance returned by the method being traced
+   * @return `true` if this handler can register completion for the future instance
+   */
   override def supports(futureType: Class[_], future: AnyRef): Boolean =
     futureType != null && futureType == ev.runtimeClass && futureType.isInstance(future)
 
+  /**
+   * Registers a callback function to be invoked when the future has completed
+   *
+   * @param futureType the type of the future as declared on the method being traced
+   * @param future the future instance for which the callback is to be registered
+   * @param f the callback function
+   * @return the future instance with the completion callback registered
+   */
   override def whenComplete(futureType: Class[_], future: AnyRef)(f: Try[_] => Unit): AnyRef =
     future match {
-      case matched: T => whenComplete(matched)(f)
+      case matched: T if supports(futureType, future) => whenComplete(matched)(f)
       case _ => future
     }
 
+  /**
+   * Implemented by derived type to register the callback function to be invoked when the future
+   * has completed
+   *
+   * @param future the future instance for which the callback is to be registered
+   * @param f the callback function
+   * @return the future instance with the completion callback registered
+   */
   def whenComplete(future: T)(f: Try[_] => Unit): T
 }

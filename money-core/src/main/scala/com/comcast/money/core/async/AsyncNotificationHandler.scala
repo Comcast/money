@@ -18,7 +18,28 @@ package com.comcast.money.core.async
 
 import scala.util.Try
 
+/**
+ * Provides an abstraction over different types of future implementations to allow for
+ * registration of a callback function to indicate when that future has completed and
+ * if the future was successful or exceptional.
+ */
 trait AsyncNotificationHandler {
+  /**
+   * Determines if this handler can support the type and instance of the given future
+   * returned by the method bring traced
+   *
+   * @param futureType the type of the future as declared on the method being traced
+   * @param future the future instance returned by the method being traced
+   * @return `true` if this handler can register completion for the future instance
+   */
   def supports(futureType: Class[_], future: AnyRef): Boolean
+
+  /**
+   * Registers a callback function to be invoked when the future has completed
+   *
+   * @param future the future instance for which the callback is to be registered
+   * @param f the callback function
+   * @return the future instance with the completion callback registered
+   */
   def whenComplete(futureType: Class[_], future: AnyRef)(f: Try[_] => Unit): AnyRef
 }
