@@ -7,7 +7,7 @@ object Dependencies {
   val akkaHttpV = "10.1.5"
   val slf4jV = "1.7.25"
   val jodaV = "2.9.9"
-  val json4sV = "3.6.1"
+  val json4sV = "3.6.5"
   val typesafeConfigV = "1.3.3"
 
   val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
