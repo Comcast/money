@@ -21,8 +21,10 @@ import com.typesafe.config.Config
 import scala.collection.JavaConverters._
 
 case class AsyncNotifier(handlers: Seq[AsyncNotificationHandler]) {
-  def resolveHandler(future: AnyRef): Option[AsyncNotificationHandler] =
-    Option(future).flatMap(f => handlers.find(_.supports(f)))
+  def resolveHandler(futureClass: Class[_], future: AnyRef): Option[AsyncNotificationHandler] =
+    if (futureClass != null && future != null)
+      handlers.find(_.supports(futureClass, future))
+    else None
 }
 
 object AsyncNotifier {

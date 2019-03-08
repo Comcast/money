@@ -30,46 +30,62 @@ class ScalaFutureNotificationHandlerSpec
   extends WordSpecLike
   with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest with SpecHelpers {
 
+  val success = Future.successful("success")
+  val futureClass = classOf[Future[_]]
   val underTest = new ScalaFutureNotificationHandler()
   implicit val executionContext: ExecutionContext = new DirectExecutionContext()
 
   "ScalaFutureNotificationHandler" should {
     "support scala.concurrent.Future" in {
-      val future = Future.successful("success")
-      val result = underTest.supports(future)
+      val result = underTest.supports(futureClass, success)
 
       result shouldEqual true
     }
     "support descendents of scala.concurrent.Future" in {
       val future = mock[MyFuture[String]]
-      val result = underTest.supports(future)
+      val result = underTest.supports(futureClass, future)
 
       result shouldEqual true
     }
-    "does not support non-Futures" in {
-      val nonFuture = new Object()
-      val result = underTest.supports(nonFuture)
+    "does not support descendent classes of scala.concurrent.Future" in {
+      val result = underTest.supports(classOf[MyFuture[_]], success)
 
       result shouldEqual false
     }
-    "does not support null" in {
-      val result = underTest.supports(null)
+    "does not support non-Future classes" in {
+      val result = underTest.supports(classOf[Object], success)
+
+      result shouldEqual false
+    }
+    "does not support non-Future instances" in {
+      val result = underTest.supports(futureClass, new Object)
+
+      result shouldEqual false
+    }
+    "does not support null classes" in {
+      val result = underTest.supports(null, success)
+
+      result shouldEqual false
+    }
+    "does not support null instances" in {
+      val result = underTest.supports(futureClass, null)
 
       result shouldEqual false
     }
     "calls transform method on the future" in {
       val future = mock[Future[String]]
-      doReturn(future).when(future).transform(any(), any())(argEq(underTest.executionContext))
+      val transformed = mock[Future[String]]
+      doReturn(transformed).when(future).transform(any(), any())(argEq(underTest.executionContext))
 
-      val result = underTest.whenComplete(future, _ => {})
+      val result = underTest.whenComplete(futureClass, future)(_ => {})
 
-      verify(result, times(1)).transform(any(), any())(argEq(underTest.executionContext))
+      result shouldBe transformed
+      verify(future, times(1)).transform(any(), any())(argEq(underTest.executionContext))
     }
     "calls registered completion function for already completed future" in {
-      val future = Future.successful("success")
       val func = mock[Try[_] => Unit]
 
-      underTest.whenComplete(future, func)
+      underTest.whenComplete(futureClass, success)(func)
 
       verify(func, times(1)).apply(argEq(Try("success")))
     }
@@ -77,9 +93,8 @@ class ScalaFutureNotificationHandlerSpec
       val ex = new RuntimeException
       val future = Future.failed(ex)
       val func = mock[Try[_] => Unit]
-      val executionContext = new DirectExecutionContext()
 
-      underTest.whenComplete(future, func)
+      underTest.whenComplete(futureClass, future)(func)
 
       verify(func, times(1)).apply(argEq(Failure(ex)))
     }
@@ -89,7 +104,7 @@ class ScalaFutureNotificationHandlerSpec
 
       val func = mock[Try[_] => Unit]
 
-      underTest.whenComplete(future, func)
+      underTest.whenComplete(futureClass, future)(func)
       verify(func, never()).apply(any())
 
       promise.complete(Try("success"))
@@ -102,7 +117,7 @@ class ScalaFutureNotificationHandlerSpec
 
       val func = mock[Try[_] => Unit]
 
-      underTest.whenComplete(future, func)
+      underTest.whenComplete(futureClass, future)(func)
       verify(func, never()).apply(any())
 
       val exception = new RuntimeException()
