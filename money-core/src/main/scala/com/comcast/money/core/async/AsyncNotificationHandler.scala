@@ -19,6 +19,6 @@ package com.comcast.money.core.async
 import scala.util.Try
 
 trait AsyncNotificationHandler {
-  def supports(future: AnyRef): Boolean
-  def whenComplete(future: AnyRef, f: Try[_] => Unit): AnyRef
+  def supports(futureClass: Class[_], future: AnyRef): Boolean
+  def whenComplete(futureClass: Class[_], future: AnyRef)(f: Try[_] => Unit): AnyRef
 }
