@@ -24,7 +24,7 @@ import com.comcast.money.core.logging.TraceLogging
 import com.comcast.money.core.reflect.Reflections
 import org.aspectj.lang.annotation.{ Around, Aspect, Pointcut }
 import org.aspectj.lang.reflect.MethodSignature
-import org.aspectj.lang.{ JoinPoint, ProceedingJoinPoint }
+import org.aspectj.lang.{ JoinPoint, ProceedingJoinPoint, Signature }
 import org.slf4j.MDC
 
 import scala.util.{ Failure, Success }
@@ -56,7 +56,7 @@ class TraceAspect extends Reflections with TraceLogging {
       val returnValue = joinPoint.proceed()
 
       if (traceAnnotation.async()) {
-        traceAsyncResult(traceAnnotation, returnValue) match {
+        traceAsyncResult(traceAnnotation, joinPoint.getSignature, returnValue) match {
           case Some(asyncResult) =>
             // Do not stop the span when the advice returns as the span will
             // be stopped by the callback registered to the `AsyncNotificationHandler`
@@ -103,37 +103,47 @@ class TraceAspect extends Reflections with TraceLogging {
    * Binds the duration and result of the current span to the return value of the traced method
    *
    * @param traceAnnotation The `@Traced` annotation applied to the method
+   * @param signature The signature of the annotated method
    * @param returnValue The return value from the `@Traced` method
    * @return An option with the result from the `AsyncNotificationHandler`, or `None` if no handler
    *         supports the return value
    */
-  private def traceAsyncResult(traceAnnotation: Traced, returnValue: AnyRef): Option[AnyRef] =
-    // attempt to resolve the AsyncNotificationHandler for the return value
-    asyncNotifier.resolveHandler(returnValue).map {
-      handler =>
-        // pop the current span from the stack as it will not be stopped by the tracer
-        val span = SpanLocal.pop()
-        // capture the current MDC context to be applied on the callback thread
-        val mdc = Option(MDC.getCopyOfContextMap)
+  private def traceAsyncResult(traceAnnotation: Traced, signature: Signature, returnValue: AnyRef): Option[AnyRef] =
+    signature match {
+      case methodSignature: MethodSignature =>
+        // get the return type of the annotated method
+        val returnClass = methodSignature.getReturnType
 
-        // register callback to be invoked when the future is completed
-        handler.whenComplete(returnValue, completed => {
+        // attempt to resolve the AsyncNotificationHandler for the class of the return type and the return value
+        asyncNotifier.resolveHandler(returnClass, returnValue).map {
+          handler =>
+            // pop the current span from the stack as it will not be stopped by the tracer
+            val span = SpanLocal.pop()
+            // capture the current MDC context to be applied on the callback thread
+            val mdc = Option(MDC.getCopyOfContextMap)
 
-          // reapply the MDC onto the callback thread
-          mdcSupport.propogateMDC(mdc)
+            // register callback to be invoked when the future is completed
+            handler.whenComplete(returnClass, returnValue) {
+              completed =>
+                {
+                  // reapply the MDC onto the callback thread
+                  mdcSupport.propogateMDC(mdc)
 
-          // determine if the future completed successfully or exceptionally
-          val result = completed match {
-            case Success(_) => true
-            case Failure(exception) =>
-              logException(exception)
-              exceptionMatches(exception, traceAnnotation.ignoredExceptions())
-          }
+                  // determine if the future completed successfully or exceptionally
+                  val result = completed match {
+                    case Success(_) => true
+                    case Failure(exception) =>
+                      logException(exception)
+                      exceptionMatches(exception, traceAnnotation.ignoredExceptions())
+                  }
 
-          // stop the captured span with the success/failure flag
-          span.foreach(_.stop(result))
-          // clear the MDC from the callback thread
-          MDC.clear()
-        })
+                  // stop the captured span with the success/failure flag
+                  span.foreach(_.stop(result))
+                  // clear the MDC from the callback thread
+                  MDC.clear()
+                }
+            }
+        }
+      case _ => None
     }
 }
