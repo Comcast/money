@@ -62,6 +62,12 @@ class SpanLocalSpec extends WordSpec
         popped shouldEqual Some(nested)
         SpanLocal.current shouldEqual Some(testSpan)
       }
+      "pop with no current Span" in {
+        SpanLocal.clear()
+
+        val popped = SpanLocal.pop()
+        popped shouldEqual None
+      }
       "set the MDC value on push" in {
         SpanLocal.push(testSpan)
 

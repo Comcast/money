@@ -72,7 +72,7 @@ object SpanLocal extends SpanContext {
    * Clears the entire call stack for the thread
    */
   override def clear(): Unit = {
-    threadLocalCtx.remove()
+    if (threadLocalCtx != null) threadLocalCtx.remove()
 
     setSpanMDC(None)
     setSpanNameMDC(None)
