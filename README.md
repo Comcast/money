@@ -37,7 +37,7 @@ Money modules build on the core, so implementing tracing is a snap. From Apache 
 
 ## Why is it different?
 Money was inspired by inspired by [Google Dapper](http://research.google.com/pubs/pub36356.html)
-and [Twitter Zipkin](http://twitter.github.io/zipkin/); however there are some subtle yet fundamental differences
+and [Twitter Zipkin](https://zipkin.apache.org/); however there are some subtle yet fundamental differences
 between those systems and Money, the biggest one being...
 
 ### Spans start and end within a single process
