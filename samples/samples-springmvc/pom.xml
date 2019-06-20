@@ -10,7 +10,7 @@
     <packaging>war</packaging>
     <properties>
         <spring.version>4.3.18.RELEASE</spring.version>
-        <jackson.version>2.9.7</jackson.version>
+        <jackson.version>2.9.9</jackson.version>
         <jetty.version>8.1.5.v20120716</jetty.version>
         <jetty.jsp.version>8.1.4.v20120524</jetty.jsp.version>
         <money.version>0.9.0</money.version>
