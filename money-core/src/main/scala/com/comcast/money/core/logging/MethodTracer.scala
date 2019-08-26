@@ -63,7 +63,7 @@ trait MethodTracer extends Reflections with TraceLogging {
       tracer.startTimer(key)
       proceed()
     } finally {
-      tracer.startTimer(key)
+      tracer.stopTimer(key)
     }
   }
 
