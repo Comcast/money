@@ -18,19 +18,20 @@ package com.comcast.money.core.logging
 
 import java.lang.reflect.Method
 
-import com.comcast.money.annotations.{ Timed, Traced }
-import com.comcast.money.core.{ Money, Tracer }
+import com.comcast.money.annotations.{Timed, Traced}
+import com.comcast.money.core.{Money, Tracer}
 import com.comcast.money.core.async.AsyncNotifier
-import com.comcast.money.core.internal.{ MDCSupport, SpanLocal }
+import com.comcast.money.core.internal.{MDCSupport, SpanContext, SpanLocal}
 import com.comcast.money.core.reflect.Reflections
 import org.slf4j.MDC
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 trait MethodTracer extends Reflections with TraceLogging {
   val tracer: Tracer = Money.Environment.tracer
   val asyncNotifier: AsyncNotifier = Money.Environment.asyncNotifier
   val mdcSupport: MDCSupport = new MDCSupport()
+  val spanContext: SpanContext = SpanLocal
 
   def traceMethod(method: Method, annotation: Traced, args: Array[AnyRef], proceed: () => AnyRef): AnyRef = {
     val key = annotation.value()
@@ -76,7 +77,7 @@ trait MethodTracer extends Reflections with TraceLogging {
     handler <- asyncNotifier.resolveHandler(method.getReturnType, returnValue)
 
     // pop the current span from the stack as it will not be stopped by the tracer
-    span <- SpanLocal.pop()
+    span <- spanContext.pop
     // capture the current MDC context to be applied on the callback thread
     mdc = Option(MDC.getCopyOfContextMap)
 
