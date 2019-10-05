@@ -16,12 +16,11 @@
 
 package com.comcast.money.aspectj
 
-import java.util.concurrent.{ CompletableFuture, CompletionStage, TimeUnit }
+import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import com.comcast.money.annotations.{ Timed, Traced, TracedData }
 import com.comcast.money.core.internal.MDCSupport
 import com.comcast.money.core.{ LogRecord, Money, SpecHelpers }
-import org.aspectj.lang.ProceedingJoinPoint
 import org.mockito.Mockito._
 import org.scalatest._
 import org.scalatest.concurrent.Eventually
@@ -85,9 +84,14 @@ class TraceAspectSpec extends WordSpec
   def asyncMethodReturnsFuture(future: Future[String]): Future[String] = future
 
   @Traced(
-    value = "asyncMethodReturnsNull",
+    value = "asyncMethodReturnsCompletableFuture",
     async = true)
-  def asyncMethodReturnsNull(): Future[String] = null
+  def asyncMethodReturnsCompletableFuture(future: CompletableFuture[String]): CompletableFuture[String] = future
+
+  @Traced(
+    value = "asyncMethodReturnsCompletionStage",
+    async = true)
+  def asyncMethodReturnsCompletionStage(future: CompletionStage[String]): CompletionStage[String] = future
 
   @Traced(
     value = "asyncMethodReturnsNonFuture",
@@ -123,6 +127,18 @@ class TraceAspectSpec extends WordSpec
     async = true,
     ignoredExceptions = Array(classOf[IllegalArgumentException]))
   def asyncMethodWithIgnoredException(future: Future[String]): Future[String] = future
+
+  @Traced(
+    value = "asyncMethodWithIgnoredException",
+    async = true,
+    ignoredExceptions = Array(classOf[IllegalArgumentException]))
+  def asyncMethodWithIgnoredException(future: CompletableFuture[String]): CompletableFuture[String] = future
+
+  @Traced(
+    value = "asyncMethodWithIgnoredException",
+    async = true,
+    ignoredExceptions = Array(classOf[IllegalArgumentException]))
+  def asyncMethodWithIgnoredException(future: CompletionStage[String]): CompletionStage[String] = future
 
   @Timed("methodWithTiming")
   def methodWithTiming() = {
@@ -272,10 +288,10 @@ class TraceAspectSpec extends WordSpec
           Given("a method that returns null")
 
           When("the method is invoked")
-          val _ = asyncMethodReturnsNull()
+          val _ = asyncMethodReturnsFuture(null)
 
           Then("the method and future execution is logged")
-          expectSpanInfoThat("is named asyncMethodReturnsNull", _.name == "asyncMethodReturnsNull")
+          expectSpanInfoThat("is named asyncMethodReturnsFuture", _.name == "asyncMethodReturnsFuture")
         }
         "handle async methods that return a non-future" in {
           Given("a method that returns a non-future")
@@ -329,6 +345,144 @@ class TraceAspectSpec extends WordSpec
           expectLogMessageContaining("span-success=false")
         }
 
+      }
+      "for Java CompletableFuture[T]" should {
+        "handle async methods that return a future" in {
+          Given("a method that returns a future")
+
+          When("the method is invoked")
+          val completableFuture = new CompletableFuture[String]()
+          val future = asyncMethodReturnsCompletableFuture(completableFuture)
+
+          Then("the method execution is logged")
+          dontExpectSpanInfoThat("is named asyncMethodReturnsCompletableFuture", _.name == "asyncMethodReturnsCompletableFuture")
+
+          When("the future completes")
+          completableFuture.complete("Success")
+
+          Then("the async execution is logged")
+          expectSpanInfoThat("is named asyncMethodReturnsCompletableFuture", _.name == "asyncMethodReturnsCompletableFuture")
+        }
+        "handle async methods that return a failed future" in {
+          Given("a method that returns a future")
+
+          When("the method is invoked")
+          val completableFuture = new CompletableFuture[String]()
+          val future = asyncMethodReturnsCompletableFuture(completableFuture)
+
+          Then("the method execution is logged")
+          dontExpectSpanInfoThat("is named asyncMethodReturnsCompletableFuture", _.name == "asyncMethodReturnsCompletableFuture")
+
+          When("the future fails")
+          completableFuture.completeExceptionally(new RuntimeException())
+
+          Then("the async execution is logged")
+          expectSpanInfoThat("is named asyncMethodReturnsCompletableFuture and is not successful", span =>
+            span.name == "asyncMethodReturnsCompletableFuture" && !span.success())
+        }
+        "handle async methods that return a failed future with ignored exception" in {
+          Given("a method that returns a future")
+
+          When("the method is invoked")
+          val completableFuture = new CompletableFuture[String]()
+          val future = asyncMethodWithIgnoredException(completableFuture)
+
+          Then("the method execution is logged")
+          dontExpectSpanInfoThat("is named asyncMethodWithIgnoredException", _.name == "asyncMethodWithIgnoredException")
+
+          When("the future fails")
+          completableFuture.completeExceptionally(new IllegalArgumentException())
+
+          Then("the async execution is logged")
+          expectSpanInfoThat("is named asyncMethodWithIgnoredException and is successful", span =>
+            span.name == "asyncMethodWithIgnoredException" && span.success())
+        }
+        "handle async methods that return a failed future with exception not in ignored list" in {
+          Given("a method that returns a future")
+
+          When("the method is invoked")
+          val completableFuture = new CompletableFuture[String]()
+          val future = asyncMethodWithIgnoredException(completableFuture)
+
+          Then("the method execution is logged")
+          dontExpectSpanInfoThat("is named asyncMethodWithIgnoredException", _.name == "asyncMethodWithIgnoredException")
+
+          When("the future fails")
+          completableFuture.completeExceptionally(new RuntimeException())
+
+          Then("the async execution is logged")
+          expectSpanInfoThat("is named asyncMethodWithIgnoredException and is not successful", span =>
+            span.name == "asyncMethodWithIgnoredException" && !span.success())
+        }
+      }
+      "for Java CompletionStage[T]" should {
+        "handle async methods that return a future" in {
+          Given("a method that returns a future")
+
+          When("the method is invoked")
+          val completableFuture = new CompletableFuture[String]()
+          val future = asyncMethodReturnsCompletionStage(completableFuture)
+
+          Then("the method execution is logged")
+          dontExpectSpanInfoThat("is named asyncMethodReturnsCompletionStage", _.name == "asyncMethodReturnsCompletionStage")
+
+          When("the future completes")
+          completableFuture.complete("Success")
+
+          Then("the async execution is logged")
+          expectSpanInfoThat("is named asyncMethodReturnsCompletionStage", _.name == "asyncMethodReturnsCompletionStage")
+        }
+        "handle async methods that return a failed future" in {
+          Given("a method that returns a future")
+
+          When("the method is invoked")
+          val completableFuture = new CompletableFuture[String]()
+          val future = asyncMethodReturnsCompletionStage(completableFuture)
+
+          Then("the method execution is logged")
+          dontExpectSpanInfoThat("is named asyncMethodReturnsCompletionStage", _.name == "asyncMethodReturnsCompletionStage")
+
+          When("the future fails")
+          completableFuture.completeExceptionally(new RuntimeException())
+
+          Then("the async execution is logged")
+          expectSpanInfoThat("is named asyncMethodReturnsCompletionStage and is not successful", span =>
+            span.name == "asyncMethodReturnsCompletionStage" && !span.success())
+        }
+        "handle async methods that return a failed future with ignored exception" in {
+          Given("a method that returns a future")
+
+          When("the method is invoked")
+          val completableFuture = new CompletableFuture[String]()
+          val future = asyncMethodWithIgnoredException(completableFuture.asInstanceOf[CompletionStage[String]])
+
+          Then("the method execution is logged")
+          dontExpectSpanInfoThat("is named asyncMethodWithIgnoredException", _.name == "asyncMethodWithIgnoredException")
+
+          When("the future fails")
+          completableFuture.completeExceptionally(new IllegalArgumentException())
+
+          Then("the async execution is logged")
+          expectSpanInfoThat("is named asyncMethodWithIgnoredException and is successful", span =>
+            span.name == "asyncMethodWithIgnoredException" && span.success())
+        }
+        "handle async methods that return a failed future with exception not in ignored list" in {
+          Given("a method that returns a future")
+
+          When("the method is invoked")
+          val completableFuture = new CompletableFuture[String]()
+          val future = asyncMethodWithIgnoredException(completableFuture.asInstanceOf[CompletionStage[String]])
+
+          Then("the method execution is logged")
+          dontExpectSpanInfoThat("is named asyncMethodWithIgnoredException", _.name == "asyncMethodWithIgnoredException")
+
+          When("the future fails")
+          completableFuture.completeExceptionally(new RuntimeException())
+
+          Then("the async execution is logged")
+          expectSpanInfoThat("is named asyncMethodWithIgnoredException and is not successful", span =>
+            span.name == "asyncMethodWithIgnoredException" && !span.success())
+        }
       }
     }
     "advising methods that have parameters with the TracedData annotation" should {

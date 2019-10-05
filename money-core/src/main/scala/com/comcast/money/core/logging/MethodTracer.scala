@@ -18,14 +18,14 @@ package com.comcast.money.core.logging
 
 import java.lang.reflect.Method
 
-import com.comcast.money.annotations.{Timed, Traced}
-import com.comcast.money.core.{Money, Tracer}
+import com.comcast.money.annotations.{ Timed, Traced }
+import com.comcast.money.core.{ Money, Tracer }
 import com.comcast.money.core.async.AsyncNotifier
-import com.comcast.money.core.internal.{MDCSupport, SpanContext, SpanLocal}
+import com.comcast.money.core.internal.{ MDCSupport, SpanContext, SpanLocal }
 import com.comcast.money.core.reflect.Reflections
 import org.slf4j.MDC
 
-import scala.util.{Failure, Success, Try}
+import scala.util.{ Failure, Success, Try }
 
 trait MethodTracer extends Reflections with TraceLogging {
   val tracer: Tracer = Money.Environment.tracer
