@@ -16,9 +16,13 @@
 
 package com.comcast.money.spring
 
+import java.lang.reflect.AccessibleObject
+
 import com.comcast.money.annotations.{ Traced, TracedData }
 import com.comcast.money.api.Note
 import com.sun.istack.internal.NotNull
+import org.aopalliance.intercept.MethodInvocation
+import org.aspectj.lang.JoinPoint
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
 import org.scalatest.mockito.MockitoSugar
@@ -122,6 +126,20 @@ class TracedMethodInterceptorScalaSpec extends WordSpec with Matchers with Mocki
       noteCaptor.getValue.name shouldBe "STRING"
       noteCaptor.getValue.value shouldBe "prop"
       noteCaptor.getValue.isSticky shouldBe true
+    }
+    "should invoke joinpoint directly without Traced annotation" in {
+      val tracer = new SpringTracer()
+      val interceptor = new TracedMethodInterceptor(tracer)
+      val invocation = mock[MethodInvocation]
+      val accessibleObject = mock[AccessibleObject]
+      doReturn(accessibleObject).when(invocation).getStaticPart
+      doReturn(null).when(accessibleObject).getAnnotation(classOf[Traced])
+
+      interceptor.invoke(invocation)
+
+      verify(invocation, never()).getMethod
+      verify(invocation, never()).getArguments
+      verify(invocation).proceed()
     }
   }
 }

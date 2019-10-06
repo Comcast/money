@@ -16,12 +16,11 @@
 
 package com.comcast.money.aspectj
 
-import java.util.concurrent.{ CompletableFuture, CompletionStage, TimeUnit }
+import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import com.comcast.money.annotations.{ Timed, Traced, TracedData }
 import com.comcast.money.core.internal.MDCSupport
 import com.comcast.money.core.{ LogRecord, Money, SpecHelpers }
-import org.aspectj.lang.ProceedingJoinPoint
 import org.mockito.Mockito._
 import org.scalatest._
 import org.scalatest.concurrent.Eventually
@@ -93,11 +92,6 @@ class TraceAspectSpec extends WordSpec
     value = "asyncMethodReturnsCompletionStage",
     async = true)
   def asyncMethodReturnsCompletionStage(future: CompletionStage[String]): CompletionStage[String] = future
-
-  @Traced(
-    value = "asyncMethodReturnsNull",
-    async = true)
-  def asyncMethodReturnsNull(): Future[String] = null
 
   @Traced(
     value = "asyncMethodReturnsNonFuture",
@@ -294,10 +288,10 @@ class TraceAspectSpec extends WordSpec
           Given("a method that returns null")
 
           When("the method is invoked")
-          val _ = asyncMethodReturnsNull()
+          val _ = asyncMethodReturnsFuture(null)
 
           Then("the method and future execution is logged")
-          expectSpanInfoThat("is named asyncMethodReturnsNull", _.name == "asyncMethodReturnsNull")
+          expectSpanInfoThat("is named asyncMethodReturnsFuture", _.name == "asyncMethodReturnsFuture")
         }
         "handle async methods that return a non-future" in {
           Given("a method that returns a non-future")
