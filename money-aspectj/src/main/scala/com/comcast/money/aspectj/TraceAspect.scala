@@ -17,133 +17,29 @@
 package com.comcast.money.aspectj
 
 import com.comcast.money.annotations.{ Timed, Traced }
-import com.comcast.money.core._
-import com.comcast.money.core.async.AsyncNotifier
-import com.comcast.money.core.internal.{ MDCSupport, SpanLocal }
-import com.comcast.money.core.logging.TraceLogging
-import com.comcast.money.core.reflect.Reflections
+import com.comcast.money.core.logging.MethodTracer
+import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.annotation.{ Around, Aspect, Pointcut }
 import org.aspectj.lang.reflect.MethodSignature
-import org.aspectj.lang.{ JoinPoint, ProceedingJoinPoint, Signature }
-import org.slf4j.MDC
-
-import scala.util.{ Failure, Success }
 
 @Aspect
-class TraceAspect extends Reflections with TraceLogging {
-
-  val tracer: Tracer = Money.Environment.tracer
-  val asyncNotifier: AsyncNotifier = Money.Environment.asyncNotifier
-  val mdcSupport: MDCSupport = new MDCSupport()
+class TraceAspect extends MethodTracer {
 
   @Pointcut("execution(@com.comcast.money.annotations.Traced * *(..)) && @annotation(traceAnnotation)")
-  def traced(traceAnnotation: Traced) = {}
+  def traced(traceAnnotation: Traced): Unit = {}
 
   @Pointcut("execution(@com.comcast.money.annotations.Timed * *(..)) && @annotation(timedAnnotation)")
-  def timed(timedAnnotation: Timed) = {}
+  def timed(timedAnnotation: Timed): Unit = {}
 
   @Around("traced(traceAnnotation)")
   def adviseMethodsWithTracing(joinPoint: ProceedingJoinPoint, traceAnnotation: Traced): AnyRef = {
-    val key = traceAnnotation.value()
-    val oldSpanName = mdcSupport.getSpanNameMDC
-    var spanResult: Option[Boolean] = Some(true)
-
-    try {
-      tracer.startSpan(key)
-      mdcSupport.setSpanNameMDC(Some(key))
-      traceMethodArguments(joinPoint)
-
-      val returnValue = joinPoint.proceed()
-
-      if (traceAnnotation.async()) {
-        traceAsyncResult(traceAnnotation, joinPoint.getSignature, returnValue) match {
-          case Some(asyncResult) =>
-            // Do not stop the span when the advice returns as the span will
-            // be stopped by the callback registered to the `AsyncNotificationHandler`
-            spanResult = None
-            asyncResult
-          case None =>
-            returnValue
-        }
-      } else {
-        returnValue
-      }
-    } catch {
-      case t: Throwable =>
-        spanResult = Some(exceptionMatches(t, traceAnnotation.ignoredExceptions()))
-        logException(t)
-        throw t
-    } finally {
-      spanResult.foreach(tracer.stopSpan)
-      mdcSupport.setSpanNameMDC(oldSpanName)
-    }
+    val methodSignature = joinPoint.getSignature.asInstanceOf[MethodSignature]
+    traceMethod(methodSignature.getMethod, traceAnnotation, joinPoint.getArgs, joinPoint.proceed)
   }
 
   @Around("timed(timedAnnotation)")
   def adviseMethodsWithTiming(joinPoint: ProceedingJoinPoint, timedAnnotation: Timed): AnyRef = {
-    val key: String = timedAnnotation.value
-    val startTime = System.currentTimeMillis()
-    try {
-      joinPoint.proceed
-    } finally {
-      tracer.record(key, System.currentTimeMillis() - startTime)
-    }
+    val methodSignature = joinPoint.getSignature.asInstanceOf[MethodSignature]
+    timeMethod(methodSignature.getMethod, timedAnnotation, joinPoint.proceed)
   }
-
-  private def traceMethodArguments(joinPoint: JoinPoint): Unit = {
-    if (joinPoint.getArgs != null && joinPoint.getArgs.length > 0) {
-      joinPoint.getStaticPart.getSignature match {
-        case signature: MethodSignature if signature.getMethod.getAnnotations != null =>
-          recordTracedParameters(signature.getMethod, joinPoint.getArgs, tracer)
-      }
-    }
-  }
-
-  /**
-   * Binds the duration and result of the current span to the return value of the traced method
-   *
-   * @param traceAnnotation The `@Traced` annotation applied to the method
-   * @param signature The signature of the annotated method
-   * @param returnValue The return value from the `@Traced` method
-   * @return An option with the result from the `AsyncNotificationHandler`, or `None` if no handler
-   *         supports the return value
-   */
-  private def traceAsyncResult(traceAnnotation: Traced, signature: Signature, returnValue: AnyRef): Option[AnyRef] =
-    signature match {
-      case methodSignature: MethodSignature =>
-        // get the return type of the annotated method
-        val returnClass = methodSignature.getReturnType
-
-        // attempt to resolve the AsyncNotificationHandler for the class of the return type and the return value
-        asyncNotifier.resolveHandler(returnClass, returnValue).map {
-          handler =>
-            // pop the current span from the stack as it will not be stopped by the tracer
-            val span = SpanLocal.pop()
-            // capture the current MDC context to be applied on the callback thread
-            val mdc = Option(MDC.getCopyOfContextMap)
-
-            // register callback to be invoked when the future is completed
-            handler.whenComplete(returnClass, returnValue) {
-              completed =>
-                {
-                  // reapply the MDC onto the callback thread
-                  mdcSupport.propogateMDC(mdc)
-
-                  // determine if the future completed successfully or exceptionally
-                  val result = completed match {
-                    case Success(_) => true
-                    case Failure(exception) =>
-                      logException(exception)
-                      exceptionMatches(exception, traceAnnotation.ignoredExceptions())
-                  }
-
-                  // stop the captured span with the success/failure flag
-                  span.foreach(_.stop(result))
-                  // clear the MDC from the callback thread
-                  MDC.clear()
-                }
-            }
-        }
-      case _ => None
-    }
 }
