@@ -18,8 +18,6 @@ package com.comcast.money.core.internal
 
 import com.comcast.money.api.Span
 
-import scala.collection.mutable.Stack
-
 trait SpanContext {
   def push(span: Span): Unit
 
@@ -37,7 +35,7 @@ trait SpanContext {
 object SpanLocal extends SpanContext {
 
   // A stack of span ids for the current thread
-  private[this] val threadLocalCtx = new ThreadLocal[List[Span]]
+  private[this] val threadLocalCtx = ThreadLocal.withInitial[List[Span]](() => Nil)
 
   private lazy val mdcSupport = new MDCSupport()
 
@@ -47,32 +45,27 @@ object SpanLocal extends SpanContext {
 
   override def push(span: Span): Unit =
     if (span != null) {
-      Option(threadLocalCtx.get) match {
-        case Some(current) =>
-          threadLocalCtx.set(span :: current)
-        case None =>
-          threadLocalCtx.set(List(span))
-      }
+      threadLocalCtx.set(span :: threadLocalCtx.get())
       setSpanMDC(Some(span.info.id))
       setSpanNameMDC(Some(span.info.name))
     }
 
   override def pop(): Option[Span] =
     threadLocalCtx.get match {
+      case Nil => None
       case span :: rest =>
         threadLocalCtx.set(rest)
         val head = rest.headOption
         setSpanMDC(head.map(_.info.id))
         setSpanNameMDC(head.map(_.info.name))
         Some(span)
-      case _ => None
     }
 
   /**
    * Clears the entire call stack for the thread
    */
   override def clear(): Unit = {
-    if (threadLocalCtx != null) threadLocalCtx.remove()
+    threadLocalCtx.remove()
 
     setSpanMDC(None)
     setSpanNameMDC(None)
