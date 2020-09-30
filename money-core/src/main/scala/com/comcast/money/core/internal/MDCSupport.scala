@@ -25,22 +25,34 @@ import org.slf4j.MDC
 object MDCSupport {
 
   val LogFormat = "[ span-id=%s ][ trace-id=%s ][ parent-id=%s ]"
+  val LogHexFormat = "[ span-id=%016x ][ trace-id=%s ][ parent-id=%016x ]"
 
-  def format(spanId: SpanId) = LogFormat.format(spanId.selfId, spanId.traceId, spanId.parentId)
+  def format(spanId: SpanId): String = format(spanId, formatIdsAsHex = false)
+
+  def format(spanId: SpanId, formatIdsAsHex: Boolean): String = if (formatIdsAsHex) {
+    LogHexFormat.format(
+      spanId.selfId,
+      spanId.traceId.replace("-", "").toLowerCase,
+      spanId.parentId)
+  } else {
+    LogFormat.format(spanId.selfId, spanId.traceId, spanId.parentId)
+  }
 }
 
 /**
  * Adds the ability to store a span in MDC for a magical logging experience
  * @param enabled True if mdc is enabled, false if it is disabled
  */
-class MDCSupport(enabled: Boolean = Money.Environment.enabled) {
+class MDCSupport(
+  enabled: Boolean = Money.Environment.enabled,
+  formatIdsAsHex: Boolean = Money.Environment.formatIdsAsHex) {
 
   private val MoneyTraceKey = "moneyTrace"
   private val SpanNameKey = "spanName"
 
   def setSpanMDC(spanId: Option[SpanId]): Unit = if (enabled) {
     spanId match {
-      case Some(id) => MDC.put(MoneyTraceKey, MDCSupport.format(id))
+      case Some(id) => MDC.put(MoneyTraceKey, MDCSupport.format(id, formatIdsAsHex))
       case None => MDC.remove(MoneyTraceKey)
     }
   }

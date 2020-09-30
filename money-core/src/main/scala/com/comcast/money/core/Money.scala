@@ -31,6 +31,7 @@ case class Money(
   factory: SpanFactory,
   tracer: Tracer,
   logExceptions: Boolean = false,
+  formatIdsAsHex: Boolean = false,
   asyncNotifier: AsyncNotifier = new AsyncNotifier(Seq()))
 
 object Money {
@@ -50,7 +51,8 @@ object Money {
       }
       val logExceptions = conf.getBoolean("log-exceptions")
       val asyncNotificationHandlerChain = AsyncNotifier(conf.getConfig("async-notifier"))
-      Money(enabled, handler, applicationName, hostName, factory, tracer, logExceptions, asyncNotificationHandlerChain)
+      val formatIdsAsHex = conf.hasPath("format-ids-as-hex") && conf.getBoolean("format-ids-as-hex")
+      Money(enabled, handler, applicationName, hostName, factory, tracer, logExceptions, formatIdsAsHex, asyncNotificationHandlerChain)
     } else {
       disabled(applicationName, hostName)
     }
