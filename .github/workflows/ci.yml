@@ -70,6 +70,11 @@ jobs:
           path: ~/.sbt
           key: ${{ runner.os }}-sbt-cache-${{ hashFiles('**/*.sbt') }}-${{ hashFiles('project/build.properties') }}
 
+      - name: Run tests
+        run: sbt clean coverage test coverageReport
+      - name: Coverage Aggregate
+        run: sbt coverageAggregate
+
       - name: Codecov
         uses: codecov/codecov-action@v1
         with:
