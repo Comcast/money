@@ -1,0 +1,23 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Run tests
+      run: sbt clean coverage test coverageReport
+    - name: Coverage Aggregate
+      run: sbt coverageReport
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v1
+      with:
+        fail_ci_if_error: true
