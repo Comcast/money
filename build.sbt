@@ -189,7 +189,7 @@ def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings +
   scalaVersion := "2.12.6",
   resolvers ++= Seq(
     "spray repo" at "http://repo.spray.io/",
-    "Sonatype OSS Releases" at "http://oss.sonatype.org/content/repositories/releases/"
+    "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/"
   ),
   scalacOptions ++= Seq(
     "-unchecked",
@@ -237,8 +237,8 @@ def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings +
       } yield entry.data).headOption
     }
     val links: Seq[Option[(File, URL)]] = Seq(
-      findManagedDependency("org.scala-lang", "scala-library").map(d => d -> url(s"http://www.scala-lang.org/api/2.10.4/")),
-      findManagedDependency("com.typesafe", "config").map(d => d -> url("http://typesafehub.github.io/config/latest/api/"))
+      findManagedDependency("org.scala-lang", "scala-library").map(d => d -> url(s"https://www.scala-lang.org/api/2.12.6/")),
+      findManagedDependency("com.typesafe", "config").map(d => d -> url("https://typesafehub.github.io/config/latest/api/"))
     )
     val x = links.collect { case Some(d) => d }.toMap
     println("links: " + x)
