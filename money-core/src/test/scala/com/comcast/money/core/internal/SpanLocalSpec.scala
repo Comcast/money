@@ -37,6 +37,9 @@ class SpanLocalSpec extends AnyWordSpec
         SpanLocal.push(testSpan)
         SpanLocal.current shouldEqual Some(testSpan)
       }
+      "return None with no span local value" in {
+        SpanLocal.current shouldEqual None
+      }
       "clear the stored value" in {
         SpanLocal.push(testSpan)
 
@@ -63,6 +66,9 @@ class SpanLocalSpec extends AnyWordSpec
         val popped = SpanLocal.pop()
         popped shouldEqual Some(nested)
         SpanLocal.current shouldEqual Some(testSpan)
+      }
+      "pop None with no span local value" in {
+        SpanLocal.pop() shouldEqual None
       }
       "set the MDC value on push" in {
         SpanLocal.push(testSpan)
