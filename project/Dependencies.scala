@@ -74,7 +74,7 @@ object Dependencies {
   val scalaTestCheck = "org.scalatestplus" %% "scalacheck-1-14" % "3.2.2.0" % Test
 
   val junit = "junit" % "junit" % "4.12" % Test
-  val junitInterface = "org.scalameta" % "junit-interface" % "0.7.12" % Test exclude("junit", "junit-dep")
+  val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test exclude("junit", "junit-dep")
   val springTest = ("org.springframework" % "spring-test" % "4.3.17.RELEASE")
     .exclude("commons-logging", "commons-logging")
   val springOckito = "org.kubek2k" % "springockito" % "1.0.9" % Test

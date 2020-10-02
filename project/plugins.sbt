@@ -15,6 +15,6 @@ addSbtPlugin("com.cavorite" % "sbt-avro-1-8" % "1.1.5")
 
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.0.0")
 
-addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.8.2")
+addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.8.3")
 
 addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.1.1")
