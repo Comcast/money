@@ -20,33 +20,36 @@ import com.comcast.money.api.Note
 import com.comcast.money.{ api, core }
 import com.typesafe.config.{ Config, ConfigFactory }
 import kafka.message.{ CompressionCodec, GZIPCompressionCodec }
-import kafka.producer.{ KeyedMessage, Producer }
+import org.apache.kafka.clients.producer.{ KafkaProducer, ProducerRecord }
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ BeforeAndAfterAll, Matchers, WordSpec }
+import org.scalatest.BeforeAndAfterAll
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 
 import scala.collection.JavaConverters._
+import java.{ util => ju }
 
 trait MockProducerMaker extends ProducerMaker {
 
-  val mockProducer = mock(classOf[Producer[Array[Byte], Array[Byte]]])
+  val mockProducer = mock(classOf[KafkaProducer[Array[Byte], Array[Byte]]])
 
-  def makeProducer(conf: Config): Producer[Array[Byte], Array[Byte]] = mockProducer
+  def makeProducer(conf: Config): KafkaProducer[Array[Byte], Array[Byte]] = mockProducer
 }
 
 class TestKafkaSpanHandler extends KafkaSpanHandler {
 
   var producerWasMade = false
-  val mockProducer = mock(classOf[Producer[Array[Byte], Array[Byte]]])
+  val mockProducer = mock(classOf[KafkaProducer[Array[Byte], Array[Byte]]])
 
-  override def makeProducer(conf: Config): Producer[Array[Byte], Array[Byte]] = {
+  override def createProducer(properties: ju.Properties): KafkaProducer[Array[Byte], Array[Byte]] = {
     producerWasMade = true
     mockProducer
   }
 }
 
-class KafkaSpanHandlerSpec extends WordSpec
+class KafkaSpanHandlerSpec extends AnyWordSpec
   with Matchers
   with MockitoSugar
   with BeforeAndAfterAll {
@@ -77,7 +80,7 @@ class KafkaSpanHandlerSpec extends WordSpec
     "send a message to the producer for a span" in new KafkaFixture {
       underTest.handle(sampleData)
 
-      val captor = ArgumentCaptor.forClass(classOf[KeyedMessage[Array[Byte], Array[Byte]]])
+      val captor = ArgumentCaptor.forClass(classOf[ProducerRecord[Array[Byte], Array[Byte]]])
       verify(testProducer).send(captor.capture())
     }
   }
@@ -93,17 +96,21 @@ class KafkaSpanHandlerSpec extends WordSpec
           | message.send.max.retries = "3"
           | request.required.acks = "0"
           | metadata.broker.list = "localhost:9092"
+          | bootstrap.servers = "localhost:9092"
+          | key.serializer = "org.apache.kafka.common.serialization.StringSerializer"
+          | value.serializer = "org.apache.kafka.common.serialization.StringSerializer"
         """.stripMargin)
       val testHandler = new KafkaSpanHandler()
       testHandler.configure(config)
 
-      val producerConfig = testHandler.producer.config
-      producerConfig.brokerList shouldBe "localhost:9092"
-      producerConfig.compressionCodec shouldBe GZIPCompressionCodec
-      producerConfig.producerType shouldBe "async"
-      producerConfig.batchNumMessages shouldBe 1
-      producerConfig.messageSendMaxRetries shouldBe 3
-      producerConfig.requestRequiredAcks shouldBe 0
+      val producerConfig = testHandler.properties
+
+      producerConfig.getProperty("metadata.broker.list") shouldBe "localhost:9092"
+      producerConfig.getProperty("compression.codec") shouldBe "1"
+      producerConfig.getProperty("producer.type") shouldBe "async"
+      producerConfig.getProperty("batch.num.messages") shouldBe "1"
+      producerConfig.getProperty("message.send.max.retries") shouldBe "3"
+      producerConfig.getProperty("request.required.acks") shouldBe "0"
     }
   }
 }

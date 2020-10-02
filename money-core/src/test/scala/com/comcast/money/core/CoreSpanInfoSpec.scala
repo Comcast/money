@@ -17,9 +17,10 @@
 package com.comcast.money.core
 
 import com.comcast.money.api.SpanId
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class CoreSpanInfoSpec extends WordSpec with Matchers {
+class CoreSpanInfoSpec extends AnyWordSpec with Matchers {
 
   "CoreSpanInfo" should {
     "have acceptable default values" in {

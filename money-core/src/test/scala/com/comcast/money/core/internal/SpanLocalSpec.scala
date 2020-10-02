@@ -18,11 +18,13 @@ package com.comcast.money.core.internal
 
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.handlers.TestData
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ OneInstancePerTest, BeforeAndAfterEach, Matchers, WordSpec }
 import org.slf4j.MDC
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.{ OneInstancePerTest, BeforeAndAfterEach }
+import org.scalatestplus.mockito.MockitoSugar
 
-class SpanLocalSpec extends WordSpec
+class SpanLocalSpec extends AnyWordSpec
   with Matchers with OneInstancePerTest with BeforeAndAfterEach with MockitoSugar with TestData {
 
   override def afterEach() = {

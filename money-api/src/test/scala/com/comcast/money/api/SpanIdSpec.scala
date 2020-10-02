@@ -16,9 +16,10 @@
 
 package com.comcast.money.api
 
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
 
-class SpanIdSpec extends WordSpec with Matchers {
+class SpanIdSpec extends AnyWordSpec with Matchers {
 
   "SpanId" should {
     "take 3 constructor arguments" in {

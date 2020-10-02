@@ -22,10 +22,12 @@ import com.comcast.money.core._
 import com.sun.istack.internal.NotNull
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ Matchers, OneInstancePerTest, WordSpec }
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.OneInstancePerTest
 
-class ReflectionsSpec extends WordSpec with Matchers with MockitoSugar with OneInstancePerTest {
+class ReflectionsSpec extends AnyWordSpec with Matchers with MockitoSugar with OneInstancePerTest {
 
   val mockTracer: Tracer = mock[Tracer]
 

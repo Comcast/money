@@ -16,11 +16,12 @@
 
 package com.comcast.money.spring
 
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import org.springframework.aop.support.StaticMethodMatcherPointcut
 
-class TracedMethodAdvisorSpec extends WordSpec with Matchers with MockitoSugar {
+class TracedMethodAdvisorSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
   val springTracer = mock[SpringTracer]
   val interceptor = new TracedMethodInterceptor(springTracer)

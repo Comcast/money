@@ -24,11 +24,7 @@ lazy val moneyApi =
     .enablePlugins(AutomateHeaderPlugin)
     .settings(projectSettings: _*)
     .settings(
-      libraryDependencies ++=
-      Seq(
-        scalaTest,
-        mockito
-      )
+      libraryDependencies ++= commonTestDependencies
     )
 
 lazy val moneyCore =
@@ -41,11 +37,8 @@ lazy val moneyCore =
           slf4j,
           log4jbinding,
           metricsCore,
-          typesafeConfig,
-          scalaTest,
-          scalaCheck,
-          mockito
-        )
+          typesafeConfig
+        ) ++ commonTestDependencies
     ).dependsOn(moneyApi)
 
 lazy val moneyAkka =
@@ -57,11 +50,11 @@ lazy val moneyAkka =
       Seq(
         akkaStream,
         akkaHttp,
+        akkaTestKit,
         akkaHttpTestKit,
         akkaLog,
-        scalaTest,
         typesafeConfig
-      )
+      ) ++ commonTestDependencies
   )
   .dependsOn(moneyCore)
 
@@ -73,9 +66,7 @@ lazy val moneyAspectj =
     libraryDependencies ++=
       Seq(
         typesafeConfig,
-        scalaTest,
-        mockito
-      )
+      ) ++ commonTestDependencies
   )
   .dependsOn(moneyCore % "test->test;compile->compile")
 
@@ -86,10 +77,8 @@ lazy val moneyHttpClient =
     .settings(
       libraryDependencies ++=
         Seq(
-          apacheHttpClient,
-          scalaTest,
-          mockito
-        )
+          apacheHttpClient
+        ) ++ commonTestDependencies
     )
     .dependsOn(moneyCore % "test->test;compile->compile",moneyAspectj)
 
@@ -100,10 +89,8 @@ lazy val moneyJavaServlet =
     .settings(
       libraryDependencies ++=
         Seq(
-          javaxServlet,
-          scalaTest,
-          mockito
-        )
+          javaxServlet
+        ) ++ commonTestDependencies
     )
     .dependsOn(moneyCore)
 
@@ -115,10 +102,8 @@ lazy val moneyWire =
       libraryDependencies ++=
         Seq(
           json4sNative,
-          json4sJackson,
-          scalaTest,
-          mockito
-        ),
+          json4sJackson
+        ) ++ commonTestDependencies,
       fork := false,
       javacOptions in doc := Seq("-source", "1.6"),
       // Configure the desired Avro version.  sbt-avro automatically injects a libraryDependency.
@@ -140,9 +125,7 @@ lazy val moneyKafka =
           chillAvro,
           chillBijection,
           commonsIo,
-          scalaTest,
-          mockito
-        )
+        ) ++ commonTestDependencies
     )
     .dependsOn(moneyCore, moneyWire)
 
@@ -160,12 +143,10 @@ lazy val moneySpring =
           springContext,
           junit,
           junitInterface,
-          scalaTest,
-          mockito,
           assertj,
           springTest,
           springOckito
-        ),
+        ) ++ commonTestDependencies,
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
     )
     .dependsOn(moneyCore)
@@ -176,17 +157,18 @@ def projectSettings = basicSettings ++ Seq(
   ScoverageKeys.coverageFailOnMinimum := true,
   organizationName := "Comcast Cable Communications Management, LLC",
   startYear := Some(2012),
-  licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
+  licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt"))
 )
 
 def aspectjProjectSettings = projectSettings ++ Seq(
   javaOptions in Test ++= (aspectjWeaverOptions in Aspectj).value // adds javaagent:aspectjweaver to java options, including test
 )
 
-def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings ++ Seq(
+def basicSettings =  Defaults.itSettings ++ Seq(
   organization := "com.comcast.money",
   version := "0.9.2-SNAPSHOT",
-  scalaVersion := "2.12.6",
+  scalaVersion := "2.12.12",
+  crossScalaVersions := List("2.13.3", "2.12.12"),
   resolvers ++= Seq(
     "spray repo" at "http://repo.spray.io/",
     "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/"
@@ -198,6 +180,7 @@ def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings +
     "-language:existentials",
     "-language:postfixOps",
     "-language:reflectiveCalls"),
+  scalariformAutoformat := true,
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF", "-u", "target/scalatest-reports"),
   fork := true,
   publishMavenStyle := true,
@@ -237,7 +220,7 @@ def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings +
       } yield entry.data).headOption
     }
     val links: Seq[Option[(File, URL)]] = Seq(
-      findManagedDependency("org.scala-lang", "scala-library").map(d => d -> url(s"https://www.scala-lang.org/api/2.12.6/")),
+      findManagedDependency("org.scala-lang", "scala-library").map(d => d -> url(s"https://www.scala-lang.org/api/2.12.12/")),
       findManagedDependency("com.typesafe", "config").map(d => d -> url("https://typesafehub.github.io/config/latest/api/"))
     )
     val x = links.collect { case Some(d) => d }.toMap

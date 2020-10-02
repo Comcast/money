@@ -16,13 +16,14 @@
 
 package com.comcast.money.akka.acceptance.stream
 
-import akka.actor.ActorSystem
 import akka.testkit.TestKit
+import akka.actor.ActorSystem
 import com.comcast.money.akka.MoneyExtension
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{ Matchers, WordSpecLike }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpecLike
 
-class MoneyExtensionSpec(_system: ActorSystem) extends TestKit(_system) with WordSpecLike with Matchers {
+class MoneyExtensionSpec(_system: ActorSystem) extends TestKit(_system) with AnyWordSpecLike with Matchers {
 
   def this() = this{
     val configString: String =

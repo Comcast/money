@@ -29,12 +29,14 @@ import org.apache.http.util.EntityUtils
 import org.aspectj.lang.ProceedingJoinPoint
 import org.mockito.Mockito._
 import org.scalatest._
-import org.scalatest.mockito.MockitoSugar
+import org.scalatest.featurespec.AnyFeatureSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.duration._
 
 class HttpTraceAspectSpec
-  extends FeatureSpec
+  extends AnyFeatureSpec
   with SpecHelpers
   with Matchers
   with MockitoSugar

@@ -18,11 +18,13 @@ package com.comcast.money.core.async
 
 import com.comcast.money.core.SpecHelpers
 import com.comcast.money.core.concurrent.ConcurrentSupport
-import org.scalatest.{ Matchers, OneInstancePerTest, WordSpecLike }
-import org.scalatest.mockito.MockitoSugar
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.OneInstancePerTest
 
 class DirectExecutionContextSpec
-  extends WordSpecLike
+  extends AnyWordSpec
   with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest with SpecHelpers {
 
   val underTest = new DirectExecutionContext()

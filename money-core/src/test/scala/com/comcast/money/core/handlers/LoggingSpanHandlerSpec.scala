@@ -21,11 +21,13 @@ import com.typesafe.config.{ Config, ConfigFactory }
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ Matchers, OneInstancePerTest, WordSpec }
 import org.slf4j.Logger
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.OneInstancePerTest
 
-class LoggingSpanHandlerSpec extends WordSpec
+class LoggingSpanHandlerSpec extends AnyWordSpec
   with Matchers with MockitoSugar with OneInstancePerTest with TestData {
 
   val mockLogger = mock[Logger]

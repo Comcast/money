@@ -21,12 +21,14 @@ import java.util.concurrent.{ Callable, ExecutorService }
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.SpecHelpers
 import com.comcast.money.core.internal.SpanLocal
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ Matchers, OneInstancePerTest, WordSpecLike }
 import org.slf4j.MDC
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.OneInstancePerTest
 
 class TraceFriendlyThreadPoolExecutorSpec
-  extends WordSpecLike
+  extends AnyWordSpec
   with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest with SpecHelpers {
 
   val executor: ExecutorService = TraceFriendlyThreadPoolExecutor.newCachedThreadPool

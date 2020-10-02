@@ -20,10 +20,11 @@ import com.comcast.money.api.SpanHandler
 import com.typesafe.config.ConfigFactory
 import org.mockito.Mockito
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 
-class HandlerChainSpec extends WordSpec with Matchers with MockitoSugar with TestData {
+class HandlerChainSpec extends AnyWordSpec with Matchers with MockitoSugar with TestData {
 
   "HandlerChain" should {
 

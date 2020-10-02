@@ -19,12 +19,13 @@ package com.comcast.money.core.handlers
 import com.comcast.money.api.{ Note, SpanId }
 import com.comcast.money.core.CoreSpanInfo
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{ Matchers, WordSpec }
 
 import scala.collection.JavaConverters._
 import scala.collection._
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
 
-class SpanLogFormatterSpec extends WordSpec with Matchers {
+class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
 
   val emitterConf = ConfigFactory.parseString(
     """

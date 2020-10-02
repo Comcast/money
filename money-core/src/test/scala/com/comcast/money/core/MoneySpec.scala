@@ -20,9 +20,10 @@ import java.net.InetAddress
 
 import com.comcast.money.core.handlers.AsyncSpanHandler
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class MoneySpec extends WordSpec with Matchers {
+class MoneySpec extends AnyWordSpec with Matchers {
 
   val defaultConfig = ConfigFactory.load().getConfig("money")
   "Money" should {

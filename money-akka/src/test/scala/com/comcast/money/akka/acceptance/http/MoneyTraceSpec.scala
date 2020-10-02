@@ -16,7 +16,6 @@
 
 package com.comcast.money.akka.acceptance.http
 
-import akka.actor.ActorSystem
 import akka.http.scaladsl.model.HttpEntity.ChunkStreamPart
 import akka.http.scaladsl.model.HttpHeader.ParsingResult.{ Error, Ok }
 import akka.http.scaladsl.model._
@@ -31,13 +30,16 @@ import com.comcast.money.akka.{ CollectingSpanHandler, MoneyExtension, TestStrea
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.Formatters
 import com.typesafe.config.{ Config, ConfigFactory }
-import org.scalatest.matchers.{ MatchResult, Matcher }
-import org.scalatest.{ BeforeAndAfterEach, Matchers, WordSpecLike }
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
 import scala.concurrent.duration.{ DurationDouble, FiniteDuration }
 import scala.concurrent.{ ExecutionContext, Future }
+import org.scalatest.matchers.Matcher
+import org.scalatest.matchers.MatchResult
 
-class MoneyTraceSpec extends WordSpecLike with ScalatestRouteTest with BeforeAndAfterEach with Matchers {
+class MoneyTraceSpec extends AnyWordSpec with ScalatestRouteTest with BeforeAndAfterEach with Matchers {
 
   override def testConfig: Config = {
     val configString: String =

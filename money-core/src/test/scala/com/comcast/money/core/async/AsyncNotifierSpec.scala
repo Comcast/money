@@ -21,13 +21,15 @@ import com.comcast.money.core.concurrent.ConcurrentSupport
 import com.typesafe.config.ConfigFactory
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.{ Matchers, OneInstancePerTest, WordSpecLike }
-import org.scalatest.mockito.MockitoSugar
 
 import scala.concurrent.Future
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.OneInstancePerTest
 
 class AsyncNotifierSpec
-  extends WordSpecLike
+  extends AnyWordSpec
   with MockitoSugar with Matchers with ConcurrentSupport with OneInstancePerTest with SpecHelpers {
 
   "AsyncNotifier" should {

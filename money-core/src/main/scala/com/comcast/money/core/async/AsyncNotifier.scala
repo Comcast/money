@@ -33,7 +33,10 @@ object AsyncNotifier {
   import AsyncNotificationHandlerFactory.create
 
   def apply(config: Config): AsyncNotifier = {
-    val handlers = config.getConfigList("handlers").asScala.map(create)
+    val handlers = config.getConfigList("handlers")
+      .asScala
+      .map(create)
+      .toSeq
     AsyncNotifier(handlers)
   }
 }

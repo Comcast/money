@@ -19,13 +19,14 @@ package com.comcast.money.core
 import java.util.UUID
 
 import com.comcast.money.api.SpanId
-import org.scalatest.{ Matchers, WordSpec }
 import Formatters._
 import org.scalacheck.Arbitrary
 import org.scalacheck.Test.Failed
-import org.scalatest.prop.GeneratorDrivenPropertyChecks
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
-class FormattersSpec extends WordSpec with Matchers with GeneratorDrivenPropertyChecks with TraceGenerators {
+class FormattersSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
 
   implicit val arbitraryUUID: Arbitrary[UUID] = Arbitrary(genUUID)
 
