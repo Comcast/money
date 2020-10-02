@@ -17,9 +17,10 @@
 package com.comcast.money.core.handlers
 
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
 
-class HandlerFactorySpec extends WordSpec with Matchers {
+class HandlerFactorySpec extends AnyWordSpec with Matchers {
 
   "HandlerFactory" should {
     "create a span handler based on class" in {

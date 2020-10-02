@@ -19,7 +19,7 @@ package com.comcast.money.http.client
 import java.io.Closeable
 
 import com.comcast.money.api.SpanId
-import com.comcast.money.core.{ Formatters => CoreSpanId, SpecHelpers, Tracer }
+import com.comcast.money.core.{ SpecHelpers, Tracer, Formatters => CoreSpanId }
 import com.comcast.money.core.internal.SpanLocal
 import org.apache.http.client.methods.{ CloseableHttpResponse, HttpUriRequest }
 import org.apache.http.client.{ HttpClient, ResponseHandler }
@@ -28,9 +28,11 @@ import org.apache.http.protocol.HttpContext
 import org.apache.http.{ HttpHost, HttpResponse, StatusLine }
 import org.mockito.Mockito._
 import org.scalatest._
-import org.scalatest.mockito.MockitoSugar
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 
-class TraceFriendlyHttpClientSpec extends WordSpec with SpecHelpers
+class TraceFriendlyHttpClientSpec extends AnyWordSpec with SpecHelpers
   with Matchers with MockitoSugar with OneInstancePerTest with BeforeAndAfterEach {
 
   val httpClient = mock[CloseableHttpClient]

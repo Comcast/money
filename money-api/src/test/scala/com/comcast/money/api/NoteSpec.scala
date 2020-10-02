@@ -16,11 +16,12 @@
 
 package com.comcast.money.api
 
-import org.scalatest.{ Matchers, WordSpec }
-import scala.collection.JavaConversions._
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
+
 import scala.collection.JavaConverters._
 
-class NoteSpec extends WordSpec with Matchers {
+class NoteSpec extends AnyWordSpec with Matchers {
 
   "A Note" should {
     "create String notes" in {

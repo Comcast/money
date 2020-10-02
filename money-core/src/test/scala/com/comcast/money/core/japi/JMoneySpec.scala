@@ -25,10 +25,12 @@ import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
 import org.mockito.Mockito._
 import org.mockito.Mockito.doReturn
-import org.scalatest.mockito.MockitoSugar
 import org.scalatest._
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
 
-class JMoneySpec extends WordSpec
+class JMoneySpec extends AnyWordSpec
   with Matchers with MockitoSugar with TestData with BeforeAndAfterEach with OneInstancePerTest {
 
   val tracer = mock[Tracer]

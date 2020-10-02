@@ -20,10 +20,12 @@ import com.codahale.metrics.{ Meter, Histogram, MetricRegistry }
 import com.typesafe.config.Config
 import org.mockito.Mockito._
 import org.mockito.Matchers._
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ OneInstancePerTest, Matchers, WordSpec }
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.OneInstancePerTest
 
-class MetricsHandlerSpec extends WordSpec with Matchers with MockitoSugar with TestData with OneInstancePerTest {
+class MetricsHandlerSpec extends AnyWordSpec with Matchers with MockitoSugar with TestData with OneInstancePerTest {
 
   val conf = mock[Config]
   doReturn(true).when(conf).hasPath("metrics-registry.class-name")

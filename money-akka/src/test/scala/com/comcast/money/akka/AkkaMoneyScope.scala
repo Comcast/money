@@ -21,9 +21,11 @@ import akka.stream.ActorMaterializer
 import akka.testkit.TestKit
 import com.comcast.money.akka.SpanHandlerMatchers.clearHandlerChain
 import com.typesafe.config.ConfigFactory
-import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach, Matchers, WordSpecLike }
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.{ BeforeAndAfterAll, BeforeAndAfterEach }
+import org.scalatest.matchers.should.Matchers
 
-abstract class AkkaMoneyScope extends WordSpecLike with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
+abstract class AkkaMoneyScope extends AnyWordSpec with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
 
   val configString: String =
     """

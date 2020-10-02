@@ -42,7 +42,10 @@ object HandlerChain {
   import HandlerFactory.create
 
   def apply(config: Config): SpanHandler = {
-    val handlers = config.getConfigList("handlers").asScala.map(create)
+    val handlers = config.getConfigList("handlers")
+      .asScala
+      .map(create)
+      .toSeq
 
     if (config.getBoolean("async")) {
       new AsyncSpanHandler(scala.concurrent.ExecutionContext.global, HandlerChain(handlers))

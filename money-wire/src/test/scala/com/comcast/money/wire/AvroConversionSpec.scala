@@ -18,9 +18,11 @@ package com.comcast.money.wire
 
 import com.comcast.money.api.{ Note, SpanId, SpanInfo }
 import com.comcast.money.core.CoreSpanInfo
-import org.scalatest.{ Inspectors, Matchers, WordSpec }
+import org.scalatest.Inspectors
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-class AvroConversionSpec extends WordSpec with Matchers with Inspectors {
+class AvroConversionSpec extends AnyWordSpec with Matchers with Inspectors {
 
   import AvroConversions._
 

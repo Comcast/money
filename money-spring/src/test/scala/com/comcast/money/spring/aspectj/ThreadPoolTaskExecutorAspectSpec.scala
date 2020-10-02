@@ -21,9 +21,11 @@ import java.util.concurrent.SynchronousQueue
 import com.comcast.money.aspectj.ThreadPoolTaskExecutorAspect
 import com.comcast.money.core.concurrent.TraceFriendlyThreadPoolExecutor
 import org.scalatest._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 
-class ThreadPoolTaskExecutorAspectSpec extends WordSpec with Matchers {
+class ThreadPoolTaskExecutorAspectSpec extends AnyWordSpec with Matchers {
 
   class MyThreadPoolTaskExecutor extends ThreadPoolTaskExecutor
 

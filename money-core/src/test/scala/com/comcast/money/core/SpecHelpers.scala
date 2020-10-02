@@ -19,7 +19,7 @@ package com.comcast.money.core
 import com.comcast.money.api.{ SpanId, SpanInfo }
 import com.comcast.money.core.handlers.LoggingSpanHandler
 import com.typesafe.config.Config
-import org.scalatest.Matchers
+import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.Eventually
 import org.scalatest.time.{ Millis, Span }
 

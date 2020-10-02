@@ -25,12 +25,14 @@ import com.comcast.money.core.async.{ AsyncNotificationHandler, AsyncNotifier }
 import com.comcast.money.core.internal.{ MDCSupport, SpanContext }
 import org.mockito.Matchers.{ any => argAny }
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ Matchers, OneInstancePerTest, WordSpec }
 
 import scala.util.{ Failure, Success, Try }
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.OneInstancePerTest
 
-class MethodTracerSpec extends WordSpec with Matchers with MockitoSugar with OneInstancePerTest {
+class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with OneInstancePerTest {
 
   val mockTracer: Tracer = mock[Tracer]
   val mockAsyncNotifier: AsyncNotifier = mock[AsyncNotifier]

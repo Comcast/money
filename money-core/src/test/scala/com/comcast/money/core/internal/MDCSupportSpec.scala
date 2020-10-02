@@ -17,13 +17,15 @@
 package com.comcast.money.core.internal
 
 import com.comcast.money.api.SpanId
-import org.scalatest.{ BeforeAndAfterEach, Matchers, OneInstancePerTest, WordSpec }
 import org.slf4j.MDC
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.{ BeforeAndAfterEach, OneInstancePerTest }
 
-class MDCSupportSpec extends WordSpec with Matchers with BeforeAndAfterEach with OneInstancePerTest {
+class MDCSupportSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach with OneInstancePerTest {
 
   val testMDCSupport = new MDCSupport
   val spanId = new SpanId()

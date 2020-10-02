@@ -25,14 +25,16 @@ import org.aopalliance.intercept.MethodInvocation
 import org.aspectj.lang.JoinPoint
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ BeforeAndAfterEach, Matchers, WordSpec }
+import org.scalatest.BeforeAndAfterEach
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Component
 import org.springframework.test.context.{ ContextConfiguration, TestContextManager }
 
 @ContextConfiguration(Array("classpath:test-context.xml"))
-class TracedMethodInterceptorScalaSpec extends WordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
+class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   @Autowired
   private var sampleScalaBean: SampleScalaBean = _

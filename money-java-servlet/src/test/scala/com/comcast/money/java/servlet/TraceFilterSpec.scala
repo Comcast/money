@@ -18,16 +18,17 @@ package com.comcast.money.java.servlet
 
 import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
 import javax.servlet.{ FilterChain, FilterConfig }
-
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.internal.SpanLocal
 import com.comcast.money.core.Formatters.StringWithB3HeaderConversion
 import org.mockito.Mockito._
 import org.scalatest.OptionValues._
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ BeforeAndAfter, Matchers, OneInstancePerTest, WordSpec }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.{ BeforeAndAfter, OneInstancePerTest }
+import org.scalatestplus.mockito.MockitoSugar
 
-class TraceFilterSpec extends WordSpec with Matchers with OneInstancePerTest with BeforeAndAfter with MockitoSugar {
+class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest with BeforeAndAfter with MockitoSugar {
 
   val mockRequest = mock[HttpServletRequest]
   val mockResponse = mock[HttpServletResponse]

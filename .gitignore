@@ -10,4 +10,9 @@
 .idea
 *.iml
 target
- ajcore.*.txt
+ajcore.*.txt
+.bloop/
+.metals/
+.vscode/
+.metals/
+**/metals.sbt

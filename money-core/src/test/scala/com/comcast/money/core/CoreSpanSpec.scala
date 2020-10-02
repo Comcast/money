@@ -16,14 +16,15 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ SpanInfo, SpanHandler, SpanId }
+import com.comcast.money.api.{ SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.handlers.TestData
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ Matchers, WordSpec }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 
-class CoreSpanSpec extends WordSpec with Matchers with TestData with MockitoSugar {
+class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoSugar {
 
   "CoreSpan" should {
     "set the startTimeMillis and startTimeMicros when started" in {

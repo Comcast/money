@@ -19,9 +19,10 @@ package com.comcast.money.core.metrics
 import com.codahale.metrics.MetricRegistry
 import com.typesafe.config.Config
 import org.mockito.Mockito._
-import org.scalatest.Matchers._
-import org.scalatest._
-import org.scalatest.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatest.BeforeAndAfter
+import org.scalatest.matchers.should.Matchers
 
 object MockMetricRegistryFactory extends MetricRegistryFactory with MockitoSugar {
   lazy val mockRegistry = mock[MetricRegistry]
@@ -34,7 +35,7 @@ class MockMetricRegistryFactory extends MetricRegistryFactory {
   def metricRegistry(config: Config): MetricRegistry = MockMetricRegistryFactory.mockRegistry
 }
 
-class MetricRegistryFactorySpec extends WordSpecLike with BeforeAndAfter with MockitoSugar {
+class MetricRegistryFactorySpec extends AnyWordSpec with BeforeAndAfter with MockitoSugar with Matchers {
 
   private val conf = mock[Config]
 

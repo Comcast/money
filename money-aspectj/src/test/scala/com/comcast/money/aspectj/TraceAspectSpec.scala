@@ -24,13 +24,15 @@ import com.comcast.money.core.{ LogRecord, Money, SpecHelpers }
 import org.mockito.Mockito._
 import org.scalatest._
 import org.scalatest.concurrent.Eventually
-import org.scalatest.mockito.MockitoSugar
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 
 import scala.concurrent.{ Await, Future, Promise }
 import scala.concurrent.duration._
 import scala.util.{ Failure, Try }
 
-class TraceAspectSpec extends WordSpec
+class TraceAspectSpec extends AnyWordSpec
   with GivenWhenThen with OneInstancePerTest with BeforeAndAfterEach with Matchers with MockitoSugar with Eventually
   with SpecHelpers {
 

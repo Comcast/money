@@ -1,5 +1,6 @@
 // Comment to get more information during initialization
 logLevel := Level.Warn
+scalaVersion := "2.12.12"
 
 // The Typesafe repository
 resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"

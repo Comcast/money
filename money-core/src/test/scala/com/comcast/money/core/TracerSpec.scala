@@ -16,16 +16,18 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ Note, SpanId, Span, SpanFactory }
+import com.comcast.money.api.{ Note, Span, SpanFactory, SpanId }
 import com.comcast.money.core.handlers.TestData
 import com.comcast.money.core.internal.SpanLocal
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
 import org.mockito.Mockito._
-import org.scalatest.mockito.MockitoSugar
-import org.scalatest.{ OneInstancePerTest, BeforeAndAfterEach, Matchers, WordSpec }
+import org.scalatest.{ BeforeAndAfterEach, OneInstancePerTest }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 
-class TracerSpec extends WordSpec
+class TracerSpec extends AnyWordSpec
   with Matchers with MockitoSugar with TestData with BeforeAndAfterEach with OneInstancePerTest {
 
   val mockSpanFactory = mock[SpanFactory]
