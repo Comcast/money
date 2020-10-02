@@ -26,8 +26,11 @@ object Formatters {
   private[core] val B3TraceIdHeader = "X-B3-TraceId"
   private[core] val B3SpanIdHeader = "X-B3-SpanId"
   private[core] val B3ParentSpanIdHeader = "X-B3-ParentSpanId"
+  private[core] val TraceParentHeader = "traceparent"
 
-  implicit class StringWithB3HeaderConversion(s: String) {
+  private[core] val TraceParentPattern = """^(\d\d)-([0-9a-f]{32})-([0-9a-f]{16})-(\d\d)$""".r
+
+  implicit class StringWithHexHeaderConversion(s: String) {
     def fromHexStringToLong: Long = java.lang.Long.parseUnsignedLong(s, 16)
     def toGuid: String = {
       val spad = if (s.length < 32) s.padTo(32, 0).mkString else s
@@ -39,17 +42,21 @@ object Formatters {
         spad.substring(16, 20),
         spad.substring(20, 32))
     }
-    def fromGuid: String = s.replace("-", "")
+    def fromGuid: String = s.replace("-", "").toLowerCase
   }
 
   private[core] val MoneyHeaderFormat = "trace-id=%s;parent-id=%s;span-id=%s"
+  private[core] val TraceParentHeaderFormat = "00-%s-%016x-00"
 
   def fromHttpHeaders(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId] =
-    fromMoneyHeader(getHeader, log).orElse(fromB3HttpHeaders(getHeader, log))
+    fromMoneyHeader(getHeader, log)
+      .orElse(fromB3HttpHeaders(getHeader, log))
+      .orElse(fromTraceParentHeader(getHeader, log))
 
   def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit = {
     toMoneyHeader(spanId, addHeader)
     toB3Headers(spanId, addHeader)
+    toTraceParentHeader(spanId, addHeader)
   }
 
   private[core] def fromMoneyHeader(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId] = {
@@ -117,12 +124,40 @@ object Formatters {
     }
     addHeader(B3TraceIdHeader, formatGuid)
     // No X-b3 parent if this is a root span
-    if (spanId.parentId != spanId.selfId) addHeader(B3ParentSpanIdHeader, spanId.parentId.toHexString)
-    addHeader(B3SpanIdHeader, spanId.selfId.toHexString)
+    if (spanId.parentId != spanId.selfId) addHeader(B3ParentSpanIdHeader, f"${spanId.parentId}%016x")
+    addHeader(B3SpanIdHeader, f"${spanId.selfId}%016x")
   }
 
+  private[core] def fromTraceParentHeader(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId] = {
+
+    def spanIdFromHeader(traceId: String, parentSpanId: String): Try[SpanId] = Try {
+      val parentSpanIdAsLong = parentSpanId.fromHexStringToLong
+      new SpanId(traceId.toGuid, parentSpanIdAsLong, parentSpanIdAsLong)
+    }
+
+    def parseHeader(traceParentHeader: String): Option[SpanId] = {
+      traceParentHeader match {
+        case TraceParentPattern(_, traceId, parentSpanId, _) => spanIdFromHeader(traceId, parentSpanId) match {
+          case Success(value) => Some(value)
+          case Failure(ex) =>
+            log(
+              s"Unable to parse Trace-Context trace for request headers: " +
+                s"$TraceParentHeader:'$traceParentHeader' " +
+                s"${ex.getMessage}")
+            None
+        }
+        case _ => None
+      }
+    }
+
+    Option(getHeader(TraceParentHeader)).flatMap(parseHeader)
+  }
+
+  private[core] def toTraceParentHeader(spanId: SpanId, addHeader: (String, String) => Unit): Unit =
+    addHeader(TraceParentHeader, TraceParentHeaderFormat.format(spanId.traceId.fromGuid, spanId.selfId))
+
   def setResponseHeaders(getHeader: String => String, addHeader: (String, String) => Unit) {
-    def setResponseHeader(headerName: String) = Option(getHeader(headerName)).foreach(v => addHeader(headerName, v))
-    Seq(MoneyTraceHeader, B3TraceIdHeader, B3ParentSpanIdHeader, B3SpanIdHeader).foreach(setResponseHeader)
+    def setResponseHeader(headerName: String): Unit = Option(getHeader(headerName)).foreach(v => addHeader(headerName, v))
+    Seq(MoneyTraceHeader, B3TraceIdHeader, B3ParentSpanIdHeader, B3SpanIdHeader, TraceParentHeader).foreach(setResponseHeader)
   }
 }

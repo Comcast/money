@@ -105,24 +105,42 @@ class FormattersSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenProp
           case B3TraceIdHeader if traceIdValue.getLeastSignificantBits == 0 => v shouldBe traceIdValue.toString.fromGuid.substring(0, 16)
           case B3TraceIdHeader => v shouldBe traceIdValue.toString.fromGuid
           case B3ParentSpanIdHeader if expectedSpanId.isRoot => Failed
-          case B3ParentSpanIdHeader => parentSpanIdValue.toHexString
-          case B3SpanIdHeader => v shouldBe spanIdValue.toHexString
+          case B3ParentSpanIdHeader => v shouldBe f"${parentSpanIdValue}%016x"
+          case B3SpanIdHeader => v shouldBe f"${spanIdValue}%016x"
         })
       }
     }
 
-    "convert a string from hexadecimal to long" in {
-      forAll(genHexStrFromLong) { hexStr: String =>
-        {
-          val actualLong = hexStr.fromHexStringToLong
-          actualLong.toHexString shouldBe hexStr
-        }
+    "read a traceparent http header" in {
+      forAll { (traceIdValue: UUID, spanIdValue: Long) =>
+        val expectedSpanId = new SpanId(traceIdValue.toString, spanIdValue, spanIdValue)
+        val spanId = fromTraceParentHeader(
+          getHeader = {
+            case TraceParentHeader => TraceParentHeaderFormat.format(expectedSpanId.traceId.fromGuid, expectedSpanId.selfId)
+          })
+        spanId should not be None
+        spanId.get.traceId shouldBe traceIdValue.toString
+        spanId.get.selfId shouldBe spanIdValue
       }
     }
 
-    "fail to convert a non-hex string from hexadecimal to long" in {
-      intercept[NumberFormatException] { "".fromHexStringToLong }
-      intercept[NumberFormatException] { "z".fromHexStringToLong }
+    "fail to read traceparent headers correctly for invalid headers" in {
+      forAll { (traceIdValue: String, parentSpanIdValue: String, spanIdValue: String) =>
+        val spanId = fromTraceParentHeader(
+          getHeader = {
+            case TraceParentHeader => "garbage"
+          })
+        spanId shouldBe None
+      }
+    }
+
+    "create traceparent headers correctly given any valid character UUID for trace-Id and any valid long integers for parent and span ID" in {
+      forAll { (traceIdValue: UUID, spanIdValue: Long) =>
+        val expectedSpanId = new SpanId(traceIdValue.toString, spanIdValue, spanIdValue)
+        Formatters.toTraceParentHeader(expectedSpanId, (k, v) => k match {
+          case TraceParentHeader => v shouldBe f"00-${traceIdValue.toString.fromGuid}%s-${spanIdValue}%016x-00"
+        })
+      }
     }
 
     "convert a string to guid format" in {
