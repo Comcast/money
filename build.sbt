@@ -164,7 +164,7 @@ def aspectjProjectSettings = projectSettings ++ Seq(
   javaOptions in Test ++= (aspectjWeaverOptions in Aspectj).value // adds javaagent:aspectjweaver to java options, including test
 )
 
-def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings ++ Seq(
+def basicSettings =  Defaults.itSettings ++ Seq(
   organization := "com.comcast.money",
   version := "0.9.1-SNAPSHOT",
   scalaVersion := "2.12.12",
@@ -180,6 +180,7 @@ def basicSettings =  Defaults.itSettings ++ SbtScalariform.scalariformSettings +
     "-language:existentials",
     "-language:postfixOps",
     "-language:reflectiveCalls"),
+  scalariformAutoformat := true,
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF", "-u", "target/scalatest-reports"),
   fork := true,
   publishMavenStyle := true,
