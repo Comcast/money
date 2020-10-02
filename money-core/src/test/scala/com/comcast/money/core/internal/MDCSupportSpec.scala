@@ -30,12 +30,18 @@ class MDCSupportSpec extends WordSpec with Matchers with BeforeAndAfterEach with
 
   override def beforeEach() = {
     SpanLocal.clear()
+    MDC.clear()
   }
 
   "MDCSupport" should {
     "set the span in MDC when provide" in {
       testMDCSupport.setSpanMDC(Some(spanId))
       MDC.get("moneyTrace") shouldEqual MDCSupport.format(spanId)
+    }
+    "set the span in MDC in hex format" in {
+      val mdcSupportFormatAsHex = new MDCSupport(true, true)
+      mdcSupportFormatAsHex.setSpanMDC(Some(spanId))
+      MDC.get("moneyTrace") shouldEqual MDCSupport.format(spanId, formatIdsAsHex = true)
     }
     "clear the MDC value when set to None" in {
       testMDCSupport.setSpanMDC(Some(spanId))
@@ -45,13 +51,13 @@ class MDCSupportSpec extends WordSpec with Matchers with BeforeAndAfterEach with
       MDC.get("moneyTrace") shouldBe null
     }
     "not be run if tracing is disabled" in {
-      val disabled = new MDCSupport(false)
+      val disabled = new MDCSupport(false, false)
       disabled.setSpanMDC(Some(spanId))
       MDC.get("moneyTrace") shouldBe null
     }
     "not propogate MDC if disabled" in {
       val mdcContext: mutable.Map[_, _] = mutable.HashMap("FINGERPRINT" -> "print")
-      val disabled = new MDCSupport(false)
+      val disabled = new MDCSupport(false, false)
       disabled.propogateMDC(Some(mdcContext.asJava))
       MDC.get("FINGERPRINT") shouldBe null
     }

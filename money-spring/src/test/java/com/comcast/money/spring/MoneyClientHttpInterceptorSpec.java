@@ -22,6 +22,8 @@ import com.comcast.money.api.SpanId;
 import com.comcast.money.api.SpanInfo;
 import com.comcast.money.core.CoreSpanInfo;
 import com.comcast.money.core.internal.SpanLocal;
+
+import org.apache.commons.lang.math.RandomUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -30,23 +32,21 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 import java.util.HashMap;
+import java.util.UUID;
+
 import static org.mockito.Mockito.*;
 
 public class MoneyClientHttpInterceptorSpec {
 
-    private final static String expectedTraceId = "a";
-    private final static Long expectedParentSpanId = 1L;
-    private final static Long expectedSpanId = 2L;
-    private final String expectedMoneyHeaderVal = String.format("trace-id=%s;parent-id=%s;span-id=%s", expectedTraceId, expectedParentSpanId, expectedSpanId);
-    private HttpRequest httpRequest = mock(HttpRequest.class);
-    private ClientHttpRequestExecution clientHttpRequestExecution = mock(ClientHttpRequestExecution.class);
-    private Span span = mock(Span.class);
-    private MoneyClientHttpRequestInterceptor moneyClientHttpRequestInterceptor = new MoneyClientHttpRequestInterceptor();
+    private final static String traceId = UUID.randomUUID().toString();
+    private final static long spanId = RandomUtils.nextLong();
+    private final static long parentSpanId = RandomUtils.nextLong();
 
     @Before
     public void setUp() {
+        Span span = mock(Span.class);
         SpanInfo testSpanInfo = new CoreSpanInfo(
-                new SpanId(expectedTraceId,expectedParentSpanId,expectedSpanId),
+                new SpanId(traceId, parentSpanId, spanId),
                 "testName",
                 0L,
                 0L,
@@ -57,6 +57,7 @@ public class MoneyClientHttpInterceptorSpec {
                 new HashMap<String, Note<?>>(),
                 "testAppName",
                 "testHost");
+
         when(span.info()).thenReturn(testSpanInfo);
         SpanLocal.push(span);
     }
@@ -67,16 +68,31 @@ public class MoneyClientHttpInterceptorSpec {
     }
 
     @Test
-    public void testMoneyAndB3HeadersAreSet() throws Exception {
+    public void testMoneyB3AndTraceParentHeadersAreSet() throws Exception {
+        System.out.printf("Trace ID: %s%nSpan ID: %d%nParent ID: %d%n", traceId, spanId, parentSpanId);
+
+        HttpRequest httpRequest = mock(HttpRequest.class);
+        ClientHttpRequestExecution clientHttpRequestExecution = mock(ClientHttpRequestExecution.class);
+        MoneyClientHttpRequestInterceptor underTest = new MoneyClientHttpRequestInterceptor();
+
         HttpHeaders httpHeaders = new HttpHeaders();
         when(httpRequest.getHeaders()).thenReturn(httpHeaders);
-        moneyClientHttpRequestInterceptor.intercept(httpRequest,"abc".getBytes(), clientHttpRequestExecution);
+
+        String expectedMoneyHeaderVal = String.format("trace-id=%s;parent-id=%s;span-id=%s", traceId, parentSpanId, spanId);
+        String expectedB3TraceIdHeaderVal = traceId.replace("-", "");
+        String expectedB3SpanIdHeaderVal = String.format("%016x", spanId);
+        String expectedB3ParentSpanIdHeaderVal = String.format("%016x", parentSpanId);
+        String expectedTraceParentHeaderVal = String.format("00-%s-%016x-00", traceId.replace("-", ""), spanId);
+
+        underTest.intercept(httpRequest, new byte[0], clientHttpRequestExecution);
+
         verify(httpRequest).getHeaders();
-        Assert.assertEquals(4,httpHeaders.size());
-        Assert.assertEquals(expectedTraceId, httpHeaders.get("X-B3-TraceId").get(0));
-        Assert.assertEquals(expectedParentSpanId.toString(), httpHeaders.get("X-B3-ParentSpanId").get(0));
-        Assert.assertEquals(expectedSpanId.toString(), httpHeaders.get("X-B3-SpanId").get(0));
+        Assert.assertEquals(5, httpHeaders.size());
         Assert.assertEquals(expectedMoneyHeaderVal, httpHeaders.get("X-MoneyTrace").get(0));
+        Assert.assertEquals(expectedB3TraceIdHeaderVal, httpHeaders.get("X-B3-TraceId").get(0));
+        Assert.assertEquals(expectedB3ParentSpanIdHeaderVal, httpHeaders.get("X-B3-ParentSpanId").get(0));
+        Assert.assertEquals(expectedB3SpanIdHeaderVal, httpHeaders.get("X-B3-SpanId").get(0));
+        Assert.assertEquals(expectedTraceParentHeaderVal, httpHeaders.get("traceparent").get(0));
     }
 }
 
