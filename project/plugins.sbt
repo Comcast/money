@@ -5,7 +5,7 @@ scalaVersion := "2.12.12"
 // The Typesafe repository
 resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
 
-addSbtPlugin("org.scoverage" %% "sbt-scoverage" % "1.5.1")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
 
 addSbtPlugin("com.lightbend.sbt" % "sbt-aspectj" % "0.11.0")
 
