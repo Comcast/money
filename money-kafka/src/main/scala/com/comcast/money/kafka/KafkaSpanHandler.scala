@@ -21,30 +21,32 @@ import com.comcast.money.api.SpanInfo
 import com.comcast.money.core.handlers.ConfigurableHandler
 import com.comcast.money.wire.AvroConversions
 import com.typesafe.config.Config
-import org.apache.kafka.clients.producer.{ KafkaProducer, ProducerRecord }
+import org.apache.kafka.clients.producer.{ KafkaProducer, Producer, ProducerRecord }
 
 import scala.collection.JavaConverters._
 
 // We use the producer maker so that we can mock this out
 trait ProducerMaker {
-  def makeProducer(conf: Config): KafkaProducer[Array[Byte], Array[Byte]]
+  def convertConfigToProperties(config: Config): Properties
+  def createProducer(properties: Properties): Producer[Array[Byte], Array[Byte]]
 }
 
 trait ConfigDrivenProducerMaker extends ProducerMaker {
 
-  def makeProducer(conf: Config): KafkaProducer[Array[Byte], Array[Byte]] = {
+  def convertConfigToProperties(config: Config): Properties = {
+    val properties = new Properties()
 
-    val props = new Properties()
-    props.put("compression.codec", conf.getString("compression.codec"))
-    props.put("producer.type", conf.getString("producer.type"))
-    props.put("batch.num.messages", conf.getString("batch.num.messages"))
-    props.put("message.send.max.retries", conf.getString("message.send.max.retries"))
-    props.put("metadata.broker.list", conf.getString("metadata.broker.list"))
-    props.put("key.serializer", conf.getString("key.serializer"))
-    props.put("value.serializer", conf.getString("value.serializer"))
+    for (entry <- config.entrySet.asScala) {
+      val key = entry.getKey()
+      val value = config.getAnyRef(key)
+      properties.put(key, value)
+    }
 
-    new KafkaProducer[Array[Byte], Array[Byte]](props)
+    properties
   }
+
+  def createProducer(properties: Properties): Producer[Array[Byte], Array[Byte]] =
+    new KafkaProducer[Array[Byte], Array[Byte]](properties)
 }
 
 class KafkaSpanHandler extends ConfigurableHandler with ConfigDrivenProducerMaker {
@@ -52,11 +54,13 @@ class KafkaSpanHandler extends ConfigurableHandler with ConfigDrivenProducerMake
   import AvroConversions._
 
   private[kafka] var topic: String = _
-  private[kafka] var producer: KafkaProducer[Array[Byte], Array[Byte]] = _
+  private[kafka] var properties: Properties = _
+  private[kafka] var producer: Producer[Array[Byte], Array[Byte]] = _
 
   def configure(config: Config): Unit = {
-    producer = makeProducer(config)
     topic = config.getString("topic")
+    properties = convertConfigToProperties(config)
+    producer = createProducer(properties)
   }
 
   def handle(span: SpanInfo): Unit = {

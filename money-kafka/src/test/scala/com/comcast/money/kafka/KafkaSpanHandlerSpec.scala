@@ -29,6 +29,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 
 import scala.collection.JavaConverters._
+import java.{ util => ju }
 
 trait MockProducerMaker extends ProducerMaker {
 
@@ -42,7 +43,7 @@ class TestKafkaSpanHandler extends KafkaSpanHandler {
   var producerWasMade = false
   val mockProducer = mock(classOf[KafkaProducer[Array[Byte], Array[Byte]]])
 
-  override def makeProducer(conf: Config): KafkaProducer[Array[Byte], Array[Byte]] = {
+  override def createProducer(properties: ju.Properties): KafkaProducer[Array[Byte], Array[Byte]] = {
     producerWasMade = true
     mockProducer
   }
@@ -85,7 +86,7 @@ class KafkaSpanHandlerSpec extends AnyWordSpec
   }
 
   "A ConfigDrivenProducerMaker" should {
-    "set the properties from the config" ignore {
+    "set the properties from the config" in {
       val config = ConfigFactory.parseString(
         """
           | topic = "money"
@@ -95,20 +96,21 @@ class KafkaSpanHandlerSpec extends AnyWordSpec
           | message.send.max.retries = "3"
           | request.required.acks = "0"
           | metadata.broker.list = "localhost:9092"
+          | bootstrap.servers = "localhost:9092"
+          | key.serializer = "org.apache.kafka.common.serialization.StringSerializer"
+          | value.serializer = "org.apache.kafka.common.serialization.StringSerializer"
         """.stripMargin)
       val testHandler = new KafkaSpanHandler()
       testHandler.configure(config)
 
-      val producerConfig = testHandler.producer
-      /*
-      producerConfig.brokerList shouldBe "localhost:9092"
-      producerConfig.compressionCodec shouldBe GZIPCompressionCodec
-      producerConfig.producerType shouldBe "async"
-      producerConfig.batchNumMessages shouldBe 1
-      producerConfig.messageSendMaxRetries shouldBe 3
-      producerConfig.requestRequiredAcks shouldBe 0
+      val producerConfig = testHandler.properties
 
-       */
+      producerConfig.getProperty("metadata.broker.list") shouldBe "localhost:9092"
+      producerConfig.getProperty("compression.codec") shouldBe "1"
+      producerConfig.getProperty("producer.type") shouldBe "async"
+      producerConfig.getProperty("batch.num.messages") shouldBe "1"
+      producerConfig.getProperty("message.send.max.retries") shouldBe "3"
+      producerConfig.getProperty("request.required.acks") shouldBe "0"
     }
   }
 }
