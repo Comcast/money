@@ -35,14 +35,6 @@ trait ConfigDrivenProducerMaker extends ProducerMaker {
   def makeProducer(conf: Config): KafkaProducer[Array[Byte], Array[Byte]] = {
 
     val props = new Properties()
-  
-    for (entry <- conf.entrySet.asScala) {
-      val key = entry.getKey()
-      val value = entry.getValue()
-
-      value.valueType().
-    }
-
     props.put("compression.codec", conf.getString("compression.codec"))
     props.put("producer.type", conf.getString("producer.type"))
     props.put("batch.num.messages", conf.getString("batch.num.messages"))
