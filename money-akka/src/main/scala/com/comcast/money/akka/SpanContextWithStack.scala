@@ -93,7 +93,7 @@ class SpanContextWithStack() extends SpanContext {
    * @return Option[Span]
    */
 
-  override def pop: Option[Span] =
+  override def pop(): Option[Span] =
     stack.headOption match {
       case someSpan: Some[Span] =>
         stack = stack.tail
@@ -112,7 +112,7 @@ class SpanContextWithStack() extends SpanContext {
    * @return
    */
 
-  override def current: Option[Span] = stack.headOption
+  override def current(): Option[Span] = stack.headOption
 
   /**
    * CAUTION THIS WILL CAUSE ALL THE STARTED SPANS TO NOT BE STOPPED
@@ -122,5 +122,5 @@ class SpanContextWithStack() extends SpanContext {
    * empties the Stack of all spans
    */
 
-  override def clear: Unit = stack = List.empty[Span]
+  override def clear(): Unit = stack = List.empty[Span]
 }

@@ -70,7 +70,7 @@ class TraceFriendlyThreadPoolExecutor(corePoolSize: Int, maximumPoolSize: Int, k
     super.execute(
       new Runnable {
         override def run = {
-          mdcSupport.propogateMDC(Option(submittingThreadsContext))
+          mdcSupport.propagateMDC(Option(submittingThreadsContext))
           SpanLocal.clear()
           inherited.foreach(SpanLocal.push)
           try {

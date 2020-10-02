@@ -83,7 +83,7 @@ trait MethodTracer extends Reflections with TraceLogging {
 
     result = handler.whenComplete(method.getReturnType, returnValue) { completed =>
       // reapply the MDC onto the callback thread
-      mdcSupport.propogateMDC(mdc)
+      mdcSupport.propagateMDC(mdc)
 
       // determine if the future completed successfully or exceptionally
       val result = completed match {

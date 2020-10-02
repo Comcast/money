@@ -156,7 +156,7 @@ object Formatters {
   private[core] def toTraceParentHeader(spanId: SpanId, addHeader: (String, String) => Unit): Unit =
     addHeader(TraceParentHeader, TraceParentHeaderFormat.format(spanId.traceId.fromGuid, spanId.selfId))
 
-  def setResponseHeaders(getHeader: String => String, addHeader: (String, String) => Unit) {
+  def setResponseHeaders(getHeader: String => String, addHeader: (String, String) => Unit): Unit = {
     def setResponseHeader(headerName: String): Unit = Option(getHeader(headerName)).foreach(v => addHeader(headerName, v))
     Seq(MoneyTraceHeader, B3TraceIdHeader, B3ParentSpanIdHeader, B3SpanIdHeader, TraceParentHeader).foreach(setResponseHeader)
   }

@@ -24,66 +24,68 @@ import scala.collection.mutable
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{ BeforeAndAfterEach, OneInstancePerTest }
+import org.scalatestplus.mockito.MockitoSugar
+import com.comcast.money.api.Span
+import com.comcast.money.api.SpanInfo
+import org.mockito.Mockito._
 
-class MDCSupportSpec extends AnyWordSpec with Matchers with BeforeAndAfterEach with OneInstancePerTest {
+class MDCSupportSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach with OneInstancePerTest {
 
   val testMDCSupport = new MDCSupport
   val spanId = new SpanId()
+  val span = mock[Span]
+  val spanInfo = mock[SpanInfo]
 
   override def beforeEach() = {
     SpanLocal.clear()
     MDC.clear()
+    when(span.info).thenReturn(spanInfo)
+    when(spanInfo.id).thenReturn(spanId)
+    when(spanInfo.name).thenReturn("spanName")
   }
 
   "MDCSupport" should {
     "set the span in MDC when provide" in {
-      testMDCSupport.setSpanMDC(Some(spanId))
+      testMDCSupport.setSpanMDC(Some(span))
       MDC.get("moneyTrace") shouldEqual MDCSupport.format(spanId)
+      MDC.get("spanName") shouldEqual "spanName"
     }
     "set the span in MDC in hex format" in {
       val mdcSupportFormatAsHex = new MDCSupport(true, true)
-      mdcSupportFormatAsHex.setSpanMDC(Some(spanId))
+      mdcSupportFormatAsHex.setSpanMDC(Some(span))
       MDC.get("moneyTrace") shouldEqual MDCSupport.format(spanId, formatIdsAsHex = true)
+      MDC.get("spanName") shouldEqual "spanName"
     }
     "clear the MDC value when set to None" in {
-      testMDCSupport.setSpanMDC(Some(spanId))
+      testMDCSupport.setSpanMDC(Some(span))
       MDC.get("moneyTrace") shouldEqual MDCSupport.format(spanId)
+      MDC.get("spanName") shouldEqual "spanName"
 
       testMDCSupport.setSpanMDC(None)
       MDC.get("moneyTrace") shouldBe null
+      MDC.get("spanName") shouldBe null
     }
     "not be run if tracing is disabled" in {
       val disabled = new MDCSupport(false, false)
-      disabled.setSpanMDC(Some(spanId))
+      disabled.setSpanMDC(Some(span))
       MDC.get("moneyTrace") shouldBe null
     }
-    "not propogate MDC if disabled" in {
-      val mdcContext: mutable.Map[_, _] = mutable.HashMap("FINGERPRINT" -> "print")
+    "not propagate MDC if disabled" in {
+      val mdcContext: mutable.Map[String, String] = mutable.HashMap("FINGERPRINT" -> "print")
       val disabled = new MDCSupport(false, false)
-      disabled.propogateMDC(Some(mdcContext.asJava))
+      disabled.propagateMDC(Some(mdcContext.asJava))
       MDC.get("FINGERPRINT") shouldBe null
     }
-    "propogate MDC if not disabled" in {
-      val mdcContext: mutable.Map[_, _] = mutable.HashMap("FINGERPRINT" -> "print")
+    "propagate MDC if not disabled" in {
+      val mdcContext: mutable.Map[String, String] = mutable.HashMap("FINGERPRINT" -> "print")
 
-      testMDCSupport.propogateMDC(Some(mdcContext.asJava))
+      testMDCSupport.propagateMDC(Some(mdcContext.asJava))
       MDC.get("FINGERPRINT") shouldBe "print"
     }
     "clear MDC if given an empty context" in {
       MDC.put("FINGERPRINT", "print")
-      testMDCSupport.propogateMDC(None)
+      testMDCSupport.propagateMDC(None)
       MDC.get("FINGERPRINT") shouldBe null
-    }
-    "set span name" in {
-      testMDCSupport.setSpanNameMDC(Some("foo"))
-      MDC.get("spanName") shouldBe "foo"
-      testMDCSupport.getSpanNameMDC shouldBe Some("foo")
-    }
-    "clear span name from MDC when given an empty value" in {
-      MDC.put("spanName", "shouldBeRemoved")
-      testMDCSupport.setSpanNameMDC(None)
-      MDC.get("spanName") shouldBe null
-      testMDCSupport.getSpanNameMDC shouldBe None
     }
   }
 }
