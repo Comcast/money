@@ -77,7 +77,7 @@ trait MethodTracer extends Reflections with TraceLogging {
     handler <- asyncNotifier.resolveHandler(method.getReturnType, returnValue)
 
     // pop the current span from the stack as it will not be stopped by the tracer
-    span <- spanContext.pop
+    span <- spanContext.pop()
     // capture the current MDC context to be applied on the callback thread
     mdc = Option(MDC.getCopyOfContextMap)
 

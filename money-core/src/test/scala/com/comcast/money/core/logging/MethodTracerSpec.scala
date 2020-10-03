@@ -119,11 +119,11 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         when(mockAsyncNotifier.resolveHandler(classOf[String], "result")).thenReturn(Some(handler))
 
         val span = mock[Span]
-        when(mockSpanContext.pop).thenReturn(Some(span))
+        when(mockSpanContext.pop()).thenReturn(Some(span))
         val result = methodTracer.traceMethod(method, traced, empty, proceed)
 
         verify(mockTracer).startSpan(traced.value())
-        verify(mockSpanContext).pop
+        verify(mockSpanContext).pop()
         verify(mockTracer, never()).stopSpan(argAny())
 
         result shouldBe "result2"
@@ -144,11 +144,11 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         when(mockAsyncNotifier.resolveHandler(classOf[String], "result")).thenReturn(Some(handler))
 
         val span = mock[Span]
-        when(mockSpanContext.pop).thenReturn(Some(span))
+        when(mockSpanContext.pop()).thenReturn(Some(span))
         val result = methodTracer.traceMethod(method, traced, empty, proceed)
 
         verify(mockTracer).startSpan(traced.value())
-        verify(mockSpanContext).pop
+        verify(mockSpanContext).pop()
         verify(mockTracer, never()).stopSpan(argAny())
 
         result shouldBe "result2"
@@ -169,11 +169,11 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         when(mockAsyncNotifier.resolveHandler(classOf[String], "result")).thenReturn(Some(handler))
 
         val span = mock[Span]
-        when(mockSpanContext.pop).thenReturn(Some(span))
+        when(mockSpanContext.pop()).thenReturn(Some(span))
         val result = methodTracer.traceMethod(method, traced, empty, proceed)
 
         verify(mockTracer).startSpan(traced.value())
-        verify(mockSpanContext).pop
+        verify(mockSpanContext).pop()
         verify(mockTracer, never()).stopSpan(argAny())
 
         result shouldBe "result2"

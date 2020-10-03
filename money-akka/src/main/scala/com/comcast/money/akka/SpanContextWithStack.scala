@@ -112,7 +112,7 @@ class SpanContextWithStack() extends SpanContext {
    * @return
    */
 
-  override def current(): Option[Span] = stack.headOption
+  override def current: Option[Span] = stack.headOption
 
   /**
    * CAUTION THIS WILL CAUSE ALL THE STARTED SPANS TO NOT BE STOPPED

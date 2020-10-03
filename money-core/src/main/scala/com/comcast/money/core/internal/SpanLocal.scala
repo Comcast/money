@@ -21,11 +21,11 @@ import com.comcast.money.api.Span
 trait SpanContext {
   def push(span: Span): Unit
 
-  def pop: Option[Span]
+  def pop(): Option[Span]
 
   def current: Option[Span]
 
-  def clear: Unit
+  def clear(): Unit
 }
 
 /**
