@@ -18,16 +18,14 @@ package com.comcast.money.core.internal
 
 import com.comcast.money.api.Span
 
-import scala.collection.mutable.Stack
-
 trait SpanContext {
   def push(span: Span): Unit
 
-  def pop: Option[Span]
+  def pop(): Option[Span]
 
   def current: Option[Span]
 
-  def clear: Unit
+  def clear(): Unit
 }
 
 /**
@@ -37,7 +35,7 @@ trait SpanContext {
 object SpanLocal extends SpanContext {
 
   // A stack of span ids for the current thread
-  private[this] val threadLocalCtx = new ThreadLocal[Stack[Span]]
+  private[this] val threadLocalCtx = new ThreadLocal[List[Span]]
 
   private lazy val mdcSupport = new MDCSupport()
 
@@ -46,38 +44,32 @@ object SpanLocal extends SpanContext {
   override def current: Option[Span] = Option(threadLocalCtx.get).flatMap(_.headOption)
 
   override def push(span: Span): Unit =
-    if (span != null)
-      Option(threadLocalCtx.get) match {
-        case Some(stack) =>
-          stack.push(span)
-          setSpanMDC(Some(span.info.id))
-          setSpanNameMDC(Some(span.info.name))
-        case None =>
-          threadLocalCtx.set(new Stack[Span]())
-          push(span)
+    if (span != null) {
+      val updatedContext = Option(threadLocalCtx.get) match {
+        case Some(existingContext) => span :: existingContext
+        case None => List(span)
       }
+      threadLocalCtx.set(updatedContext)
+      setSpanMDC(Some(span))
+    }
 
   override def pop(): Option[Span] =
-    Option(threadLocalCtx.get).map {
-      stack =>
-        // remove the current span in scope for this thread
-        val spanId = stack.pop()
-
-        // rolls back the mdc span to the parent if present, if none then it will be cleared
-        val head = stack.headOption
-        setSpanMDC(head.map(_.info.id))
-        setSpanNameMDC(head.map(_.info.name))
-
-        spanId
+    Option(threadLocalCtx.get) match {
+      case Some(span :: remaining) =>
+        threadLocalCtx.set(remaining)
+        setSpanMDC(remaining.headOption)
+        Some(span)
+      case _ =>
+        threadLocalCtx.remove()
+        setSpanMDC(None)
+        None
     }
 
   /**
    * Clears the entire call stack for the thread
    */
-  override def clear() = {
-    if (threadLocalCtx != null) threadLocalCtx.remove()
-
+  override def clear(): Unit = {
+    threadLocalCtx.remove()
     setSpanMDC(None)
-    setSpanNameMDC(None)
   }
 }

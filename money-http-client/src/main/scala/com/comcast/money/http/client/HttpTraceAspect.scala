@@ -32,23 +32,23 @@ class HttpTraceAspect {
   def tracer: Tracer = Money.Environment.tracer
 
   @Pointcut("execution(@com.comcast.money.annotations.Traced * *(..)) && @annotation(traceAnnotation)")
-  def traced(traceAnnotation: Traced) = {}
+  def traced(traceAnnotation: Traced): Unit = {}
 
   // Capture executions on all Http Client implementations execute method that return a response
   @Pointcut("execution(public org.apache.http.HttpResponse org.apache.http.client.HttpClient+.execute(org.apache.http.client.methods.HttpUriRequest+, ..)) && args(httpRequest)")
-  def httpClientExecute(httpRequest: HttpUriRequest) {}
+  def httpClientExecute(httpRequest: HttpUriRequest): Unit = {}
 
   // Capture executions on all public methods of HttpClient that take a request and a response handler
   @Pointcut("execution(public * org.apache.http.client.HttpClient+.execute(org.apache.http.client.methods.HttpUriRequest+, org.apache.http.client.ResponseHandler+)) && args(httpRequest)")
-  def httpClientExecuteToResponseHandler(httpRequest: HttpUriRequest) {}
+  def httpClientExecuteToResponseHandler(httpRequest: HttpUriRequest): Unit = {}
 
   // Capture executions on all response handler implementations
   @Pointcut("execution(public * org.apache.http.client.ResponseHandler+.handleResponse(org.apache.http.HttpResponse)) && args(httpResponse)")
-  def httpResponseHandler(httpResponse: HttpResponse) {}
+  def httpResponseHandler(httpResponse: HttpResponse): Unit = {}
 
   // Capture executions on any calls to consume the response from an http request
   @Pointcut("execution(* org.apache.http.util.EntityUtils.toString(..)) || execution(* org.apache.http.util.EntityUtils.toByteArray(..)) || execution(* org.apache.http.util.EntityUtils.consumeQuietly(..))")
-  def consumeHttpEntity() {}
+  def consumeHttpEntity(): Unit = {}
 
   @Around(value = "httpClientExecute(httpRequest) && cflow(traced(traceAnnotation))", argNames = "joinPoint, httpRequest, traceAnnotation")
   def adviseHttpClientExecute(joinPoint: ProceedingJoinPoint, httpRequest: HttpUriRequest, traceAnnotation: Traced): AnyRef = {
@@ -80,7 +80,7 @@ class HttpTraceAspect {
   }
 
   @Before(value = "httpClientExecuteToResponseHandler(httpRequest) && cflow(traced(traceAnnotation))", argNames = "httpRequest, traceAnnotation")
-  def adviseHttpClientExecuteToResponseHandler(httpRequest: HttpUriRequest, traceAnnotation: Traced) {
+  def adviseHttpClientExecuteToResponseHandler(httpRequest: HttpUriRequest, traceAnnotation: Traced): Unit = {
     beginHttpExecute(traceAnnotation.value)
     addTraceHeader(httpRequest)
   }
@@ -103,16 +103,16 @@ class HttpTraceAspect {
     }
   }
 
-  private def beginHttpExecute(key: String) {
+  private def beginHttpExecute(key: String): Unit = {
     tracer.startTimer(HttpResponseTimeTraceKey)
     tracer.startTimer(HttpFullResponseTimeTraceKey)
   }
 
-  private def endHttpExecute(key: String) {
+  private def endHttpExecute(key: String): Unit = {
     tracer.stopTimer(HttpResponseTimeTraceKey)
   }
 
-  private def endConsumeHttpEntity(key: String) {
+  private def endConsumeHttpEntity(key: String): Unit = {
     tracer.stopTimer(HttpFullResponseTimeTraceKey)
     tracer.startTimer(ProcessResponseTimeTraceKey)
   }
@@ -129,7 +129,7 @@ class HttpTraceAspect {
     statusCode
   }
 
-  private def addTraceHeader(httpRequest: HttpUriRequest) {
+  private def addTraceHeader(httpRequest: HttpUriRequest): Unit = {
 
     if (httpRequest != null) {
       SpanLocal.current.foreach {

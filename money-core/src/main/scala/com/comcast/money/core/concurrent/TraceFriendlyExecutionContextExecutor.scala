@@ -34,7 +34,7 @@ class TraceFriendlyExecutionContextExecutor(wrapped: ExecutionContext)
     wrapped.execute(
       new Runnable {
         override def run = {
-          mdcSupport.propogateMDC(Option(submittingThreadsContext))
+          mdcSupport.propagateMDC(Option(submittingThreadsContext))
           SpanLocal.clear()
           inherited.foreach(SpanLocal.push)
           try {

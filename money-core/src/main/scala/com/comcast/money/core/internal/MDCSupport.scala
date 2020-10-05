@@ -18,7 +18,7 @@ package com.comcast.money.core.internal
 
 import java.util.Map
 
-import com.comcast.money.api.SpanId
+import com.comcast.money.api.{ Span, SpanId }
 import com.comcast.money.core.Money
 import org.slf4j.MDC
 
@@ -50,27 +50,22 @@ class MDCSupport(
   private val MoneyTraceKey = "moneyTrace"
   private val SpanNameKey = "spanName"
 
-  def setSpanMDC(spanId: Option[SpanId]): Unit = if (enabled) {
-    spanId match {
-      case Some(id) => MDC.put(MoneyTraceKey, MDCSupport.format(id, formatIdsAsHex))
-      case None => MDC.remove(MoneyTraceKey)
+  def setSpanMDC(span: Option[Span]): Unit = if (enabled) {
+    span match {
+      case Some(s) =>
+        MDC.put(MoneyTraceKey, MDCSupport.format(s.info.id, formatIdsAsHex))
+        MDC.put(SpanNameKey, s.info.name)
+      case None =>
+        MDC.remove(MoneyTraceKey)
+        MDC.remove(MoneyTraceKey)
+        MDC.remove(SpanNameKey)
     }
   }
 
-  def propogateMDC(submittingThreadsContext: Option[Map[_, _]]): Unit = if (enabled) {
+  def propagateMDC(submittingThreadsContext: Option[Map[String, String]]): Unit = if (enabled) {
     submittingThreadsContext match {
       case Some(context: Map[String, String]) => MDC.setContextMap(context)
       case None => MDC.clear()
     }
   }
-
-  def setSpanNameMDC(spanName: Option[String]) =
-    if (enabled) {
-      spanName match {
-        case Some(name) => MDC.put(SpanNameKey, name)
-        case None => MDC.remove(SpanNameKey)
-      }
-    }
-
-  def getSpanNameMDC: Option[String] = Option(MDC.get(SpanNameKey))
 }
