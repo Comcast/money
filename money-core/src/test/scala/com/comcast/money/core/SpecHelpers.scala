@@ -82,13 +82,13 @@ trait SpecHelpers extends Eventually { this: Matchers =>
       s"Not expected span info that $message found after $wait")
   }
 
-  def expectLogMessageContaining(contains: String, wait: FiniteDuration = 2.seconds) {
+  def expectLogMessageContaining(contains: String, wait: FiniteDuration = 2.seconds): Unit = {
     awaitCond(
       LogRecord.contains("log")(_.contains(contains)), wait, 100 milliseconds,
       s"Expected log message containing string $contains not found after $wait")
   }
 
-  def expectLogMessageContainingStrings(strings: Seq[String], wait: FiniteDuration = 2.seconds) {
+  def expectLogMessageContainingStrings(strings: Seq[String], wait: FiniteDuration = 2.seconds): Unit = {
     awaitCond(
       LogRecord.contains("log")(s => strings.forall(s.contains)), wait, 100 milliseconds,
       s"Expected log message containing $strings not found after $wait")

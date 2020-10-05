@@ -49,7 +49,7 @@ object MoneyExtension extends ExtensionId[MoneyExtension] with ExtensionIdProvid
    *
    * @return MoneyExtension
    */
-  override def lookup = MoneyExtension
+  override def lookup() = MoneyExtension
 
   /**
    * Creates an instance of the [[MoneyExtension]] from config

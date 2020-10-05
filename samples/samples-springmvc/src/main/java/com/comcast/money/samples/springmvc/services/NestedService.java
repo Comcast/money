@@ -2,8 +2,8 @@ package com.comcast.money.samples.springmvc.services;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.springframework.stereotype.Component;
 
@@ -13,7 +13,7 @@ import com.comcast.money.http.client.TraceFriendlyHttpClient;
 @Component
 public class NestedService {
 
-    private HttpClient httpClient = new TraceFriendlyHttpClient(new DefaultHttpClient());
+    private HttpClient httpClient = new TraceFriendlyHttpClient(HttpClientBuilder.create().build());
 
     @Traced("NESTED_SERVICE")
     public String doSomethingElse(String message) throws Exception {
@@ -35,7 +35,7 @@ public class NestedService {
 
             // need to call EntityUtils in order to tie into the http trace aspect
             // if you sniff the request, you will also see the X-MoneyTrace request header in the HTTP request
-            String result = EntityUtils.toString(response.getEntity());
+            EntityUtils.consumeQuietly(response.getEntity());
             Thread.sleep(1);
         } catch(Exception ex) {
             // just eat it
