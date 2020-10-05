@@ -170,7 +170,7 @@ def basicSettings =  Defaults.itSettings ++ Seq(
   scalaVersion := "2.12.12",
   crossScalaVersions := List("2.13.3", "2.12.12"),
   resolvers ++= Seq(
-    "spray repo" at "http://repo.spray.io/",
+    ("spray repo" at "http://repo.spray.io/").withAllowInsecureProtocol(true),
     "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/"
   ),
   scalacOptions ++= Seq(
