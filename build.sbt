@@ -11,13 +11,14 @@ lazy val copyApiDocsTask = taskKey[Unit]("Copies the scala docs from each projec
 
 lazy val props = new SystemProperties()
 
-lazy val money = Project("money", file("."))
-.settings(projectSettings: _*)
-.settings(
-  publishLocal := {},
-  publish := {}
-)
-.aggregate(moneyApi, moneyAkka, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyWire, moneyKafka, moneySpring)
+lazy val money =
+  Project("money", file("."))
+    .settings(projectSettings: _*)
+    .settings(
+      publishLocal := {},
+      publish := {}
+    )
+    .aggregate(moneyApi, moneyAkka, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyWire, moneyKafka, moneySpring)
 
 lazy val moneyApi =
   Project("money-api", file("./money-api"))
@@ -60,15 +61,15 @@ lazy val moneyAkka =
 
 lazy val moneyAspectj =
   Project("money-aspectj", file("./money-aspectj"))
-  .enablePlugins(SbtAspectj, AutomateHeaderPlugin)
-  .settings(aspectjProjectSettings: _*)
-  .settings(
-    libraryDependencies ++=
-      Seq(
-        typesafeConfig,
-      ) ++ commonTestDependencies
-  )
-  .dependsOn(moneyCore % "test->test;compile->compile")
+    .enablePlugins(SbtAspectj, AutomateHeaderPlugin)
+    .settings(aspectjProjectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          typesafeConfig,
+        ) ++ commonTestDependencies
+    )
+    .dependsOn(moneyCore % "test->test;compile->compile")
 
 lazy val moneyHttpClient =
   Project("money-http-client", file("./money-http-client"))
@@ -170,7 +171,7 @@ def basicSettings =  Defaults.itSettings ++ Seq(
   scalaVersion := "2.12.12",
   crossScalaVersions := List("2.13.3", "2.12.12"),
   resolvers ++= Seq(
-    "spray repo" at "http://repo.spray.io/",
+    ("spray repo" at "http://repo.spray.io/").withAllowInsecureProtocol(true),
     "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/"
   ),
   scalacOptions ++= Seq(
