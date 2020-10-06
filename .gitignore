@@ -12,6 +12,7 @@
 target
 ajcore.*.txt
 .bloop/
+.bsp/
 .metals/
 .vscode/
 .metals/
