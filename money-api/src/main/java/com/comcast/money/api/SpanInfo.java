@@ -27,7 +27,7 @@ public interface SpanInfo {
      */
     Map<String, Note<?>> notes();
 
-    Collection<EventWithTimestamp> events();
+    Collection<Event> events();
 
     /**
      * @return the time in milliseconds when this span was started

@@ -18,7 +18,7 @@ package com.comcast.money.core
 
 import java.util.Collections
 
-import com.comcast.money.api.{ EventWithTimestamp, Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ Event, Note, SpanId, SpanInfo }
 
 case class CoreSpanInfo(
   id: SpanId,
@@ -30,6 +30,6 @@ case class CoreSpanInfo(
   durationMicros: java.lang.Long = 0L,
   success: java.lang.Boolean = true,
   notes: java.util.Map[String, Note[_]] = Collections.emptyMap(),
-  events: java.util.Collection[EventWithTimestamp] = Collections.emptyList(),
+  events: java.util.Collection[Event] = Collections.emptyList(),
   appName: String = Money.Environment.applicationName,
   host: String = Money.Environment.hostName) extends SpanInfo

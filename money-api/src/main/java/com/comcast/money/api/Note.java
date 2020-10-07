@@ -19,7 +19,7 @@ package com.comcast.money.api;
 import java.util.List;
 import java.util.Objects;
 
-import io.opentelemetry.common.AttributeValue;
+import io.opentelemetry.common.AttributeKey;
 
 /**
  * A note that has been recorded on a {@link Span}
@@ -416,41 +416,20 @@ public class Note<T> {
         return new Note<>(name, value, timestamp, false);
     }
 
-    public static Note<?> fromAttributeValue(String name, AttributeValue attributeValue) {
-        return fromAttributeValue(name, attributeValue, false, System.currentTimeMillis());
+    public static <T> Note<T> of(AttributeKey<T> attributeKey, T value) {
+        return of(attributeKey, value, false, System.currentTimeMillis());
     }
 
-    public static Note<?> fromAttributeValue(String name, AttributeValue attributeValue, boolean sticky) {
-        return fromAttributeValue(name, attributeValue, sticky, System.currentTimeMillis());
+    public static <T> Note<T> of(AttributeKey<T> attributeKey, T value, boolean sticky) {
+        return of(attributeKey, value, sticky, System.currentTimeMillis());
     }
 
-    public static Note<?> fromAttributeValue(String name, AttributeValue attributeValue, long timestamp) {
-        return fromAttributeValue(name, attributeValue, false, timestamp);
+    public static <T> Note<T> of(AttributeKey<T> attributeKey, T value, long timestamp) {
+        return of(attributeKey, value, false, timestamp);
     }
 
-    public static Note<?> fromAttributeValue(String name, AttributeValue attributeValue, boolean sticky, long timestamp) {
-        if (attributeValue.isNull()) {
-            return of(name, null, sticky, timestamp);
-        }
-        switch (attributeValue.getType()) {
-            case STRING:
-                return of(name, attributeValue.getStringValue(), sticky, timestamp);
-            case BOOLEAN:
-                return of(name, attributeValue.getBooleanValue(), sticky, timestamp);
-            case LONG:
-                return of(name, attributeValue.getLongValue(), sticky, timestamp);
-            case DOUBLE:
-                return of(name, attributeValue.getDoubleValue(), sticky, timestamp);
-            case STRING_ARRAY:
-                return ofStrings(name, attributeValue.getStringArrayValue(), sticky, timestamp);
-            case BOOLEAN_ARRAY:
-                return ofBooleans(name, attributeValue.getBooleanArrayValue(), sticky, timestamp);
-            case LONG_ARRAY:
-                return ofLongs(name, attributeValue.getLongArrayValue(), sticky, timestamp);
-            case DOUBLE_ARRAY:
-                return ofDoubles(name, attributeValue.getDoubleArrayValue(), sticky, timestamp);
-        }
-        throw new IllegalArgumentException(String.format("attributeValue type %s is not an expected type.", attributeValue.getType()));
+    public static <T> Note<T> of(AttributeKey<T> attributeKey, T value, boolean sticky, long timestamp) {
+        return new Note<>(attributeKey.getKey(), value, timestamp, sticky);
     }
 
     @Override

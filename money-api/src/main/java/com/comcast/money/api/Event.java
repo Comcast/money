@@ -16,12 +16,10 @@
 
 package com.comcast.money.api;
 
-import io.opentelemetry.trace.Event;
+import io.opentelemetry.common.Attributes;
 
-public interface EventWithTimestamp extends Event {
+public interface Event {
+    String name();
+    Attributes attributes();
     long timestamp();
-
-    default Event getEvent() {
-        return this;
-    }
 }

@@ -17,9 +17,9 @@
 package com.comcast.money.core
 
 import com.comcast.money.api._
-import io.opentelemetry.common.{ AttributeValue, Attributes }
+import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
-import io.opentelemetry.trace.{ DefaultSpan, EndSpanOptions, Event, SpanContext, Status }
+import io.opentelemetry.trace.{ DefaultSpan, EndSpanOptions, SpanContext, StatusCanonicalCode }
 
 // $COVERAGE-OFF
 object DisabledSpanHandler extends SpanHandler {
@@ -101,7 +101,7 @@ object DisabledSpan extends Span {
 
   override def setAttribute(key: String, value: Boolean): Unit = ()
 
-  override def setAttribute(key: String, value: AttributeValue): Unit = ()
+  override def setAttribute[T](key: AttributeKey[T], value: T): Unit = ()
 
   override def addEvent(name: String): Unit = ()
 
@@ -111,11 +111,9 @@ object DisabledSpan extends Span {
 
   override def addEvent(name: String, attributes: Attributes, timestamp: Long): Unit = ()
 
-  override def addEvent(event: Event): Unit = ()
+  override def setStatus(canonicalCode: StatusCanonicalCode): Unit = ()
 
-  override def addEvent(event: Event, timestamp: Long): Unit = ()
-
-  override def setStatus(status: Status): Unit = ()
+  override def setStatus(canonicalCode: StatusCanonicalCode, description: String): Unit = ()
 
   override def recordException(exception: Throwable): Unit = ()
 
