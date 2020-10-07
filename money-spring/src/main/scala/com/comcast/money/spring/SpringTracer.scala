@@ -16,8 +16,10 @@
 
 package com.comcast.money.spring
 
-import com.comcast.money.api.Note
+import com.comcast.money.api.{ Note, Span }
 import com.comcast.money.core._
+import io.opentelemetry.context.Scope
+import io.opentelemetry.trace
 import org.springframework.stereotype.Component
 
 /**
@@ -33,6 +35,12 @@ class SpringTracer extends Tracer {
   private[spring] def setTracer(toSet: Tracer): Unit =
     tracer = toSet
 
+  override def getCurrentSpan: trace.Span = tracer.getCurrentSpan
+
+  override def withSpan(span: trace.Span): Scope = tracer.withSpan(span)
+
+  override def spanBuilder(spanName: String): trace.Span.Builder = tracer.spanBuilder(spanName)
+
   /**
    * Creates a new span if one is not present; or creates a child span for the existing Span if one is present
    *
@@ -47,9 +55,10 @@ class SpringTracer extends Tracer {
    *    }
    *  }
    * }}}
+   *
    * @param key an identifier for the span
    */
-  override def startSpan(key: String): Unit = tracer.startSpan(key)
+  override def startSpan(key: String): Span = tracer.startSpan(key)
 
   /**
    * Captures a timestamp for the key provided on the current Span if present.  If a Span is present, a Note
@@ -246,7 +255,7 @@ class SpringTracer extends Tracer {
    * }}}
    * @param key the identifier for the timer
    */
-  override def startTimer(key: String): Unit = tracer.startTimer(key)
+  override def startTimer(key: String): Scope = tracer.startTimer(key)
 
   /**
    * Stops the timer on the current Span for the key provided.  This method assumes that a timer was started for the

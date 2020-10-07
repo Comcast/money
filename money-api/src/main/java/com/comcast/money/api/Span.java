@@ -16,18 +16,20 @@
 
 package com.comcast.money.api;
 
+import io.opentelemetry.context.Scope;
+
 /**
  * A Span is a container that represents a unit of work.  It could be a long running operation or sequence of
  * statements in process, or a remote system call.
  *
  * A Span is immutable, all changes to the span result in a new Span being created.
  */
-public interface Span extends io.opentelemetry.trace.Span {
+public interface Span extends io.opentelemetry.trace.Span, Scope {
 
     /**
      * Signals the span that it has started
      */
-    void start();
+    Scope start();
 
     /**
      * Stops the span asserts a successful result
@@ -50,7 +52,7 @@ public interface Span extends io.opentelemetry.trace.Span {
      * Starts a new timer on the span
      * @param timerKey The name of the timer to start
      */
-    void startTimer(String timerKey);
+    Scope startTimer(String timerKey);
 
     /**
      * Stops an existing timer on the span

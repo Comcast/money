@@ -28,7 +28,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
 
   "CoreSpan" should {
     "set the startTimeMillis and startTimeMicros when started" in {
-      val underTest = CoreSpan(new SpanId(), "test", null)
+      val underTest = CoreSpan(new SpanId(), "test", SystemClock, null)
       underTest.start()
 
       val state = underTest.info
@@ -38,7 +38,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "record a timer" in {
-      val underTest = CoreSpan(new SpanId(), "test", null)
+      val underTest = CoreSpan(new SpanId(), "test", SystemClock, null)
 
       underTest.startTimer("foo")
       underTest.stopTimer("foo")
@@ -47,7 +47,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "record a note" in {
-      val underTest = CoreSpan(new SpanId(), "test", null)
+      val underTest = CoreSpan(new SpanId(), "test", SystemClock, null)
 
       underTest.record(testLongNote)
 
@@ -56,7 +56,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
 
     "set the endTimeMillis and endTimeMicros when stopped" in {
       val handler = mock[SpanHandler]
-      val underTest = CoreSpan(new SpanId(), "test", handler)
+      val underTest = CoreSpan(new SpanId(), "test", SystemClock, handler)
 
       underTest.stop(true)
 
@@ -69,7 +69,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "invoke the span handler when stopped" in {
       val handler = mock[SpanHandler]
       val handleCaptor = ArgumentCaptor.forClass(classOf[SpanInfo])
-      val underTest = CoreSpan(new SpanId(), "test", handler)
+      val underTest = CoreSpan(new SpanId(), "test", SystemClock, handler)
 
       underTest.start()
       underTest.record(testLongNote)

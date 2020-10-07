@@ -16,6 +16,7 @@
 
 package com.comcast.money.api;
 
+import java.util.Collection;
 import java.util.Map;
 
 public interface SpanInfo {
@@ -25,6 +26,8 @@ public interface SpanInfo {
      * that the map returned is a copy of the notes
      */
     Map<String, Note<?>> notes();
+
+    Collection<EventWithTimestamp> events();
 
     /**
      * @return the time in milliseconds when this span was started

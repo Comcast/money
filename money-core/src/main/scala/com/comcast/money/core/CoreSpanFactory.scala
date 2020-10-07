@@ -21,7 +21,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
-class CoreSpanFactory(handler: SpanHandler) extends SpanFactory {
+class CoreSpanFactory(clock: Clock, handler: SpanHandler) extends SpanFactory {
 
   private val logger = LoggerFactory.getLogger(classOf[CoreSpanFactory])
 
@@ -39,13 +39,12 @@ class CoreSpanFactory(handler: SpanHandler) extends SpanFactory {
   def newSpanFromHeader(childName: String, getHeader: String => String): Span =
     Formatters.fromHttpHeaders(getHeader, logger.warn) match {
       case Some(spanId) => newSpan(new SpanId(spanId.traceId, spanId.parentId), childName)
-      case None => {
+      case None =>
         logger.warn(s"creating root span because http header '${getHeader}' was malformed")
         newSpan(childName)
-      }
     }
 
-  def childSpan(childName: String, span: Span): Span = childSpan(childName, span, true)
+  def childSpan(childName: String, span: Span): Span = childSpan(childName, span, sticky = true)
 
   def childSpan(childName: String, span: Span, sticky: Boolean): Span = {
     val info = span.info
@@ -64,5 +63,6 @@ class CoreSpanFactory(handler: SpanHandler) extends SpanFactory {
     CoreSpan(
       id = spanId,
       name = spanName,
+      clock = clock,
       handler = handler)
 }

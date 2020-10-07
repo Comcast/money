@@ -16,6 +16,11 @@
 
 package com.comcast.money.api;
 
+import java.util.List;
+import java.util.Objects;
+
+import io.opentelemetry.common.AttributeValue;
+
 /**
  * A note that has been recorded on a {@link Span}
  *
@@ -82,7 +87,7 @@ public class Note<T> {
      * @return A new {@link Note} that contains a String value
      */
     public static Note<String> of(String name, String value) {
-        return new Note<String>(name, value);
+        return new Note<>(name, value);
     }
 
     /**
@@ -92,7 +97,7 @@ public class Note<T> {
      * @return A new {@link Note} that contains a long value
      */
     public static Note<Long> of(String name, long value) {
-        return new Note<Long>(name, value);
+        return new Note<>(name, value);
     }
 
     /**
@@ -102,7 +107,7 @@ public class Note<T> {
      * @return A new {@link Note} that contains a boolean value
      */
     public static Note<Boolean> of(String name, boolean value) {
-        return new Note<Boolean>(name, value);
+        return new Note<>(name, value);
     }
 
     /**
@@ -112,7 +117,47 @@ public class Note<T> {
      * @return A new {@link Note} that contains a double value
      */
     public static Note<Double> of(String name, double value) {
-        return new Note<Double>(name, value);
+        return new Note<>(name, value);
+    }
+
+    /**
+     * Creates a new note that contains a string
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a String value
+     */
+    public static Note<List<String>> ofStrings(String name, List<String> value) {
+        return new Note<>(name, value);
+    }
+
+    /**
+     * Creates a new note that contains a long
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a long value
+     */
+    public static Note<List<Long>> ofLongs(String name, List<Long> value) {
+        return new Note<>(name, value);
+    }
+
+    /**
+     * Creates a new note that contains a boolean
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a boolean value
+     */
+    public static Note<List<Boolean>> ofBooleans(String name, List<Boolean> value) {
+        return new Note<>(name, value);
+    }
+
+    /**
+     * Creates a new note that contains a double
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a double value
+     */
+    public static Note<List<Double>> ofDoubles(String name, List<Double> value) {
+        return new Note<>(name, value);
     }
 
     /**
@@ -123,7 +168,7 @@ public class Note<T> {
      * @return A new {@link Note} that contains a String value
      */
     public static Note<String> of(String name, String value, boolean sticky) {
-        return new Note<String>(name, value, sticky);
+        return new Note<>(name, value, sticky);
     }
 
     /**
@@ -134,7 +179,7 @@ public class Note<T> {
      * @return A new {@link Note} that contains a long value
      */
     public static Note<Long> of(String name, long value, boolean sticky) {
-        return new Note<Long>(name, value, sticky);
+        return new Note<>(name, value, sticky);
     }
 
     /**
@@ -145,7 +190,7 @@ public class Note<T> {
      * @return A new {@link Note} that contains a boolean value
      */
     public static Note<Boolean> of(String name, boolean value, boolean sticky) {
-        return new Note<Boolean>(name, value, sticky);
+        return new Note<>(name, value, sticky);
     }
 
     /**
@@ -156,7 +201,47 @@ public class Note<T> {
      * @return A new {@link Note} that contains a double value
      */
     public static Note<Double> of(String name, double value, boolean sticky) {
-        return new Note<Double>(name, value, sticky);
+        return new Note<>(name, value, sticky);
+    }
+
+    /**
+     * Creates a new note that contains a string
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a String value
+     */
+    public static Note<List<String>> ofStrings(String name, List<String> value, boolean sticky) {
+        return new Note<>(name, value, sticky);
+    }
+
+    /**
+     * Creates a new note that contains a long
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a long value
+     */
+    public static Note<List<Long>> ofLongs(String name, List<Long> value, boolean sticky) {
+        return new Note<>(name, value, sticky);
+    }
+
+    /**
+     * Creates a new note that contains a boolean
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a boolean value
+     */
+    public static Note<List<Boolean>> ofBooleans(String name, List<Boolean> value, boolean sticky) {
+        return new Note<>(name, value, sticky);
+    }
+
+    /**
+     * Creates a new note that contains a double
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a double value
+     */
+    public static Note<List<Double>> ofDoubles(String name, List<Double> value, boolean sticky) {
+        return new Note<>(name, value, sticky);
     }
 
     /**
@@ -168,7 +253,7 @@ public class Note<T> {
      * @return A new {@link Note} that contains a String value
      */
     public static Note<String> of(String name, String value, boolean sticky, long timestamp) {
-        return new Note<String>(name, value, timestamp, sticky);
+        return new Note<>(name, value, timestamp, sticky);
     }
 
     /**
@@ -180,7 +265,7 @@ public class Note<T> {
      * @return A new {@link Note} that contains a long value
      */
     public static Note<Long> of(String name, long value, boolean sticky, long timestamp) {
-        return new Note<Long>(name, value, timestamp, sticky);
+        return new Note<>(name, value, timestamp, sticky);
     }
 
     /**
@@ -192,7 +277,7 @@ public class Note<T> {
      * @return A new {@link Note} that contains a boolean value
      */
     public static Note<Boolean> of(String name, boolean value, boolean sticky, long timestamp) {
-        return new Note<Boolean>(name, value, timestamp, sticky);
+        return new Note<>(name, value, timestamp, sticky);
     }
 
     /**
@@ -204,7 +289,47 @@ public class Note<T> {
      * @return A new {@link Note} that contains a double value
      */
     public static Note<Double> of(String name, double value, boolean sticky, long timestamp) {
-        return new Note<Double>(name, value, timestamp, sticky);
+        return new Note<>(name, value, timestamp, sticky);
+    }
+
+    /**
+     * Creates a new note that contains a string
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a String value
+     */
+    public static Note<List<String>> ofStrings(String name, List<String> value, boolean sticky, long timestamp) {
+        return new Note<>(name, value, timestamp, sticky);
+    }
+
+    /**
+     * Creates a new note that contains a long
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a long value
+     */
+    public static Note<List<Long>> ofLongs(String name, List<Long> value, boolean sticky, long timestamp) {
+        return new Note<>(name, value, timestamp, sticky);
+    }
+
+    /**
+     * Creates a new note that contains a boolean
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a boolean value
+     */
+    public static Note<List<Boolean>> ofBooleans(String name, List<Boolean> value, boolean sticky, long timestamp) {
+        return new Note<>(name, value, timestamp, sticky);
+    }
+
+    /**
+     * Creates a new note that contains a double
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a double value
+     */
+    public static Note<List<Double>> ofDoubles(String name, List<Double> value, boolean sticky, long timestamp) {
+        return new Note<>(name, value, timestamp, sticky);
     }
 
     /**
@@ -215,7 +340,7 @@ public class Note<T> {
      * @return A new {@link Note} that contains a String value
      */
     public static Note<String> of(String name, String value, long timestamp) {
-        return new Note<String>(name, value, timestamp, false);
+        return new Note<>(name, value, timestamp, false);
     }
 
     /**
@@ -226,7 +351,7 @@ public class Note<T> {
      * @return A new {@link Note} that contains a long value
      */
     public static Note<Long> of(String name, long value, long timestamp) {
-        return new Note<Long>(name, value, timestamp, false);
+        return new Note<>(name, value, timestamp, false);
     }
 
     /**
@@ -237,7 +362,7 @@ public class Note<T> {
      * @return A new {@link Note} that contains a boolean value
      */
     public static Note<Boolean> of(String name, boolean value, long timestamp) {
-        return new Note<Boolean>(name, value, timestamp, false);
+        return new Note<>(name, value, timestamp, false);
     }
 
     /**
@@ -248,7 +373,84 @@ public class Note<T> {
      * @return A new {@link Note} that contains a double value
      */
     public static Note<Double> of(String name, double value, long timestamp) {
-        return new Note<Double>(name, value, timestamp, false);
+        return new Note<>(name, value, timestamp, false);
+    }
+
+    /**
+     * Creates a new note that contains a string
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a String value
+     */
+    public static Note<List<String>> ofStrings(String name, List<String> value, long timestamp) {
+        return new Note<>(name, value, timestamp, false);
+    }
+
+    /**
+     * Creates a new note that contains a long
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a long value
+     */
+    public static Note<List<Long>> ofLongs(String name, List<Long> value, long timestamp) {
+        return new Note<>(name, value, timestamp, false);
+    }
+
+    /**
+     * Creates a new note that contains a boolean
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a boolean value
+     */
+    public static Note<List<Boolean>> ofBooleans(String name, List<Boolean> value, long timestamp) {
+        return new Note<>(name, value, timestamp, false);
+    }
+
+    /**
+     * Creates a new note that contains a double
+     * @param name The name of the note
+     * @param value The value for the note
+     * @return A new {@link Note} that contains a double value
+     */
+    public static Note<List<Double>> ofDoubles(String name, List<Double> value, long timestamp) {
+        return new Note<>(name, value, timestamp, false);
+    }
+
+    public static Note<?> fromAttributeValue(String name, AttributeValue attributeValue) {
+        return fromAttributeValue(name, attributeValue, false, System.currentTimeMillis());
+    }
+
+    public static Note<?> fromAttributeValue(String name, AttributeValue attributeValue, boolean sticky) {
+        return fromAttributeValue(name, attributeValue, sticky, System.currentTimeMillis());
+    }
+
+    public static Note<?> fromAttributeValue(String name, AttributeValue attributeValue, long timestamp) {
+        return fromAttributeValue(name, attributeValue, false, timestamp);
+    }
+
+    public static Note<?> fromAttributeValue(String name, AttributeValue attributeValue, boolean sticky, long timestamp) {
+        if (attributeValue.isNull()) {
+            return of(name, null, sticky, timestamp);
+        }
+        switch (attributeValue.getType()) {
+            case STRING:
+                return of(name, attributeValue.getStringValue(), sticky, timestamp);
+            case BOOLEAN:
+                return of(name, attributeValue.getBooleanValue(), sticky, timestamp);
+            case LONG:
+                return of(name, attributeValue.getLongValue(), sticky, timestamp);
+            case DOUBLE:
+                return of(name, attributeValue.getDoubleValue(), sticky, timestamp);
+            case STRING_ARRAY:
+                return ofStrings(name, attributeValue.getStringArrayValue(), sticky, timestamp);
+            case BOOLEAN_ARRAY:
+                return ofBooleans(name, attributeValue.getBooleanArrayValue(), sticky, timestamp);
+            case LONG_ARRAY:
+                return ofLongs(name, attributeValue.getLongArrayValue(), sticky, timestamp);
+            case DOUBLE_ARRAY:
+                return ofDoubles(name, attributeValue.getDoubleArrayValue(), sticky, timestamp);
+        }
+        throw new IllegalArgumentException(String.format("attributeValue type %s is not an expected type.", attributeValue.getType()));
     }
 
     @Override
@@ -261,7 +463,7 @@ public class Note<T> {
         if (timestamp != note.timestamp) return false;
         if (sticky != note.sticky) return false;
         if (!name.equals(note.name)) return false;
-        return value != null ? value.equals(note.value) : note.value == null;
+        return Objects.equals(value, note.value);
 
     }
 

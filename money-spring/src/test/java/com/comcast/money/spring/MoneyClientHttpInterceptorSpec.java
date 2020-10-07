@@ -16,7 +16,6 @@
 
 package com.comcast.money.spring;
 
-import com.comcast.money.api.Note;
 import com.comcast.money.api.Span;
 import com.comcast.money.api.SpanId;
 import com.comcast.money.api.SpanInfo;
@@ -31,7 +30,8 @@ import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
-import java.util.HashMap;
+
+import java.util.Collections;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
@@ -54,7 +54,8 @@ public class MoneyClientHttpInterceptorSpec {
                 0L,
                 0L,
                 Boolean.TRUE,
-                new HashMap<String, Note<?>>(),
+                Collections.emptyMap(),
+                Collections.emptyList(),
                 "testAppName",
                 "testHost");
 

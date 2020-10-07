@@ -16,20 +16,7 @@
 
 package com.comcast.money.core
 
-import java.util.Collections
-
-import com.comcast.money.api.{ EventWithTimestamp, Note, SpanId, SpanInfo }
-
-case class CoreSpanInfo(
-  id: SpanId,
-  name: String,
-  startTimeMillis: java.lang.Long = 0L,
-  startTimeMicros: java.lang.Long = 0L,
-  endTimeMillis: java.lang.Long = 0L,
-  endTimeMicros: java.lang.Long = 0L,
-  durationMicros: java.lang.Long = 0L,
-  success: java.lang.Boolean = true,
-  notes: java.util.Map[String, Note[_]] = Collections.emptyMap(),
-  events: java.util.Collection[EventWithTimestamp] = Collections.emptyList(),
-  appName: String = Money.Environment.applicationName,
-  host: String = Money.Environment.hostName) extends SpanInfo
+trait Clock {
+  def now: Long
+  def nanoTime: Long
+}

@@ -18,17 +18,30 @@ package com.comcast.money.core
 
 import java.io.Closeable
 
+import io.opentelemetry.trace.{ DefaultSpan, Span => OtelSpan, Tracer => OtelTracer }
 import com.comcast.money.api.{ Note, Span, SpanFactory }
 import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
+import io.opentelemetry.context.Scope
 
 /**
  * Primary API to be used for tracing
  */
-trait Tracer extends Closeable {
+trait Tracer extends OtelTracer with Closeable {
 
   val spanFactory: SpanFactory
 
   val spanContext: SpanContext = SpanLocal
+
+  override def getCurrentSpan: OtelSpan = spanContext.current.getOrElse(DefaultSpan.getInvalid)
+
+  override def withSpan(span: OtelSpan): Scope = span match {
+    case moneySpan: Span =>
+      spanContext.push(moneySpan)
+      () => { spanContext.pop() }
+    case _ => throw new IllegalArgumentException("span is not a compatible Money span")
+  }
+
+  override def spanBuilder(spanName: String): OtelSpan.Builder = ???
 
   /**
    * Creates a new span if one is not present; or creates a child span for the existing Span if one is present
@@ -44,9 +57,10 @@ trait Tracer extends Closeable {
    *    }
    *  }
    * }}}
+   *
    * @param key an identifier for the span
    */
-  def startSpan(key: String) = {
+  def startSpan(key: String): Span = {
     val child = spanContext.current
       .map { existingSpan =>
         spanFactory.childSpan(key, existingSpan)
@@ -56,6 +70,7 @@ trait Tracer extends Closeable {
 
     spanContext.push(child)
     child.start()
+    child
   }
 
   /**
@@ -71,7 +86,7 @@ trait Tracer extends Closeable {
    * }}}
    * @param key the identifier for the timestamp being captured
    */
-  def time(key: String) = withSpan { span =>
+  def time(key: String): Unit = withCurrentSpan { span =>
     span.record(Note.of(key, System.currentTimeMillis()))
   }
 
@@ -89,7 +104,7 @@ trait Tracer extends Closeable {
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
-  def record(key: String, measure: Double): Unit = withSpan { span =>
+  def record(key: String, measure: Double): Unit = withCurrentSpan { span =>
     span.record(Note.of(key, measure))
   }
 
@@ -106,10 +121,10 @@ trait Tracer extends Closeable {
    * }}}
    * @param key the identifier for the data being captured
    * @param measure the value being captured
-   * @param propogate propogate to children
+   * @param propagate propagate to children
    */
-  def record(key: String, measure: Double, propogate: Boolean): Unit = withSpan { span =>
-    span.record(Note.of(key, measure, propogate))
+  def record(key: String, measure: Double, propagate: Boolean): Unit = withCurrentSpan { span =>
+    span.record(Note.of(key, measure, propagate))
   }
 
   /**
@@ -126,7 +141,7 @@ trait Tracer extends Closeable {
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
-  def record(key: String, measure: String): Unit = withSpan { span =>
+  def record(key: String, measure: String): Unit = withCurrentSpan { span =>
     span.record(Note.of(key, measure))
   }
 
@@ -143,10 +158,10 @@ trait Tracer extends Closeable {
    * }}}
    * @param key the identifier for the data being captured
    * @param measure the value being captured
-   * @param propogate propogate to children
+   * @param propagate propagate to children
    */
-  def record(key: String, measure: String, propogate: Boolean): Unit = withSpan { span =>
-    span.record(Note.of(key, measure, propogate))
+  def record(key: String, measure: String, propagate: Boolean): Unit = withCurrentSpan { span =>
+    span.record(Note.of(key, measure, propagate))
   }
 
   /**
@@ -163,7 +178,7 @@ trait Tracer extends Closeable {
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
-  def record(key: String, measure: Long): Unit = withSpan { span =>
+  def record(key: String, measure: Long): Unit = withCurrentSpan { span =>
     span.record(Note.of(key, measure))
   }
 
@@ -180,10 +195,10 @@ trait Tracer extends Closeable {
    * }}}
    * @param key the identifier for the data being captured
    * @param measure the value being captured
-   * @param propogate propogate to children
+   * @param propagate propagate to children
    */
-  def record(key: String, measure: Long, propogate: Boolean): Unit = withSpan { span =>
-    span.record(Note.of(key, measure, propogate))
+  def record(key: String, measure: Long, propagate: Boolean): Unit = withCurrentSpan { span =>
+    span.record(Note.of(key, measure, propagate))
   }
 
   /**
@@ -200,7 +215,7 @@ trait Tracer extends Closeable {
    * @param key the identifier for the data being captured
    * @param measure the value being captured
    */
-  def record(key: String, measure: Boolean): Unit = withSpan { span =>
+  def record(key: String, measure: Boolean): Unit = withCurrentSpan { span =>
     span.record(Note.of(key, measure))
   }
 
@@ -217,10 +232,10 @@ trait Tracer extends Closeable {
    * }}}
    * @param key the identifier for the data being captured
    * @param measure the value being captured
-   * @param propogate propogate to children
+   * @param propagate propagate to children
    */
-  def record(key: String, measure: Boolean, propogate: Boolean): Unit = withSpan { span =>
-    span.record(Note.of(key, measure, propogate))
+  def record(key: String, measure: Boolean, propagate: Boolean): Unit = withCurrentSpan { span =>
+    span.record(Note.of(key, measure, propagate))
   }
 
   /**
@@ -236,7 +251,7 @@ trait Tracer extends Closeable {
    * }}}
    * @param note the [[com.comcast.money.api.Note]] to be added
    */
-  def record(note: Note[_]) = withSpan { span =>
+  def record(note: Note[_]): Unit = withCurrentSpan { span =>
     span.record(note)
   }
 
@@ -278,13 +293,15 @@ trait Tracer extends Closeable {
    * }}}
    * @param key the identifier for the timer
    */
-  def startTimer(key: String) = withSpan { span =>
-    span.startTimer(key)
+  def startTimer(key: String): Scope = spanContext.current match {
+    case Some(span) =>
+      span.startTimer(key)
+    case _ => () => {}
   }
 
   /**
    * Stops the timer on the current Span for the key provided.  This method assumes that a timer was started for the
-   * key, ususally used
+   * key, usually used
    * in conjunction with `startTimer`
    * {{{
    * import com.comcast.money.core.Money._
@@ -300,13 +317,12 @@ trait Tracer extends Closeable {
    * }}}
    * @param key the identifier for the timer
    */
-  def stopTimer(key: String) = withSpan { span =>
+  def stopTimer(key: String): Unit = withCurrentSpan { span =>
     span.stopTimer(key)
   }
 
-  override def close() = stopSpan()
+  override def close(): Unit = stopSpan()
 
-  private def withSpan(func: Span => Unit): Unit = {
+  private def withCurrentSpan(func: Span => Unit): Unit =
     spanContext.current.foreach(func)
-  }
 }
