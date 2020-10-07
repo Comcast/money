@@ -16,7 +16,13 @@
 
 package com.comcast.money.api;
 
+import java.time.Instant;
+
+import io.grpc.Context;
+import io.opentelemetry.common.AttributeKey;
+import io.opentelemetry.common.Attributes;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.trace.SpanContext;
 
 /**
  * A Span is a container that represents a unit of work.  It could be a long running operation or sequence of
@@ -30,6 +36,8 @@ public interface Span extends io.opentelemetry.trace.Span, Scope {
      * Signals the span that it has started
      */
     Scope start();
+
+    Scope start(long startTimeSeconds, int nanoAdjustment);
 
     /**
      * Stops the span asserts a successful result
@@ -64,4 +72,42 @@ public interface Span extends io.opentelemetry.trace.Span, Scope {
      * @return The current state of the Span
      */
     SpanInfo info();
+
+    interface Builder extends io.opentelemetry.trace.Span.Builder {
+        @Override
+        Builder setParent(Context context);
+
+        @Override
+        Builder setNoParent();
+
+        @Override
+        Builder addLink(SpanContext spanContext);
+
+        @Override
+        Builder addLink(SpanContext spanContext, Attributes attributes);
+
+        @Override
+        Builder setAttribute(String key, String value);
+
+        @Override
+        Builder setAttribute(String key, long value);
+
+        @Override
+        Builder setAttribute(String key, double value);
+
+        @Override
+        Builder setAttribute(String key, boolean value);
+
+        @Override
+        <T> Builder setAttribute(AttributeKey<T> key, T value);
+
+        @Override
+        Builder setSpanKind(Kind spanKind);
+
+        @Override
+        Builder setStartTimestamp(long startTimestamp);
+
+        @Override
+        Span startSpan();
+    }
 }

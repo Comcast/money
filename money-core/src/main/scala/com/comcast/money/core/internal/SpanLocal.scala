@@ -20,8 +20,6 @@ import com.comcast.money.api.Span
 import io.grpc.Context
 import io.opentelemetry.trace.TracingContextUtils
 
-import scala.annotation.tailrec
-
 trait SpanContext {
   def push(span: Span): Unit
   def pop(): Option[Span]

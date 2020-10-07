@@ -18,30 +18,36 @@ package com.comcast.money.core
 
 import java.io.Closeable
 
-import io.opentelemetry.trace.{ DefaultSpan, Span => OtelSpan, Tracer => OtelTracer }
-import com.comcast.money.api.{ Note, Span, SpanFactory }
+import io.opentelemetry.trace.{ Span => OtelSpan }
+import com.comcast.money.api.{ MoneyTracer, Note, Span, SpanFactory }
 import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
+import io.grpc.Context
+import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
+import io.opentelemetry.trace
 
 /**
  * Primary API to be used for tracing
  */
-trait Tracer extends OtelTracer with Closeable {
+trait Tracer extends MoneyTracer with Closeable {
 
   val spanFactory: SpanFactory
 
   val spanContext: SpanContext = SpanLocal
 
-  override def getCurrentSpan: OtelSpan = spanContext.current.getOrElse(DefaultSpan.getInvalid)
+  override def getCurrentSpan: Span = spanContext.current.getOrElse(DisabledSpan)
 
   override def withSpan(span: OtelSpan): Scope = span match {
-    case moneySpan: Span =>
-      spanContext.push(moneySpan)
-      () => { spanContext.pop() }
+    case moneySpan: Span => withSpan(moneySpan)
     case _ => throw new IllegalArgumentException("span is not a compatible Money span")
   }
 
-  override def spanBuilder(spanName: String): OtelSpan.Builder = ???
+  override def withSpan(span: Span): Scope = {
+    spanContext.push(span)
+    () => { spanContext.pop() }
+  }
+
+  override def spanBuilder(spanName: String): Span.Builder = new CoreSpanBuilder(spanContext.current, false, spanName, spanFactory)
 
   /**
    * Creates a new span if one is not present; or creates a child span for the existing Span if one is present
@@ -61,6 +67,9 @@ trait Tracer extends OtelTracer with Closeable {
    * @param key an identifier for the span
    */
   def startSpan(key: String): Span = {
+
+    import io.opentelemetry.trace.Span
+
     val child = spanContext.current
       .map { existingSpan =>
         spanFactory.childSpan(key, existingSpan)

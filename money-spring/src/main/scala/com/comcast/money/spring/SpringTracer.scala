@@ -16,7 +16,7 @@
 
 package com.comcast.money.spring
 
-import com.comcast.money.api.{ Note, Span }
+import com.comcast.money.api.{ Note, Span, SpanFactory }
 import com.comcast.money.core._
 import io.opentelemetry.context.Scope
 import io.opentelemetry.trace
@@ -29,17 +29,19 @@ import org.springframework.stereotype.Component
 @Component
 class SpringTracer extends Tracer {
 
-  override val spanFactory = Money.Environment.factory
+  override val spanFactory: SpanFactory = Money.Environment.factory
   private var tracer = Money.Environment.tracer
 
   private[spring] def setTracer(toSet: Tracer): Unit =
     tracer = toSet
 
-  override def getCurrentSpan: trace.Span = tracer.getCurrentSpan
+  override def getCurrentSpan: Span = tracer.getCurrentSpan
 
   override def withSpan(span: trace.Span): Scope = tracer.withSpan(span)
 
-  override def spanBuilder(spanName: String): trace.Span.Builder = tracer.spanBuilder(spanName)
+  override def withSpan(span: Span): Scope = tracer.withSpan(span)
+
+  override def spanBuilder(spanName: String): Span.Builder = tracer.spanBuilder(spanName)
 
   /**
    * Creates a new span if one is not present; or creates a child span for the existing Span if one is present

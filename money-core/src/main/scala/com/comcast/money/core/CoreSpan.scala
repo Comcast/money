@@ -17,6 +17,7 @@
 package com.comcast.money.core
 
 import java.io.{ PrintWriter, StringWriter }
+import java.time.Instant
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
@@ -24,7 +25,7 @@ import com.comcast.money.api._
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
-import io.opentelemetry.trace.{ EndSpanOptions, SpanContext, SpanId => OtelSpanId, StatusCanonicalCode, TraceFlags, TraceId, TraceState }
+import io.opentelemetry.trace.{ EndSpanOptions, SpanContext, StatusCanonicalCode, TraceFlags, TraceId, TraceState, SpanId => OtelSpanId }
 import io.opentelemetry.common
 import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
@@ -58,6 +59,11 @@ case class CoreSpan(
 
   override def start(): Scope = {
     startTimeNanos = clock.now
+    () => stop()
+  }
+
+  override def start(startTimeSeconds: Long, nanoAdjustment: Int): Scope = {
+    startTimeNanos = TimeUnit.SECONDS.toNanos(startTimeSeconds) + nanoAdjustment
     () => stop()
   }
 

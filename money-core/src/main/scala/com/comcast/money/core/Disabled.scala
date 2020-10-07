@@ -17,9 +17,10 @@
 package com.comcast.money.core
 
 import com.comcast.money.api._
+import io.grpc.Context
 import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
-import io.opentelemetry.trace.{ DefaultSpan, EndSpanOptions, SpanContext, StatusCanonicalCode }
+import io.opentelemetry.trace.{ DefaultSpan, EndSpanOptions, Span => OtelSpan, SpanContext, StatusCanonicalCode }
 
 // $COVERAGE-OFF
 object DisabledSpanHandler extends SpanHandler {
@@ -64,9 +65,15 @@ object DisabledTracer extends Tracer {
 
 object DisabledSpanFactory extends SpanFactory {
 
+  override def newSpanBuilder(spanName: String): Span.Builder = DisabledSpanBuilder
+
   override def newSpan(spanName: String): Span = DisabledSpan
 
   override def newSpanFromHeader(childName: String, getHeader: String => String): Span = DisabledSpan
+
+  override def childSpanBuilder(childName: String, span: Span): Span.Builder = DisabledSpanBuilder
+
+  override def childSpanBuilder(childName: String, span: Span, sticky: Boolean): Span.Builder = DisabledSpanBuilder
 
   override def childSpan(childName: String, span: Span): Span = DisabledSpan
 
@@ -75,9 +82,37 @@ object DisabledSpanFactory extends SpanFactory {
   override def newSpan(spanId: SpanId, spanName: String): Span = DisabledSpan
 }
 
+object DisabledSpanBuilder extends Span.Builder {
+  override def setParent(context: Context): Span.Builder = this
+
+  override def setNoParent(): Span.Builder = this
+
+  override def addLink(spanContext: SpanContext): Span.Builder = this
+
+  override def addLink(spanContext: SpanContext, attributes: Attributes): Span.Builder = this
+
+  override def setAttribute(key: String, value: String): Span.Builder = this
+
+  override def setAttribute(key: String, value: Long): Span.Builder = this
+
+  override def setAttribute(key: String, value: Double): Span.Builder = this
+
+  override def setAttribute(key: String, value: Boolean): Span.Builder = this
+
+  override def setAttribute[T](key: AttributeKey[T], value: T): Span.Builder = this
+
+  override def setSpanKind(spanKind: OtelSpan.Kind): Span.Builder = this
+
+  override def setStartTimestamp(startTimestamp: Long): Span.Builder = this
+
+  override def startSpan(): Span = DisabledSpan
+}
+
 object DisabledSpan extends Span {
 
   override def start(): Scope = () => ()
+
+  override def start(startTimeSeconds: Long, nanoAdjustment: Int): Scope = () => ()
 
   override def stop(): Unit = ()
 

@@ -25,7 +25,9 @@ class CoreSpanFactory(clock: Clock, handler: SpanHandler) extends SpanFactory {
 
   private val logger = LoggerFactory.getLogger(classOf[CoreSpanFactory])
 
-  def newSpan(spanName: String): Span = newSpan(new SpanId(), spanName)
+  override def newSpanBuilder(spanName: String): Span.Builder = new CoreSpanBuilder(None, false, spanName, this)
+
+  override def newSpan(spanName: String): Span = newSpan(new SpanId(), spanName)
 
   /**
    * Continues a trace by creating a child span from the given x-moneytrace header
@@ -44,9 +46,15 @@ class CoreSpanFactory(clock: Clock, handler: SpanHandler) extends SpanFactory {
         newSpan(childName)
     }
 
-  def childSpan(childName: String, span: Span): Span = childSpan(childName, span, sticky = true)
+  override def childSpanBuilder(childName: String, span: Span): Span.Builder =
+    new CoreSpanBuilder(Some(span), false, childName, this)
 
-  def childSpan(childName: String, span: Span, sticky: Boolean): Span = {
+  override def childSpanBuilder(childName: String, span: Span, sticky: Boolean): Span.Builder =
+    new CoreSpanBuilder(Some(span), true, childName, this)
+
+  override def childSpan(childName: String, span: Span): Span = childSpan(childName, span, sticky = true)
+
+  override def childSpan(childName: String, span: Span, sticky: Boolean): Span = {
     val info = span.info
     val child = newSpan(info.id.newChildId, childName)
 
