@@ -22,7 +22,7 @@ package com.comcast.money.api;
  *
  * A Span is immutable, all changes to the span result in a new Span being created.
  */
-public interface Span {
+public interface Span extends io.opentelemetry.trace.Span {
 
     /**
      * Signals the span that it has started

@@ -25,7 +25,9 @@ lazy val moneyApi =
     .enablePlugins(AutomateHeaderPlugin)
     .settings(projectSettings: _*)
     .settings(
-      libraryDependencies ++= commonTestDependencies
+      libraryDependencies ++= Seq(
+          openTelemetryApi
+      ) ++ commonTestDependencies
     )
 
 lazy val moneyCore =
@@ -38,26 +40,27 @@ lazy val moneyCore =
           slf4j,
           log4jbinding,
           metricsCore,
+          openTelemetryApi,
           typesafeConfig
         ) ++ commonTestDependencies
     ).dependsOn(moneyApi)
 
 lazy val moneyAkka =
   Project("money-akka", file("./money-akka"))
-  .enablePlugins(AutomateHeaderPlugin)
-  .settings(projectSettings: _*)
-  .settings(
-    libraryDependencies ++=
-      Seq(
-        akkaStream,
-        akkaHttp,
-        akkaTestKit,
-        akkaHttpTestKit,
-        akkaLog,
-        typesafeConfig
-      ) ++ commonTestDependencies
-  )
-  .dependsOn(moneyCore)
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          akkaStream,
+          akkaHttp,
+          akkaTestKit,
+          akkaHttpTestKit,
+          akkaLog,
+          typesafeConfig
+        ) ++ commonTestDependencies
+    )
+    .dependsOn(moneyCore)
 
 lazy val moneyAspectj =
   Project("money-aspectj", file("./money-aspectj"))
@@ -81,7 +84,7 @@ lazy val moneyHttpClient =
           apacheHttpClient
         ) ++ commonTestDependencies
     )
-    .dependsOn(moneyCore % "test->test;compile->compile",moneyAspectj)
+    .dependsOn(moneyCore % "test->test;compile->compile", moneyAspectj)
 
 lazy val moneyJavaServlet =
   Project("money-java-servlet", file("./money-java-servlet"))

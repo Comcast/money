@@ -17,14 +17,15 @@
 package com.comcast.money.core.internal
 
 import com.comcast.money.api.Span
+import io.grpc.Context
+import io.opentelemetry.trace.TracingContextUtils
+
+import scala.annotation.tailrec
 
 trait SpanContext {
   def push(span: Span): Unit
-
   def pop(): Option[Span]
-
   def current: Option[Span]
-
   def clear(): Unit
 }
 
@@ -34,42 +35,47 @@ trait SpanContext {
  */
 object SpanLocal extends SpanContext {
 
-  // A stack of span ids for the current thread
-  private[this] val threadLocalCtx = new ThreadLocal[List[Span]]
+  // A stack of previous Context instances
+  private[this] val threadLocalContexts = ThreadLocal.withInitial[List[Context]](() => Nil)
 
   private lazy val mdcSupport = new MDCSupport()
 
   import mdcSupport._
 
-  override def current: Option[Span] = Option(threadLocalCtx.get).flatMap(_.headOption)
+  override def current: Option[Span] = fromContext(Context.current)
 
   override def push(span: Span): Unit =
     if (span != null) {
-      val updatedContext = Option(threadLocalCtx.get) match {
-        case Some(existingContext) => span :: existingContext
-        case None => List(span)
-      }
-      threadLocalCtx.set(updatedContext)
+      val updatedContext = TracingContextUtils.withSpan(span, Context.current)
+      val previousContext = updatedContext.attach()
+      threadLocalContexts.set(previousContext :: threadLocalContexts.get)
       setSpanMDC(Some(span))
     }
 
   override def pop(): Option[Span] =
-    Option(threadLocalCtx.get) match {
-      case Some(span :: remaining) =>
-        threadLocalCtx.set(remaining)
-        setSpanMDC(remaining.headOption)
+    (current, threadLocalContexts.get) match {
+      case (Some(span), previousContext :: rest) =>
+        threadLocalContexts.set(rest)
+        Context.current.detach(previousContext)
+        setSpanMDC(fromContext(previousContext))
         Some(span)
-      case _ =>
-        threadLocalCtx.remove()
-        setSpanMDC(None)
-        None
+      case _ => None
     }
 
   /**
    * Clears the entire call stack for the thread
    */
   override def clear(): Unit = {
-    threadLocalCtx.remove()
+    threadLocalContexts.get.foreach { previousContext =>
+      Context.current.detach(previousContext)
+    }
+    threadLocalContexts.set(Nil)
     setSpanMDC(None)
   }
+
+  def fromContext(context: Context): Option[Span] =
+    Option(TracingContextUtils.getSpanWithoutDefault(context)) match {
+      case Some(span: Span) => Some(span)
+      case _ => None
+    }
 }

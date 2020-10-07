@@ -17,6 +17,8 @@
 package com.comcast.money.core
 
 import com.comcast.money.api._
+import io.opentelemetry.common.{ AttributeValue, Attributes }
+import io.opentelemetry.trace.{ EndSpanOptions, Event, SpanContext, Status }
 
 // $COVERAGE-OFF
 object DisabledSpanHandler extends SpanHandler {
@@ -87,5 +89,43 @@ object DisabledSpan extends Span {
   def startTimer(timerKey: String): Unit = ()
 
   def info(): SpanInfo = null
+
+  override def setAttribute(key: String, value: String): Unit = ???
+
+  override def setAttribute(key: String, value: Long): Unit = ???
+
+  override def setAttribute(key: String, value: Double): Unit = ???
+
+  override def setAttribute(key: String, value: Boolean): Unit = ???
+
+  override def setAttribute(key: String, value: AttributeValue): Unit = ???
+
+  override def addEvent(name: String): Unit = ???
+
+  override def addEvent(name: String, timestamp: Long): Unit = ???
+
+  override def addEvent(name: String, attributes: Attributes): Unit = ???
+
+  override def addEvent(name: String, attributes: Attributes, timestamp: Long): Unit = ???
+
+  override def addEvent(event: Event): Unit = ???
+
+  override def addEvent(event: Event, timestamp: Long): Unit = ???
+
+  override def setStatus(status: Status): Unit = ???
+
+  override def recordException(exception: Throwable): Unit = ???
+
+  override def recordException(exception: Throwable, additionalAttributes: Attributes): Unit = ???
+
+  override def updateName(name: String): Unit = ???
+
+  override def `end`(): Unit = ???
+
+  override def `end`(endOptions: EndSpanOptions): Unit = ???
+
+  override def getContext: SpanContext = ???
+
+  override def isRecording: Boolean = ???
 }
 // $COVERAGE-ON$
