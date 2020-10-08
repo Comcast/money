@@ -18,7 +18,7 @@ package com.comcast.money.core
 
 import java.util.concurrent.TimeUnit
 
-import com.comcast.money.api.{ Span, SpanFactory }
+import com.comcast.money.api.{ Note, Span, SpanFactory }
 import io.grpc.Context
 import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.trace.{ SpanContext, TracingContextUtils, Span => OtelSpan }
@@ -31,7 +31,7 @@ class CoreSpanBuilder(
 
   var spanKind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL
   var startTimeNanos: Long = 0
-  var actions: List[Span => Unit] = Nil
+  var notes: List[Note[_]] = List()
 
   override def setParent(context: Context): Span.Builder = {
     parentSpan = Option(context)
@@ -52,18 +52,16 @@ class CoreSpanBuilder(
 
   override def addLink(spanContext: SpanContext, attributes: Attributes): Span.Builder = this
 
-  override def setAttribute(key: String, value: String): Span.Builder = appendAction({ _.setAttribute(key, value) })
+  override def setAttribute(key: String, value: String): Span.Builder = setAttribute[String](AttributeKey.stringKey(key), value)
 
-  override def setAttribute(key: String, value: Long): Span.Builder = appendAction({ _.setAttribute(key, value) })
+  override def setAttribute(key: String, value: Long): Span.Builder = setAttribute[java.lang.Long](AttributeKey.longKey(key), value)
 
-  override def setAttribute(key: String, value: Double): Span.Builder = appendAction({ _.setAttribute(key, value) })
+  override def setAttribute(key: String, value: Double): Span.Builder = setAttribute[java.lang.Double](AttributeKey.doubleKey(key), value)
 
-  override def setAttribute(key: String, value: Boolean): Span.Builder = appendAction({ _.setAttribute(key, value) })
+  override def setAttribute(key: String, value: Boolean): Span.Builder = setAttribute[java.lang.Boolean](AttributeKey.booleanKey(key), value)
 
-  override def setAttribute[T](key: AttributeKey[T], value: T): Span.Builder = appendAction({ _.setAttribute(key, value) })
-
-  private def appendAction(f: Span => Unit): Span.Builder = {
-    actions = f :: actions
+  override def setAttribute[T](key: AttributeKey[T], value: T): Span.Builder = {
+    notes = Note.of(key, value) :: notes
     this
   }
 
@@ -83,10 +81,10 @@ class CoreSpanBuilder(
       case None => spanFactory.newSpan(spanName)
     }
 
-    actions.foreach { _(newSpan) }
     if (spanKind != OtelSpan.Kind.INTERNAL) {
       newSpan.setAttribute("kind", spanKind.name)
     }
+    notes.foreach { newSpan.record }
 
     if (startTimeNanos <= 0) {
       newSpan.start()

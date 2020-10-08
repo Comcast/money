@@ -65,15 +65,9 @@ object DisabledTracer extends Tracer {
 
 object DisabledSpanFactory extends SpanFactory {
 
-  override def newSpanBuilder(spanName: String): Span.Builder = DisabledSpanBuilder
-
   override def newSpan(spanName: String): Span = DisabledSpan
 
   override def newSpanFromHeader(childName: String, getHeader: String => String): Span = DisabledSpan
-
-  override def childSpanBuilder(childName: String, span: Span): Span.Builder = DisabledSpanBuilder
-
-  override def childSpanBuilder(childName: String, span: Span, sticky: Boolean): Span.Builder = DisabledSpanBuilder
 
   override def childSpan(childName: String, span: Span): Span = DisabledSpan
 

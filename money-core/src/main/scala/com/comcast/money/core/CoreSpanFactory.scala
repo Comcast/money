@@ -25,8 +25,6 @@ class CoreSpanFactory(clock: Clock, handler: SpanHandler) extends SpanFactory {
 
   private val logger = LoggerFactory.getLogger(classOf[CoreSpanFactory])
 
-  override def newSpanBuilder(spanName: String): Span.Builder = new CoreSpanBuilder(None, false, spanName, this)
-
   override def newSpan(spanName: String): Span = newSpan(new SpanId(), spanName)
 
   /**
@@ -45,12 +43,6 @@ class CoreSpanFactory(clock: Clock, handler: SpanHandler) extends SpanFactory {
         logger.warn(s"creating root span because http header '${getHeader}' was malformed")
         newSpan(childName)
     }
-
-  override def childSpanBuilder(childName: String, span: Span): Span.Builder =
-    new CoreSpanBuilder(Some(span), false, childName, this)
-
-  override def childSpanBuilder(childName: String, span: Span, sticky: Boolean): Span.Builder =
-    new CoreSpanBuilder(Some(span), true, childName, this)
 
   override def childSpan(childName: String, span: Span): Span = childSpan(childName, span, sticky = true)
 

@@ -20,8 +20,6 @@ import scala.Function1;
 
 public interface SpanFactory {
 
-    Span.Builder newSpanBuilder(String spanName);
-
     Span newSpan(String spanName);
 
     Span newSpan(SpanId spanId, String spanName);
@@ -36,10 +34,6 @@ public interface SpanFactory {
      * traceContextHeader is malformed.
      */
     Span newSpanFromHeader(String childName, Function1<String,String> getHeader);
-
-    Span.Builder childSpanBuilder(String childName, Span span);
-
-    Span.Builder childSpanBuilder(String childName, Span span, boolean sticky);
 
     Span childSpan(String childName, Span span);
 
