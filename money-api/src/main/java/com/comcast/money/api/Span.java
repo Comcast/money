@@ -16,13 +16,12 @@
 
 package com.comcast.money.api;
 
-import java.time.Instant;
-
 import io.grpc.Context;
 import io.opentelemetry.common.AttributeKey;
 import io.opentelemetry.common.Attributes;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.trace.SpanContext;
+import scala.Option;
 
 /**
  * A Span is a container that represents a unit of work.  It could be a long running operation or sequence of
@@ -79,8 +78,14 @@ public interface Span extends io.opentelemetry.trace.Span, Scope {
         @Override
         Builder setParent(Context context);
 
+        Builder setParent(Span span);
+
+        Builder setParent(Option<Span> span);
+
         @Override
         Builder setNoParent();
+
+        Builder setSticky(boolean sticky);
 
         @Override
         Builder addLink(SpanContext spanContext);

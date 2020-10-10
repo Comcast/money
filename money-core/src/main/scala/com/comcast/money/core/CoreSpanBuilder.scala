@@ -25,10 +25,10 @@ import io.opentelemetry.trace.{ SpanContext, TracingContextUtils, Span => OtelSp
 
 class CoreSpanBuilder(
   var parentSpan: Option[Span],
-  sticky: Boolean,
   spanName: String,
   spanFactory: SpanFactory) extends Span.Builder {
 
+  var sticky: Boolean = true
   var spanKind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL
   var startTimeNanos: Long = 0
   var notes: List[Note[_]] = List()
@@ -40,6 +40,21 @@ class CoreSpanBuilder(
         case span: Span => Some(span)
         case _ => None
       }
+    this
+  }
+
+  override def setParent(span: Span): Span.Builder = {
+    parentSpan = Option(span)
+    this
+  }
+
+  override def setParent(span: Option[Span]): Span.Builder = {
+    parentSpan = span
+    this
+  }
+
+  override def setSticky(sticky: Boolean): Span.Builder = {
+    this.sticky = sticky
     this
   }
 
@@ -78,7 +93,10 @@ class CoreSpanBuilder(
   }
 
   override def startSpan(): Span = {
-    val newSpan = spanFactory.newSpan(spanName, parentSpan)
+    val newSpan = parentSpan match {
+      case Some(s) => spanFactory.childSpan(spanName, s, sticky)
+      case None => spanFactory.newSpan(spanName)
+    }
 
     if (spanKind != OtelSpan.Kind.INTERNAL) {
       newSpan.setAttribute("kind", spanKind.name)

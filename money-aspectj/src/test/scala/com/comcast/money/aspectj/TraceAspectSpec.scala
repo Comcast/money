@@ -154,6 +154,7 @@ class TraceAspectSpec extends AnyWordSpec
 
   override def beforeEach() = {
     reset(mockMdcSupport)
+    when(mockMdcSupport.getCopyOfMDC).thenReturn(None)
     LogRecord.clear()
   }
 

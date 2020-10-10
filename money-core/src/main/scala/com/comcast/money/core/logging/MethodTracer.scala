@@ -22,7 +22,6 @@ import com.comcast.money.annotations.{ Timed, Traced }
 import com.comcast.money.api.Span
 import com.comcast.money.core.{ Money, Tracer }
 import com.comcast.money.core.async.AsyncNotifier
-import com.comcast.money.core.internal.Resources.withResource
 import com.comcast.money.core.internal.{ MDCSupport, SpanContext, SpanLocal }
 import com.comcast.money.core.reflect.Reflections
 import org.slf4j.MDC
@@ -36,8 +35,8 @@ trait MethodTracer extends Reflections with TraceLogging {
   val spanContext: SpanContext = SpanLocal
 
   def traceMethod(method: Method, annotation: Traced, args: Array[AnyRef], proceed: () => AnyRef): AnyRef = {
-    val key = annotation.value()
 
+    val key = getKeyName(method, annotation.value)
     val builder = tracer.spanBuilder(key);
     recordTracedParameters(method, args, builder.record)
 
@@ -70,7 +69,7 @@ trait MethodTracer extends Reflections with TraceLogging {
   }
 
   def timeMethod(method: Method, annotation: Timed, proceed: () => AnyRef): AnyRef = {
-    val key = annotation.value()
+    val key = getKeyName(method, annotation.value)
     val scope = tracer.startTimer(key)
     try {
       proceed()
@@ -78,6 +77,13 @@ trait MethodTracer extends Reflections with TraceLogging {
       scope.close()
     }
   }
+
+  def getKeyName(method: Method, value: String): String =
+    if (value.isEmpty) {
+      s"${method.getDeclaringClass.getSimpleName}.${method.getName}"
+    } else {
+      value
+    }
 
   def traceAsyncResult(
     method: Method,
@@ -89,7 +95,7 @@ trait MethodTracer extends Reflections with TraceLogging {
     handler <- asyncNotifier.resolveHandler(method.getReturnType, returnValue)
 
     // capture the current MDC context to be applied on the callback thread
-    mdc = Option(MDC.getCopyOfContextMap)
+    mdc = mdcSupport.getCopyOfMDC
 
     result = handler.whenComplete(method.getReturnType, returnValue) { completed =>
       // reapply the MDC onto the callback thread

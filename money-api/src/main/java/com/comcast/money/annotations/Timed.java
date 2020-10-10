@@ -58,5 +58,5 @@ public @interface Timed {
      *
      * @return The value that is to be the measurement key for the trace
      */
-    String value();
+    String value() default "";
 }

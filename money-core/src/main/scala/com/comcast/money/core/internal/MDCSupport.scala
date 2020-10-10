@@ -16,6 +16,7 @@
 
 package com.comcast.money.core.internal
 
+import java.util
 import java.util.Map
 
 import com.comcast.money.api.{ Span, SpanId }
@@ -57,14 +58,15 @@ class MDCSupport(
         MDC.put(SpanNameKey, s.info.name)
       case None =>
         MDC.remove(MoneyTraceKey)
-        MDC.remove(MoneyTraceKey)
         MDC.remove(SpanNameKey)
     }
   }
 
-  def propagateMDC(submittingThreadsContext: Option[Map[String, String]]): Unit = if (enabled) {
+  def getCopyOfMDC: Option[util.Map[String, String]] = Option(MDC.getCopyOfContextMap)
+
+  def propagateMDC(submittingThreadsContext: Option[util.Map[String, String]]): Unit = if (enabled) {
     submittingThreadsContext match {
-      case Some(context: Map[String, String]) => MDC.setContextMap(context)
+      case Some(context: util.Map[String, String]) => MDC.setContextMap(context)
       case None => MDC.clear()
     }
   }

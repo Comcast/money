@@ -17,6 +17,7 @@
 package com.comcast.money.core
 
 import com.comcast.money.core.logging.TraceLogging
+import io.opentelemetry.trace.StatusCanonicalCode
 
 object Tracers extends TraceLogging {
 
@@ -30,16 +31,18 @@ object Tracers extends TraceLogging {
    * @return The result of the function being executed
    */
   def traced[T](name: String, tracer: Tracer = Money.Environment.tracer)(f: => T): T = {
+    val span = tracer.startSpan(name)
     try {
-      tracer.startSpan(name)
       val result: T = f
-      tracer.stopSpan(true)
+      span.setStatus(StatusCanonicalCode.OK)
       result
     } catch {
       case e: Throwable =>
         logException(e)
-        tracer.stopSpan(false)
+        span.setStatus(StatusCanonicalCode.ERROR)
         throw e
+    } finally {
+      span.close()
     }
   }
 
@@ -53,11 +56,11 @@ object Tracers extends TraceLogging {
    * @return The result of the function being executed
    */
   def timed[T](name: String, tracer: Tracer = Money.Environment.tracer)(f: => T): T = {
+    val scope = tracer.startTimer(name)
     try {
-      tracer.startTimer(name)
       f
     } finally {
-      tracer.stopTimer(name)
+      scope.close()
     }
   }
 }

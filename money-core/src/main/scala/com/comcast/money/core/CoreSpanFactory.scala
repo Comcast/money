@@ -27,11 +27,6 @@ class CoreSpanFactory(clock: Clock, handler: SpanHandler) extends SpanFactory {
 
   override def newSpan(spanName: String): Span = newSpan(new SpanId(), spanName)
 
-  override def newSpan(spanName: String, span: Option[Span]): Span = span match {
-    case Some(parentSpan) => childSpan(spanName, parentSpan)
-    case _ => newSpan(spanName)
-  }
-
   /**
    * Continues a trace by creating a child span from the given x-moneytrace header
    * value or a root span if header is malformed.

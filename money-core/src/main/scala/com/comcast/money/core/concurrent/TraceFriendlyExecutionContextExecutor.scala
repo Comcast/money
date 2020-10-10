@@ -30,11 +30,11 @@ class TraceFriendlyExecutionContextExecutor(wrapped: ExecutionContext)
 
   override def execute(task: Runnable): Unit = {
     val context = Context.current()
-    val submittingThreadsContext = MDC.getCopyOfContextMap
+    val submittingThreadsContext = mdcSupport.getCopyOfMDC
 
     wrapped.execute(
       () => {
-        mdcSupport.propagateMDC(Option(submittingThreadsContext))
+        mdcSupport.propagateMDC(submittingThreadsContext)
         try {
           context.run(task)
         } catch {

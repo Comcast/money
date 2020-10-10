@@ -16,7 +16,11 @@
 
 package com.comcast.money.core.japi;
 
+import io.opentelemetry.common.AttributeKey;
+import io.opentelemetry.context.Scope;
+
 import com.comcast.money.api.Note;
+import com.comcast.money.api.Span;
 import com.comcast.money.core.Money;
 import com.comcast.money.core.Tracer;
 
@@ -157,6 +161,14 @@ public class JMoney {
         record(noteName, value, false);
     }
 
+    public static <T> void record(AttributeKey<T> key, T value) {
+        tracer().record(Note.of(key, value));
+    }
+
+    public static <T> void record(AttributeKey<T> key, T value, boolean propagate) {
+        tracer().record(Note.of(key, value, propagate));
+    }
+
     /**
      * Records a note in the current trace span if one is present
      *
@@ -177,9 +189,9 @@ public class JMoney {
      * the current Span is stopped
      * @param noteName The name of the note that will be recorded for the timer
      */
-    public static void startTimer(String noteName) {
+    public static Scope startTimer(String noteName) {
 
-        tracer().startTimer(noteName);
+        return tracer().startTimer(noteName);
     }
 
     /**
@@ -207,9 +219,19 @@ public class JMoney {
      *
      * @param spanName The name of the span
      */
-    public static void startSpan(String spanName) {
+    public static Span startSpan(String spanName) {
 
-        tracer().startSpan(spanName);
+        return tracer().startSpan(spanName);
+    }
+
+    public static Span.Builder spanBuilder(String spanName) {
+
+        return tracer().spanBuilder(spanName);
+    }
+
+    public static Scope withSpan(Span span) {
+
+        return tracer().withSpan(span);
     }
 
     /**

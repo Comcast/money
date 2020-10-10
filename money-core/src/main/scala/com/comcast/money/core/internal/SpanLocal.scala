@@ -33,9 +33,6 @@ trait SpanContext {
  */
 object SpanLocal extends SpanContext {
 
-  // A stack of previous Context instances
-  private[this] val threadLocalContexts = ThreadLocal.withInitial[List[Context]](() => Nil)
-
   private lazy val mdcSupport = new MDCSupport()
 
   import mdcSupport._
@@ -46,7 +43,6 @@ object SpanLocal extends SpanContext {
     if (span != null) {
       val updatedContext = TracingContextUtils.withSpan(span, Context.current)
       val previousContext = updatedContext.attach()
-      threadLocalContexts.set(previousContext :: threadLocalContexts.get)
       setSpanMDC(Some(span))
       () => {
         updatedContext.detach(previousContext)

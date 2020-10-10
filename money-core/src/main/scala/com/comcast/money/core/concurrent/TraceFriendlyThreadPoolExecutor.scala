@@ -66,13 +66,13 @@ class TraceFriendlyThreadPoolExecutor(corePoolSize: Int, maximumPoolSize: Int, k
 
   override def execute(command: Runnable) = {
     val inherited = SpanLocal.current
-    val submittingThreadsContext = MDC.getCopyOfContextMap
+    val submittingThreadsContext = mdcSupport.getCopyOfMDC
     val currentContext = Context.current()
 
     super.execute(
       new Runnable {
         override def run = {
-          mdcSupport.propagateMDC(Option(submittingThreadsContext))
+          mdcSupport.propagateMDC(submittingThreadsContext)
           inherited.foreach(SpanLocal.push)
           try {
             currentContext.run(command)
