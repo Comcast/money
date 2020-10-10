@@ -67,6 +67,8 @@ object DisabledSpanFactory extends SpanFactory {
 
   override def newSpan(spanName: String): Span = DisabledSpan
 
+  override def newSpan(spanName: String, span: Option[Span]): Span = DisabledSpan
+
   override def newSpanFromHeader(childName: String, getHeader: String => String): Span = DisabledSpan
 
   override def childSpan(childName: String, span: Span): Span = DisabledSpan
@@ -119,6 +121,8 @@ object DisabledSpan extends Span {
   override def startTimer(timerKey: String): Scope = () => ()
 
   override def info(): SpanInfo = null
+
+  override def attachScope(scope: Scope): Span = this
 
   override def close(): Unit = ()
 

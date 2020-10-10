@@ -56,6 +56,7 @@ case class CoreSpan(
   private val timers = new TrieMap[String, Long]()
   private val noted = new TrieMap[String, Note[_]]()
   private val events = new ListBuffer[Event]()
+  private var scopes: List[Scope] = Nil
 
   override def start(): Scope = {
     startTimeNanos = clock.now
@@ -77,6 +78,9 @@ case class CoreSpan(
     // process any hanging timers
     val openTimers = timers.keys
     openTimers.foreach(stopTimer)
+
+    scopes.foreach { _.close() }
+    scopes = Nil
 
     this.status = (this.status, status) match {
       case (StatusCanonicalCode.UNSET, StatusCanonicalCode.UNSET) => StatusCanonicalCode.OK
@@ -101,6 +105,11 @@ case class CoreSpan(
   override def startTimer(timerKey: String): Scope = {
     timers += timerKey -> System.nanoTime
     () => stopTimer(timerKey)
+  }
+
+  override def attachScope(scope: Scope): Span = {
+    scopes = scope :: scopes
+    this
   }
 
   override def info(): SpanInfo =

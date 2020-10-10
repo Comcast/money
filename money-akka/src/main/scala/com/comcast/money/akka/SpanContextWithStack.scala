@@ -18,6 +18,8 @@ package com.comcast.money.akka
 
 import com.comcast.money.api.Span
 import com.comcast.money.core.internal.SpanContext
+import io.grpc.Context
+import io.opentelemetry.context.Scope
 
 /**
  * A [[SpanContext]] that carries with it a stack of [[Span]] enables explicitly passing of the [[SpanContext]].
@@ -35,7 +37,7 @@ class SpanContextWithStack() extends SpanContext {
    * stack is a mutable [[List]] of Spans.
    */
 
-  private var stack: List[Span] = List.empty[Span]
+  private var stack: List[Span] = Nil
 
   /**
    * Returns a fresh copy of this [[SpanContextWithStack]].
@@ -79,28 +81,10 @@ class SpanContextWithStack() extends SpanContext {
    * @param span the [[Span]] to be prepended
    */
 
-  override def push(span: Span): Unit = stack = span :: stack
-
-  /**
-   * CAUTION THIS METHOD WILL NOT TRACK THE SPAN
-   *
-   * Returns the last element inserted and removes it
-   *
-   * [[Some]] when Stack has at least one element
-   *
-   * [[None]] when Stack is empty
-   *
-   * @return Option[Span]
-   */
-
-  override def pop(): Option[Span] =
-    stack.headOption match {
-      case someSpan: Some[Span] =>
-        stack = stack.tail
-        someSpan
-
-      case None => None
-    }
+  override def push(span: Span): Scope = {
+    stack = span :: stack
+    () => stack = stack.drop(1)
+  }
 
   /**
    * Returns the last element inserted
@@ -114,13 +98,5 @@ class SpanContextWithStack() extends SpanContext {
 
   override def current: Option[Span] = stack.headOption
 
-  /**
-   * CAUTION THIS WILL CAUSE ALL THE STARTED SPANS TO NOT BE STOPPED
-   *
-   * Returns Unit
-   *
-   * empties the Stack of all spans
-   */
-
-  override def clear(): Unit = stack = List.empty[Span]
+  override def fromContext(context: Context): Option[Span] = current
 }

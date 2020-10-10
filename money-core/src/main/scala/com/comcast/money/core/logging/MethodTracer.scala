@@ -19,8 +19,10 @@ package com.comcast.money.core.logging
 import java.lang.reflect.Method
 
 import com.comcast.money.annotations.{ Timed, Traced }
+import com.comcast.money.api.Span
 import com.comcast.money.core.{ Money, Tracer }
 import com.comcast.money.core.async.AsyncNotifier
+import com.comcast.money.core.internal.Resources.withResource
 import com.comcast.money.core.internal.{ MDCSupport, SpanContext, SpanLocal }
 import com.comcast.money.core.reflect.Reflections
 import org.slf4j.MDC
@@ -36,48 +38,55 @@ trait MethodTracer extends Reflections with TraceLogging {
   def traceMethod(method: Method, annotation: Traced, args: Array[AnyRef], proceed: () => AnyRef): AnyRef = {
     val key = annotation.value()
 
-    tracer.startSpan(key)
-    recordTracedParameters(method, args, tracer)
+    val span = tracer.spanBuilder(key).startSpan()
+    val scope = tracer.withSpan(span)
 
-    Try { proceed() } match {
-      case Success(result) if annotation.async() =>
-        traceAsyncResult(method, annotation, result) match {
-          case Some(future) =>
-            future
-          case None =>
-            tracer.stopSpan(true)
-            result
-        }
-      case Success(result) =>
-        tracer.stopSpan(true)
-        result
-      case Failure(exception) =>
-        logException(exception)
-        tracer.stopSpan(exceptionMatches(exception, annotation.ignoredExceptions()))
-        throw exception
+    try {
+      recordTracedParameters(method, args, tracer)
+
+      Try {
+        proceed()
+      } match {
+        case Success(result) if annotation.async() =>
+          traceAsyncResult(method, annotation, span, result) match {
+            case Some(future) =>
+              future
+            case None =>
+              span.stop(true)
+              result
+          }
+        case Success(result) =>
+          span.stop(true)
+          result
+        case Failure(exception) =>
+          logException(exception)
+          span.stop(exceptionMatches(exception, annotation.ignoredExceptions()))
+          throw exception
+      }
+    } finally {
+      scope.close()
     }
   }
 
   def timeMethod(method: Method, annotation: Timed, proceed: () => AnyRef): AnyRef = {
     val key = annotation.value()
+    val scope = tracer.startTimer(key)
     try {
-      tracer.startTimer(key)
       proceed()
     } finally {
-      tracer.stopTimer(key)
+      scope.close()
     }
   }
 
   def traceAsyncResult(
     method: Method,
     annotation: Traced,
+    span: Span,
     returnValue: AnyRef): Option[AnyRef] = for {
 
     // resolve an async notification handler that supports the result
     handler <- asyncNotifier.resolveHandler(method.getReturnType, returnValue)
 
-    // pop the current span from the stack as it will not be stopped by the tracer
-    span <- spanContext.pop()
     // capture the current MDC context to be applied on the callback thread
     mdc = Option(MDC.getCopyOfContextMap)
 
@@ -85,18 +94,27 @@ trait MethodTracer extends Reflections with TraceLogging {
       // reapply the MDC onto the callback thread
       mdcSupport.propagateMDC(mdc)
 
-      // determine if the future completed successfully or exceptionally
-      val result = completed match {
-        case Success(_) => true
-        case Failure(exception) =>
-          logException(exception)
-          exceptionMatches(exception, annotation.ignoredExceptions())
-      }
+      // apply the span onto the current thread context
+      val scope = tracer.withSpan(span)
 
-      // stop the captured span with the success/failure flag
-      span.stop(result)
-      // clear the MDC from the callback thread
-      MDC.clear()
+      try {
+        // determine if the future completed successfully or exceptionally
+        val result = completed match {
+          case Success(_) => true
+          case Failure(exception) =>
+            logException(exception)
+            exceptionMatches(exception, annotation.ignoredExceptions())
+        }
+
+        // stop the captured span with the success/failure flag
+        span.stop(result)
+      } finally {
+        // reset the current thread context
+        scope.close()
+
+        // clear the MDC from the callback thread
+        MDC.clear()
+      }
     }
   } yield result
 }

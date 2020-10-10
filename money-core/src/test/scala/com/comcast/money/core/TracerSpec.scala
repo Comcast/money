@@ -26,6 +26,7 @@ import org.scalatest.{ BeforeAndAfterEach, OneInstancePerTest }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
+import io.opentelemetry.trace.StatusCanonicalCode
 
 class TracerSpec extends AnyWordSpec
   with Matchers with MockitoSugar with TestData with BeforeAndAfterEach with OneInstancePerTest {
@@ -37,7 +38,7 @@ class TracerSpec extends AnyWordSpec
     val spanFactory = mockSpanFactory
   }
 
-  override def beforeEach() = {
+  override def beforeEach(): Unit = {
     SpanLocal.clear()
 
     doReturn(mockSpan).when(mockSpanFactory).newSpan(any[SpanId], anyString())
@@ -200,7 +201,8 @@ class TracerSpec extends AnyWordSpec
 
       underTest.stopSpan(true)
 
-      verify(mockSpan).stop(true)
+      verify(mockSpan).setStatus(StatusCanonicalCode.OK)
+      verify(mockSpan).close()
     }
 
     "start a timer" in {
@@ -224,7 +226,8 @@ class TracerSpec extends AnyWordSpec
 
       underTest.close()
 
-      verify(mockSpan).stop(true)
+      verify(mockSpan).setStatus(StatusCanonicalCode.OK)
+      verify(mockSpan).close()
     }
   }
 }

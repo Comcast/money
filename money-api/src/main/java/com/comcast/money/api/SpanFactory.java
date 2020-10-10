@@ -17,10 +17,13 @@
 package com.comcast.money.api;
 
 import scala.Function1;
+import scala.Option;
 
 public interface SpanFactory {
 
     Span newSpan(String spanName);
+
+    Span newSpan(String spanName, Option<Span> span);
 
     Span newSpan(SpanId spanId, String spanName);
 

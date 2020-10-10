@@ -109,7 +109,7 @@ lazy val moneyWire =
           json4sJackson
         ) ++ commonTestDependencies,
       fork := false,
-      javacOptions in doc := Seq("-source", "1.6"),
+      javacOptions in doc := Seq("-source", "1.6", "-target", "1.6"),
       // Configure the desired Avro version.  sbt-avro automatically injects a libraryDependency.
       (version in AvroConfig) := "1.7.6",
       (stringType in AvroConfig) := "String"
@@ -184,6 +184,7 @@ def basicSettings =  Defaults.itSettings ++ Seq(
     "-language:existentials",
     "-language:postfixOps",
     "-language:reflectiveCalls"),
+  javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
   scalariformAutoformat := true,
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF", "-u", "target/scalatest-reports"),
   fork := true,

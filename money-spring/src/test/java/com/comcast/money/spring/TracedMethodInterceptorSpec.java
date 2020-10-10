@@ -16,18 +16,21 @@
 
 package com.comcast.money.spring;
 
+import io.opentelemetry.context.Scope;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Captor;
+import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import com.comcast.money.api.Note;
+import com.comcast.money.api.Span;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
@@ -43,6 +46,15 @@ public class TracedMethodInterceptorSpec {
     @Autowired
     private SpringTracer springTracer;
 
+    @Mock
+    private Span.Builder spanBuilder;
+
+    @Mock
+    private Span span;
+
+    @Mock
+    private Scope scope;
+
     @Captor
     private ArgumentCaptor<Boolean> spanResultCaptor;
 
@@ -50,6 +62,10 @@ public class TracedMethodInterceptorSpec {
     public void setUp() {
         // Needed to init the Argument Captor
         MockitoAnnotations.initMocks(this);
+
+        when(springTracer.spanBuilder(anyString())).thenReturn(spanBuilder);
+        when(spanBuilder.startSpan()).thenReturn(span);
+        when(springTracer.withSpan(span)).thenReturn(scope);
     }
 
     @After
@@ -62,9 +78,12 @@ public class TracedMethodInterceptorSpec {
     public void testTracing() throws Exception {
 
         sampleTraceBean.doSomethingGood();
-        verify(springTracer).startSpan("SampleTrace");
+        verify(springTracer).spanBuilder("SampleTrace");
+        verify(spanBuilder).startSpan();
+        verify(springTracer).withSpan(span);
         verify(springTracer).record("foo", "bar", false);
-        verifySpanResultsIn(true);
+        verify(span).stop(true);
+        verify(scope).close();
     }
 
     @Test
@@ -126,9 +145,12 @@ public class TracedMethodInterceptorSpec {
         catch (Exception ex) {
 
         }
-        verify(springTracer).startSpan("SampleTrace");
+        verify(springTracer).spanBuilder("SampleTrace");
+        verify(spanBuilder).startSpan();
+        verify(springTracer).withSpan(span);
         verify(springTracer).record("foo", "bar", false);
-        verifySpanResultsIn(false);
+        verify(span).stop(false);
+        verify(scope).close();
     }
 
     @Test
@@ -141,13 +163,6 @@ public class TracedMethodInterceptorSpec {
     @Test(expected = IllegalArgumentException.class)
     public void testTracingIgnoresException() {
         sampleTraceBean.doSomethingButIgnoreException();
-        verifySpanResultsIn(true);
-    }
-
-    private void verifySpanResultsIn(Boolean result) {
-
-        verify(springTracer).stopSpan(spanResultCaptor.capture());
-        Boolean spanResult = spanResultCaptor.getValue();
-        assertThat(spanResult).isEqualTo(result);
+        verify(span).stop(true);
     }
 }

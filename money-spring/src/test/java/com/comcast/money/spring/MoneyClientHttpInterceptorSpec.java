@@ -22,6 +22,7 @@ import com.comcast.money.api.SpanInfo;
 import com.comcast.money.core.CoreSpanInfo;
 import com.comcast.money.core.internal.SpanLocal;
 
+import io.opentelemetry.context.Scope;
 import org.apache.commons.lang.math.RandomUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -42,6 +43,8 @@ public class MoneyClientHttpInterceptorSpec {
     private final static long spanId = RandomUtils.nextLong();
     private final static long parentSpanId = RandomUtils.nextLong();
 
+    private Scope spanScope;
+
     @Before
     public void setUp() {
         Span span = mock(Span.class);
@@ -60,12 +63,12 @@ public class MoneyClientHttpInterceptorSpec {
                 "testHost");
 
         when(span.info()).thenReturn(testSpanInfo);
-        SpanLocal.push(span);
+        spanScope = SpanLocal.push(span);
     }
 
     @After
-    public void tearDown() {
-        SpanLocal.clear();
+    public void tearDown() throws Exception {
+        spanScope.close();
     }
 
     @Test

@@ -23,6 +23,7 @@ import com.comcast.money.api.Span
 import com.comcast.money.core.Tracer
 import com.comcast.money.core.async.{ AsyncNotificationHandler, AsyncNotifier }
 import com.comcast.money.core.internal.{ MDCSupport, SpanContext }
+import io.opentelemetry.context.Scope
 import org.mockito.Matchers.{ any => argAny }
 import org.mockito.Mockito._
 
@@ -35,6 +36,9 @@ import org.scalatest.OneInstancePerTest
 class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with OneInstancePerTest {
 
   val mockTracer: Tracer = mock[Tracer]
+  val mockSpanBuilder: Span.Builder = mock[Span.Builder]
+  val mockSpan: Span = mock[Span]
+  val mockScope: Scope = mock[Scope]
   val mockAsyncNotifier: AsyncNotifier = mock[AsyncNotifier]
   val mockMdcSupport: MDCSupport = mock[MDCSupport]
   val mockSpanContext: SpanContext = mock[SpanContext]
@@ -63,12 +67,18 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         val empty = Array.empty[AnyRef]
         val proceed = mock[() => String]
 
+        when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
+        when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
+        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
         when(proceed.apply()).thenReturn("result")
 
         val result = methodTracer.traceMethod(method, traced, empty, proceed)
 
-        verify(mockTracer).startSpan(traced.value())
-        verify(mockTracer).stopSpan(true)
+        verify(mockTracer).spanBuilder(traced.value())
+        verify(mockSpanBuilder).startSpan()
+        verify(mockTracer).withSpan(mockSpan)
+        verify(mockSpan).stop(true)
+        verify(mockScope).close()
 
         result shouldBe "result"
       }
@@ -80,14 +90,20 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         val empty = Array.empty[AnyRef]
         val proceed = mock[() => String]
 
+        when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
+        when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
+        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
         when(proceed.apply()).thenThrow(new IllegalArgumentException())
 
         assertThrows[IllegalArgumentException] {
           methodTracer.traceMethod(method, traced, empty, proceed)
         }
 
-        verify(mockTracer).startSpan(traced.value())
-        verify(mockTracer).stopSpan(false)
+        verify(mockTracer).spanBuilder(traced.value())
+        verify(mockSpanBuilder).startSpan()
+        verify(mockTracer).withSpan(mockSpan)
+        verify(mockSpan).stop(false)
+        verify(mockScope).close()
       }
       "that throws an ignored exception" in {
         val method = tracedMethodWithIgnoredExceptions
@@ -96,14 +112,20 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         val empty = Array.empty[AnyRef]
         val proceed = mock[() => String]
 
+        when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
+        when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
+        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
         when(proceed.apply()).thenThrow(new IllegalArgumentException())
 
         assertThrows[IllegalArgumentException] {
           methodTracer.traceMethod(method, traced, empty, proceed)
         }
 
-        verify(mockTracer).startSpan(traced.value())
-        verify(mockTracer).stopSpan(true)
+        verify(mockTracer).spanBuilder(traced.value())
+        verify(mockSpanBuilder).startSpan()
+        verify(mockTracer).withSpan(mockSpan)
+        verify(mockSpan).stop(true)
+        verify(mockScope).close()
       }
     }
     "traces async methods" should {
@@ -115,22 +137,25 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         val proceed = mock[() => String]
         val handler = new TestAsyncHandler("result2")
 
+        when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
+        when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
+        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
         when(proceed.apply()).thenReturn("result")
         when(mockAsyncNotifier.resolveHandler(classOf[String], "result")).thenReturn(Some(handler))
 
-        val span = mock[Span]
-        when(mockSpanContext.pop()).thenReturn(Some(span))
         val result = methodTracer.traceMethod(method, traced, empty, proceed)
 
-        verify(mockTracer).startSpan(traced.value())
-        verify(mockSpanContext).pop()
-        verify(mockTracer, never()).stopSpan(argAny())
+        verify(mockTracer).spanBuilder(traced.value())
+        verify(mockSpanBuilder).startSpan()
+        verify(mockTracer).withSpan(mockSpan)
+        verify(mockSpan, never()).stop(argAny())
+        verify(mockScope).close()
 
         result shouldBe "result2"
 
         handler.callback(Success("result3"))
 
-        verify(span).stop(true)
+        verify(mockSpan).stop(true)
       }
       "that complete exceptionally" in {
         val method = tracedAsyncMethod
@@ -140,22 +165,25 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         val proceed = mock[() => String]
         val handler = new TestAsyncHandler("result2")
 
+        when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
+        when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
+        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
         when(proceed.apply()).thenReturn("result")
         when(mockAsyncNotifier.resolveHandler(classOf[String], "result")).thenReturn(Some(handler))
 
-        val span = mock[Span]
-        when(mockSpanContext.pop()).thenReturn(Some(span))
         val result = methodTracer.traceMethod(method, traced, empty, proceed)
 
-        verify(mockTracer).startSpan(traced.value())
-        verify(mockSpanContext).pop()
-        verify(mockTracer, never()).stopSpan(argAny())
+        verify(mockTracer).spanBuilder(traced.value())
+        verify(mockSpanBuilder).startSpan()
+        verify(mockTracer).withSpan(mockSpan)
+        verify(mockSpan, never()).stop(argAny())
+        verify(mockScope).close()
 
         result shouldBe "result2"
 
         handler.callback(Failure(new Exception))
 
-        verify(span).stop(false)
+        verify(mockSpan).stop(false)
       }
       "that complete exceptionally with ignored exception" in {
         val method = tracedAsyncMethodWithIgnoredExceptions
@@ -165,22 +193,25 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         val proceed = mock[() => String]
         val handler = new TestAsyncHandler("result2")
 
+        when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
+        when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
+        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
         when(proceed.apply()).thenReturn("result")
         when(mockAsyncNotifier.resolveHandler(classOf[String], "result")).thenReturn(Some(handler))
 
-        val span = mock[Span]
-        when(mockSpanContext.pop()).thenReturn(Some(span))
         val result = methodTracer.traceMethod(method, traced, empty, proceed)
 
-        verify(mockTracer).startSpan(traced.value())
-        verify(mockSpanContext).pop()
-        verify(mockTracer, never()).stopSpan(argAny())
+        verify(mockTracer).spanBuilder(traced.value())
+        verify(mockSpanBuilder).startSpan()
+        verify(mockTracer).withSpan(mockSpan)
+        verify(mockSpan, never()).stop(argAny())
+        verify(mockScope).close()
 
         result shouldBe "result2"
 
         handler.callback(Failure(new IllegalArgumentException()))
 
-        verify(span).stop(true)
+        verify(mockSpan).stop(true)
       }
       "with unhandled return value" in {
         val method = tracedAsyncMethod
@@ -190,13 +221,19 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         val proceed = mock[() => String]
         val handler = new TestAsyncHandler("result2")
 
+        when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
+        when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
+        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
         when(proceed.apply()).thenReturn("result")
         when(mockAsyncNotifier.resolveHandler(classOf[String], "result")).thenReturn(None)
 
         val result = methodTracer.traceMethod(method, traced, empty, proceed)
 
-        verify(mockTracer).startSpan(traced.value())
-        verify(mockTracer).stopSpan(true)
+        verify(mockTracer).spanBuilder(traced.value())
+        verify(mockSpanBuilder).startSpan()
+        verify(mockTracer).withSpan(mockSpan)
+        verify(mockSpan).stop(true)
+        verify(mockScope).close()
 
         result shouldBe "result"
       }
@@ -208,14 +245,20 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         val proceed = mock[() => String]
         val handler = new TestAsyncHandler("result2")
 
+        when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
+        when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
+        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
         when(proceed.apply()).thenThrow(new IllegalArgumentException())
 
         assertThrows[IllegalArgumentException] {
           methodTracer.traceMethod(method, traced, empty, proceed)
         }
 
-        verify(mockTracer).startSpan(traced.value())
-        verify(mockTracer).stopSpan(false)
+        verify(mockTracer).spanBuilder(traced.value())
+        verify(mockSpanBuilder).startSpan()
+        verify(mockTracer).withSpan(mockSpan)
+        verify(mockSpan).stop(false)
+        verify(mockScope).close()
       }
     }
     "time method" should {
@@ -226,12 +269,13 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         val proceed = mock[() => String]
 
+        when(mockTracer.startTimer(timed.value())).thenReturn(mockScope)
         when(proceed.apply()).thenReturn("result")
 
         val result = methodTracer.timeMethod(method, timed, proceed)
 
         verify(mockTracer).startTimer(timed.value())
-        verify(mockTracer).stopTimer(timed.value())
+        verify(mockScope).close()
 
         result shouldBe "result"
       }
@@ -242,6 +286,7 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         val proceed = mock[() => String]
 
+        when(mockTracer.startTimer(timed.value())).thenReturn(mockScope)
         when(proceed.apply()).thenThrow(new IllegalArgumentException())
 
         assertThrows[IllegalArgumentException] {
@@ -249,7 +294,7 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         }
 
         verify(mockTracer).startTimer(timed.value())
-        verify(mockTracer).stopTimer(timed.value())
+        verify(mockScope).close()
       }
     }
   }

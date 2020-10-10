@@ -76,10 +76,7 @@ class CoreSpanBuilder(
   }
 
   override def startSpan(): Span = {
-    val newSpan = parentSpan match {
-      case Some(span) => spanFactory.childSpan(spanName, span, sticky)
-      case None => spanFactory.newSpan(spanName)
-    }
+    val newSpan = spanFactory.newSpan(spanName, parentSpan)
 
     if (spanKind != OtelSpan.Kind.INTERNAL) {
       newSpan.setAttribute("kind", spanKind.name)

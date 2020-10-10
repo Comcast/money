@@ -18,13 +18,13 @@ package com.comcast.money.core.internal
 
 import com.comcast.money.api.Span
 import io.grpc.Context
+import io.opentelemetry.context.Scope
 import io.opentelemetry.trace.TracingContextUtils
 
 trait SpanContext {
-  def push(span: Span): Unit
-  def pop(): Option[Span]
+  def push(span: Span): Scope
   def current: Option[Span]
-  def clear(): Unit
+  def fromContext(context: Context): Option[Span]
 }
 
 /**
@@ -42,38 +42,26 @@ object SpanLocal extends SpanContext {
 
   override def current: Option[Span] = fromContext(Context.current)
 
-  override def push(span: Span): Unit =
+  override def push(span: Span): Scope =
     if (span != null) {
       val updatedContext = TracingContextUtils.withSpan(span, Context.current)
       val previousContext = updatedContext.attach()
       threadLocalContexts.set(previousContext :: threadLocalContexts.get)
       setSpanMDC(Some(span))
-    }
-
-  override def pop(): Option[Span] =
-    (current, threadLocalContexts.get) match {
-      case (Some(span), previousContext :: rest) =>
-        threadLocalContexts.set(rest)
-        Context.current.detach(previousContext)
-        setSpanMDC(fromContext(previousContext))
-        Some(span)
-      case _ => None
-    }
-
-  /**
-   * Clears the entire call stack for the thread
-   */
-  override def clear(): Unit = {
-    threadLocalContexts.get.foreach { previousContext =>
-      Context.current.detach(previousContext)
-    }
-    threadLocalContexts.set(Nil)
-    setSpanMDC(None)
-  }
+      () => {
+        updatedContext.detach(previousContext)
+        setSpanMDC(current)
+      }
+    } else () => ()
 
   def fromContext(context: Context): Option[Span] =
     Option(TracingContextUtils.getSpanWithoutDefault(context)) match {
       case Some(span: Span) => Some(span)
       case _ => None
     }
+
+  def clear(): Unit = {
+    Context.current().detach(Context.ROOT)
+    setSpanMDC(None)
+  }
 }

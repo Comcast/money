@@ -18,13 +18,10 @@ package com.comcast.money.core
 
 import java.io.Closeable
 
-import io.opentelemetry.trace.{ Span => OtelSpan }
 import com.comcast.money.api.{ MoneyTracer, Note, Span, SpanFactory }
 import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
-import io.grpc.Context
-import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
-import io.opentelemetry.trace
+import io.opentelemetry.trace.{ StatusCanonicalCode, Span => OtelSpan }
 
 /**
  * Primary API to be used for tracing
@@ -42,10 +39,7 @@ trait Tracer extends MoneyTracer with Closeable {
     case _ => throw new IllegalArgumentException("span is not a compatible Money span")
   }
 
-  override def withSpan(span: Span): Scope = {
-    spanContext.push(span)
-    () => { spanContext.pop() }
-  }
+  override def withSpan(span: Span): Scope = spanContext.push(span)
 
   override def spanBuilder(spanName: String): Span.Builder = new CoreSpanBuilder(spanContext.current, false, spanName, spanFactory)
 
@@ -68,8 +62,6 @@ trait Tracer extends MoneyTracer with Closeable {
    */
   def startSpan(key: String): Span = {
 
-    import io.opentelemetry.trace.Span
-
     val child = spanContext.current
       .map { existingSpan =>
         spanFactory.childSpan(key, existingSpan)
@@ -77,9 +69,9 @@ trait Tracer extends MoneyTracer with Closeable {
       .getOrElse(
         spanFactory.newSpan(key))
 
-    spanContext.push(child)
+    val scope = spanContext.push(child)
     child.start()
-    child
+    child.attachScope(scope)
   }
 
   /**
@@ -280,9 +272,9 @@ trait Tracer extends MoneyTracer with Closeable {
    * @param result The result of the span, this will be Result.success or Result.failed
    */
   def stopSpan(result: Boolean = true): Unit = {
-    spanContext.pop() foreach {
-      span =>
-        span.stop(result)
+    spanContext.current.foreach { span =>
+      span.setStatus(if (result) StatusCanonicalCode.OK else StatusCanonicalCode.ERROR)
+      span.close()
     }
   }
 
@@ -302,11 +294,9 @@ trait Tracer extends MoneyTracer with Closeable {
    * }}}
    * @param key the identifier for the timer
    */
-  def startTimer(key: String): Scope = spanContext.current match {
-    case Some(span) =>
-      span.startTimer(key)
-    case _ => () => {}
-  }
+  def startTimer(key: String): Scope = spanContext.current
+    .map { _.startTimer(key) }
+    .getOrElse(() => ())
 
   /**
    * Stops the timer on the current Span for the key provided.  This method assumes that a timer was started for the
