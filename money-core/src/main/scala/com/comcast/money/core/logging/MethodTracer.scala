@@ -38,12 +38,13 @@ trait MethodTracer extends Reflections with TraceLogging {
   def traceMethod(method: Method, annotation: Traced, args: Array[AnyRef], proceed: () => AnyRef): AnyRef = {
     val key = annotation.value()
 
-    val span = tracer.spanBuilder(key).startSpan()
+    val builder = tracer.spanBuilder(key);
+    recordTracedParameters(method, args, builder.record)
+
+    val span = builder.startSpan()
     val scope = tracer.withSpan(span)
 
     try {
-      recordTracedParameters(method, args, tracer)
-
       Try {
         proceed()
       } match {

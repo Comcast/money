@@ -97,6 +97,8 @@ object DisabledSpanBuilder extends Span.Builder {
 
   override def setAttribute[T](key: AttributeKey[T], value: T): Span.Builder = this
 
+  override def record(note: Note[_]): Span.Builder = this
+
   override def setSpanKind(spanKind: OtelSpan.Kind): Span.Builder = this
 
   override def setStartTimestamp(startTimestamp: Long): Span.Builder = this

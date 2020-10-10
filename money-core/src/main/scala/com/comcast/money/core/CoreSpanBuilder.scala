@@ -60,8 +60,10 @@ class CoreSpanBuilder(
 
   override def setAttribute(key: String, value: Boolean): Span.Builder = setAttribute[java.lang.Boolean](AttributeKey.booleanKey(key), value)
 
-  override def setAttribute[T](key: AttributeKey[T], value: T): Span.Builder = {
-    notes = Note.of(key, value) :: notes
+  override def setAttribute[T](key: AttributeKey[T], value: T): Span.Builder = record(Note.of(key, value))
+
+  override def record(note: Note[_]): Span.Builder = {
+    notes = note :: notes
     this
   }
 

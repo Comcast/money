@@ -103,6 +103,8 @@ public interface Span extends io.opentelemetry.trace.Span, Scope {
         @Override
         <T> Builder setAttribute(AttributeKey<T> key, T value);
 
+        Builder record(Note<?> note);
+
         @Override
         Builder setSpanKind(Kind spanKind);
 

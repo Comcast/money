@@ -92,7 +92,7 @@ public class TracedMethodInterceptorSpec {
         ArgumentCaptor<Note> noteCaptor = ArgumentCaptor.forClass(Note.class);
 
         sampleTraceBean.doSomethingWithTracedParams("tp", true, 200L, 3.14);
-        verify(springTracer, times(4)).record(noteCaptor.capture());
+        verify(spanBuilder, times(4)).record(noteCaptor.capture());
 
         Note<String> stringNote = (Note<String>)noteCaptor.getAllValues().get(0);
         assertThat(stringNote.name()).isEqualTo("STRING");
@@ -117,7 +117,7 @@ public class TracedMethodInterceptorSpec {
         ArgumentCaptor<Note> noteCaptor = ArgumentCaptor.forClass(Note.class);
 
         sampleTraceBean.doSomethingWithTracedParams(null, null, null, null);
-        verify(springTracer, times(4)).record(noteCaptor.capture());
+        verify(spanBuilder, times(4)).record(noteCaptor.capture());
 
         Note<String> stringNote = (Note<String>)noteCaptor.getAllValues().get(0);
         assertThat(stringNote.name()).isEqualTo("STRING");

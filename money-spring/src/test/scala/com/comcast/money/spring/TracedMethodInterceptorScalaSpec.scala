@@ -25,7 +25,7 @@ import io.opentelemetry.context.Scope
 import org.aopalliance.intercept.MethodInvocation
 import org.aspectj.lang.JoinPoint
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.anyString
+import org.mockito.Matchers.{ any, anyString }
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers
@@ -56,6 +56,7 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
     scope = mock[Scope]
 
     when(springTracer.spanBuilder(anyString())).thenReturn(spanBuilder)
+    when(spanBuilder.record(any())).thenReturn(spanBuilder)
     when(spanBuilder.startSpan()).thenReturn(span)
     when(springTracer.withSpan(span)).thenReturn(scope)
   }
@@ -69,7 +70,7 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
       val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
 
       sampleScalaBean.doSomethingWithTracedParams("tp", true, 200L, 3.14)
-      verify(springTracer, times(4)).record(noteCaptor.capture)
+      verify(spanBuilder, times(4)).record(noteCaptor.capture)
 
       val note: Note[String] = noteCaptor.getAllValues.get(0).asInstanceOf[Note[String]]
       note.name shouldBe "STRING"
@@ -91,7 +92,7 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
       val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
 
       sampleScalaBean.doSomethingWithTracedJavaParams(null, null, null, null)
-      verify(springTracer, times(4)).record(noteCaptor.capture)
+      verify(spanBuilder, times(4)).record(noteCaptor.capture)
 
       val strNote: Note[String] = noteCaptor.getAllValues.get(0).asInstanceOf[Note[String]]
       strNote.name shouldBe "STRING"
@@ -113,7 +114,7 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
       val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
 
       sampleScalaBean.doSomethingWithTracedParamsAndNonTracedParams("foo", "bar")
-      verify(springTracer, times(1)).record(noteCaptor.capture)
+      verify(spanBuilder, times(1)).record(noteCaptor.capture)
 
       noteCaptor.getValue.name shouldBe "STRING"
       noteCaptor.getValue.value shouldBe "foo"
@@ -122,7 +123,7 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
       val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
 
       sampleScalaBean.doSomethingWithIllegalTracedParams(null)
-      verify(springTracer, times(1)).record(noteCaptor.capture)
+      verify(spanBuilder, times(1)).record(noteCaptor.capture)
 
       noteCaptor.getValue.asInstanceOf[Note[String]].value shouldBe null
     }
@@ -130,7 +131,7 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
       val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
 
       sampleScalaBean.doSomethingWithIllegalTracedParams(List(1))
-      verify(springTracer, times(1)).record(noteCaptor.capture)
+      verify(spanBuilder, times(1)).record(noteCaptor.capture)
 
       noteCaptor.getValue.value shouldBe "List(1)"
     }
@@ -139,7 +140,7 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
       val propCaptor: ArgumentCaptor[Boolean] = ArgumentCaptor.forClass(classOf[Boolean])
 
       sampleScalaBean.doSomethingWithTracedParamsPropagated("prop", "bar")
-      verify(springTracer, times(1)).record(noteCaptor.capture)
+      verify(spanBuilder, times(1)).record(noteCaptor.capture)
 
       noteCaptor.getValue.name shouldBe "STRING"
       noteCaptor.getValue.value shouldBe "prop"
