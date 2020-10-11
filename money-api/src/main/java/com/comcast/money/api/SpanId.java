@@ -16,8 +16,13 @@
 
 package com.comcast.money.api;
 
+import java.util.Locale;
 import java.util.Random;
 import java.util.UUID;
+
+import io.opentelemetry.trace.SpanContext;
+import io.opentelemetry.trace.TraceFlags;
+import io.opentelemetry.trace.TraceState;
 
 /**
  * A unique identifier for a Span.
@@ -82,6 +87,17 @@ public class SpanId {
     @Override
     public String toString() {
         return String.format(STRING_FORMAT, traceId, parentId, selfId);
+    }
+
+    public SpanContext toSpanContext() {
+        return toSpanContext(TraceFlags.getDefault(), TraceState.getDefault());
+    }
+
+    public SpanContext toSpanContext(byte traceFlags, TraceState traceState) {
+        String traceIdAsHex = traceId.replace("-", "")
+                .toLowerCase(Locale.US);
+        String spanIdAsHex = io.opentelemetry.trace.SpanId.fromLong(selfId);
+        return SpanContext.create(traceIdAsHex, spanIdAsHex, traceFlags, traceState);
     }
 
     public static SpanId fromString(String spanIdString) {

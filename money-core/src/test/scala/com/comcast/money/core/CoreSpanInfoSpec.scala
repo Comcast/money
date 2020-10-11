@@ -32,7 +32,7 @@ class CoreSpanInfoSpec extends AnyWordSpec with Matchers {
       underTest.appName shouldBe Money.Environment.applicationName
       underTest.host shouldBe Money.Environment.hostName
       underTest.notes shouldBe empty
-      underTest.success shouldBe true
+      underTest.success shouldBe null
       underTest.durationMicros shouldBe 0L
       underTest.startTimeMicros shouldBe 0L
       underTest.startTimeMillis shouldBe 0L

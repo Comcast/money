@@ -18,6 +18,7 @@ package com.comcast.money.wire
 
 import com.comcast.money.api.{ Note, SpanId, SpanInfo }
 import com.comcast.money.core.CoreSpanInfo
+import io.opentelemetry.trace.StatusCanonicalCode
 import org.scalatest.Inspectors
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -33,9 +34,10 @@ class JsonConversionSpec extends AnyWordSpec with Matchers with Inspectors {
     name = "key",
     appName = "app",
     host = "host",
-    startTimeMillis = 1L,
-    success = true,
-    durationMicros = 35L,
+    startTimeNanos = 1000000L,
+    endTimeNanos = 1035000L,
+    status = StatusCanonicalCode.OK,
+    durationNanos = 35000L,
     notes = Map[String, Note[_]](
       "what" -> Note.of("what", 1L),
       "when" -> Note.of("when", 2L),
@@ -44,11 +46,15 @@ class JsonConversionSpec extends AnyWordSpec with Matchers with Inspectors {
       "bool" -> Note.of("bool", true),
       "dbl" -> Note.of("dbl", 1.0)).asJava).asInstanceOf[SpanInfo]
 
+  println(orig)
+
   "Json Conversion" should {
     "roundtrip" in {
 
       val json = orig.convertTo[String]
       val converted = json.convertTo[SpanInfo]
+
+      println(converted)
 
       converted.appName shouldEqual orig.appName
       converted.name shouldEqual orig.name

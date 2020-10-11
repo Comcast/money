@@ -19,9 +19,9 @@ package com.comcast.money.core.handlers
 import java.util.Collections
 
 import com.comcast.money.api.{ Note, SpanHandler, SpanId, SpanInfo }
-import com.comcast.money.core.{ CoreSpan, CoreSpanInfo, SystemClock }
+import com.comcast.money.core.{ Clock, CoreSpan, CoreSpanInfo, SystemClock }
 import com.typesafe.config.Config
-import io.opentelemetry.trace.{ Span => OtelSpan }
+import io.opentelemetry.trace.{ StatusCanonicalCode, Span => OtelSpan }
 
 class ConfiguredHandler extends ConfigurableHandler {
 
@@ -44,13 +44,14 @@ trait TestData {
   val testDoubleNote = Note.of("dbl", 1.2)
   val testBooleanNote = Note.of("bool", true)
 
+  val clock: Clock = SystemClock
+
   val testSpanInfo = CoreSpanInfo(
     id = new SpanId(),
-    startTimeMillis = System.currentTimeMillis,
-    startTimeMicros = System.nanoTime() / 1000,
-    endTimeMillis = System.currentTimeMillis,
-    endTimeMicros = System.nanoTime / 1000,
-    durationMicros = 123456L,
+    startTimeNanos = clock.now,
+    endTimeNanos = clock.now,
+    durationNanos = 123456000L,
+    status = StatusCanonicalCode.OK,
     name = "test-span",
     appName = "test",
     host = "localhost",
@@ -62,11 +63,10 @@ trait TestData {
 
   val fixedTestSpanInfo = CoreSpanInfo(
     id = new SpanId("5092ddfe-3701-4f84-b3d2-21f5501c0d28", 5176425846116696835L, 5176425846116696835L),
-    startTimeMillis = 100L,
-    startTimeMicros = 100000L,
-    endTimeMillis = 300L,
-    endTimeMicros = 300000L,
-    durationMicros = 200L,
+    startTimeNanos = 100000000L,
+    endTimeNanos = 300000000L,
+    durationNanos = 200000L,
+    status = StatusCanonicalCode.OK,
     name = "test-span",
     appName = "test",
     host = "localhost",

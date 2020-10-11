@@ -31,6 +31,8 @@ import org.scalatestplus.mockito.MockitoSugar
 import scala.collection.JavaConverters._
 import java.{ util => ju }
 
+import io.opentelemetry.trace.StatusCanonicalCode
+
 trait MockProducerMaker extends ProducerMaker {
 
   val mockProducer = mock(classOf[KafkaProducer[Array[Byte], Array[Byte]]])
@@ -67,9 +69,9 @@ class KafkaSpanHandlerSpec extends AnyWordSpec
       name = "key",
       appName = "app",
       host = "host",
-      startTimeMillis = 1L,
-      success = true,
-      durationMicros = 35L,
+      startTimeNanos = 1000000L,
+      status = StatusCanonicalCode.OK,
+      durationNanos = 35000L,
       notes = Map[String, Note[_]]("what" -> api.Note.of("what", 1L), "when" -> api.Note.of("when", 2L), "bob" -> api.Note.of("bob", "craig")).asJava)
   }
 

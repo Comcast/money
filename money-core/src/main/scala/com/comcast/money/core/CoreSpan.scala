@@ -120,12 +120,10 @@ case class CoreSpan(
       id = id,
       name = name,
       kind = kind,
-      startTimeMillis = toMillis(startTimeNanos),
-      startTimeMicros = toMicros(startTimeNanos),
-      endTimeMillis = toMillis(endTimeNanos),
-      endTimeMicros = toMicros(endTimeNanos),
-      durationMicros = calculateDurationMicros,
-      success = success,
+      startTimeNanos = startTimeNanos,
+      endTimeNanos = endTimeNanos,
+      durationNanos = calculateDurationNanos,
+      status = status,
       description = description,
       notes = noted.toMap[String, Note[_]].asJava,
       events = events.asJava)
@@ -184,28 +182,15 @@ case class CoreSpan(
   override def end(): Unit = stop()
   override def end(endSpanOptions: EndSpanOptions): Unit = stop(endSpanOptions.getEndTimestamp, StatusCanonicalCode.UNSET)
 
-  override def getContext: SpanContext = {
-    val traceId = id.traceId.replace("-", "").toLowerCase(Locale.US)
-    val spanId = OtelSpanId.fromLong(id.selfId)
-    SpanContext.create(traceId, spanId, TraceFlags.getDefault, TraceState.getDefault)
-  }
+  override def getContext: SpanContext = id.toSpanContext
 
   override def isRecording: Boolean = startTimeNanos > 0 && endTimeNanos <= 0
 
-  private def toMillis(nanos: Long): Long = TimeUnit.NANOSECONDS.toMillis(nanos)
-  private def toMicros(nanos: Long): Long = TimeUnit.NANOSECONDS.toMicros(nanos)
-
-  private def calculateDurationMicros: Long =
+  private def calculateDurationNanos: Long =
     if (endTimeNanos <= 0L && startTimeNanos <= 0L)
       0L
     else if (endTimeNanos <= 0L)
-      toMicros(clock.now - startTimeNanos)
+      clock.now - startTimeNanos
     else
-      toMicros(endTimeNanos - startTimeNanos)
-
-  private def success: java.lang.Boolean = status match {
-    case StatusCanonicalCode.OK if endTimeNanos > 0 => true
-    case StatusCanonicalCode.ERROR if endTimeNanos > 0 => false
-    case _ => null
-  }
+      endTimeNanos - startTimeNanos
 }

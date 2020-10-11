@@ -25,7 +25,6 @@ import org.scalatestplus.mockito.MockitoSugar
 class CoreSpanFactorySpec extends AnyWordSpec with Matchers with MockitoSugar with TestData {
 
   val handler = mock[SpanHandler]
-  val clock = mock[Clock]
   val underTest = new CoreSpanFactory(clock, handler)
 
   "CoreSpanFactory" should {

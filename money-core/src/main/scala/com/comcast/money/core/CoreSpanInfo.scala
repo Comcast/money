@@ -17,22 +17,36 @@
 package com.comcast.money.core
 
 import java.util.Collections
+import java.util.concurrent.TimeUnit
 
 import com.comcast.money.api.{ Event, Note, SpanId, SpanInfo }
-import io.opentelemetry.trace.Span
+import io.opentelemetry.trace.{ Span, StatusCanonicalCode }
 
 case class CoreSpanInfo(
   id: SpanId,
   name: String,
   kind: Span.Kind = Span.Kind.INTERNAL,
-  startTimeMillis: java.lang.Long = 0L,
-  startTimeMicros: java.lang.Long = 0L,
-  endTimeMillis: java.lang.Long = 0L,
-  endTimeMicros: java.lang.Long = 0L,
-  durationMicros: java.lang.Long = 0L,
-  success: java.lang.Boolean = true,
+  startTimeNanos: Long = 0L,
+  endTimeNanos: Long = 0L,
+  durationNanos: Long = 0L,
+  status: StatusCanonicalCode = StatusCanonicalCode.UNSET,
   description: String = "",
   notes: java.util.Map[String, Note[_]] = Collections.emptyMap(),
   events: java.util.List[Event] = Collections.emptyList(),
   appName: String = Money.Environment.applicationName,
-  host: String = Money.Environment.hostName) extends SpanInfo
+  host: String = Money.Environment.hostName) extends SpanInfo {
+
+  override def startTimeMillis: Long = toMillis(startTimeNanos)
+  override def startTimeMicros: Long = toMicros(startTimeNanos)
+  override def endTimeMillis: Long = toMillis(endTimeNanos)
+  override def endTimeMicros: Long = toMicros(endTimeNanos)
+  override def durationMicros: Long = toMicros(durationNanos)
+  override def success: java.lang.Boolean = status match {
+    case StatusCanonicalCode.OK if endTimeNanos > 0 => true
+    case StatusCanonicalCode.ERROR if endTimeNanos > 0 => false
+    case _ => null
+  }
+
+  private def toMillis(nanos: Long): Long = TimeUnit.NANOSECONDS.toMillis(nanos)
+  private def toMicros(nanos: Long): Long = TimeUnit.NANOSECONDS.toMicros(nanos)
+}

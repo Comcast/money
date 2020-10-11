@@ -17,6 +17,7 @@
 package com.comcast.money.wire
 
 import java.io.ByteArrayOutputStream
+import java.util.concurrent.TimeUnit
 
 import com.comcast.money.api
 import com.comcast.money.api.SpanInfo
@@ -25,6 +26,7 @@ import com.comcast.money.wire.avro
 import com.comcast.money.wire.avro.NoteType
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.{ DeserializationFeature, ObjectMapper }
+import io.opentelemetry.trace.StatusCanonicalCode
 import org.apache.avro.Schema
 import org.apache.avro.io.{ DecoderFactory, EncoderFactory }
 import org.apache.avro.specific.{ SpecificDatumReader, SpecificDatumWriter }
@@ -105,12 +107,13 @@ trait SpanWireConverters {
 
   implicit val spanToWire: TypeConverter[SpanInfo, avro.Span] = TypeConverter.instance { span: SpanInfo =>
 
+    var success = span.success
     new avro.Span(
       span.name,
       span.appName,
       span.host,
       span.durationMicros,
-      span.success,
+      if (success == null) true else success,
       span.startTimeMillis,
       implicitly[TypeConverter[api.SpanId, avro.SpanId]].convert(span.id),
       span.notes.values.asScala.toList.map(implicitly[TypeConverter[api.Note[_], avro.Note]].convert).asJava)
@@ -124,14 +127,23 @@ trait SpanWireConverters {
       res
     }
 
+    val startTimeNanos = TimeUnit.MILLISECONDS.toNanos(from.getStartTime)
+    val durationNanos = TimeUnit.MICROSECONDS.toNanos(from.getDuration)
+    val endTimeNanos = startTimeNanos + durationNanos
+    val status = if (from.getSuccess)
+      StatusCanonicalCode.OK
+    else
+      StatusCanonicalCode.ERROR
+
     CoreSpanInfo(
       id = implicitly[TypeConverter[avro.SpanId, api.SpanId]].convert(from.getId),
       name = from.getName,
       appName = from.getAppName,
       host = from.getHost,
-      startTimeMillis = from.getStartTime,
-      success = from.getSuccess,
-      durationMicros = from.getDuration,
+      startTimeNanos = startTimeNanos,
+      endTimeNanos = endTimeNanos,
+      status = status,
+      durationNanos = durationNanos,
       notes = toNotesMap(from.getNotes))
   }
 }

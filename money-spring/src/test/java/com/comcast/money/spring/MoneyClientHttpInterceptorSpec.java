@@ -23,6 +23,7 @@ import com.comcast.money.core.CoreSpanInfo;
 import com.comcast.money.core.internal.SpanLocal;
 
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.trace.StatusCanonicalCode;
 import org.apache.commons.lang.math.RandomUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -55,9 +56,7 @@ public class MoneyClientHttpInterceptorSpec {
                 0L,
                 0L,
                 0L,
-                0L,
-                0L,
-                Boolean.TRUE,
+                StatusCanonicalCode.OK,
                 "",
                 Collections.emptyMap(),
                 Collections.emptyList(),

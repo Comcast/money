@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.opentelemetry.trace.Span;
+import io.opentelemetry.trace.StatusCanonicalCode;
 
 public interface SpanInfo {
 
@@ -34,23 +35,35 @@ public interface SpanInfo {
     /**
      * @return the time in milliseconds when this span was started
      */
-    Long startTimeMillis();
+    long startTimeMillis();
 
     /**
      * @return the time in microseconds when this span was started
      */
-    Long startTimeMicros();
+    long startTimeMicros();
+
+    /**
+     * @return the time in nanoseconds when this span was started
+     */
+    long startTimeNanos();
 
     /**
      * @return the time in milliseconds when this span was ended.  Will return
      * null if the span is still open
      */
-    Long endTimeMillis();
+    long endTimeMillis();
 
     /**
      * @return the time in microseconds when this span was stopped.
      */
-    Long endTimeMicros();
+    long endTimeMicros();
+
+    /**
+     * @return the time in nanoseconds when this span was stopped.
+     */
+    long endTimeNanos();
+
+    StatusCanonicalCode status();
 
     /**
      * @return the result of the span.  Will return null if the span was never stopped.
@@ -75,7 +88,13 @@ public interface SpanInfo {
      * @return how long since the span was started.  Once it is stopped, the duration should reperesent
      * how long the span was open for.
      */
-    Long durationMicros();
+    long durationMicros();
+
+    /**
+     * @return how long since the span was started.  Once it is stopped, the duration should reperesent
+     * how long the span was open for.
+     */
+    long durationNanos();
 
     /**
      * @return the current application name
