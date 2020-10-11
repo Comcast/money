@@ -21,6 +21,7 @@ import java.util.Collections
 import com.comcast.money.api.{ Note, SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.{ CoreSpan, CoreSpanInfo, SystemClock }
 import com.typesafe.config.Config
+import io.opentelemetry.trace.{ Span => OtelSpan }
 
 class ConfiguredHandler extends ConfigurableHandler {
 
@@ -56,8 +57,8 @@ trait TestData {
     notes = Map[String, Note[_]]("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote).asJava,
     events = Collections.emptyList())
 
-  val testSpan = CoreSpan(new SpanId(), "test-span", SystemClock, null)
-  val childSpan = CoreSpan(new SpanId(), "child-span", SystemClock, null)
+  val testSpan = CoreSpan(new SpanId(), "test-span", OtelSpan.Kind.INTERNAL, SystemClock, null)
+  val childSpan = CoreSpan(new SpanId(), "child-span", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
   val fixedTestSpanInfo = CoreSpanInfo(
     id = new SpanId("5092ddfe-3701-4f84-b3d2-21f5501c0d28", 5176425846116696835L, 5176425846116696835L),

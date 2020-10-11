@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package com.comcast.money.api;
+package com.comcast.money.core
 
-import io.opentelemetry.common.Attributes;
+import com.comcast.money.api.Event
+import io.opentelemetry.common.Attributes
 
-public interface Event {
-    String name();
-    Attributes attributes();
-    long timestamp();
-    Throwable exception();
-}
+case class CoreEvent(
+  name: String,
+  attributes: Attributes,
+  timestamp: Long,
+  exception: Throwable) extends Event {}
+

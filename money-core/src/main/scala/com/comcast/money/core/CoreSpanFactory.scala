@@ -16,6 +16,8 @@
 
 package com.comcast.money.core
 
+import java.util.function
+
 import com.comcast.money.api.{ Span, SpanFactory, SpanHandler, SpanId }
 import org.slf4j.LoggerFactory
 
@@ -36,8 +38,8 @@ class CoreSpanFactory(clock: Clock, handler: SpanHandler) extends SpanFactory {
    * @return a child span with trace id and parent id from trace context header or a new root span if the
    * traceContextHeader is malformed.
    */
-  def newSpanFromHeader(childName: String, getHeader: String => String): Span =
-    Formatters.fromHttpHeaders(getHeader, logger.warn) match {
+  override def newSpanFromHeader(childName: String, getHeader: function.Function[String, String]): Span =
+    Formatters.fromHttpHeaders(getHeader.apply, logger.warn) match {
       case Some(spanId) => newSpan(new SpanId(spanId.traceId, spanId.parentId), childName)
       case None =>
         logger.warn(s"creating root span because http header '${getHeader}' was malformed")

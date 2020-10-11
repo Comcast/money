@@ -25,7 +25,7 @@ import com.comcast.money.api._
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
-import io.opentelemetry.trace.{ EndSpanOptions, SpanContext, StatusCanonicalCode, TraceFlags, TraceId, TraceState, SpanId => OtelSpanId }
+import io.opentelemetry.trace.{ EndSpanOptions, SpanContext, Span => OtelSpan, StatusCanonicalCode, TraceFlags, TraceId, TraceState, SpanId => OtelSpanId }
 import io.opentelemetry.common
 import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
@@ -44,7 +44,8 @@ import scala.collection.mutable.ListBuffer
 case class CoreSpan(
   id: SpanId,
   var name: String,
-  clock: Clock,
+  kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL,
+  clock: Clock = SystemClock,
   handler: SpanHandler) extends Span {
 
   private var startTimeNanos: Long = 0
@@ -70,7 +71,11 @@ case class CoreSpan(
 
   override def stop(): Unit = stop(clock.now, StatusCanonicalCode.UNSET)
   override def stop(result: java.lang.Boolean): Unit =
-    stop(clock.now, if (result) StatusCanonicalCode.OK else StatusCanonicalCode.ERROR)
+    if (result == null) {
+      stop(clock.now, StatusCanonicalCode.UNSET)
+    } else {
+      stop(clock.now, if (result) StatusCanonicalCode.OK else StatusCanonicalCode.ERROR)
+    }
 
   private def stop(endTimeNanos: Long, status: StatusCanonicalCode): Unit = {
     this.endTimeNanos = endTimeNanos
@@ -85,10 +90,8 @@ case class CoreSpan(
     this.status = (this.status, status) match {
       case (StatusCanonicalCode.UNSET, StatusCanonicalCode.UNSET) => StatusCanonicalCode.OK
       case (StatusCanonicalCode.UNSET, other) => other
-      case (any, _) => any
-    }
-    if (description != null) {
-      record(Note.of("description", description))
+      case (other, StatusCanonicalCode.UNSET) => other
+      case (_, other) => other
     }
 
     handler.handle(info())
@@ -116,14 +119,16 @@ case class CoreSpan(
     CoreSpanInfo(
       id = id,
       name = name,
+      kind = kind,
       startTimeMillis = toMillis(startTimeNanos),
       startTimeMicros = toMicros(startTimeNanos),
       endTimeMillis = toMillis(endTimeNanos),
       endTimeMicros = toMicros(endTimeNanos),
       durationMicros = calculateDurationMicros,
       success = success,
+      description = description,
       notes = noted.toMap[String, Note[_]].asJava,
-      events = events.asJavaCollection)
+      events = events.asJava)
 
   override def close(): Unit = stop()
 
@@ -138,13 +143,14 @@ case class CoreSpan(
   override def addEvent(eventName: String, eventAttributes: Attributes): Unit = addEventInternal(createEvent(eventName, eventAttributes))
   override def addEvent(eventName: String, eventAttributes: Attributes, timestampNanos: scala.Long): Unit = addEventInternal(createEvent(eventName, eventAttributes, timestampNanos))
 
-  private def addEventInternal(event: Event): Unit = events :+ event
+  private def addEventInternal(event: Event): Unit = events += event
 
-  private def createEvent(eventName: String, eventAttributes: Attributes = Attributes.empty, timestampNanos: Long = clock.now): Event = new Event {
-    override def timestamp: Long = timestampNanos
-    override def name: String = eventName
-    override def attributes: Attributes = eventAttributes
-  }
+  private def createEvent(
+    eventName: String,
+    eventAttributes: Attributes = Attributes.empty,
+    timestampNanos: Long = clock.now,
+    exception: Throwable = null): Event =
+    CoreEvent(eventName, eventAttributes, timestampNanos, exception)
 
   override def recordException(exception: Throwable): Unit = recordException(exception, Attributes.empty())
   override def recordException(exception: Throwable, eventAttributes: Attributes): Unit = {
@@ -163,7 +169,7 @@ case class CoreSpan(
     exception.printStackTrace(new PrintWriter(writer))
     attributes.setAttribute(SemanticAttributes.EXCEPTION_STACKTRACE, writer.toString)
 
-    addEvent(SemanticAttributes.EXCEPTION_EVENT_NAME, attributes.build(), timestampNanos)
+    addEventInternal(createEvent(SemanticAttributes.EXCEPTION_EVENT_NAME, attributes.build(), timestampNanos, exception))
   }
 
   override def setStatus(canonicalCode: StatusCanonicalCode): Unit = this.status = canonicalCode
@@ -184,7 +190,7 @@ case class CoreSpan(
     SpanContext.create(traceId, spanId, TraceFlags.getDefault, TraceState.getDefault)
   }
 
-  override def isRecording: Boolean = this.status == StatusCanonicalCode.UNSET
+  override def isRecording: Boolean = startTimeNanos > 0 && endTimeNanos <= 0
 
   private def toMillis(nanos: Long): Long = TimeUnit.NANOSECONDS.toMillis(nanos)
   private def toMicros(nanos: Long): Long = TimeUnit.NANOSECONDS.toMicros(nanos)
@@ -197,9 +203,9 @@ case class CoreSpan(
     else
       toMicros(endTimeNanos - startTimeNanos)
 
-  private def success: java.lang.Boolean = this.status match {
-    case StatusCanonicalCode.OK => true
-    case StatusCanonicalCode.ERROR => false
+  private def success: java.lang.Boolean = status match {
+    case StatusCanonicalCode.OK if endTimeNanos > 0 => true
+    case StatusCanonicalCode.ERROR if endTimeNanos > 0 => false
     case _ => null
   }
 }

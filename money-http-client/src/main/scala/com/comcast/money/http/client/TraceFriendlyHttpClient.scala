@@ -54,7 +54,7 @@ object TraceFriendlyHttpSupport {
     statusLine.getStatusCode.toLong
   } getOrElse 0L
 
-  def addTraceHeader(httpRequest: HttpRequest) {
+  def addTraceHeader(httpRequest: HttpRequest): Unit = {
 
     if (httpRequest != null) {
       SpanLocal.current.foreach {

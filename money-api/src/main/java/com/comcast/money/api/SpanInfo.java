@@ -16,8 +16,10 @@
 
 package com.comcast.money.api;
 
-import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+
+import io.opentelemetry.trace.Span;
 
 public interface SpanInfo {
 
@@ -27,7 +29,7 @@ public interface SpanInfo {
      */
     Map<String, Note<?>> notes();
 
-    Collection<Event> events();
+    List<Event> events();
 
     /**
      * @return the time in milliseconds when this span was started
@@ -54,6 +56,10 @@ public interface SpanInfo {
      * @return the result of the span.  Will return null if the span was never stopped.
      */
     Boolean success();
+
+    Span.Kind kind();
+
+    String description();
 
     /**
      * @return the SpanId of the span.

@@ -22,6 +22,8 @@ import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
 import io.opentelemetry.trace.{ DefaultSpan, EndSpanOptions, Span => OtelSpan, SpanContext, StatusCanonicalCode }
 
+import java.util.function
+
 // $COVERAGE-OFF
 object DisabledSpanHandler extends SpanHandler {
 
@@ -67,7 +69,7 @@ object DisabledSpanFactory extends SpanFactory {
 
   override def newSpan(spanName: String): Span = DisabledSpan
 
-  override def newSpanFromHeader(childName: String, getHeader: String => String): Span = DisabledSpan
+  override def newSpanFromHeader(childName: String, getHeader: function.Function[String, String]): Span = DisabledSpan
 
   override def childSpan(childName: String, span: Span): Span = DisabledSpan
 
