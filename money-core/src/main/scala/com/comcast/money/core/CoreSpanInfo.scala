@@ -43,8 +43,8 @@ case class CoreSpanInfo(
   override def endTimeMicros: Long = toMicros(endTimeNanos)
   override def durationMicros: Long = toMicros(durationNanos)
   override def success: java.lang.Boolean = status match {
-    case StatusCanonicalCode.OK if isRecording => true
-    case StatusCanonicalCode.ERROR if isRecording => false
+    case StatusCanonicalCode.OK if endTimeNanos > 0L => true
+    case StatusCanonicalCode.ERROR if endTimeNanos > 0L => false
     case _ => null
   }
 
