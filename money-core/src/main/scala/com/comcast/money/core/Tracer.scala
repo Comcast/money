@@ -49,13 +49,13 @@ trait Tracer extends MoneyTracer with Closeable {
    * {{{
    *   import com.comcast.money.core.Money._
    *   def somethingMeaningful() {
+   *     val scope = tracer.startSpan("something")
    *     try {
-   *      tracer.startSpan("something")
-   *      ...
-   *    } finally {
-   *      tracer.stopSpan()
-   *    }
-   *  }
+   *       ...
+   *     } finally {
+   *       scope.close()
+   *     }
+   *   }
    * }}}
    *
    * @param key an identifier for the span
@@ -270,7 +270,10 @@ trait Tracer extends MoneyTracer with Closeable {
    *  }
    * }}}
    * @param result The result of the span, this will be Result.success or Result.failed
+   * @deprecated Close the [[Scope]] returned from [[Tracer.startSpan()]]
    */
+  @deprecated
+  @Deprecated
   def stopSpan(result: Boolean = true): Unit = {
     spanContext.current.foreach { span =>
       span.setStatus(if (result) StatusCanonicalCode.OK else StatusCanonicalCode.ERROR)
@@ -284,11 +287,11 @@ trait Tracer extends MoneyTracer with Closeable {
    * import com.comcast.money.core.Money._
    *
    * def timeThisChumpie() {
+   *   val scope = tracer.startTimer("chumpie")
    *   try {
-   *     tracer.startTimer("chumpie")
    *     ...
    *   } finally {
-   *     tracer.stopTimer("chumpie")
+   *     scope.close()
    *   }
    * }
    * }}}
@@ -315,7 +318,10 @@ trait Tracer extends MoneyTracer with Closeable {
    * }
    * }}}
    * @param key the identifier for the timer
+   * @deprecated Close the [[Scope]] returned from [[Tracer.startTimer()]]
    */
+  @deprecated
+  @Deprecated
   def stopTimer(key: String): Unit = withCurrentSpan { span =>
     span.stopTimer(key)
   }

@@ -30,6 +30,9 @@ public interface SpanInfo {
      */
     Map<String, Note<?>> notes();
 
+    /**
+     * @return a list of all of the events that were recorded on the span.
+     */
     List<Event> events();
 
     /**
@@ -63,6 +66,9 @@ public interface SpanInfo {
      */
     long endTimeNanos();
 
+    /**
+     * @return the status code set on the span.
+     */
     StatusCanonicalCode status();
 
     /**
@@ -70,8 +76,19 @@ public interface SpanInfo {
      */
     Boolean success();
 
+    /**
+     * @return {@code true} if the span has been started but not yet stopped; otherwise, {@code false}.
+     */
+    boolean isRecording();
+
+    /**
+     * @return the kind of the span, e.g. if it wraps a server or client request.
+     */
     Span.Kind kind();
 
+    /**
+     * @return the description of the status of the span.
+     */
     String description();
 
     /**

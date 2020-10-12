@@ -161,10 +161,21 @@ public class JMoney {
         record(noteName, value, false);
     }
 
+    /**
+     * Records a note in the current trace span if one is present.
+     * @param key The name and type of the attribute to record
+     * @param value The value to be recorded on the note
+     */
     public static <T> void record(AttributeKey<T> key, T value) {
         tracer().record(Note.of(key, value));
     }
 
+    /**
+     * Records a note in the current trace span if one is present.
+     * @param key The name and type of the attribute to record
+     * @param value The value to be recorded on the note
+     * @param propagate whether or not to propagate note to children spans
+     */
     public static <T> void record(AttributeKey<T> key, T value, boolean propagate) {
         tracer().record(Note.of(key, value, propagate));
     }
@@ -183,9 +194,9 @@ public class JMoney {
     /**
      * Starts a timer that will be recorded on the current span
      *
-     * You should call stopTimer with the same noteName value to stop the timer.
+     * You should call {@link Scope#close()} stop the timer.
      *
-     * If you do not call stopTimer, then the duration of the timer will be whenever
+     * If you do not stop the timer, then the duration of the timer will be whenever
      * the current Span is stopped
      * @param noteName The name of the note that will be recorded for the timer
      */
@@ -200,7 +211,9 @@ public class JMoney {
      * This will add a note to the span with the name provided.  The value will be
      * the duration between the startTimer and stopTimer invocations.
      * @param noteName The name of the timer to stop
+     * @deprecated Close the {@link Scope} returned by {@link JMoney#startTimer(String)}
      */
+    @Deprecated
     public static void stopTimer(String noteName) {
 
         tracer().stopTimer(noteName);
@@ -218,17 +231,33 @@ public class JMoney {
      * add memory pressure to the process
      *
      * @param spanName The name of the span
+     * @return the created span
      */
     public static Span startSpan(String spanName) {
 
         return tracer().startSpan(spanName);
     }
 
+    /**
+     * Creates a new {@link Span.Builder} for configuring and creating a new span with the given name.
+     *
+     * If a span already exists, the new span will be a child span of the existing span.
+     *
+     * If no span exists, the new span will be a root span
+     *
+     * @param spanName The name of the span
+     * @return the {@link Span.Builder}
+     */
     public static Span.Builder spanBuilder(String spanName) {
 
         return tracer().spanBuilder(spanName);
     }
 
+    /**
+     * Enters a scope where the specified {@link Span} is in the current Context.
+     * @param span the span
+     * @return the scope of the span
+     */
     public static Scope withSpan(Span span) {
 
         return tracer().withSpan(span);
@@ -239,7 +268,9 @@ public class JMoney {
      *
      * Once the span is stopped, the data for the span will be emitted
      * @param success An indicator of whether or not the span was successful
+     * @deprecated Close the {@lin Scope} returned from {@link JMoney#startSpan(String)}
      */
+    @Deprecated
     public static void stopSpan(boolean success) {
 
         tracer().stopSpan(success);
@@ -247,7 +278,9 @@ public class JMoney {
 
     /**
      * Stops the existing span if one is present.  Assumes a result of success
+     * @deprecated Close the {@lin Scope} returned from {@link JMoney#startSpan(String)}
      */
+    @Deprecated
     public static void stopSpan() {
         tracer().stopSpan(true);
     }

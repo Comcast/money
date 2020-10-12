@@ -36,6 +36,11 @@ public interface Span extends io.opentelemetry.trace.Span, Scope {
      */
     Scope start();
 
+    /**
+     * Signals the span that it has started at the specified timestamp
+     * @param startTimeSeconds the seconds since the epoch
+     * @param nanoAdjustment the additional nanoseconds from {@code startTimeSeconds}
+     */
     Scope start(long startTimeSeconds, int nanoAdjustment);
 
     /**
@@ -67,8 +72,14 @@ public interface Span extends io.opentelemetry.trace.Span, Scope {
      */
     void stopTimer(String timerKey);
 
+    /**
+     * Updates the kind of the span
+     */
     void updateKind(io.opentelemetry.trace.Span.Kind kind);
 
+    /**
+     * Attaches a {@link Scope} to the span which will be closed when the span is stopped
+     */
     Span attachScope(Scope scope);
 
     /**
@@ -76,48 +87,99 @@ public interface Span extends io.opentelemetry.trace.Span, Scope {
      */
     SpanInfo info();
 
+    /**
+     * A builder used to construct {@link Span} instances.
+     */
     interface Builder extends io.opentelemetry.trace.Span.Builder {
+        /**
+         * {@inheritDoc}
+         */
         @Override
         Builder setParent(Context context);
 
+        /**
+         * Sets the parent span to the specified span
+         */
         Builder setParent(Span span);
 
+        /**
+         * Sets the parent span to the specified span
+         */
         Builder setParent(Option<Span> span);
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         Builder setNoParent();
 
+        /**
+         * Sets whether or not the parent span notes are to be propagated to the created span
+         */
         Builder setSticky(boolean sticky);
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         Builder addLink(SpanContext spanContext);
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         Builder addLink(SpanContext spanContext, Attributes attributes);
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         Builder setAttribute(String key, String value);
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         Builder setAttribute(String key, long value);
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         Builder setAttribute(String key, double value);
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         Builder setAttribute(String key, boolean value);
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         <T> Builder setAttribute(AttributeKey<T> key, T value);
 
+        /**
+         * Records the note on the created span
+         */
         Builder record(Note<?> note);
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         Builder setSpanKind(Kind spanKind);
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
-        Builder setStartTimestamp(long startTimestamp);
+        Builder setStartTimestamp(long startTimestampNanos);
 
+        /**
+         * {@inheritDoc}
+         */
         @Override
         Span startSpan();
     }

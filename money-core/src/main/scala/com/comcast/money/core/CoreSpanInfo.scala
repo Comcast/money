@@ -36,14 +36,15 @@ case class CoreSpanInfo(
   appName: String = Money.Environment.applicationName,
   host: String = Money.Environment.hostName) extends SpanInfo {
 
+  override def isRecording: Boolean = startTimeNanos > 0L && endTimeNanos <= 0L
   override def startTimeMillis: Long = toMillis(startTimeNanos)
   override def startTimeMicros: Long = toMicros(startTimeNanos)
   override def endTimeMillis: Long = toMillis(endTimeNanos)
   override def endTimeMicros: Long = toMicros(endTimeNanos)
   override def durationMicros: Long = toMicros(durationNanos)
   override def success: java.lang.Boolean = status match {
-    case StatusCanonicalCode.OK if endTimeNanos > 0 => true
-    case StatusCanonicalCode.ERROR if endTimeNanos > 0 => false
+    case StatusCanonicalCode.OK if isRecording => true
+    case StatusCanonicalCode.ERROR if isRecording => false
     case _ => null
   }
 

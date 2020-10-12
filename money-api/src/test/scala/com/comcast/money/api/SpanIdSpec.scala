@@ -16,6 +16,7 @@
 
 package com.comcast.money.api
 
+import io.opentelemetry.trace.{SpanContext, TraceFlags, TraceState}
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -75,6 +76,40 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
       val spanId = new SpanId(null, 1L)
 
       spanId.traceId should not be null
+    }
+
+    "isRoot returns true for a root span id" in {
+      val spanId = new SpanId("foo", 1L, 1L)
+      spanId.isRoot shouldBe true
+
+      val childSpanId = spanId.newChildId()
+      childSpanId.isRoot shouldBe false
+    }
+
+    "isValid returns false for an invalid span id" in {
+      val invalidSpanId = new SpanId("", 0L, 0L)
+      invalidSpanId.isValid shouldBe false
+
+      SpanId.getInvalid.isValid shouldBe false
+    }
+
+    "returns SpanContext from span id" in {
+      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L)
+      val spanContext = spanId.toSpanContext
+
+      spanContext.getTraceIdAsHexString shouldBe "01234567890abcdef01234567890abcd"
+      spanContext.getSpanIdAsHexString shouldBe "0123456789abcdef"
+      spanContext.getTraceFlags shouldBe TraceFlags.getDefault
+      spanContext.getTraceState shouldBe TraceState.getDefault
+    }
+
+    "returns span if from SpanContext" in {
+      val spanContext = SpanContext.create("01234567890abcdef01234567890abcd", "0123456789abcdef", TraceFlags.getDefault, TraceState.getDefault)
+      val spanId = SpanId.fromSpanContext(spanContext)
+
+      spanId.traceId() shouldBe "01234567-890a-bcde-f012-34567890abcd"
+      spanId.selfId() shouldBe 81985529216486895L
+      spanId.parentId() shouldBe 81985529216486895L
     }
   }
 }
