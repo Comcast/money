@@ -44,7 +44,7 @@ import scala.collection.mutable.ListBuffer
 case class CoreSpan(
   id: SpanId,
   var name: String,
-  kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL,
+  var kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL,
   clock: Clock = SystemClock,
   handler: SpanHandler) extends Span {
 
@@ -151,24 +151,8 @@ case class CoreSpan(
     CoreEvent(eventName, eventAttributes, timestampNanos, exception)
 
   override def recordException(exception: Throwable): Unit = recordException(exception, Attributes.empty())
-  override def recordException(exception: Throwable, eventAttributes: Attributes): Unit = {
-    val timestampNanos = clock.now
-
-    val attributes = if (eventAttributes != null) {
-      eventAttributes.toBuilder
-    } else {
-      Attributes.newBuilder
-    }
-    attributes.setAttribute(SemanticAttributes.EXCEPTION_TYPE, exception.getClass.getCanonicalName)
-    if (exception.getMessage != null) {
-      attributes.setAttribute(SemanticAttributes.EXCEPTION_MESSAGE, exception.getMessage)
-    }
-    val writer = new StringWriter
-    exception.printStackTrace(new PrintWriter(writer))
-    attributes.setAttribute(SemanticAttributes.EXCEPTION_STACKTRACE, writer.toString)
-
-    addEventInternal(createEvent(SemanticAttributes.EXCEPTION_EVENT_NAME, attributes.build(), timestampNanos, exception))
-  }
+  override def recordException(exception: Throwable, eventAttributes: Attributes): Unit =
+    addEventInternal(createEvent(SemanticAttributes.EXCEPTION_EVENT_NAME, eventAttributes, clock.now, exception))
 
   override def setStatus(canonicalCode: StatusCanonicalCode): Unit = this.status = canonicalCode
 
@@ -178,6 +162,7 @@ case class CoreSpan(
   }
 
   override def updateName(spanName: String): Unit = name = spanName
+  override def updateKind(spanKind: OtelSpan.Kind): Unit = kind = spanKind
 
   override def end(): Unit = stop()
   override def end(endSpanOptions: EndSpanOptions): Unit = stop(endSpanOptions.getEndTimestamp, StatusCanonicalCode.UNSET)

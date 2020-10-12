@@ -99,7 +99,7 @@ class CoreSpanBuilder(
     }
 
     if (spanKind != OtelSpan.Kind.INTERNAL) {
-      newSpan.setAttribute("kind", spanKind.name)
+      newSpan.updateKind(spanKind)
     }
     notes.foreach { newSpan.record }
 

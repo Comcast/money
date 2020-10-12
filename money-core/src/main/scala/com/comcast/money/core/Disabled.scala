@@ -20,8 +20,7 @@ import com.comcast.money.api._
 import io.grpc.Context
 import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
-import io.opentelemetry.trace.{ DefaultSpan, EndSpanOptions, Span => OtelSpan, SpanContext, StatusCanonicalCode }
-
+import io.opentelemetry.trace.{ DefaultSpan, EndSpanOptions, SpanContext, StatusCanonicalCode, Span => OtelSpan }
 import java.util.function
 
 // $COVERAGE-OFF
@@ -161,6 +160,8 @@ object DisabledSpan extends Span {
   override def recordException(exception: Throwable, additionalAttributes: Attributes): Unit = ()
 
   override def updateName(name: String): Unit = ()
+
+  override def updateKind(kind: OtelSpan.Kind): Unit = ()
 
   override def `end`(): Unit = ()
 

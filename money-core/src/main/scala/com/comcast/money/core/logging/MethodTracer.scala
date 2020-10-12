@@ -60,6 +60,7 @@ trait MethodTracer extends Reflections with TraceLogging {
           result
         case Failure(exception) =>
           logException(exception)
+          span.recordException(exception)
           span.stop(exceptionMatches(exception, annotation.ignoredExceptions()))
           throw exception
       }
@@ -110,6 +111,7 @@ trait MethodTracer extends Reflections with TraceLogging {
           case Success(_) => true
           case Failure(exception) =>
             logException(exception)
+            span.recordException(exception)
             exceptionMatches(exception, annotation.ignoredExceptions())
         }
 

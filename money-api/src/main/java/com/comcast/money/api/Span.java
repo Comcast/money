@@ -67,6 +67,8 @@ public interface Span extends io.opentelemetry.trace.Span, Scope {
      */
     void stopTimer(String timerKey);
 
+    void updateKind(io.opentelemetry.trace.Span.Kind kind);
+
     Span attachScope(Scope scope);
 
     /**

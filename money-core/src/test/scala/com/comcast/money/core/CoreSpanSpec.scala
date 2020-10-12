@@ -347,6 +347,27 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       handledInfo.notes should contain value testLongNote
     }
 
+    "invoke the span handler when closed" in {
+      val handler = mock[SpanHandler]
+      val handleCaptor = ArgumentCaptor.forClass(classOf[SpanInfo])
+      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
+
+      underTest.start()
+      underTest.record(testLongNote)
+      underTest.close()
+
+      verify(handler).handle(handleCaptor.capture())
+
+      val handledInfo = handleCaptor.getValue
+
+      handledInfo.id shouldBe underTest.id
+      handledInfo.startTimeMicros.toInt should not be 0
+      handledInfo.startTimeMillis.toInt should not be 0
+      handledInfo.endTimeMicros.toInt should not be 0
+      handledInfo.endTimeMillis.toInt should not be 0
+      handledInfo.notes should contain value testLongNote
+    }
+
     "closes attached scopes" in {
       val scope1 = mock[Scope]
       val scope2 = mock[Scope]
