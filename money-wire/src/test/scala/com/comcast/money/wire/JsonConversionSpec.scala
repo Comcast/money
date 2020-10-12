@@ -46,15 +46,11 @@ class JsonConversionSpec extends AnyWordSpec with Matchers with Inspectors {
       "bool" -> Note.of("bool", true),
       "dbl" -> Note.of("dbl", 1.0)).asJava).asInstanceOf[SpanInfo]
 
-  println(orig)
-
   "Json Conversion" should {
     "roundtrip" in {
 
       val json = orig.convertTo[String]
       val converted = json.convertTo[SpanInfo]
-
-      println(converted)
 
       converted.appName shouldEqual orig.appName
       converted.name shouldEqual orig.name
