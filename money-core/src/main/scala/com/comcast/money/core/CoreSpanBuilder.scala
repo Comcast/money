@@ -23,7 +23,7 @@ import io.grpc.Context
 import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.trace.{ SpanContext, TracingContextUtils, Span => OtelSpan }
 
-class CoreSpanBuilder(
+private[core] class CoreSpanBuilder(
   var parentSpan: Option[Span],
   spanName: String,
   spanFactory: SpanFactory) extends Span.Builder {

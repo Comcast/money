@@ -41,7 +41,7 @@ import scala.collection.mutable.ListBuffer
  * @param name The name of the span
  * @param handler The [[SpanHandler]] responsible for processing the span once it is stopped
  */
-case class CoreSpan(
+private[core] case class CoreSpan(
   id: SpanId,
   var name: String,
   var kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL,

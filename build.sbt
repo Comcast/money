@@ -131,7 +131,7 @@ lazy val moneyKafka =
           commonsIo,
         ) ++ commonTestDependencies
     )
-    .dependsOn(moneyCore, moneyWire)
+    .dependsOn(moneyCore, moneyWire % "test->test;compile->compile")
 
 lazy val moneySpring =
   Project("money-spring", file("./money-spring"))

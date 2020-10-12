@@ -17,7 +17,6 @@
 package com.comcast.money.wire
 
 import com.comcast.money.api.{ Note, SpanId, SpanInfo }
-import com.comcast.money.core.CoreSpanInfo
 import io.opentelemetry.trace.StatusCanonicalCode
 import org.scalatest.Inspectors
 import org.scalatest.matchers.should.Matchers
@@ -31,7 +30,7 @@ class AvroConversionSpec extends AnyWordSpec with Matchers with Inspectors {
 
   "Avro Conversion" should {
     "roundtrip" in {
-      val orig = CoreSpanInfo(
+      val orig = TestSpanInfo(
         id = new SpanId("foo", 1L),
         name = "key",
         appName = "app",

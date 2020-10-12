@@ -17,16 +17,18 @@
 package com.comcast.money.wire
 
 import java.io.ByteArrayOutputStream
+import java.util
+import java.util.Collections
 import java.util.concurrent.TimeUnit
 
 import com.comcast.money.api
-import com.comcast.money.api.SpanInfo
+import com.comcast.money.api.{ Event, Note, SpanId, SpanInfo }
 import com.comcast.money.core._
 import com.comcast.money.wire.avro
 import com.comcast.money.wire.avro.NoteType
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.{ DeserializationFeature, ObjectMapper }
-import io.opentelemetry.trace.StatusCanonicalCode
+import io.opentelemetry.trace.{ Span, StatusCanonicalCode }
 import org.apache.avro.Schema
 import org.apache.avro.io.{ DecoderFactory, EncoderFactory }
 import org.apache.avro.specific.{ SpecificDatumReader, SpecificDatumWriter }
@@ -127,24 +129,20 @@ trait SpanWireConverters {
       res
     }
 
-    val startTimeNanos = TimeUnit.MILLISECONDS.toNanos(from.getStartTime)
-    val durationNanos = TimeUnit.MICROSECONDS.toNanos(from.getDuration)
-    val endTimeNanos = startTimeNanos + durationNanos
-    val status = if (from.getSuccess)
-      StatusCanonicalCode.OK
-    else
-      StatusCanonicalCode.ERROR
-
-    CoreSpanInfo(
-      id = implicitly[TypeConverter[avro.SpanId, api.SpanId]].convert(from.getId),
-      name = from.getName,
-      appName = from.getAppName,
-      host = from.getHost,
-      startTimeNanos = startTimeNanos,
-      endTimeNanos = endTimeNanos,
-      status = status,
-      durationNanos = durationNanos,
-      notes = toNotesMap(from.getNotes))
+    new SpanInfo {
+      override def notes(): util.Map[String, Note[_]] = toNotesMap(from.getNotes)
+      override def events(): util.List[Event] = Collections.emptyList()
+      override def startTimeNanos(): Long = TimeUnit.MILLISECONDS.toNanos(from.getStartTime)
+      override def endTimeNanos(): Long = startTimeNanos + durationNanos
+      override def status(): StatusCanonicalCode = if (from.getSuccess) StatusCanonicalCode.OK else StatusCanonicalCode.ERROR
+      override def kind(): Span.Kind = Span.Kind.INTERNAL
+      override def description(): String = ""
+      override def id(): SpanId = implicitly[TypeConverter[avro.SpanId, api.SpanId]].convert(from.getId)
+      override def name(): String = from.getName
+      override def durationNanos(): Long = TimeUnit.MICROSECONDS.toNanos(from.getDuration)
+      override def appName(): String = from.getAppName
+      override def host(): String = from.getHost
+    }
   }
 }
 

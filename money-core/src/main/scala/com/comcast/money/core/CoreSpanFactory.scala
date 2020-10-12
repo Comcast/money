@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
-class CoreSpanFactory(clock: Clock, handler: SpanHandler) extends SpanFactory {
+private[core] class CoreSpanFactory(clock: Clock, handler: SpanHandler) extends SpanFactory {
 
   private val logger = LoggerFactory.getLogger(classOf[CoreSpanFactory])
 

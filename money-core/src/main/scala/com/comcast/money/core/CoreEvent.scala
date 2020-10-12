@@ -22,7 +22,7 @@ import com.comcast.money.api.Event
 import io.opentelemetry.common.Attributes
 import io.opentelemetry.trace.attributes.SemanticAttributes
 
-case class CoreEvent(
+private[core] case class CoreEvent(
   name: String,
   eventAttributes: Attributes,
   timestamp: Long,
