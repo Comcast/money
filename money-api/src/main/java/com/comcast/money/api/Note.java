@@ -62,7 +62,7 @@ public class Note<T> {
     }
 
     /**
-     * @return {@code true} if the value of the note is {@null}; otherwise, {@code false}
+     * @return {@code true} if the value of the note is {@code null}; otherwise, {@code false}
      */
     public boolean isNull() {
         return value == null;
