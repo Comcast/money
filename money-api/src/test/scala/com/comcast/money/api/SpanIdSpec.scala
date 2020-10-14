@@ -93,6 +93,30 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
       SpanId.getInvalid.isValid shouldBe false
     }
 
+    "returns traceId as hex" in {
+      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L)
+
+      spanId.traceIdAsHex shouldBe "01234567890abcdef01234567890abcd"
+    }
+
+    "returns traceId as is when not in expected format" in {
+      val spanId = new SpanId("foo", 81985529216486895L, 81985529216486895L)
+
+      spanId.traceIdAsHex shouldBe "foo"
+    }
+
+    "returns span id as hex" in {
+      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L)
+
+      spanId.selfIdAsHex shouldBe "0123456789abcdef"
+    }
+
+    "returns parent span id as hex" in {
+      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L)
+
+      spanId.parentIdAsHex shouldBe "0123456789abcdef"
+    }
+
     "returns SpanContext from span id" in {
       val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L)
       val spanContext = spanId.toSpanContext

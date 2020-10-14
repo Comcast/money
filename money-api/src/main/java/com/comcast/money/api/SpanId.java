@@ -20,6 +20,8 @@ import java.nio.ByteBuffer;
 import java.util.Locale;
 import java.util.Random;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import io.opentelemetry.trace.SpanContext;
 import io.opentelemetry.trace.TraceFlags;
@@ -34,6 +36,7 @@ public class SpanId {
     private static final String STRING_FORMAT = "SpanId~%s~%s~%s";
     private static final String INVALID_TRACE_ID = "00000000-0000-0000-0000-000000000000";
     private static final SpanId INVALID_SPAN_ID = new SpanId(INVALID_TRACE_ID, 0, 0);
+    private static final Pattern TRACE_ID_PATTERN = Pattern.compile("^([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{4})-([0-9a-f]{12})$", Pattern.CASE_INSENSITIVE);
 
     private final String traceId;
     private final long parentId;
@@ -88,6 +91,15 @@ public class SpanId {
         return traceId;
     }
 
+    public String traceIdAsHex() {
+        Matcher matcher = TRACE_ID_PATTERN.matcher(traceId);
+        if (matcher.matches()) {
+            return matcher.replaceFirst("$1$2$3$4$5")
+                    .toLowerCase(Locale.US);
+        }
+        return traceId;
+    }
+
     /**
      * @return the parent span ID, which will be the same as the span ID in the case of a root span
      */
@@ -95,11 +107,19 @@ public class SpanId {
         return parentId;
     }
 
+    public String parentIdAsHex() {
+        return io.opentelemetry.trace.SpanId.fromLong(parentId);
+    }
+
     /**
      * @return the span ID
      */
     public long selfId() {
         return selfId;
+    }
+
+    public String selfIdAsHex() {
+        return io.opentelemetry.trace.SpanId.fromLong(selfId);
     }
 
     /**
@@ -140,10 +160,7 @@ public class SpanId {
      * @return the span ID as an OpenTelemetry {@link SpanContext} with the specified trace flags and trace state.
      */
     public SpanContext toSpanContext(byte traceFlags, TraceState traceState) {
-        String traceIdAsHex = traceId.replace("-", "")
-                .toLowerCase(Locale.US);
-        String spanIdAsHex = io.opentelemetry.trace.SpanId.fromLong(selfId);
-        return SpanContext.create(traceIdAsHex, spanIdAsHex, traceFlags, traceState);
+        return SpanContext.create(traceIdAsHex(), selfIdAsHex(), traceFlags, traceState);
     }
 
     /**
