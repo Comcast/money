@@ -170,7 +170,7 @@ def aspectjProjectSettings = projectSettings ++ Seq(
 
 def basicSettings =  Defaults.itSettings ++ Seq(
   organization := "com.comcast.money",
-  version := "0.10.9.1-SNAPSHOT",
+  version := "0.10.0-SNAPSHOT",
   scalaVersion := "2.12.12",
   crossScalaVersions := List("2.13.3", "2.12.12"),
   resolvers ++= Seq(
