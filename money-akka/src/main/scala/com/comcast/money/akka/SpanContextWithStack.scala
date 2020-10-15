@@ -20,6 +20,7 @@ import com.comcast.money.api.Span
 import com.comcast.money.core.internal.SpanContext
 import io.grpc.Context
 import io.opentelemetry.context.Scope
+import org.slf4j.{ Logger, LoggerFactory }
 
 /**
  * A [[SpanContext]] that carries with it a stack of [[Span]] enables explicitly passing of the [[SpanContext]].
@@ -31,6 +32,14 @@ import io.opentelemetry.context.Scope
  * DO NOT DIRECTLY MUTATE THE STACK IF YOU WANT THE SPAN TO BE CORRECTLY TRACKED
  *
  */
+
+private[akka] object SpanContextWithStack {
+  private val log: Logger = LoggerFactory.getLogger(classOf[SpanContextWithStack])
+
+  def logSpanMismatch(expected: Span, actual: Span): Unit = {
+    log.error("Unexpected span scope being closed.  Expected={} Actual={}", expected, actual, new Throwable().fillInStackTrace())
+  }
+}
 
 class SpanContextWithStack() extends SpanContext {
   /**
@@ -82,8 +91,25 @@ class SpanContextWithStack() extends SpanContext {
    */
 
   override def push(span: Span): Scope = {
-    stack = span :: stack
-    () => stack = stack.drop(1)
+    import com.comcast.money.akka.SpanContextWithStack.logSpanMismatch
+
+    // capture the previous stack of spans
+    val previousStack = stack
+    // push the new span to the head of the stack
+    stack = span :: previousStack
+
+    () => stack match {
+      // happy path, the remaining stack of spans matches the captured stack of spans
+      case _ :: rest if rest == previousStack =>
+        stack = rest
+      // unbalanced state, log the expected/actual head span and restore the stack to the captured stack of spans
+      case head :: _ =>
+        logSpanMismatch(span, head)
+        stack = previousStack
+      // unbalanced state, log the expected head span and leave the stack of spans empty
+      case Nil =>
+        logSpanMismatch(span, null)
+    }
   }
 
   /**
