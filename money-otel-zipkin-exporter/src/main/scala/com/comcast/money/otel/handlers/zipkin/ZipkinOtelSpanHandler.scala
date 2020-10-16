@@ -23,13 +23,19 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
 import zipkin2.codec.SpanBytesEncoder
 
 class ZipkinOtelSpanHandler extends OtelSpanHandler {
-  override def createSpanExporter(config: Config): SpanExporter = {
-    var builder = ZipkinSpanExporter.newBuilder()
+  override protected def createSpanExporter(config: Config): SpanExporter = {
+    val builder = ZipkinSpanExporter.newBuilder()
 
-    val encoderKey = "encoder"
-    val endpointKey = "endpoint"
     val serviceNameKey = "service-name"
+    val endpointKey = "endpoint"
+    val encoderKey = "encoder"
 
+    if (config.hasPath(serviceNameKey)) {
+      builder.setServiceName(config.getString(serviceNameKey))
+    }
+    if (config.hasPath(endpointKey)) {
+      builder.setEndpoint(config.getString(endpointKey))
+    }
     if (config.hasPath(encoderKey)) {
       val encoder = config.getString(encoderKey) match {
         case "json-v1" => SpanBytesEncoder.JSON_V1
@@ -37,13 +43,7 @@ class ZipkinOtelSpanHandler extends OtelSpanHandler {
         case "json-v2" => SpanBytesEncoder.JSON_V2
         case "proto3" => SpanBytesEncoder.PROTO3
       }
-      builder = builder.setEncoder(encoder)
-    }
-    if (config.hasPath(endpointKey)) {
-      builder = builder.setEndpoint(config.getString(endpointKey))
-    }
-    if (config.hasPath(serviceNameKey)) {
-      builder = builder.setServiceName(config.getString(serviceNameKey))
+      builder.setEncoder(encoder)
     }
 
     builder.build()

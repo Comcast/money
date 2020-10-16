@@ -22,21 +22,21 @@ import io.opentelemetry.exporters.jaeger.JaegerGrpcSpanExporter
 import io.opentelemetry.sdk.trace.`export`.SpanExporter
 
 class JaegerOtelSpanHandler extends OtelSpanHandler {
-  override def createSpanExporter(config: Config): SpanExporter = {
-    var builder = JaegerGrpcSpanExporter.newBuilder()
+  override protected def createSpanExporter(config: Config): SpanExporter = {
+    val builder = JaegerGrpcSpanExporter.newBuilder()
 
-    val deadlineMillisKey = "deadline-ms"
-    val endpointKey = "endpoint"
     val serviceNameKey = "service-name"
+    val endpointKey = "endpoint"
+    val deadlineMillisKey = "deadline-ms"
 
-    if (config.hasPath(deadlineMillisKey)) {
-      builder = builder.setDeadlineMs(config.getLong(deadlineMillisKey))
+    if (config.hasPath(serviceNameKey)) {
+      builder.setServiceName(config.getString(serviceNameKey))
     }
     if (config.hasPath(endpointKey)) {
-      builder = builder.setEndpoint(config.getString(endpointKey))
+      builder.setEndpoint(config.getString(endpointKey))
     }
-    if (config.hasPath(serviceNameKey)) {
-      builder = builder.setServiceName(config.getString(serviceNameKey))
+    if (config.hasPath(deadlineMillisKey)) {
+      builder.setDeadlineMs(config.getLong(deadlineMillisKey))
     }
 
     builder.build()

@@ -45,7 +45,7 @@ abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
     processor = createSpanProcessor(spanExporter, config)
   }
 
-  def createSpanProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
+  protected def createSpanProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
     val batch = config.hasPath("batch") && config.getBoolean("batch")
     if (batch) {
       configureBatchProcessor(spanExporter, config)
@@ -55,19 +55,19 @@ abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
   }
 
   private def configureSimpleProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
-    var builder = SimpleSpanProcessor.newBuilder(spanExporter)
+    val builder = SimpleSpanProcessor.newBuilder(spanExporter)
 
     val exportOnlySampledKey = "export-only-sampled"
 
     if (config.hasPath(exportOnlySampledKey)) {
-      builder = builder.setExportOnlySampled(config.getBoolean(exportOnlySampledKey))
+      builder.setExportOnlySampled(config.getBoolean(exportOnlySampledKey))
     }
 
     builder.build()
   }
 
   private def configureBatchProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
-    var builder = BatchSpanProcessor.newBuilder(spanExporter)
+    val builder = BatchSpanProcessor.newBuilder(spanExporter)
 
     val exportOnlySampledKey = "export-only-sampled"
     val exporterTimeoutMillisKey = "exporter-timeout-ms"
@@ -76,23 +76,23 @@ abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
     val scheduleDelayMillisKey = "schedule-delay-ms"
 
     if (config.hasPath(exportOnlySampledKey)) {
-      builder = builder.setExportOnlySampled(config.getBoolean(exportOnlySampledKey))
+      builder.setExportOnlySampled(config.getBoolean(exportOnlySampledKey))
     }
     if (config.hasPath(exporterTimeoutMillisKey)) {
-      builder = builder.setExporterTimeoutMillis(config.getInt(exporterTimeoutMillisKey))
+      builder.setExporterTimeoutMillis(config.getInt(exporterTimeoutMillisKey))
     }
     if (config.hasPath(maxExportBatchSizeKey)) {
-      builder = builder.setMaxExportBatchSize(config.getInt(maxExportBatchSizeKey))
+      builder.setMaxExportBatchSize(config.getInt(maxExportBatchSizeKey))
     }
     if (config.hasPath(maxQueueSizeKey)) {
-      builder = builder.setMaxQueueSize(config.getInt(maxQueueSizeKey))
+      builder.setMaxQueueSize(config.getInt(maxQueueSizeKey))
     }
     if (config.hasPath(scheduleDelayMillisKey)) {
-      builder = builder.setScheduleDelayMillis(config.getLong(scheduleDelayMillisKey))
+      builder.setScheduleDelayMillis(config.getLong(scheduleDelayMillisKey))
     }
 
     builder.build()
   }
 
-  def createSpanExporter(config: Config): SpanExporter
+  protected def createSpanExporter(config: Config): SpanExporter
 }
