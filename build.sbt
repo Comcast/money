@@ -18,7 +18,20 @@ lazy val money =
       publishLocal := {},
       publish := {}
     )
-    .aggregate(moneyApi, moneyAkka, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyWire, moneyKafka, moneySpring, moneyOtelHandler)
+    .aggregate(
+      moneyApi,
+      moneyAkka,
+      moneyCore,
+      moneyAspectj,
+      moneyHttpClient,
+      moneyJavaServlet,
+      moneyWire,
+      moneyKafka,
+      moneySpring,
+      moneyOtelHandler,
+      moneyOtelZipkinExporter,
+      moneyOtelJaegerExporter
+    )
 
 lazy val moneyApi =
   Project("money-api", file("./money-api"))
@@ -166,13 +179,47 @@ lazy val moneyOtelHandler =
           openTelemetryApi,
           openTelemetrySdk,
           junit,
-          junitInterface,
-          springTest,
-          springOckito
+          junitInterface
         ) ++ commonTestDependencies,
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
     )
     .dependsOn(moneyCore)
+
+lazy val moneyOtelZipkinExporter =
+  Project("money-otel-zipkin-exporter", file("./money-otel-zipkin-exporter"))
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          typesafeConfig,
+          openTelemetryApi,
+          openTelemetrySdk,
+          openTelemetryZipkinExporter,
+          junit,
+          junitInterface
+        ) ++ commonTestDependencies,
+      testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
+    )
+    .dependsOn(moneyCore, moneyOtelHandler)
+
+lazy val moneyOtelJaegerExporter =
+  Project("money-otel-jaeger-exporter", file("./money-otel-jaeger-exporter"))
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          typesafeConfig,
+          openTelemetryApi,
+          openTelemetrySdk,
+          openTelemetryJaegerExporter,
+          junit,
+          junitInterface
+        ) ++ commonTestDependencies,
+      testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
+    )
+    .dependsOn(moneyCore, moneyOtelHandler)
 
 def projectSettings = basicSettings ++ Seq(
   ScoverageKeys.coverageHighlighting := true,

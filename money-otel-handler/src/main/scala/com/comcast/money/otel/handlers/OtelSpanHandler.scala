@@ -57,10 +57,10 @@ abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
   private def configureSimpleProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
     var builder = SimpleSpanProcessor.newBuilder(spanExporter)
 
-    val exportOnlySampled = "export-only-sampled"
+    val exportOnlySampledKey = "export-only-sampled"
 
-    if (config.hasPath(exportOnlySampled)) {
-      builder = builder.setExportOnlySampled(config.getBoolean(exportOnlySampled))
+    if (config.hasPath(exportOnlySampledKey)) {
+      builder = builder.setExportOnlySampled(config.getBoolean(exportOnlySampledKey))
     }
 
     builder.build()
@@ -69,26 +69,26 @@ abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
   private def configureBatchProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
     var builder = BatchSpanProcessor.newBuilder(spanExporter)
 
-    val exportOnlySampled = "export-only-sampled"
-    val exporterTimeoutMillis = "exporter-timeout-ms"
-    val maxExportBatchSize = "max-batch-size"
-    val maxQueueSize = "max-queue-size"
-    val scheduleDelayMills = "schedule-delay-ms"
+    val exportOnlySampledKey = "export-only-sampled"
+    val exporterTimeoutMillisKey = "exporter-timeout-ms"
+    val maxExportBatchSizeKey = "max-batch-size"
+    val maxQueueSizeKey = "max-queue-size"
+    val scheduleDelayMillisKey = "schedule-delay-ms"
 
-    if (config.hasPath(exportOnlySampled)) {
-      builder = builder.setExportOnlySampled(config.getBoolean(exportOnlySampled))
+    if (config.hasPath(exportOnlySampledKey)) {
+      builder = builder.setExportOnlySampled(config.getBoolean(exportOnlySampledKey))
     }
-    if (config.hasPath(exporterTimeoutMillis)) {
-      builder = builder.setExporterTimeoutMillis(config.getInt(exporterTimeoutMillis))
+    if (config.hasPath(exporterTimeoutMillisKey)) {
+      builder = builder.setExporterTimeoutMillis(config.getInt(exporterTimeoutMillisKey))
     }
-    if (config.hasPath(maxExportBatchSize)) {
-      builder = builder.setMaxExportBatchSize(config.getInt(maxExportBatchSize))
+    if (config.hasPath(maxExportBatchSizeKey)) {
+      builder = builder.setMaxExportBatchSize(config.getInt(maxExportBatchSizeKey))
     }
-    if (config.hasPath(maxQueueSize)) {
-      builder = builder.setMaxQueueSize(config.getInt(maxQueueSize))
+    if (config.hasPath(maxQueueSizeKey)) {
+      builder = builder.setMaxQueueSize(config.getInt(maxQueueSizeKey))
     }
-    if (config.hasPath(scheduleDelayMills)) {
-      builder = builder.setScheduleDelayMillis(config.getLong(scheduleDelayMills))
+    if (config.hasPath(scheduleDelayMillisKey)) {
+      builder = builder.setScheduleDelayMillis(config.getLong(scheduleDelayMillisKey))
     }
 
     builder.build()
