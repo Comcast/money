@@ -29,7 +29,7 @@ object OtelSpanHandler {
 
 abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
 
-  var processor: SpanProcessor = NoopSpanProcessor
+  private[otel] var processor: SpanProcessor = NoopSpanProcessor
 
   /**
    * Handles a span that has been stopped.
@@ -41,18 +41,21 @@ abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
   }
 
   override def configure(config: Config): Unit = {
+    val spanExporter = createSpanExporter(config.atKey("exporter"))
+    processor = createSpanProcessor(spanExporter, config)
+  }
 
-    val exporterConfig = config.atKey("exporter")
+  def createSpanProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
     val batch = config.hasPath("batch") && config.getBoolean("batch")
-    processor = if (batch) {
-      configureBatchProcessor(config) { createExporter(exporterConfig) }
+    if (batch) {
+      configureBatchProcessor(spanExporter, config)
     } else {
-      configureSimpleProcessor(config) { createExporter(exporterConfig) }
+      configureSimpleProcessor(spanExporter, config)
     }
   }
 
-  private def configureSimpleProcessor(config: Config)(createExporter: => SpanExporter): SpanProcessor = {
-    var builder = SimpleSpanProcessor.newBuilder(createExporter)
+  private def configureSimpleProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
+    var builder = SimpleSpanProcessor.newBuilder(spanExporter)
 
     val exportOnlySampled = "export-only-sampled"
 
@@ -63,8 +66,8 @@ abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
     builder.build()
   }
 
-  private def configureBatchProcessor(config: Config)(createExporter: => SpanExporter): SpanProcessor = {
-    var builder = BatchSpanProcessor.newBuilder(createExporter)
+  private def configureBatchProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
+    var builder = BatchSpanProcessor.newBuilder(spanExporter)
 
     val exportOnlySampled = "export-only-sampled"
     val exporterTimeoutMillis = "exporter-timeout-ms"
@@ -91,5 +94,5 @@ abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
     builder.build()
   }
 
-  def createExporter(config: Config): SpanExporter
+  def createSpanExporter(config: Config): SpanExporter
 }
