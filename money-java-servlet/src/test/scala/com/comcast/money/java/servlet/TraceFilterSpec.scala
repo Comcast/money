@@ -17,11 +17,12 @@
 package com.comcast.money.java.servlet
 
 import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
-import javax.servlet.{ FilterChain, FilterConfig }
-import com.comcast.money.api.SpanId
+import javax.servlet.{ FilterChain, FilterConfig, ServletRequest, ServletResponse }
+import com.comcast.money.api.{ Span, SpanId }
 import com.comcast.money.core.internal.SpanLocal
 import com.comcast.money.core.Formatters.StringWithHexHeaderConversion
 import org.mockito.Mockito._
+import org.scalactic.source.Position
 import org.scalatest.OptionValues._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -36,19 +37,21 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
   val existingSpanId = new SpanId()
   val underTest = new TraceFilter()
   val MoneyTraceFormat = "trace-id=%s;parent-id=%s;span-id=%s"
-
-  before {
-    SpanLocal.clear()
-  }
+  val filterChain: FilterChain = (_: ServletRequest, _: ServletResponse) => capturedSpan = SpanLocal.current
+  var capturedSpan: Option[Span] = None
 
   def traceParentHeader(spanId: SpanId): String = {
     val traceId = spanId.traceId.replace("-", "").toLowerCase
     f"00-$traceId%s-${spanId.selfId}%016x-00"
   }
 
+  before {
+    capturedSpan = None
+  }
+
   "A TraceFilter" should {
     "clear the trace context when an http request arrives" in {
-      underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
+      underTest.doFilter(mockRequest, mockResponse, filterChain)
       SpanLocal.current shouldBe None
     }
 
@@ -60,15 +63,15 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
     "set the trace context to the money trace header if present" in {
       when(mockRequest.getHeader("X-MoneyTrace"))
         .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentId, existingSpanId.selfId))
-      underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-      SpanLocal.current.value.info.id shouldEqual existingSpanId
+      underTest.doFilter(mockRequest, mockResponse, filterChain)
+      capturedSpan.value.info.id shouldEqual existingSpanId
     }
 
     "set the trace context to the X-B3-TraceId header if present" in {
       when(mockRequest.getHeader("X-B3-TraceId"))
         .thenReturn(existingSpanId.traceId.fromGuid)
-      underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-      SpanLocal.current.value.info.id.traceId() shouldEqual existingSpanId.traceId()
+      underTest.doFilter(mockRequest, mockResponse, filterChain)
+      capturedSpan.value.info.id.traceId() shouldEqual existingSpanId.traceId()
     }
 
     "set the trace context to the X-B3-TraceId and X-B3-ParentSpanId headers if present" in {
@@ -77,9 +80,9 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
       when(mockRequest.getHeader("X-B3-ParentSpanId"))
         .thenReturn(existingSpanId.parentId.toHexString)
 
-      underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
+      underTest.doFilter(mockRequest, mockResponse, filterChain)
 
-      val actualSpanId = SpanLocal.current.value.info.id
+      val actualSpanId = capturedSpan.value.info.id
       actualSpanId.traceId() shouldEqual existingSpanId.traceId()
       actualSpanId.parentId() shouldEqual existingSpanId.parentId()
     }
@@ -91,16 +94,16 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
         .thenReturn(existingSpanId.parentId.toHexString)
       when(mockRequest.getHeader("X-B3-SpanId"))
         .thenReturn(existingSpanId.selfId.toHexString)
-      underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-      SpanLocal.current.value.info.id shouldEqual existingSpanId
+      underTest.doFilter(mockRequest, mockResponse, filterChain)
+      capturedSpan.value.info.id shouldEqual existingSpanId
     }
 
     "set the trace context to the traceparent header if present" in {
       when(mockRequest.getHeader("traceparent"))
         .thenReturn(traceParentHeader(existingSpanId))
-      underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
+      underTest.doFilter(mockRequest, mockResponse, filterChain)
 
-      val actualSpanId = SpanLocal.current.value.info.id
+      val actualSpanId = capturedSpan.value.info.id
       actualSpanId.traceId shouldEqual existingSpanId.traceId
       actualSpanId.parentId shouldEqual existingSpanId.selfId
     }
@@ -110,8 +113,8 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
         .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentId, existingSpanId.selfId))
       when(mockRequest.getHeader("X-B3-TraceId"))
         .thenReturn("1234567")
-      underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-      SpanLocal.current.value.info.id shouldEqual existingSpanId
+      underTest.doFilter(mockRequest, mockResponse, filterChain)
+      capturedSpan.value.info.id shouldEqual existingSpanId
     }
 
     "prefer the money trace header over the W3C Trace Context header" in {
@@ -119,8 +122,8 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
         .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentId, existingSpanId.selfId))
       when(mockRequest.getHeader("traceparent"))
         .thenReturn(traceParentHeader(new SpanId()))
-      underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-      SpanLocal.current.value.info.id shouldEqual existingSpanId
+      underTest.doFilter(mockRequest, mockResponse, filterChain)
+      capturedSpan.value.info.id shouldEqual existingSpanId
     }
 
     "prefer the X-B3 trace header over the W3C Trace Context header" in {
@@ -132,14 +135,14 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
         .thenReturn(existingSpanId.selfId.toHexString)
       when(mockRequest.getHeader("traceparent"))
         .thenReturn(traceParentHeader(new SpanId()))
-      underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-      SpanLocal.current.value.info.id shouldEqual existingSpanId
+      underTest.doFilter(mockRequest, mockResponse, filterChain)
+      capturedSpan.value.info.id shouldEqual existingSpanId
     }
 
     "not set the trace context if the money trace header could not be parsed" in {
       when(mockRequest.getHeader("X-MoneyTrace")).thenReturn("can't parse this")
-      underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-      SpanLocal.current shouldBe None
+      underTest.doFilter(mockRequest, mockResponse, filterChain)
+      capturedSpan shouldBe None
     }
 
     "not set the trace context if the X-B3-TraceId header is not present" in {
@@ -147,8 +150,8 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
         .thenReturn(existingSpanId.parentId.toHexString)
       when(mockRequest.getHeader("X-B3-SpanId"))
         .thenReturn(existingSpanId.selfId.toHexString)
-      underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-      SpanLocal.current shouldBe None
+      underTest.doFilter(mockRequest, mockResponse, filterChain)
+      capturedSpan shouldBe None
     }
 
     "not set the trace context if the X-B3-ParentSpanId header cannot be parsed" in {
@@ -158,8 +161,8 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
         .thenReturn("This is not a hex number")
       when(mockRequest.getHeader("X-B3-SpanId"))
         .thenReturn(existingSpanId.selfId.toHexString)
-      underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-      SpanLocal.current shouldBe None
+      underTest.doFilter(mockRequest, mockResponse, filterChain)
+      capturedSpan shouldBe None
     }
 
     "not set the trace context if the X-B3-SpanId header cannot be parsed" in {
@@ -169,8 +172,8 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
         .thenReturn(existingSpanId.parentId().toHexString)
       when(mockRequest.getHeader("X-B3-SpanId"))
         .thenReturn("This is not a hex number")
-      underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-      SpanLocal.current shouldBe None
+      underTest.doFilter(mockRequest, mockResponse, filterChain)
+      capturedSpan shouldBe None
     }
 
     "set the X-B3-SpanId header if the X-B3-ParentSpanId header is not present" in {
@@ -178,9 +181,9 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
         .thenReturn(existingSpanId.traceId.fromGuid)
       when(mockRequest.getHeader("X-B3-SpanId"))
         .thenReturn(existingSpanId.selfId().toHexString)
-      underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
-      SpanLocal.current.value.info.id.traceId() shouldEqual existingSpanId.traceId()
-      SpanLocal.current.value.info.id.parentId() shouldEqual SpanLocal.current.value.info.id.selfId()
+      underTest.doFilter(mockRequest, mockResponse, filterChain)
+      capturedSpan.value.info.id.traceId() shouldEqual existingSpanId.traceId()
+      capturedSpan.value.info.id.parentId() shouldEqual capturedSpan.value.info.id.selfId()
     }
 
     "adds Money header to response" in {

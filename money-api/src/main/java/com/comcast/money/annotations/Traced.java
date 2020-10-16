@@ -57,7 +57,7 @@ public @interface Traced {
      *
      * @return The value that is to be the measurement key for the trace
      */
-    String value();
+    String value() default "";
 
     /**
      * Allows the developer to specify an array of exception types to ignore.  If any of these exceptions

@@ -21,11 +21,13 @@ import java.io.Closeable
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.{ SpecHelpers, Tracer, Formatters => CoreSpanId }
 import com.comcast.money.core.internal.SpanLocal
+import io.opentelemetry.context.Scope
 import org.apache.http.client.methods.{ CloseableHttpResponse, HttpUriRequest }
 import org.apache.http.client.{ HttpClient, ResponseHandler }
 import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.protocol.HttpContext
 import org.apache.http.{ HttpHost, HttpResponse, StatusLine }
+import org.mockito.Matchers.anyString
 import org.mockito.Mockito._
 import org.scalatest._
 import org.scalatest.matchers.should.Matchers
@@ -42,6 +44,7 @@ class TraceFriendlyHttpClientSpec extends AnyWordSpec with SpecHelpers
   val httpHost = new HttpHost("localhost")
   val httpContext = mock[HttpContext]
   val spanId = new SpanId()
+  val scope = mock[Scope]
 
   when(httpResponse.getStatusLine).thenReturn(statusLine)
   when(statusLine.getStatusCode).thenReturn(200)
@@ -57,6 +60,7 @@ class TraceFriendlyHttpClientSpec extends AnyWordSpec with SpecHelpers
 
   override def beforeEach(): Unit = {
     SpanLocal.push(testSpan(spanId))
+    when(underTest.tracer.startTimer(anyString())).thenReturn(scope)
   }
 
   // if you don't reset, then the verifies are going to be off
@@ -67,7 +71,7 @@ class TraceFriendlyHttpClientSpec extends AnyWordSpec with SpecHelpers
 
   def verifyTracing() = {
     verify(underTest.tracer).startTimer(HttpTraceConfig.HttpResponseTimeTraceKey)
-    verify(underTest.tracer).stopTimer(HttpTraceConfig.HttpResponseTimeTraceKey)
+    verify(scope).close()
     verify(underTest.tracer).record("http-response-code", 200L)
     verify(httpUriRequest).setHeader("X-MoneyTrace", s"trace-id=${spanId.traceId};parent-id=${spanId.parentId};span-id=${spanId.selfId}")
     verify(httpUriRequest).setHeader("X-B3-TraceId", spanId.traceId.replace("-", ""))

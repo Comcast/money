@@ -16,12 +16,23 @@
 
 package com.comcast.money.core
 
-import java.lang.Long
+import java.io.{ PrintWriter, StringWriter }
+import java.time.Instant
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 import com.comcast.money.api._
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
+import io.opentelemetry.trace.{ EndSpanOptions, SpanContext, Span => OtelSpan, StatusCanonicalCode, TraceFlags, TraceId, TraceState, SpanId => OtelSpanId }
+import io.opentelemetry.common
+import io.opentelemetry.common.{ AttributeKey, Attributes }
+import io.opentelemetry.context.Scope
+import io.opentelemetry.trace
+import io.opentelemetry.trace.attributes.SemanticAttributes
+
+import scala.collection.mutable.ListBuffer
 
 /**
  * A mutable implementation of the Span that also includes SpanInfo
@@ -30,67 +41,141 @@ import scala.collection.concurrent.TrieMap
  * @param name The name of the span
  * @param handler The [[SpanHandler]] responsible for processing the span once it is stopped
  */
-case class CoreSpan(
+private[core] case class CoreSpan(
   id: SpanId,
-  name: String,
+  var name: String,
+  var kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL,
+  clock: Clock = SystemClock,
   handler: SpanHandler) extends Span {
 
-  private var startTimeMillis: Long = 0L
-  private var startTimeMicros: Long = 0L
-  private var endTimeMillis: Long = 0L
-  private var endTimeMicros: Long = 0L
-  private var success: java.lang.Boolean = true
+  private var startTimeNanos: Long = 0
+  private var endTimeNanos: Long = 0
+  private var status: StatusCanonicalCode = StatusCanonicalCode.UNSET
+  private var description: String = _
 
   // use concurrent maps
   private val timers = new TrieMap[String, Long]()
   private val noted = new TrieMap[String, Note[_]]()
+  private val events = new ListBuffer[Event]()
+  private var scopes: List[Scope] = Nil
 
-  def start(): Unit = {
-    startTimeMillis = System.currentTimeMillis
-    startTimeMicros = System.nanoTime / 1000
+  override def start(): Scope = {
+    startTimeNanos = clock.now
+    () => stop()
   }
 
-  def stop(): Unit = stop(true)
+  override def start(startTimeSeconds: Long, nanoAdjustment: Int): Scope = {
+    startTimeNanos = TimeUnit.SECONDS.toNanos(startTimeSeconds) + nanoAdjustment
+    () => stop()
+  }
 
-  def stop(result: java.lang.Boolean): Unit = {
-    endTimeMillis = System.currentTimeMillis
-    endTimeMicros = System.nanoTime / 1000
-    this.success = result
+  override def stop(): Unit = stop(clock.now, StatusCanonicalCode.UNSET)
+  override def stop(result: java.lang.Boolean): Unit =
+    if (result == null) {
+      stop(clock.now, StatusCanonicalCode.UNSET)
+    } else {
+      stop(clock.now, if (result) StatusCanonicalCode.OK else StatusCanonicalCode.ERROR)
+    }
+
+  private def stop(endTimeNanos: Long, status: StatusCanonicalCode): Unit = {
+    this.endTimeNanos = endTimeNanos
 
     // process any hanging timers
     val openTimers = timers.keys
     openTimers.foreach(stopTimer)
 
-    handler.handle(info)
+    scopes.foreach { _.close() }
+    scopes = Nil
+
+    this.status = (this.status, status) match {
+      case (StatusCanonicalCode.UNSET, StatusCanonicalCode.UNSET) => StatusCanonicalCode.OK
+      case (StatusCanonicalCode.UNSET, other) => other
+      case (other, StatusCanonicalCode.UNSET) => other
+      case (_, other) => other
+    }
+
+    handler.handle(info())
   }
 
-  def stopTimer(timerKey: String): Unit =
+  override def stopTimer(timerKey: String): Unit =
     timers.remove(timerKey) foreach {
       timerStartInstant =>
         record(Note.of(timerKey, System.nanoTime - timerStartInstant))
     }
 
-  def record(note: Note[_]): Unit = noted += note.name -> note
+  override def record(note: Note[_]): Unit = noted += note.name -> note
 
-  def startTimer(timerKey: String): Unit = timers += timerKey -> System.nanoTime
+  override def startTimer(timerKey: String): Scope = {
+    timers += timerKey -> System.nanoTime
+    () => stopTimer(timerKey)
+  }
 
-  def info(): SpanInfo =
+  override def attachScope(scope: Scope): Span = {
+    scopes = scope :: scopes
+    this
+  }
+
+  override def info(): SpanInfo =
     CoreSpanInfo(
-      id,
-      name,
-      startTimeMillis,
-      startTimeMicros,
-      endTimeMillis,
-      endTimeMicros,
-      calculateDuration,
-      success,
-      noted.toMap[String, Note[_]].asJava)
+      id = id,
+      name = name,
+      kind = kind,
+      startTimeNanos = startTimeNanos,
+      endTimeNanos = endTimeNanos,
+      durationNanos = calculateDurationNanos,
+      status = status,
+      description = description,
+      notes = noted.toMap[String, Note[_]].asJava,
+      events = events.asJava)
 
-  private def calculateDuration: Long =
-    if (endTimeMicros <= 0L && startTimeMicros <= 0L)
+  override def close(): Unit = stop()
+
+  override def setAttribute(attributeName: String, value: String): Unit = record(Note.of(attributeName, value))
+  override def setAttribute(attributeName: String, value: scala.Long): Unit = record(Note.of(attributeName, value))
+  override def setAttribute(attributeName: String, value: Double): Unit = record(Note.of(attributeName, value))
+  override def setAttribute(attributeName: String, value: Boolean): Unit = record(Note.of(attributeName, value))
+  override def setAttribute[T](key: AttributeKey[T], value: T): Unit = record(Note.of(key, value))
+
+  override def addEvent(eventName: String): Unit = addEventInternal(createEvent(eventName))
+  override def addEvent(eventName: String, timestampNanos: scala.Long): Unit = addEventInternal(createEvent(eventName, Attributes.empty(), timestampNanos))
+  override def addEvent(eventName: String, eventAttributes: Attributes): Unit = addEventInternal(createEvent(eventName, eventAttributes))
+  override def addEvent(eventName: String, eventAttributes: Attributes, timestampNanos: scala.Long): Unit = addEventInternal(createEvent(eventName, eventAttributes, timestampNanos))
+
+  private def addEventInternal(event: Event): Unit = events += event
+
+  private def createEvent(
+    eventName: String,
+    eventAttributes: Attributes = Attributes.empty,
+    timestampNanos: Long = clock.now,
+    exception: Throwable = null): Event =
+    CoreEvent(eventName, eventAttributes, timestampNanos, exception)
+
+  override def recordException(exception: Throwable): Unit = recordException(exception, Attributes.empty())
+  override def recordException(exception: Throwable, eventAttributes: Attributes): Unit =
+    addEventInternal(createEvent(SemanticAttributes.EXCEPTION_EVENT_NAME, eventAttributes, clock.now, exception))
+
+  override def setStatus(canonicalCode: StatusCanonicalCode): Unit = this.status = canonicalCode
+
+  override def setStatus(canonicalCode: StatusCanonicalCode, description: String): Unit = {
+    this.status = canonicalCode
+    this.description = description
+  }
+
+  override def updateName(spanName: String): Unit = name = spanName
+  override def updateKind(spanKind: OtelSpan.Kind): Unit = kind = spanKind
+
+  override def end(): Unit = stop()
+  override def end(endSpanOptions: EndSpanOptions): Unit = stop(endSpanOptions.getEndTimestamp, StatusCanonicalCode.UNSET)
+
+  override def getContext: SpanContext = id.toSpanContext
+
+  override def isRecording: Boolean = startTimeNanos > 0 && endTimeNanos <= 0
+
+  private def calculateDurationNanos: Long =
+    if (endTimeNanos <= 0L && startTimeNanos <= 0L)
       0L
-    else if (endTimeMicros <= 0L)
-      (System.nanoTime() / 1000) - startTimeMicros
+    else if (endTimeNanos <= 0L)
+      clock.now - startTimeNanos
     else
-      endTimeMicros - startTimeMicros
+      endTimeNanos - startTimeNanos
 }

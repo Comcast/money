@@ -18,6 +18,9 @@ package com.comcast.money.akka
 
 import com.comcast.money.api.Span
 import com.comcast.money.core.internal.SpanContext
+import io.grpc.Context
+import io.opentelemetry.context.Scope
+import org.slf4j.{ Logger, LoggerFactory }
 
 /**
  * A [[SpanContext]] that carries with it a stack of [[Span]] enables explicitly passing of the [[SpanContext]].
@@ -30,12 +33,20 @@ import com.comcast.money.core.internal.SpanContext
  *
  */
 
+private[akka] object SpanContextWithStack {
+  private val log: Logger = LoggerFactory.getLogger(classOf[SpanContextWithStack])
+
+  def logSpanMismatch(expected: Span, actual: Span): Unit = {
+    log.error("Unexpected span scope being closed.  Expected={} Actual={}", expected, actual, new Throwable().fillInStackTrace())
+  }
+}
+
 class SpanContextWithStack() extends SpanContext {
   /**
    * stack is a mutable [[List]] of Spans.
    */
 
-  private var stack: List[Span] = List.empty[Span]
+  private var stack: List[Span] = Nil
 
   /**
    * Returns a fresh copy of this [[SpanContextWithStack]].
@@ -79,28 +90,27 @@ class SpanContextWithStack() extends SpanContext {
    * @param span the [[Span]] to be prepended
    */
 
-  override def push(span: Span): Unit = stack = span :: stack
+  override def push(span: Span): Scope = {
+    import com.comcast.money.akka.SpanContextWithStack.logSpanMismatch
 
-  /**
-   * CAUTION THIS METHOD WILL NOT TRACK THE SPAN
-   *
-   * Returns the last element inserted and removes it
-   *
-   * [[Some]] when Stack has at least one element
-   *
-   * [[None]] when Stack is empty
-   *
-   * @return Option[Span]
-   */
+    // capture the previous stack of spans
+    val previousStack = stack
+    // push the new span to the head of the stack
+    stack = span :: previousStack
 
-  override def pop(): Option[Span] =
-    stack.headOption match {
-      case someSpan: Some[Span] =>
-        stack = stack.tail
-        someSpan
-
-      case None => None
+    () => stack match {
+      // happy path, the remaining stack of spans matches the captured stack of spans
+      case _ :: rest if rest == previousStack =>
+        stack = rest
+      // unbalanced state, log the expected/actual head span and restore the stack to the captured stack of spans
+      case head :: _ =>
+        logSpanMismatch(span, head)
+        stack = previousStack
+      // unbalanced state, log the expected head span and leave the stack of spans empty
+      case Nil =>
+        logSpanMismatch(span, null)
     }
+  }
 
   /**
    * Returns the last element inserted
@@ -114,13 +124,5 @@ class SpanContextWithStack() extends SpanContext {
 
   override def current: Option[Span] = stack.headOption
 
-  /**
-   * CAUTION THIS WILL CAUSE ALL THE STARTED SPANS TO NOT BE STOPPED
-   *
-   * Returns Unit
-   *
-   * empties the Stack of all spans
-   */
-
-  override def clear(): Unit = stack = List.empty[Span]
+  override def fromContext(context: Context): Option[Span] = current
 }

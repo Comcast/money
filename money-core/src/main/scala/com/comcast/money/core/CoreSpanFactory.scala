@@ -16,16 +16,18 @@
 
 package com.comcast.money.core
 
+import java.util.function
+
 import com.comcast.money.api.{ Span, SpanFactory, SpanHandler, SpanId }
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
-class CoreSpanFactory(handler: SpanHandler) extends SpanFactory {
+private[core] class CoreSpanFactory(clock: Clock, handler: SpanHandler) extends SpanFactory {
 
   private val logger = LoggerFactory.getLogger(classOf[CoreSpanFactory])
 
-  def newSpan(spanName: String): Span = newSpan(new SpanId(), spanName)
+  override def newSpan(spanName: String): Span = newSpan(new SpanId(), spanName)
 
   /**
    * Continues a trace by creating a child span from the given x-moneytrace header
@@ -36,18 +38,17 @@ class CoreSpanFactory(handler: SpanHandler) extends SpanFactory {
    * @return a child span with trace id and parent id from trace context header or a new root span if the
    * traceContextHeader is malformed.
    */
-  def newSpanFromHeader(childName: String, getHeader: String => String): Span =
-    Formatters.fromHttpHeaders(getHeader, logger.warn) match {
+  override def newSpanFromHeader(childName: String, getHeader: function.Function[String, String]): Span =
+    Formatters.fromHttpHeaders(getHeader.apply, logger.warn) match {
       case Some(spanId) => newSpan(new SpanId(spanId.traceId, spanId.parentId), childName)
-      case None => {
+      case None =>
         logger.warn(s"creating root span because http header '${getHeader}' was malformed")
         newSpan(childName)
-      }
     }
 
-  def childSpan(childName: String, span: Span): Span = childSpan(childName, span, true)
+  override def childSpan(childName: String, span: Span): Span = childSpan(childName, span, sticky = true)
 
-  def childSpan(childName: String, span: Span, sticky: Boolean): Span = {
+  override def childSpan(childName: String, span: Span, sticky: Boolean): Span = {
     val info = span.info
     val child = newSpan(info.id.newChildId, childName)
 
@@ -64,5 +65,6 @@ class CoreSpanFactory(handler: SpanHandler) extends SpanFactory {
     CoreSpan(
       id = spanId,
       name = spanName,
+      clock = clock,
       handler = handler)
 }

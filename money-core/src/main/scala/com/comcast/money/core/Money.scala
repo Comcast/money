@@ -17,6 +17,7 @@
 package com.comcast.money.core
 
 import java.net.InetAddress
+import java.util.concurrent.TimeUnit
 
 import com.comcast.money.api.{ SpanFactory, SpanHandler }
 import com.comcast.money.core.async.{ AsyncNotificationHandler, AsyncNotifier }
@@ -36,7 +37,7 @@ case class Money(
 
 object Money {
 
-  lazy val Environment = apply(ConfigFactory.load().getConfig("money"))
+  lazy val Environment: Money = apply(ConfigFactory.load().getConfig("money"))
 
   def apply(conf: Config): Money = {
     val applicationName = conf.getString("application-name")
@@ -45,7 +46,8 @@ object Money {
 
     if (enabled) {
       val handler = HandlerChain(conf.getConfig("handling"))
-      val factory: SpanFactory = new CoreSpanFactory(handler)
+      val clock = new NanoClock(SystemClock, TimeUnit.MILLISECONDS.toNanos(50L))
+      val factory: SpanFactory = new CoreSpanFactory(clock, handler)
       val tracer = new Tracer {
         override val spanFactory: SpanFactory = factory
       }
@@ -56,7 +58,6 @@ object Money {
     } else {
       disabled(applicationName, hostName)
     }
-
   }
 
   private def disabled(applicationName: String, hostName: String): Money =

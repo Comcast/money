@@ -16,18 +16,32 @@
 
 package com.comcast.money.api;
 
+import io.grpc.Context;
+import io.opentelemetry.common.AttributeKey;
+import io.opentelemetry.common.Attributes;
+import io.opentelemetry.context.Scope;
+import io.opentelemetry.trace.SpanContext;
+import scala.Option;
+
 /**
  * A Span is a container that represents a unit of work.  It could be a long running operation or sequence of
  * statements in process, or a remote system call.
  *
  * A Span is immutable, all changes to the span result in a new Span being created.
  */
-public interface Span {
+public interface Span extends io.opentelemetry.trace.Span, Scope {
 
     /**
      * Signals the span that it has started
      */
-    void start();
+    Scope start();
+
+    /**
+     * Signals the span that it has started at the specified timestamp
+     * @param startTimeSeconds the seconds since the epoch
+     * @param nanoAdjustment the additional nanoseconds from {@code startTimeSeconds}
+     */
+    Scope start(long startTimeSeconds, int nanoAdjustment);
 
     /**
      * Stops the span asserts a successful result
@@ -50,7 +64,7 @@ public interface Span {
      * Starts a new timer on the span
      * @param timerKey The name of the timer to start
      */
-    void startTimer(String timerKey);
+    Scope startTimer(String timerKey);
 
     /**
      * Stops an existing timer on the span
@@ -59,7 +73,114 @@ public interface Span {
     void stopTimer(String timerKey);
 
     /**
+     * Updates the kind of the span
+     */
+    void updateKind(io.opentelemetry.trace.Span.Kind kind);
+
+    /**
+     * Attaches a {@link Scope} to the span which will be closed when the span is stopped
+     */
+    Span attachScope(Scope scope);
+
+    /**
      * @return The current state of the Span
      */
     SpanInfo info();
+
+    /**
+     * A builder used to construct {@link Span} instances.
+     */
+    interface Builder extends io.opentelemetry.trace.Span.Builder {
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        Builder setParent(Context context);
+
+        /**
+         * Sets the parent span to the specified span
+         */
+        Builder setParent(Span span);
+
+        /**
+         * Sets the parent span to the specified span
+         */
+        Builder setParent(Option<Span> span);
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        Builder setNoParent();
+
+        /**
+         * Sets whether or not the parent span notes are to be propagated to the created span
+         */
+        Builder setSticky(boolean sticky);
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        Builder addLink(SpanContext spanContext);
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        Builder addLink(SpanContext spanContext, Attributes attributes);
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        Builder setAttribute(String key, String value);
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        Builder setAttribute(String key, long value);
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        Builder setAttribute(String key, double value);
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        Builder setAttribute(String key, boolean value);
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        <T> Builder setAttribute(AttributeKey<T> key, T value);
+
+        /**
+         * Records the note on the created span
+         */
+        Builder record(Note<?> note);
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        Builder setSpanKind(Kind spanKind);
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        Builder setStartTimestamp(long startTimestampNanos);
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        Span startSpan();
+    }
 }

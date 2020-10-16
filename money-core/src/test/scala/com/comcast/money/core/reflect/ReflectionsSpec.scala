@@ -164,12 +164,12 @@ class ReflectionsSpec extends AnyWordSpec with Matchers with MockitoSugar with O
   "Recording traced parameter values" should {
     "record nothing when method is called with no arguments" in {
       val args: Array[AnyRef] = Array.empty
-      testReflections.recordTracedParameters(methodWithoutArguments, args, mockTracer)
+      testReflections.recordTracedParameters(methodWithoutArguments, args, mockTracer.record)
       verifyZeroInteractions(mockTracer)
     }
     "record traced data parameters" in {
       val args: Array[AnyRef] = Array("str", Long.box(100L), Double.box(3.14), Boolean.box(true), Double.box(2.22))
-      testReflections.recordTracedParameters(methodWithTracedData, args, mockTracer)
+      testReflections.recordTracedParameters(methodWithTracedData, args, mockTracer.record)
 
       val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
       verify(mockTracer, times(4)).record(noteCaptor.capture())
@@ -197,7 +197,7 @@ class ReflectionsSpec extends AnyWordSpec with Matchers with MockitoSugar with O
     }
     "record null for traced data parameters that are null" in {
       val args: Array[AnyRef] = Array(null, null, null, null, Double.box(3.14))
-      testReflections.recordTracedParameters(methodWithTracedData, args, mockTracer)
+      testReflections.recordTracedParameters(methodWithTracedData, args, mockTracer.record)
 
       val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
       verify(mockTracer, times(4)).record(noteCaptor.capture())
@@ -225,7 +225,7 @@ class ReflectionsSpec extends AnyWordSpec with Matchers with MockitoSugar with O
     }
     "record with propagate traced parameters flagged with propagate" in {
       val args: Array[AnyRef] = Array("str")
-      testReflections.recordTracedParameters(methodWithTracedDataPropagate, args, mockTracer)
+      testReflections.recordTracedParameters(methodWithTracedDataPropagate, args, mockTracer.record)
 
       val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
       verify(mockTracer, times(1)).record(noteCaptor.capture())
@@ -237,7 +237,7 @@ class ReflectionsSpec extends AnyWordSpec with Matchers with MockitoSugar with O
     }
     "propagate even on null values" in {
       val args: Array[AnyRef] = Array(null)
-      testReflections.recordTracedParameters(methodWithTracedDataPropagate, args, mockTracer)
+      testReflections.recordTracedParameters(methodWithTracedDataPropagate, args, mockTracer.record)
 
       val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
       verify(mockTracer, times(1)).record(noteCaptor.capture())

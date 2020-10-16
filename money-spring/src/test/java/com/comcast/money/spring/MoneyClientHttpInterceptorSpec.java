@@ -16,13 +16,14 @@
 
 package com.comcast.money.spring;
 
-import com.comcast.money.api.Note;
 import com.comcast.money.api.Span;
 import com.comcast.money.api.SpanId;
 import com.comcast.money.api.SpanInfo;
 import com.comcast.money.core.CoreSpanInfo;
 import com.comcast.money.core.internal.SpanLocal;
 
+import io.opentelemetry.context.Scope;
+import io.opentelemetry.trace.StatusCanonicalCode;
 import org.apache.commons.lang.math.RandomUtils;
 import org.junit.After;
 import org.junit.Assert;
@@ -31,7 +32,8 @@ import org.junit.Test;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
-import java.util.HashMap;
+
+import java.util.Collections;
 import java.util.UUID;
 
 import static org.mockito.Mockito.*;
@@ -42,29 +44,32 @@ public class MoneyClientHttpInterceptorSpec {
     private final static long spanId = RandomUtils.nextLong();
     private final static long parentSpanId = RandomUtils.nextLong();
 
+    private Scope spanScope;
+
     @Before
     public void setUp() {
         Span span = mock(Span.class);
         SpanInfo testSpanInfo = new CoreSpanInfo(
                 new SpanId(traceId, parentSpanId, spanId),
                 "testName",
+                io.opentelemetry.trace.Span.Kind.INTERNAL,
                 0L,
                 0L,
                 0L,
-                0L,
-                0L,
-                Boolean.TRUE,
-                new HashMap<String, Note<?>>(),
+                StatusCanonicalCode.OK,
+                "",
+                Collections.emptyMap(),
+                Collections.emptyList(),
                 "testAppName",
                 "testHost");
 
         when(span.info()).thenReturn(testSpanInfo);
-        SpanLocal.push(span);
+        spanScope = SpanLocal.push(span);
     }
 
     @After
-    public void tearDown() {
-        SpanLocal.clear();
+    public void tearDown() throws Exception {
+        spanScope.close();
     }
 
     @Test

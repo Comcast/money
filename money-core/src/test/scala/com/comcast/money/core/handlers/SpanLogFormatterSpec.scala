@@ -19,6 +19,7 @@ package com.comcast.money.core.handlers
 import com.comcast.money.api.{ Note, SpanId }
 import com.comcast.money.core.CoreSpanInfo
 import com.typesafe.config.ConfigFactory
+import io.opentelemetry.trace.StatusCanonicalCode
 
 import scala.collection.JavaConverters._
 import scala.collection._
@@ -38,29 +39,25 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
 
   val sampleData = CoreSpanInfo(
     id = SpanId.fromString("SpanId~1~1~1"),
-    startTimeMillis = 1L,
-    startTimeMicros = 1L,
-    endTimeMillis = 26L,
-    endTimeMicros = 36L,
-    durationMicros = 35000L,
+    startTimeNanos = 1000000L,
+    endTimeNanos = 26000000L,
+    durationNanos = 35000000L,
     name = "key",
     appName = "unknown",
     host = "host",
     notes = Map[String, Note[_]]("bob" -> Note.of("bob", "craig"), "what" -> Note.of("what", 1L), "when" -> Note.of("when", 2L)).asJava,
-    success = true)
+    status = StatusCanonicalCode.OK)
 
   val withNull = CoreSpanInfo(
     id = SpanId.fromString("SpanId~1~1~1"),
-    startTimeMillis = 1L,
-    startTimeMicros = 1L,
-    endTimeMillis = 26L,
-    endTimeMicros = 36L,
-    durationMicros = 35000L,
+    startTimeNanos = 1000000L,
+    endTimeNanos = 26000000L,
+    durationNanos = 35000000L,
     name = "key",
     appName = "unknown",
     host = "host",
     notes = Map[String, Note[_]]("empty" -> Note.of("empty", null)).asJava,
-    success = true)
+    status = StatusCanonicalCode.OK)
 
   "A LogEmitter must" must {
     "have a correctly formatted message" in {

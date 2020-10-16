@@ -18,6 +18,7 @@ package com.comcast.money.core.concurrent
 
 import com.comcast.money.core.internal.{ MDCSupport, SpanLocal }
 import com.comcast.money.core.logging.TraceLogging
+import io.grpc.Context
 import org.slf4j.MDC
 
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
@@ -28,25 +29,20 @@ class TraceFriendlyExecutionContextExecutor(wrapped: ExecutionContext)
   lazy val mdcSupport = new MDCSupport()
 
   override def execute(task: Runnable): Unit = {
-    val inherited = SpanLocal.current
-    val submittingThreadsContext = MDC.getCopyOfContextMap
+    val context = Context.current()
+    val submittingThreadsContext = mdcSupport.getCopyOfMDC
 
     wrapped.execute(
-      new Runnable {
-        override def run = {
-          mdcSupport.propagateMDC(Option(submittingThreadsContext))
-          SpanLocal.clear()
-          inherited.foreach(SpanLocal.push)
-          try {
-            task.run
-          } catch {
-            case t: Throwable =>
-              logException(t)
-              throw t
-          } finally {
-            SpanLocal.clear()
-            MDC.clear()
-          }
+      () => {
+        mdcSupport.propagateMDC(submittingThreadsContext)
+        try {
+          context.run(task)
+        } catch {
+          case t: Throwable =>
+            logException(t)
+            throw t
+        } finally {
+          MDC.clear()
         }
       })
   }

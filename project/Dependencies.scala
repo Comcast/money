@@ -58,6 +58,8 @@ object Dependencies {
 
   val commonsIo = "commons-io" % "commons-io" % "2.4"
 
+  val openTelemetryApi = "io.opentelemetry" % "opentelemetry-api" % "0.9.1"
+
   // Spring
   val springWeb = ("org.springframework" % "spring-web" % "4.3.17.RELEASE")
   val springContext = ("org.springframework" % "spring-context" % "4.3.17.RELEASE")

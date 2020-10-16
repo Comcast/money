@@ -19,6 +19,7 @@ package com.comcast.money.core.logging
 import java.lang.reflect.Method
 
 import com.comcast.money.annotations.{ Timed, Traced }
+import com.comcast.money.api.Span
 import com.comcast.money.core.{ Money, Tracer }
 import com.comcast.money.core.async.AsyncNotifier
 import com.comcast.money.core.internal.{ MDCSupport, SpanContext, SpanLocal }
@@ -34,69 +35,95 @@ trait MethodTracer extends Reflections with TraceLogging {
   val spanContext: SpanContext = SpanLocal
 
   def traceMethod(method: Method, annotation: Traced, args: Array[AnyRef], proceed: () => AnyRef): AnyRef = {
-    val key = annotation.value()
 
-    tracer.startSpan(key)
-    recordTracedParameters(method, args, tracer)
+    val key = getKeyName(method, annotation.value)
+    val builder = tracer.spanBuilder(key);
+    recordTracedParameters(method, args, builder.record)
 
-    Try { proceed() } match {
-      case Success(result) if annotation.async() =>
-        traceAsyncResult(method, annotation, result) match {
-          case Some(future) =>
-            future
-          case None =>
-            tracer.stopSpan(true)
-            result
-        }
-      case Success(result) =>
-        tracer.stopSpan(true)
-        result
-      case Failure(exception) =>
-        logException(exception)
-        tracer.stopSpan(exceptionMatches(exception, annotation.ignoredExceptions()))
-        throw exception
+    val span = builder.startSpan()
+    val scope = tracer.withSpan(span)
+
+    try {
+      Try {
+        proceed()
+      } match {
+        case Success(result) if annotation.async() =>
+          traceAsyncResult(method, annotation, span, result) match {
+            case Some(future) =>
+              future
+            case None =>
+              span.stop(true)
+              result
+          }
+        case Success(result) =>
+          span.stop(true)
+          result
+        case Failure(exception) =>
+          logException(exception)
+          span.recordException(exception)
+          span.stop(exceptionMatches(exception, annotation.ignoredExceptions()))
+          throw exception
+      }
+    } finally {
+      scope.close()
     }
   }
 
   def timeMethod(method: Method, annotation: Timed, proceed: () => AnyRef): AnyRef = {
-    val key = annotation.value()
+    val key = getKeyName(method, annotation.value)
+    val scope = tracer.startTimer(key)
     try {
-      tracer.startTimer(key)
       proceed()
     } finally {
-      tracer.stopTimer(key)
+      scope.close()
     }
   }
+
+  def getKeyName(method: Method, value: String): String =
+    if (value.isEmpty) {
+      s"${method.getDeclaringClass.getSimpleName}.${method.getName}"
+    } else {
+      value
+    }
 
   def traceAsyncResult(
     method: Method,
     annotation: Traced,
+    span: Span,
     returnValue: AnyRef): Option[AnyRef] = for {
 
     // resolve an async notification handler that supports the result
     handler <- asyncNotifier.resolveHandler(method.getReturnType, returnValue)
 
-    // pop the current span from the stack as it will not be stopped by the tracer
-    span <- spanContext.pop()
     // capture the current MDC context to be applied on the callback thread
-    mdc = Option(MDC.getCopyOfContextMap)
+    mdc = mdcSupport.getCopyOfMDC
 
     result = handler.whenComplete(method.getReturnType, returnValue) { completed =>
       // reapply the MDC onto the callback thread
       mdcSupport.propagateMDC(mdc)
 
-      // determine if the future completed successfully or exceptionally
-      val result = completed match {
-        case Success(_) => true
-        case Failure(exception) =>
-          logException(exception)
-          exceptionMatches(exception, annotation.ignoredExceptions())
-      }
+      // apply the span onto the current thread context
+      val scope = tracer.withSpan(span)
 
-      // stop the captured span with the success/failure flag
-      span.stop(result)
-      // clear the MDC from the callback thread
-      MDC.clear()
+      try {
+        // determine if the future completed successfully or exceptionally
+        val result = completed match {
+          case Success(_) => true
+          case Failure(exception) =>
+            logException(exception)
+            span.recordException(exception)
+            exceptionMatches(exception, annotation.ignoredExceptions())
+        }
+
+        // stop the captured span with the success/failure flag
+        span.stop(result)
+      } finally {
+        // reset the current thread context
+        scope.close()
+
+        // clear the MDC from the callback thread
+        MDC.clear()
+      }
     }
   } yield result
 }

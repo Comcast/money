@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core
+package com.comcast.money.wire
 
 import java.util.Collections
 
 import com.comcast.money.api.{ Event, Note, SpanId, SpanInfo }
+import com.comcast.money.core.Money
 import io.opentelemetry.trace.{ Span, StatusCanonicalCode }
 
-private[core] case class CoreSpanInfo(
+case class TestSpanInfo(
   id: SpanId,
   name: String,
   kind: Span.Kind = Span.Kind.INTERNAL,

@@ -16,7 +16,7 @@
 
 package com.comcast.money.api;
 
-import scala.Function1;
+import java.util.function.Function;
 
 public interface SpanFactory {
 
@@ -33,7 +33,7 @@ public interface SpanFactory {
      * @return a child span with trace id and parent id from trace context header or a new root span if the
      * traceContextHeader is malformed.
      */
-    Span newSpanFromHeader(String childName, Function1<String,String> getHeader);
+    Span newSpanFromHeader(String childName, Function<String, String> getHeader);
 
     Span childSpan(String childName, Span span);
 

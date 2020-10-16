@@ -27,7 +27,7 @@ import org.scalatestplus.mockito.MockitoSugar
 class SpanLocalSpec extends AnyWordSpec
   with Matchers with OneInstancePerTest with BeforeAndAfterEach with MockitoSugar with TestData {
 
-  override def afterEach() = {
+  override def afterEach(): Unit = {
     SpanLocal.clear()
   }
 
@@ -58,17 +58,15 @@ class SpanLocalSpec extends AnyWordSpec
         SpanLocal.push(nested)
         SpanLocal.current shouldEqual Some(nested)
       }
-      "pop the last added item from the call stack" in {
+      "close the last added item from the call stack" in {
         val nested = testSpan.copy(new SpanId())
         SpanLocal.push(testSpan)
-        SpanLocal.push(nested)
+        val scope = SpanLocal.push(nested)
 
-        val popped = SpanLocal.pop()
-        popped shouldEqual Some(nested)
+        SpanLocal.current shouldEqual Some(nested)
+
+        scope.close()
         SpanLocal.current shouldEqual Some(testSpan)
-      }
-      "pop None with no span local value" in {
-        SpanLocal.pop() shouldEqual None
       }
       "set the MDC value on push" in {
         SpanLocal.push(testSpan)
@@ -76,21 +74,20 @@ class SpanLocalSpec extends AnyWordSpec
         MDC.get("moneyTrace") shouldEqual MDCSupport.format(testSpan.id)
         MDC.get("spanName") shouldEqual testSpan.name
       }
-      "remove the MDC value on pop" in {
-        SpanLocal.push(testSpan)
-        SpanLocal.pop()
+      "remove the MDC value on close" in {
+        SpanLocal.push(testSpan).close()
 
         MDC.get("moneyTrace") shouldBe null
         MDC.get("spanName") shouldBe null
       }
-      "reset the MDC value on pop" in {
+      "reset the MDC value on close" in {
         SpanLocal.push(testSpan)
-        SpanLocal.push(childSpan)
+        val scope = SpanLocal.push(childSpan)
 
         MDC.get("moneyTrace") shouldEqual MDCSupport.format(childSpan.id)
         MDC.get("spanName") shouldEqual childSpan.name
 
-        SpanLocal.pop()
+        scope.close()
 
         MDC.get("moneyTrace") shouldEqual MDCSupport.format(testSpan.id)
         MDC.get("spanName") shouldEqual testSpan.name

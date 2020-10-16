@@ -76,12 +76,12 @@ trait Reflections {
    * Records all traced parameters for the given method invocation and argument list
    * @param method The Method invocation
    * @param args The list of arguments being passed into the method
-   * @param tracer The tracer to use to record the notes
+   * @param record Function to record the notes to the span
    */
-  def recordTracedParameters(method: Method, args: Array[AnyRef], tracer: Tracer): Unit =
-    extractTracedDataValues(method, args).foreach(_.foreach(tracer.record))
+  def recordTracedParameters(method: Method, args: Array[AnyRef], record: Note[_] => Unit): Unit =
+    extractTracedDataValues(method, args).foreach(_.foreach(record))
 
-  def exceptionMatches(t: Throwable, exceptionList: Array[Class[_]]) =
+  def exceptionMatches(t: Throwable, exceptionList: Array[Class[_]]): Boolean =
     exceptionList.exists(isInstance(t))
 
   private def isInstance[T](t: Throwable): Class[_] => Boolean =

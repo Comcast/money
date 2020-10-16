@@ -16,6 +16,7 @@
 
 package com.comcast.money.api
 
+import io.opentelemetry.common.{ AttributeKey, AttributeType }
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -29,6 +30,8 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.stringKey("foo")
+      note.`type` shouldBe AttributeType.STRING
       note.value shouldBe "bar"
       note.timestamp should not be 0
     }
@@ -38,6 +41,8 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.longKey("foo")
+      note.`type` shouldBe AttributeType.LONG
       note.value shouldBe 1L
       note.timestamp should not be 0
     }
@@ -47,6 +52,8 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.doubleKey("foo")
+      note.`type` shouldBe AttributeType.DOUBLE
       note.value shouldBe 2.2
       note.timestamp should not be 0
     }
@@ -56,6 +63,8 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.booleanKey("foo")
+      note.`type` shouldBe AttributeType.BOOLEAN
       note.value shouldBe true
       note.timestamp should not be 0
     }
@@ -65,6 +74,8 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.stringKey("foo")
+      note.`type` shouldBe AttributeType.STRING
       note.value shouldBe "bar"
       note.timestamp should not be 0
     }
@@ -74,6 +85,8 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.longKey("foo")
+      note.`type` shouldBe AttributeType.LONG
       note.value shouldBe 1L
       note.timestamp should not be 0
     }
@@ -83,6 +96,8 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.doubleKey("foo")
+      note.`type` shouldBe AttributeType.DOUBLE
       note.value shouldBe 2.2
       note.timestamp should not be 0
     }
@@ -92,6 +107,8 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.booleanKey("foo")
+      note.`type` shouldBe AttributeType.BOOLEAN
       note.value shouldBe true
       note.timestamp should not be 0
     }
@@ -101,6 +118,8 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.stringKey("foo")
+      note.`type` shouldBe AttributeType.STRING
       note.value shouldBe "bar"
       note.timestamp shouldBe 1L
     }
@@ -110,6 +129,8 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.longKey("foo")
+      note.`type` shouldBe AttributeType.LONG
       note.value shouldBe 1L
       note.timestamp shouldBe 1L
     }
@@ -119,6 +140,8 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.doubleKey("foo")
+      note.`type` shouldBe AttributeType.DOUBLE
       note.value shouldBe 2.2
       note.timestamp shouldBe 1L
     }
@@ -128,6 +151,8 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe true
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.booleanKey("foo")
+      note.`type` shouldBe AttributeType.BOOLEAN
       note.value shouldBe true
       note.timestamp shouldBe 1L
     }
@@ -137,6 +162,8 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.stringKey("foo")
+      note.`type` shouldBe AttributeType.STRING
       note.value shouldBe "bar"
       note.timestamp shouldBe 1L
     }
@@ -146,6 +173,8 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.longKey("foo")
+      note.`type` shouldBe AttributeType.LONG
       note.value shouldBe 1L
       note.timestamp shouldBe 1L
     }
@@ -155,6 +184,8 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.doubleKey("foo")
+      note.`type` shouldBe AttributeType.DOUBLE
       note.value shouldBe 2.2
       note.timestamp shouldBe 1L
     }
@@ -164,7 +195,53 @@ class NoteSpec extends AnyWordSpec with Matchers {
 
       note.isSticky shouldBe false
       note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.booleanKey("foo")
+      note.`type` shouldBe AttributeType.BOOLEAN
       note.value shouldBe true
+      note.timestamp shouldBe 1L
+    }
+
+    "create notes with AttributeKey" in {
+      val note = Note.of(AttributeKey.stringKey("foo"), "bar")
+
+      note.isSticky shouldBe false
+      note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.stringKey("foo")
+      note.`type` shouldBe AttributeType.STRING
+      note.value shouldBe "bar"
+      note.timestamp should not be 0
+    }
+
+    "create notes with AttributeKey with sticky" in {
+      val note = Note.of(AttributeKey.stringKey("foo"), "bar", true)
+
+      note.isSticky shouldBe true
+      note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.stringKey("foo")
+      note.`type` shouldBe AttributeType.STRING
+      note.value shouldBe "bar"
+      note.timestamp should not be 0
+    }
+
+    "create notes with AttributeKey including timestamp without sticky" in {
+      val note = Note.of(AttributeKey.stringKey("foo"), "bar", 1L)
+
+      note.isSticky shouldBe false
+      note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.stringKey("foo")
+      note.`type` shouldBe AttributeType.STRING
+      note.value shouldBe "bar"
+      note.timestamp shouldBe 1L
+    }
+
+    "create notes with AttributeKey with sticky including timestamp" in {
+      val note = Note.of(AttributeKey.stringKey("foo"), "bar", true, 1L)
+
+      note.isSticky shouldBe true
+      note.name shouldBe "foo"
+      note.key shouldBe AttributeKey.stringKey("foo")
+      note.`type` shouldBe AttributeType.STRING
+      note.value shouldBe "bar"
       note.timestamp shouldBe 1L
     }
   }

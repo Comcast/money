@@ -25,7 +25,9 @@ lazy val moneyApi =
     .enablePlugins(AutomateHeaderPlugin)
     .settings(projectSettings: _*)
     .settings(
-      libraryDependencies ++= commonTestDependencies
+      libraryDependencies ++= Seq(
+          openTelemetryApi
+      ) ++ commonTestDependencies
     )
 
 lazy val moneyCore =
@@ -38,26 +40,27 @@ lazy val moneyCore =
           slf4j,
           log4jbinding,
           metricsCore,
+          openTelemetryApi,
           typesafeConfig
         ) ++ commonTestDependencies
     ).dependsOn(moneyApi)
 
 lazy val moneyAkka =
   Project("money-akka", file("./money-akka"))
-  .enablePlugins(AutomateHeaderPlugin)
-  .settings(projectSettings: _*)
-  .settings(
-    libraryDependencies ++=
-      Seq(
-        akkaStream,
-        akkaHttp,
-        akkaTestKit,
-        akkaHttpTestKit,
-        akkaLog,
-        typesafeConfig
-      ) ++ commonTestDependencies
-  )
-  .dependsOn(moneyCore)
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          akkaStream,
+          akkaHttp,
+          akkaTestKit,
+          akkaHttpTestKit,
+          akkaLog,
+          typesafeConfig
+        ) ++ commonTestDependencies
+    )
+    .dependsOn(moneyCore)
 
 lazy val moneyAspectj =
   Project("money-aspectj", file("./money-aspectj"))
@@ -81,7 +84,7 @@ lazy val moneyHttpClient =
           apacheHttpClient
         ) ++ commonTestDependencies
     )
-    .dependsOn(moneyCore % "test->test;compile->compile",moneyAspectj)
+    .dependsOn(moneyCore % "test->test;compile->compile", moneyAspectj)
 
 lazy val moneyJavaServlet =
   Project("money-java-servlet", file("./money-java-servlet"))
@@ -128,7 +131,7 @@ lazy val moneyKafka =
           commonsIo,
         ) ++ commonTestDependencies
     )
-    .dependsOn(moneyCore, moneyWire)
+    .dependsOn(moneyCore, moneyWire % "test->test;compile->compile")
 
 lazy val moneySpring =
   Project("money-spring", file("./money-spring"))
@@ -167,7 +170,7 @@ def aspectjProjectSettings = projectSettings ++ Seq(
 
 def basicSettings =  Defaults.itSettings ++ Seq(
   organization := "com.comcast.money",
-  version := "0.9.2-SNAPSHOT",
+  version := "0.10.0-SNAPSHOT",
   scalaVersion := "2.12.12",
   crossScalaVersions := List("2.13.3", "2.12.12"),
   resolvers ++= Seq(
@@ -181,6 +184,8 @@ def basicSettings =  Defaults.itSettings ++ Seq(
     "-language:existentials",
     "-language:postfixOps",
     "-language:reflectiveCalls"),
+  javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
+  javacOptions in doc := Seq("-source", "1.8"),
   scalariformAutoformat := true,
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF", "-u", "target/scalatest-reports"),
   fork := true,

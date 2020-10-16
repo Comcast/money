@@ -46,7 +46,7 @@ object Formatters {
   }
 
   private[core] val MoneyHeaderFormat = "trace-id=%s;parent-id=%s;span-id=%s"
-  private[core] val TraceParentHeaderFormat = "00-%s-%016x-00"
+  private[core] val TraceParentHeaderFormat = "00-%s-%s-00"
 
   def fromHttpHeaders(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId] =
     fromMoneyHeader(getHeader, log)
@@ -118,14 +118,14 @@ object Formatters {
   private[core] def toB3Headers(spanId: SpanId, addHeader: (String, String) => Unit): Unit = {
     val formatGuid = {
       // X-B3 style traceId's can be 8 octets long
-      val traceIdHex = spanId.traceId.fromGuid
+      val traceIdHex = spanId.traceIdAsHex
       if (traceIdHex.endsWith("0" * 16)) traceIdHex.substring(0, 16)
       else traceIdHex
     }
     addHeader(B3TraceIdHeader, formatGuid)
     // No X-b3 parent if this is a root span
-    if (spanId.parentId != spanId.selfId) addHeader(B3ParentSpanIdHeader, f"${spanId.parentId}%016x")
-    addHeader(B3SpanIdHeader, f"${spanId.selfId}%016x")
+    if (spanId.parentId != spanId.selfId) addHeader(B3ParentSpanIdHeader, spanId.parentIdAsHex)
+    addHeader(B3SpanIdHeader, spanId.selfIdAsHex)
   }
 
   private[core] def fromTraceParentHeader(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId] = {
@@ -154,7 +154,7 @@ object Formatters {
   }
 
   private[core] def toTraceParentHeader(spanId: SpanId, addHeader: (String, String) => Unit): Unit =
-    addHeader(TraceParentHeader, TraceParentHeaderFormat.format(spanId.traceId.fromGuid, spanId.selfId))
+    addHeader(TraceParentHeader, TraceParentHeaderFormat.format(spanId.traceIdAsHex, spanId.selfIdAsHex))
 
   def setResponseHeaders(getHeader: String => String, addHeader: (String, String) => Unit): Unit = {
     def setResponseHeader(headerName: String): Unit = Option(getHeader(headerName)).foreach(v => addHeader(headerName, v))

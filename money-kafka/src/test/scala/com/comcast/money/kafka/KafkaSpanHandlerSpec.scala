@@ -17,7 +17,7 @@
 package com.comcast.money.kafka
 
 import com.comcast.money.api.Note
-import com.comcast.money.{ api, core }
+import com.comcast.money.api
 import com.typesafe.config.{ Config, ConfigFactory }
 import kafka.message.{ CompressionCodec, GZIPCompressionCodec }
 import org.apache.kafka.clients.producer.{ KafkaProducer, ProducerRecord }
@@ -30,6 +30,9 @@ import org.scalatestplus.mockito.MockitoSugar
 
 import scala.collection.JavaConverters._
 import java.{ util => ju }
+
+import com.comcast.money.wire.TestSpanInfo
+import io.opentelemetry.trace.StatusCanonicalCode
 
 trait MockProducerMaker extends ProducerMaker {
 
@@ -62,14 +65,14 @@ class KafkaSpanHandlerSpec extends AnyWordSpec
     underTest.configure(testConfig)
 
     val testProducer = underTest.mockProducer
-    val sampleData = core.CoreSpanInfo(
+    val sampleData = TestSpanInfo(
       id = new api.SpanId("foo", 1L),
       name = "key",
       appName = "app",
       host = "host",
-      startTimeMillis = 1L,
-      success = true,
-      durationMicros = 35L,
+      startTimeNanos = 1000000L,
+      status = StatusCanonicalCode.OK,
+      durationNanos = 35000L,
       notes = Map[String, Note[_]]("what" -> api.Note.of("what", 1L), "when" -> api.Note.of("when", 2L), "bob" -> api.Note.of("bob", "craig")).asJava)
   }
 

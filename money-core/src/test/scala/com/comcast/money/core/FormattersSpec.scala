@@ -116,7 +116,7 @@ class FormattersSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenProp
         val expectedSpanId = new SpanId(traceIdValue.toString, spanIdValue, spanIdValue)
         val spanId = fromTraceParentHeader(
           getHeader = {
-            case TraceParentHeader => TraceParentHeaderFormat.format(expectedSpanId.traceId.fromGuid, expectedSpanId.selfId)
+            case TraceParentHeader => f"00-${traceIdValue.toString.fromGuid}%s-${spanIdValue}%016x-00"
           })
         spanId should not be None
         spanId.get.traceId shouldBe traceIdValue.toString

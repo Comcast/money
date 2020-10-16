@@ -16,28 +16,28 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.SpanId
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-class CoreSpanInfoSpec extends AnyWordSpec with Matchers {
+class SystemClockSpec extends AnyWordSpec with Matchers {
 
-  "CoreSpanInfo" should {
-    "have acceptable default values" in {
-      val spanId = new SpanId()
-      val underTest = CoreSpanInfo(spanId, "test")
+  "SystemClock" should {
+    "get the epoch nanos from the System clock" in {
+      val before = System.currentTimeMillis * 1000000
+      val rest = SystemClock.now
+      val after = System.currentTimeMillis * 1000000
 
-      underTest.id shouldBe spanId
-      underTest.name shouldBe "test"
-      underTest.appName shouldBe Money.Environment.applicationName
-      underTest.host shouldBe Money.Environment.hostName
-      underTest.notes shouldBe empty
-      underTest.success shouldBe null
-      underTest.durationMicros shouldBe 0L
-      underTest.startTimeMicros shouldBe 0L
-      underTest.startTimeMillis shouldBe 0L
-      underTest.endTimeMicros shouldBe 0L
-      underTest.endTimeMillis shouldBe 0L
+      rest should be >= before
+      rest should be <= after
+    }
+
+    "get the nanoTime from the System clock" in {
+      val before = System.nanoTime()
+      val rest = SystemClock.nanoTime
+      val after = System.nanoTime()
+
+      rest should be >= before
+      rest should be <= after
     }
   }
 }

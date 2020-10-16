@@ -16,6 +16,7 @@
 
 package com.comcast.money.core.internal
 
+import java.util
 import java.util.Map
 
 import com.comcast.money.api.{ Span, SpanId }
@@ -25,15 +26,11 @@ import org.slf4j.MDC
 object MDCSupport {
 
   val LogFormat = "[ span-id=%s ][ trace-id=%s ][ parent-id=%s ]"
-  val LogHexFormat = "[ span-id=%016x ][ trace-id=%s ][ parent-id=%016x ]"
 
   def format(spanId: SpanId): String = format(spanId, formatIdsAsHex = false)
 
   def format(spanId: SpanId, formatIdsAsHex: Boolean): String = if (formatIdsAsHex) {
-    LogHexFormat.format(
-      spanId.selfId,
-      spanId.traceId.replace("-", "").toLowerCase,
-      spanId.parentId)
+    LogFormat.format(spanId.selfIdAsHex, spanId.traceIdAsHex, spanId.parentIdAsHex)
   } else {
     LogFormat.format(spanId.selfId, spanId.traceId, spanId.parentId)
   }
@@ -57,14 +54,15 @@ class MDCSupport(
         MDC.put(SpanNameKey, s.info.name)
       case None =>
         MDC.remove(MoneyTraceKey)
-        MDC.remove(MoneyTraceKey)
         MDC.remove(SpanNameKey)
     }
   }
 
-  def propagateMDC(submittingThreadsContext: Option[Map[String, String]]): Unit = if (enabled) {
+  def getCopyOfMDC: Option[util.Map[String, String]] = Option(MDC.getCopyOfContextMap)
+
+  def propagateMDC(submittingThreadsContext: Option[util.Map[String, String]]): Unit = if (enabled) {
     submittingThreadsContext match {
-      case Some(context: Map[String, String]) => MDC.setContextMap(context)
+      case Some(context: util.Map[String, String]) => MDC.setContextMap(context)
       case None => MDC.clear()
     }
   }
