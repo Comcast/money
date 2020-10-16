@@ -73,7 +73,7 @@ private [otel] case class MoneyReadableSpanData(info: SpanInfo) extends Readable
       .build()
 
   private def convertEvents(events: util.List[Event]): util.List[SpanData.Event] =
-    info.events.asScala
+    events.asScala
       .map({
         event => MoneyEvent(event).asInstanceOf[SpanData.Event]
       })
