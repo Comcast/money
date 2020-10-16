@@ -18,7 +18,7 @@ lazy val money =
       publishLocal := {},
       publish := {}
     )
-    .aggregate(moneyApi, moneyAkka, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyWire, moneyKafka, moneySpring, moneyOtel)
+    .aggregate(moneyApi, moneyAkka, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyWire, moneyKafka, moneySpring, moneyOtelHandler)
 
 lazy val moneyApi =
   Project("money-api", file("./money-api"))
@@ -155,8 +155,8 @@ lazy val moneySpring =
     )
     .dependsOn(moneyCore)
 
-lazy val moneyOtel =
-  Project("money-otel", file("./money-otel"))
+lazy val moneyOtelHandler =
+  Project("money-otel-handler", file("./money-otel-handler"))
     .enablePlugins(AutomateHeaderPlugin)
     .settings(projectSettings: _*)
     .settings(

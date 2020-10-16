@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.comcast.money.otel
+package com.comcast.money.otel.handlers
 
 import java.util
 import java.util.Collections

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.comcast.money.otel
+package com.comcast.money.otel.handlers
 
 import com.comcast.money.api.{ SpanHandler, SpanInfo }
 import com.comcast.money.core.handlers.ConfigurableHandler

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.comcast.money.otel
+package com.comcast.money.otel.handlers
 
 import io.opentelemetry.sdk.common.CompletableResultCode
 import io.opentelemetry.sdk.trace.{ ReadWriteSpan, ReadableSpan, SpanProcessor }

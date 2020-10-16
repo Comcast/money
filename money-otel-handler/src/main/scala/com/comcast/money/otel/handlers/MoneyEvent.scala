@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.comcast.money.otel
+package com.comcast.money.otel.handlers
 
 import com.comcast.money.api.Event
 import io.opentelemetry.common.Attributes
