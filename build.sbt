@@ -18,7 +18,7 @@ lazy val money =
       publishLocal := {},
       publish := {}
     )
-    .aggregate(moneyApi, moneyAkka, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyWire, moneyKafka, moneySpring)
+    .aggregate(moneyApi, moneyAkka, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyWire, moneyKafka, moneySpring, moneyOtel)
 
 lazy val moneyApi =
   Project("money-api", file("./money-api"))
@@ -148,6 +148,25 @@ lazy val moneySpring =
           junit,
           junitInterface,
           assertj,
+          springTest,
+          springOckito
+        ) ++ commonTestDependencies,
+      testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
+    )
+    .dependsOn(moneyCore)
+
+lazy val moneyOtel =
+  Project("money-otel", file("./money-otel"))
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          typesafeConfig,
+          openTelemetryApi,
+          openTelemetrySdk,
+          junit,
+          junitInterface,
           springTest,
           springOckito
         ) ++ commonTestDependencies,
