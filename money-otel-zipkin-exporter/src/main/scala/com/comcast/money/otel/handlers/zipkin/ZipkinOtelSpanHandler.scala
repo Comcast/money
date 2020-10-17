@@ -22,6 +22,35 @@ import io.opentelemetry.exporters.zipkin.ZipkinSpanExporter
 import io.opentelemetry.sdk.trace.`export`.SpanExporter
 import zipkin2.codec.SpanBytesEncoder
 
+/**
+ * A Money `com.comcast.money.api.SpanHandler` that can export spans to Zipkin
+ * through the OpenTelemetry Zipkin `SpanExporter`.
+ *
+ * Sample configuration:
+ *
+ * {{{
+ *     handling = {
+ *     async = true
+ *     handlers = [
+ *       {
+ *         class = "com.comcast.money.otel.handlers.zipkin.ZipkinOtelSpanHandler"
+ *         batch = true
+ *         export-only-sampled = true
+ *         exporter-timeout-ms = 30000
+ *         max-batch-size = 512
+ *         max-queue-size = 2048
+ *         schedule-delay-ms = 5000
+ *         exporter {
+ *           service-name = "myApp"
+ *           endpoint = "http://localhost:9411/api/v2/spans"
+ *           encoder = "json-v2"
+ *         }
+ *       }
+ *     ]
+ *   }
+ * }}}
+ *
+ */
 class ZipkinOtelSpanHandler extends OtelSpanHandler {
   override protected def createSpanExporter(config: Config): SpanExporter = {
     val builder = ZipkinSpanExporter.newBuilder()

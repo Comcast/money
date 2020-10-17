@@ -21,6 +21,35 @@ import com.typesafe.config.Config
 import io.opentelemetry.exporters.jaeger.JaegerGrpcSpanExporter
 import io.opentelemetry.sdk.trace.`export`.SpanExporter
 
+/**
+ * A Money `com.comcast.money.api.SpanHandler` that can export spans to Jaeger
+ * through the OpenTelemetry Jaeger `SpanExporter`.
+ *
+ * Sample configuration:
+ *
+ * {{{
+ *     handling = {
+ *     async = true
+ *     handlers = [
+ *       {
+ *         class = "com.comcast.money.otel.handlers.jaeger.JaegerOtelSpanHandler"
+ *         batch = true
+ *         export-only-sampled = true
+ *         exporter-timeout-ms = 30000
+ *         max-batch-size = 512
+ *         max-queue-size = 2048
+ *         schedule-delay-ms = 5000
+ *         exporter {
+ *           service-name = "myApp"
+ *           endpoint = "localhost:14250"
+ *           deadline-ms = 1000
+ *         }
+ *       }
+ *     ]
+ *   }
+ * }}}
+ *
+ */
 class JaegerOtelSpanHandler extends OtelSpanHandler {
   override protected def createSpanExporter(config: Config): SpanExporter = {
     val builder = JaegerGrpcSpanExporter.newBuilder()

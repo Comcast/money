@@ -16,10 +16,6 @@
 
 package com.comcast.money.otel.handlers;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.opentelemetry.sdk.trace.ReadableSpan;
@@ -96,8 +92,7 @@ public class OtelSpanHandlerSpec {
 
         Config config = ConfigFactory.parseString(
                 "batch = false\n" +
-                "export-only-sampled = true\n" +
-                "exporter { }"
+                "export-only-sampled = true"
         );
 
         underTest.configure(config);
@@ -132,8 +127,7 @@ public class OtelSpanHandlerSpec {
                 "exporter-timeout-ms = 250\n" +
                 "max-batch-size = 500\n" +
                 "max-queue-size = 5000\n" +
-                "schedule-delay-ms = 1000\n" +
-                "exporter { }"
+                "schedule-delay-ms = 1000"
         );
 
         underTest.configure(config);
