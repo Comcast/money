@@ -204,7 +204,9 @@ lazy val moneyOtelZipkinExporter =
           junitInterface,
           assertj,
           powerMock,
-          powerMockApi
+          powerMockApi,
+          awaitility,
+          zipkinJunit
         ) ++ commonTestDependencies,
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
     )

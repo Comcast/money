@@ -87,7 +87,8 @@ object Dependencies {
     .exclude("commons-logging", "commons-logging")
   val springOckito = "org.kubek2k" % "springockito" % "1.0.9" % Test
   val assertj = "org.assertj" % "assertj-core" % "3.17.2" % Test
-
+  val awaitility = "org.awaitility" % "awaitility" % "4.0.3" % Test
+  val zipkinJunit = "io.zipkin.zipkin2" % "zipkin-junit" % "2.18.3" % Test
 
   val commonTestDependencies = Seq(
     scalaTest,
