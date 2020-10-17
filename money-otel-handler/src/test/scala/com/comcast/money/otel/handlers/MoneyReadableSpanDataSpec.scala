@@ -18,11 +18,11 @@ package com.comcast.money.otel.handlers
 
 import java.util
 
-import com.comcast.money.api.{ Event, Note, SpanId, SpanInfo }
-import io.opentelemetry.common.{ AttributeKey, Attributes }
+import com.comcast.money.api.{Event, Note, SpanId, SpanInfo}
+import io.opentelemetry.common.{AttributeKey, Attributes}
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.data.ImmutableStatus
-import io.opentelemetry.trace.{ Span, StatusCanonicalCode }
+import io.opentelemetry.trace.{Span, StatusCanonicalCode, TraceState}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -55,7 +55,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
 
   "MoneyReadableSpanDataSpec" should {
     "wrap Money SpanInfo" in {
-      val underTest = MoneyReadableSpanData(spanInfo)
+      val underTest = new MoneyReadableSpanData(spanInfo)
 
       underTest.getInstrumentationLibraryInfo.getName shouldBe "money"
       underTest.getTraceId shouldBe "01234567890abcdef01234567890abcd"
@@ -63,6 +63,8 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getParentSpanId shouldBe "0000000000000000"
       underTest.getName shouldBe "name"
       underTest.getKind shouldBe Span.Kind.INTERNAL
+      underTest.isSampled shouldBe true
+      underTest.getTraceState shouldBe TraceState.getDefault
       underTest.getStartEpochNanos shouldBe 1000000L
       underTest.getEndEpochNanos shouldBe 3000000L
       underTest.hasEnded shouldBe true
@@ -77,6 +79,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getAttributes shouldBe Attributes.of(AttributeKey.stringKey("foo"), "bar")
       underTest.getTotalRecordedEvents shouldBe 1
       underTest.getEvents.asScala should contain(MoneyEvent(event))
+      underTest.toSpanData shouldBe underTest
     }
   }
 }

@@ -37,7 +37,7 @@ abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
    * @param span `SpanInfo` that contains the information for the completed span
    */
   override def handle(span: SpanInfo): Unit = {
-    processor.onEnd(MoneyReadableSpanData(span))
+    processor.onEnd(new MoneyReadableSpanData(span))
   }
 
   override def configure(config: Config): Unit = {

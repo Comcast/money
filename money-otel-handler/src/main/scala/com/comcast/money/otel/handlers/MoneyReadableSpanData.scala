@@ -29,7 +29,7 @@ import io.opentelemetry.trace.{ Span => OtelSpan, SpanContext, SpanId, TraceStat
 
 import scala.collection.JavaConverters._
 
-private[otel] case class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan with SpanData {
+private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan with SpanData {
   import OtelSpanHandler.instrumentationLibraryInfo
 
   private val id = info.id
