@@ -94,11 +94,5 @@ abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
     builder.build()
   }
 
-  protected def newSimpleSpanProcessorBuilder(spanExporter: SpanExporter): SimpleSpanProcessor.Builder =
-    SimpleSpanProcessor.newBuilder(spanExporter)
-
-  protected def newBatchSpanProcessorBuilder(spanExporter: SpanExporter): BatchSpanProcessor.Builder =
-    BatchSpanProcessor.newBuilder(spanExporter)
-
   protected def createSpanExporter(config: Config): SpanExporter
 }

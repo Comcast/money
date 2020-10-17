@@ -20,6 +20,7 @@ import java.util
 
 import com.comcast.money.api.{ Event, Note, SpanId, SpanInfo }
 import io.opentelemetry.common.{ AttributeKey, Attributes }
+import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.data.ImmutableStatus
 import io.opentelemetry.trace.{ Span, StatusCanonicalCode }
 import org.scalatest.matchers.should.Matchers
@@ -64,6 +65,12 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getKind shouldBe Span.Kind.INTERNAL
       underTest.getStartEpochNanos shouldBe 1000000L
       underTest.getEndEpochNanos shouldBe 3000000L
+      underTest.hasEnded shouldBe true
+      underTest.getHasEnded shouldBe true
+      underTest.getLinks shouldBe empty
+      underTest.getTotalRecordedLinks shouldBe 0
+      underTest.getResource shouldBe Resource.getDefault
+      underTest.getHasRemoteParent shouldBe false
       underTest.getLatencyNanos shouldBe 2000000L
       underTest.getStatus shouldBe ImmutableStatus.create(StatusCanonicalCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1

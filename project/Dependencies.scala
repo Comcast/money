@@ -81,6 +81,8 @@ object Dependencies {
 
   val junit = "junit" % "junit" % "4.12" % Test
   val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test exclude("junit", "junit-dep")
+  val powerMock = "org.powermock" % "powermock-module-junit4" % "2.0.7" % Test
+  val powerMockApi = "org.powermock" % "powermock-api-mockito2" % "2.0.7" % Test
   val springTest = ("org.springframework" % "spring-test" % "4.3.17.RELEASE")
     .exclude("commons-logging", "commons-logging")
   val springOckito = "org.kubek2k" % "springockito" % "1.0.9" % Test

@@ -153,7 +153,7 @@ public class SpanId {
      * @return the span ID as an OpenTelemetry {@link SpanContext}
      */
     public SpanContext toSpanContext() {
-        return toSpanContext(TraceFlags.getDefault(), TraceState.getDefault());
+        return toSpanContext(TraceFlags.getSampled(), TraceState.getDefault());
     }
 
     /**

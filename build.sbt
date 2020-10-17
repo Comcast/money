@@ -1,10 +1,11 @@
-import Dependencies._
+import Dependencies.{assertj, _}
 import com.typesafe.sbt.SbtScalariform
 import sbt.Keys._
 import sbt._
 import sbtavro.SbtAvro._
 import scoverage.ScoverageKeys
 import scoverage.ScoverageSbtPlugin._
+
 import scala.sys.SystemProperties
 
 lazy val copyApiDocsTask = taskKey[Unit]("Copies the scala docs from each project to the doc tree")
@@ -179,7 +180,10 @@ lazy val moneyOtelHandler =
           openTelemetryApi,
           openTelemetrySdk,
           junit,
-          junitInterface
+          junitInterface,
+          assertj,
+          powerMock,
+          powerMockApi
         ) ++ commonTestDependencies,
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
     )
@@ -197,7 +201,8 @@ lazy val moneyOtelZipkinExporter =
           openTelemetrySdk,
           openTelemetryZipkinExporter,
           junit,
-          junitInterface
+          junitInterface,
+          assertj
         ) ++ commonTestDependencies,
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
     )
@@ -215,7 +220,8 @@ lazy val moneyOtelJaegerExporter =
           openTelemetrySdk,
           openTelemetryJaegerExporter,
           junit,
-          junitInterface
+          junitInterface,
+          assertj
         ) ++ commonTestDependencies,
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
     )
