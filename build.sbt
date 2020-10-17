@@ -202,11 +202,13 @@ lazy val moneyOtelZipkinExporter =
           openTelemetryZipkinExporter,
           junit,
           junitInterface,
-          assertj
+          assertj,
+          powerMock,
+          powerMockApi
         ) ++ commonTestDependencies,
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
     )
-    .dependsOn(moneyCore, moneyOtelHandler)
+    .dependsOn(moneyCore, moneyOtelHandler % "test->test;compile->compile")
 
 lazy val moneyOtelJaegerExporter =
   Project("money-otel-jaeger-exporter", file("./money-otel-jaeger-exporter"))
@@ -221,11 +223,13 @@ lazy val moneyOtelJaegerExporter =
           openTelemetryJaegerExporter,
           junit,
           junitInterface,
-          assertj
+          assertj,
+          powerMock,
+          powerMockApi
         ) ++ commonTestDependencies,
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
     )
-    .dependsOn(moneyCore, moneyOtelHandler)
+    .dependsOn(moneyCore, moneyOtelHandler % "test->test;compile->compile")
 
 def projectSettings = basicSettings ++ Seq(
   ScoverageKeys.coverageHighlighting := true,

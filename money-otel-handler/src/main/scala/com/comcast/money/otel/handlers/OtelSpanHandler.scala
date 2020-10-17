@@ -41,7 +41,7 @@ abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
   }
 
   override def configure(config: Config): Unit = {
-    val spanExporter = createSpanExporter(config.atKey("exporter"))
+    val spanExporter = createSpanExporter(config.getConfig("exporter"))
     processor = createSpanProcessor(spanExporter, config)
   }
 
