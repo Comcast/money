@@ -123,7 +123,7 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
 
       spanContext.getTraceIdAsHexString shouldBe "01234567890abcdef01234567890abcd"
       spanContext.getSpanIdAsHexString shouldBe "0123456789abcdef"
-      spanContext.getTraceFlags shouldBe TraceFlags.getDefault
+      spanContext.getTraceFlags shouldBe TraceFlags.getSampled
       spanContext.getTraceState shouldBe TraceState.getDefault
     }
 

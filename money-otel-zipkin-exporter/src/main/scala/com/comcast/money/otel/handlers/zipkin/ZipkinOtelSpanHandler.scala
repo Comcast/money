@@ -42,6 +42,7 @@ class ZipkinOtelSpanHandler extends OtelSpanHandler {
         case "thrift" => SpanBytesEncoder.THRIFT
         case "json-v2" => SpanBytesEncoder.JSON_V2
         case "proto3" => SpanBytesEncoder.PROTO3
+        case other => throw new IllegalStateException(s"Unknown encoder '${other}'.")
       }
       builder.setEncoder(encoder)
     }

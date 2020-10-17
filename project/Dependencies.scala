@@ -86,7 +86,8 @@ object Dependencies {
   val springTest = ("org.springframework" % "spring-test" % "4.3.17.RELEASE")
     .exclude("commons-logging", "commons-logging")
   val springOckito = "org.kubek2k" % "springockito" % "1.0.9" % Test
-  val assertj = "org.assertj" % "assertj-core" % "1.7.1" % Test
+  val assertj = "org.assertj" % "assertj-core" % "3.17.2" % Test
+
 
   val commonTestDependencies = Seq(
     scalaTest,

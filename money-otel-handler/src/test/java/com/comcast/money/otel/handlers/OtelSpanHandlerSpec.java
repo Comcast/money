@@ -96,7 +96,8 @@ public class OtelSpanHandlerSpec {
 
         Config config = ConfigFactory.parseString(
                 "batch = false\n" +
-                "export-only-sampled = true"
+                "export-only-sampled = true\n" +
+                "exporter { }"
         );
 
         underTest.configure(config);
@@ -131,7 +132,8 @@ public class OtelSpanHandlerSpec {
                 "exporter-timeout-ms = 250\n" +
                 "max-batch-size = 500\n" +
                 "max-queue-size = 5000\n" +
-                "schedule-delay-ms = 1000"
+                "schedule-delay-ms = 1000\n" +
+                "exporter { }"
         );
 
         underTest.configure(config);

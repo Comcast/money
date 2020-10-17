@@ -1,4 +1,4 @@
-import Dependencies.{assertj, _}
+import Dependencies._
 import com.typesafe.sbt.SbtScalariform
 import sbt.Keys._
 import sbt._
