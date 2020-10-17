@@ -24,15 +24,13 @@ import zipkin2.codec.SpanBytesEncoder
 
 class ZipkinOtelSpanHandler extends OtelSpanHandler {
   override protected def createSpanExporter(config: Config): SpanExporter = {
-    val builder = newBuilder()
+    val builder = ZipkinSpanExporter.newBuilder()
 
     val serviceNameKey = "service-name"
     val endpointKey = "endpoint"
     val encoderKey = "encoder"
 
-    if (config.hasPath(serviceNameKey)) {
-      builder.setServiceName(config.getString(serviceNameKey))
-    }
+    builder.setServiceName(config.getString(serviceNameKey))
     if (config.hasPath(endpointKey)) {
       builder.setEndpoint(config.getString(endpointKey))
     }
@@ -49,6 +47,4 @@ class ZipkinOtelSpanHandler extends OtelSpanHandler {
 
     builder.build()
   }
-
-  protected def newBuilder(): ZipkinSpanExporter.Builder = ZipkinSpanExporter.newBuilder()
 }

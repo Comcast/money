@@ -19,7 +19,7 @@ package com.comcast.money.otel.handlers
 import io.opentelemetry.sdk.common.CompletableResultCode
 import io.opentelemetry.sdk.trace.{ ReadWriteSpan, ReadableSpan, SpanProcessor }
 
-// $COVERAGE-OFF
+// $COVERAGE-OFF$
 private[otel] object NoopSpanProcessor extends SpanProcessor {
   override def onStart(span: ReadWriteSpan): Unit = ()
   override def isStartRequired: Boolean = false
@@ -28,4 +28,4 @@ private[otel] object NoopSpanProcessor extends SpanProcessor {
   override def shutdown(): CompletableResultCode = CompletableResultCode.ofSuccess()
   override def forceFlush(): CompletableResultCode = CompletableResultCode.ofSuccess()
 }
-// $COVERAGE-ON
+// $COVERAGE-ON$

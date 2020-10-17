@@ -29,9 +29,7 @@ class JaegerOtelSpanHandler extends OtelSpanHandler {
     val endpointKey = "endpoint"
     val deadlineMillisKey = "deadline-ms"
 
-    if (config.hasPath(serviceNameKey)) {
-      builder.setServiceName(config.getString(serviceNameKey))
-    }
+    builder.setServiceName(config.getString(serviceNameKey))
     if (config.hasPath(endpointKey)) {
       builder.setEndpoint(config.getString(endpointKey))
     }

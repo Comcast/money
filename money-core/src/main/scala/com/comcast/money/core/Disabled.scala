@@ -23,7 +23,7 @@ import io.opentelemetry.context.Scope
 import io.opentelemetry.trace.{ DefaultSpan, EndSpanOptions, SpanContext, StatusCanonicalCode, Span => OtelSpan }
 import java.util.function
 
-// $COVERAGE-OFF
+// $COVERAGE-OFF$
 object DisabledSpanHandler extends SpanHandler {
 
   override def handle(spanInfo: SpanInfo): Unit = ()

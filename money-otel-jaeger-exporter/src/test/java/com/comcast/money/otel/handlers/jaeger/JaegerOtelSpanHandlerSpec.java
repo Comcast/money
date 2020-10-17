@@ -38,6 +38,9 @@ import com.comcast.money.otel.handlers.TestSpanInfo;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.never;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
@@ -72,8 +75,6 @@ public class JaegerOtelSpanHandlerSpec {
                 "export-only-sampled = true\n" +
                 "exporter {\n" +
                 "  service-name = \"service-name\"\n" +
-                "  endpoint = \"endpoint\"\n" +
-                "  deadline-ms = 1000\n" +
                 "}"
         );
 
@@ -82,8 +83,6 @@ public class JaegerOtelSpanHandlerSpec {
         PowerMockito.verifyStatic(JaegerGrpcSpanExporter.class);
         JaegerGrpcSpanExporter.newBuilder();
         Mockito.verify(spanExporterBuilder).setServiceName("service-name");
-        Mockito.verify(spanExporterBuilder).setEndpoint("endpoint");
-        Mockito.verify(spanExporterBuilder).setDeadlineMs(1000);
         Mockito.verify(spanExporterBuilder).build();
 
         SpanId spanId = new SpanId();
@@ -101,5 +100,47 @@ public class JaegerOtelSpanHandlerSpec {
 
         assertThat(spanData.getTraceId()).isEqualTo(spanId.traceIdAsHex());
         assertThat(spanData.getSpanId()).isEqualTo(spanId.selfIdAsHex());
+    }
+
+    @Test
+    public void configuresJaegerExporterWithEndpoint() {
+        Config config = ConfigFactory.parseString(
+                "batch = false\n" +
+                        "export-only-sampled = true\n" +
+                        "exporter {\n" +
+                        "  service-name = \"service-name\"\n" +
+                        "  endpoint = \"endpoint\"\n" +
+                        "}"
+        );
+
+        underTest.configure(config);
+
+        PowerMockito.verifyStatic(JaegerGrpcSpanExporter.class);
+        JaegerGrpcSpanExporter.newBuilder();
+        Mockito.verify(spanExporterBuilder).setServiceName("service-name");
+        Mockito.verify(spanExporterBuilder).setEndpoint("endpoint");
+        Mockito.verify(spanExporterBuilder, never()).setDeadlineMs(anyLong());
+        Mockito.verify(spanExporterBuilder).build();
+    }
+
+    @Test
+    public void configuresJaegerExporterWithDeadline() {
+        Config config = ConfigFactory.parseString(
+                "batch = false\n" +
+                        "export-only-sampled = true\n" +
+                        "exporter {\n" +
+                        "  service-name = \"service-name\"\n" +
+                        "  deadline-ms = 1000\n" +
+                        "}"
+        );
+
+        underTest.configure(config);
+
+        PowerMockito.verifyStatic(JaegerGrpcSpanExporter.class);
+        JaegerGrpcSpanExporter.newBuilder();
+        Mockito.verify(spanExporterBuilder).setServiceName("service-name");
+        Mockito.verify(spanExporterBuilder, never()).setEndpoint(anyString());
+        Mockito.verify(spanExporterBuilder).setDeadlineMs(1000);
+        Mockito.verify(spanExporterBuilder).build();
     }
 }
