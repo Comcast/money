@@ -142,7 +142,7 @@ public final class SpanId {
     }
 
     private SpanId(String traceId, long parentId, long selfId, boolean remote, byte flags, TraceState traceState) {
-        this.traceId = traceId;
+        this.traceId = traceId.toLowerCase(Locale.US);
         this.parentId = parentId;
         this.selfId = selfId;
         this.remote = remote;
@@ -161,7 +161,7 @@ public final class SpanId {
      * @return the trace ID formatted as 32 lowercase hexadecimal characters
      */
     public String traceIdAsHex() {
-        return traceId.replace("-", "").toLowerCase(Locale.US);
+        return traceId.replace("-", "");
     }
 
     /**
