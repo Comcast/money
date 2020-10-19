@@ -295,10 +295,7 @@ public final class SpanId {
 
         if (parentId != spanId.parentId) return false;
         if (selfId != spanId.selfId) return false;
-        if (remote != spanId.remote) return false;
-        if (flags != spanId.flags) return false;
-        if (!traceId.equals(spanId.traceId)) return false;
-        return state.equals(spanId.state);
+        return traceId.equals(spanId.traceId);
     }
 
     @Override
@@ -306,9 +303,6 @@ public final class SpanId {
         int result = traceId.hashCode();
         result = 31 * result + (int) (parentId ^ (parentId >>> 32));
         result = 31 * result + (int) (selfId ^ (selfId >>> 32));
-        result = 31 * result + (remote ? 1 : 0);
-        result = 31 * result + (int) flags;
-        result = 31 * result + state.hashCode();
         return result;
     }
 
