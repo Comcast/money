@@ -58,7 +58,7 @@ class FormattersSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenProp
         val spanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getSampled, TraceState.getDefault)
         toMoneyHeader(spanId, (header, value) => {
           header shouldBe Formatters.MoneyTraceHeader
-          value shouldBe MoneyHeaderFormat.format(traceIdValue, parentSpanIdValue, spanIdValue)
+          value shouldBe MoneyHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId)
         })
       }
     }

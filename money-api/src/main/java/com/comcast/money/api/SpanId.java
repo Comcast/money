@@ -85,6 +85,9 @@ public final class SpanId {
         if (!matcher.matches()) {
             throw new IllegalArgumentException("traceId is not in the required format: '" + traceId + "'");
         }
+        if (parentId == 0) {
+            parentId = selfId;
+        }
         return new SpanId(traceId, parentId, selfId, true, flags, state);
     }
 
@@ -245,6 +248,7 @@ public final class SpanId {
 
         SpanId spanId = (SpanId) o;
 
+        if (parentId != spanId.parentId) return false;
         if (selfId != spanId.selfId) return false;
         return traceId.equals(spanId.traceId);
     }
@@ -252,6 +256,7 @@ public final class SpanId {
     @Override
     public int hashCode() {
         int result = traceId.hashCode();
+        result = 31 * result + (int) (parentId ^ (parentId >>> 32));
         result = 31 * result + (int) (selfId ^ (selfId >>> 32));
         return result;
     }
