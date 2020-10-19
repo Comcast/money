@@ -37,6 +37,7 @@ public final class SpanId {
     private static final String INVALID_TRACE_ID = "00000000-0000-0000-0000-000000000000";
     private static final SpanId INVALID_SPAN_ID = new SpanId(INVALID_TRACE_ID, 0L, 0L, false, (byte) 0, TraceState.getDefault());
     private static final Pattern TRACE_ID_PATTERN = Pattern.compile("^([0-9a-f]{8})-?([0-9a-f]{4})-([0-9a-f]{4})-?([0-9a-f]{4})-?([0-9a-f]{12})$", Pattern.CASE_INSENSITIVE);
+    private static final Pattern TRACE_ID_HEX_PATTERN = Pattern.compile("^(?:[0-9a-f]{16}){1,2}$", Pattern.CASE_INSENSITIVE);
     private static final byte SAMPLED = TraceFlags.getSampled();
 
     private final String traceId;
@@ -136,6 +137,50 @@ public final class SpanId {
         return UUID.randomUUID().toString();
     }
 
+    /**
+     * Parses a 64-bit or 128-bit hexadecimal string into a trace ID.
+     */
+    public static String parseTraceIdFromHex(String traceIdAsHex) {
+
+        Objects.requireNonNull(traceIdAsHex);
+        Matcher matcher = TRACE_ID_HEX_PATTERN.matcher(traceIdAsHex);
+        if (matcher.matches()) {
+            if (traceIdAsHex.length() == 16) {
+                // 64-bit trace ID, pad it to 128-bit
+                traceIdAsHex = "0000000000000000" + traceIdAsHex;
+            }
+            return new StringBuilder(36)
+                    .append(traceIdAsHex.subSequence(0, 8))
+                    .append('-')
+                    .append(traceIdAsHex.subSequence(8, 12))
+                    .append('-')
+                    .append(traceIdAsHex.subSequence(12, 16))
+                    .append('-')
+                    .append(traceIdAsHex.subSequence(16, 20))
+                    .append('-')
+                    .append(traceIdAsHex.subSequence(20, 32))
+                    .toString()
+                    .toLowerCase(Locale.US);
+        }
+        throw new IllegalArgumentException("traceId is not in a supported hexadecimal format: '" + traceIdAsHex + "'");
+    }
+
+    /**
+     * Parses a 64-bit hexadecimal string into a numeric ID.
+     */
+    public static long parseIdFromHex(String idAsHex) {
+
+        Objects.requireNonNull(idAsHex);
+        if (idAsHex.length() == 16) {
+            try {
+                return Long.parseUnsignedLong(idAsHex, 16);
+            } catch (NumberFormatException exception) {
+                throw new IllegalArgumentException("Id is not in a supported hexadecimal format: '" + idAsHex + "'", exception);
+            }
+        }
+        throw new IllegalArgumentException("Id is not in a supported hexadecimal format: '" + idAsHex + "'");
+    }
+
     // for testing purposes
     SpanId(String traceId, long parentId, long selfId) {
         this(traceId, parentId, selfId, false, (byte) 0, TraceState.getDefault());
@@ -147,7 +192,7 @@ public final class SpanId {
         this.selfId = selfId;
         this.remote = remote;
         this.flags = flags;
-        this.state = traceState;
+        this.state = traceState != null ? traceState : TraceState.getDefault();
     }
 
     /**
@@ -250,7 +295,10 @@ public final class SpanId {
 
         if (parentId != spanId.parentId) return false;
         if (selfId != spanId.selfId) return false;
-        return traceId.equals(spanId.traceId);
+        if (remote != spanId.remote) return false;
+        if (flags != spanId.flags) return false;
+        if (!traceId.equals(spanId.traceId)) return false;
+        return state.equals(spanId.state);
     }
 
     @Override
@@ -258,6 +306,9 @@ public final class SpanId {
         int result = traceId.hashCode();
         result = 31 * result + (int) (parentId ^ (parentId >>> 32));
         result = 31 * result + (int) (selfId ^ (selfId >>> 32));
+        result = 31 * result + (remote ? 1 : 0);
+        result = 31 * result + (int) flags;
+        result = 31 * result + state.hashCode();
         return result;
     }
 

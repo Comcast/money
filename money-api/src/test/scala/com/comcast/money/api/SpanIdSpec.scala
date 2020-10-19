@@ -127,6 +127,54 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
       spanId.isValid shouldBe false
     }
 
+    "parses a 128-bit hexadecimal string into a trace id" in {
+      val hex = "01234567890abcdef01234567890abcd"
+
+      val traceId = SpanId.parseTraceIdFromHex(hex)
+
+      traceId shouldBe "01234567-890a-bcde-f012-34567890abcd"
+    }
+
+    "parses a 64-bit hexadecimal string into a trace id" in {
+      val hex = "01234567890abcde"
+
+      val traceId = SpanId.parseTraceIdFromHex(hex)
+
+      traceId shouldBe "00000000-0000-0000-0123-4567890abcde"
+    }
+
+    "fails to parse a null hexadecimal string into a trace id" in {
+      assertThrows[NullPointerException] {
+        SpanId.parseTraceIdFromHex(null)
+      }
+    }
+
+    "fails to parse garbage string into a trace id" in {
+      assertThrows[IllegalArgumentException] {
+        SpanId.parseTraceIdFromHex("foo")
+      }
+    }
+
+    "parses a 64-bit hexadecimal string into a long id" in {
+      val hex = "0123456789abcdef"
+
+      val id = SpanId.parseIdFromHex(hex)
+
+      id shouldBe 81985529216486895L
+    }
+
+    "fails to parse a null hexadecimal string into a long id" in {
+      assertThrows[NullPointerException] {
+        SpanId.parseIdFromHex(null)
+      }
+    }
+
+    "fails to parse garbage hexadecimal string into a long id" in {
+      assertThrows[IllegalArgumentException] {
+        SpanId.parseIdFromHex("foo")
+      }
+    }
+
     "isValid returns false for an invalid span id" in {
       val invalidSpanId = SpanId.getInvalid
       invalidSpanId.isValid shouldBe false
