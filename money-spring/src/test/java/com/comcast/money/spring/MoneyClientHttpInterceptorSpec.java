@@ -24,7 +24,6 @@ import com.comcast.money.core.internal.SpanLocal;
 
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.trace.StatusCanonicalCode;
-import org.apache.commons.lang.math.RandomUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,15 +33,15 @@ import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 
 import java.util.Collections;
-import java.util.UUID;
 
 import static org.mockito.Mockito.*;
 
 public class MoneyClientHttpInterceptorSpec {
 
-    private final static String traceId = UUID.randomUUID().toString();
-    private final static long spanId = RandomUtils.nextLong();
-    private final static long parentSpanId = RandomUtils.nextLong();
+    private final static SpanId id = SpanId.createNew().createChild();
+    private final static String traceId = id.traceId();
+    private final static long spanId = id.selfId();
+    private final static long parentSpanId = id.parentId();
 
     private Scope spanScope;
 
@@ -50,7 +49,7 @@ public class MoneyClientHttpInterceptorSpec {
     public void setUp() {
         Span span = mock(Span.class);
         SpanInfo testSpanInfo = new CoreSpanInfo(
-                new SpanId(traceId, parentSpanId, spanId),
+                id,
                 "testName",
                 io.opentelemetry.trace.Span.Kind.INTERNAL,
                 0L,

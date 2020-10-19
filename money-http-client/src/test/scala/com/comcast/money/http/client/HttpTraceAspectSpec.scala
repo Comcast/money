@@ -52,6 +52,7 @@ class HttpTraceAspectSpec
   val mockHttpEntity: HttpEntity = mock[HttpEntity]
   val mockHttpResponseHandler: ResponseHandler[String] = mock[ResponseHandler[String]]
   val responseEntityStream: InputStream = new ByteArrayInputStream("test-response".getBytes)
+  val spanId: SpanId = SpanId.createNew()
 
   // -- SAMPLE METHODS WEAVED BY OUR ASPECT
   @Traced("methodWithHttpCallUsingEntityUtils")
@@ -251,7 +252,7 @@ class HttpTraceAspectSpec
       doReturn("test-annotation").when(mockTracedAnnotation).value()
 
       And("a span has been started")
-      SpanLocal.push(testSpan(new SpanId("foo", 1L, 1L)))
+      SpanLocal.push(testSpan(spanId))
 
       When("The method the uses the http client is invoked")
       testAspect.adviseHttpClientExecuteToResponseHandler(mockHttpRequest, mockTracedAnnotation)
@@ -263,7 +264,7 @@ class HttpTraceAspectSpec
       verify(mockTracer).startTimer("http-call-with-body-duration")
 
       And("the money trace header is added to the request")
-      verify(mockHttpRequest).setHeader("X-MoneyTrace", "trace-id=foo;parent-id=1;span-id=1")
+      verify(mockHttpRequest).setHeader("X-MoneyTrace", s"trace-id=${spanId.traceId};parent-id=${spanId.parentId};span-id=${spanId.selfId}")
     }
     scenario("no span has been started") {
       Given("A call to http client that takes an http response handler")
@@ -289,7 +290,7 @@ class HttpTraceAspectSpec
       doReturn("test-annotation").when(mockTracedAnnotation).value()
 
       And("a span has been started")
-      SpanLocal.push(testSpan(new SpanId("foo", 1L, 1L)))
+      SpanLocal.push(testSpan(spanId))
 
       When("The method the uses the http client is invoked")
       testAspect.adviseHttpClientExecuteToResponseHandler(null, mockTracedAnnotation)
@@ -313,7 +314,7 @@ class HttpTraceAspectSpec
       doReturn(204).when(mockStatusLine).getStatusCode
 
       And("a span has been started")
-      SpanLocal.push(testSpan(new SpanId("foo", 1L, 1L)))
+      SpanLocal.push(testSpan(spanId))
 
       When("The method the uses the http client is invoked")
       val result = testAspect.adviseHttpClientExecute(mockJoinPoint, mockHttpRequest, mockTracedAnnotation)
@@ -334,7 +335,7 @@ class HttpTraceAspectSpec
       result shouldEqual mockHttpResponse
 
       And("the money trace header is added to the request")
-      verify(mockHttpRequest).setHeader("X-MoneyTrace", "trace-id=foo;parent-id=1;span-id=1")
+      verify(mockHttpRequest).setHeader("X-MoneyTrace", s"trace-id=${spanId.traceId};parent-id=${spanId.parentId};span-id=${spanId.selfId}")
     }
   }
   feature("test coverage") {

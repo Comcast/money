@@ -36,7 +36,7 @@ class CoreSpanFactorySpec extends AnyWordSpec with Matchers with MockitoSugar wi
     }
 
     "create a new span given an existing span id" in {
-      val existingId = new SpanId()
+      val existingId = SpanId.createNew()
       val result = underTest.newSpan(existingId, "foo").asInstanceOf[CoreSpan]
 
       result.id shouldBe existingId

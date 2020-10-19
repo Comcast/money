@@ -20,6 +20,7 @@ import java.util.UUID
 
 import com.comcast.money.api.SpanId
 import Formatters._
+import io.opentelemetry.trace.{ TraceFlags, TraceState }
 import org.scalacheck.Arbitrary
 import org.scalacheck.Test.Failed
 import org.scalatest.matchers.should.Matchers
@@ -33,7 +34,7 @@ class FormattersSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenProp
   "Http Formatting" should {
     "read a money http header" in {
       forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
-        val expectedSpanId = new SpanId(traceIdValue.toString, parentSpanIdValue, spanIdValue)
+        val expectedSpanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getSampled, TraceState.getDefault)
         val spanId = fromMoneyHeader(
           getHeader = {
             case MoneyTraceHeader => MoneyHeaderFormat.format(expectedSpanId.traceId, expectedSpanId.parentId, expectedSpanId.selfId)
@@ -54,7 +55,7 @@ class FormattersSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenProp
 
     "create a money http header" in {
       forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
-        val spanId = new SpanId(traceIdValue.toString, parentSpanIdValue, spanIdValue)
+        val spanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getSampled, TraceState.getDefault)
         toMoneyHeader(spanId, (header, value) => {
           header shouldBe Formatters.MoneyTraceHeader
           value shouldBe MoneyHeaderFormat.format(traceIdValue, parentSpanIdValue, spanIdValue)
@@ -64,7 +65,7 @@ class FormattersSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenProp
 
     "read B3 headers correctly for any valid hex encoded headers: trace-Id , parent id and span ID" in {
       forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
-        val expectedSpanId = new SpanId(traceIdValue.toString, parentSpanIdValue, spanIdValue)
+        val expectedSpanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getSampled, TraceState.getDefault)
         val spanId = fromB3HttpHeaders(
           getHeader = {
             case B3TraceIdHeader => traceIdValue.toString.fromGuid
@@ -100,7 +101,7 @@ class FormattersSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenProp
 
     "create B3 headers correctly given any valid character UUID for trace-Id and any valid long integers for parent and span ID, where if parent == span id, parent will not be emitted" in {
       forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
-        val expectedSpanId = new SpanId(traceIdValue.toString, parentSpanIdValue, spanIdValue)
+        val expectedSpanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getSampled, TraceState.getDefault)
         Formatters.toB3Headers(expectedSpanId, (k, v) => k match {
           case B3TraceIdHeader if traceIdValue.getLeastSignificantBits == 0 => v shouldBe traceIdValue.toString.fromGuid.substring(0, 16)
           case B3TraceIdHeader => v shouldBe traceIdValue.toString.fromGuid
@@ -113,7 +114,6 @@ class FormattersSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenProp
 
     "read a traceparent http header" in {
       forAll { (traceIdValue: UUID, spanIdValue: Long) =>
-        val expectedSpanId = new SpanId(traceIdValue.toString, spanIdValue, spanIdValue)
         val spanId = fromTraceParentHeader(
           getHeader = {
             case TraceParentHeader => f"00-${traceIdValue.toString.fromGuid}%s-${spanIdValue}%016x-00"
@@ -136,7 +136,7 @@ class FormattersSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenProp
 
     "create traceparent headers correctly given any valid character UUID for trace-Id and any valid long integers for parent and span ID" in {
       forAll { (traceIdValue: UUID, spanIdValue: Long) =>
-        val expectedSpanId = new SpanId(traceIdValue.toString, spanIdValue, spanIdValue)
+        val expectedSpanId = SpanId.createRemote(traceIdValue.toString, spanIdValue, spanIdValue, TraceFlags.getSampled, TraceState.getDefault)
         Formatters.toTraceParentHeader(expectedSpanId, (k, v) => k match {
           case TraceParentHeader => v shouldBe f"00-${traceIdValue.toString.fromGuid}%s-${spanIdValue}%016x-00"
         })

@@ -32,7 +32,7 @@ import org.mockito.Mockito._
 class MDCSupportSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach with OneInstancePerTest {
 
   val testMDCSupport = new MDCSupport
-  val spanId = new SpanId()
+  val spanId = SpanId.createNew()
   val span = mock[Span]
   val spanInfo = mock[SpanInfo]
 

@@ -28,7 +28,7 @@ import com.comcast.money.wire.avro
 import com.comcast.money.wire.avro.NoteType
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.{ DeserializationFeature, ObjectMapper }
-import io.opentelemetry.trace.{ Span, StatusCanonicalCode }
+import io.opentelemetry.trace.{ Span, StatusCanonicalCode, TraceFlags, TraceState }
 import org.apache.avro.Schema
 import org.apache.avro.io.{ DecoderFactory, EncoderFactory }
 import org.apache.avro.specific.{ SpecificDatumReader, SpecificDatumWriter }
@@ -104,7 +104,7 @@ trait SpanWireConverters {
   }
 
   implicit val wireToSpanId: TypeConverter[avro.SpanId, api.SpanId] = TypeConverter.instance { spanId =>
-    new api.SpanId(spanId.getTraceId, spanId.getParentId, spanId.getSpanId)
+    api.SpanId.createRemote(spanId.getTraceId, spanId.getParentId, spanId.getSpanId, TraceFlags.getSampled, TraceState.getDefault)
   }
 
   implicit val spanToWire: TypeConverter[SpanInfo, avro.Span] = TypeConverter.instance { span: SpanInfo =>

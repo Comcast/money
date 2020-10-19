@@ -29,7 +29,7 @@ class JsonConversionSpec extends AnyWordSpec with Matchers with Inspectors {
   import scala.collection.JavaConverters._
 
   val orig = TestSpanInfo(
-    id = new SpanId("foo", 1L),
+    id = SpanId.createNew(),
     name = "key",
     appName = "app",
     host = "host",

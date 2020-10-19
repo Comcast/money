@@ -37,8 +37,9 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
     """)
   val spanLogFormatter = SpanLogFormatter(emitterConf)
 
+  val spanId = SpanId.createNew()
   val sampleData = CoreSpanInfo(
-    id = SpanId.fromString("SpanId~1~1~1"),
+    id = spanId,
     startTimeNanos = 1000000L,
     endTimeNanos = 26000000L,
     durationNanos = 35000000L,
@@ -49,7 +50,7 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
     status = StatusCanonicalCode.OK)
 
   val withNull = CoreSpanInfo(
-    id = SpanId.fromString("SpanId~1~1~1"),
+    id = spanId,
     startTimeNanos = 1000000L,
     endTimeNanos = 26000000L,
     durationNanos = 35000000L,
@@ -64,7 +65,7 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
       val actualMessage = spanLogFormatter.buildMessage(sampleData)
 
       assert(
-        actualMessage === ("Span: [ span-id=1 ][ trace-id=1 ][ parent-id=1 ][ span-name=key ][ app-name=unknown ][ " +
+        actualMessage === (s"Span: [ span-id=${spanId.selfId} ][ trace-id=${spanId.traceId} ][ parent-id=${spanId.parentId} ][ span-name=key ][ app-name=unknown ][ " +
           "start-time=1 ][ span-duration=35000 ][ span-success=true ][ bob=craig ][ what=1 ][ when=2 ]"))
     }
     "honor key names from the config" in {
@@ -90,7 +91,7 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
 
       val actualMessage = spanLogFormatter.buildMessage(sampleData)
       assert(
-        actualMessage === ("Span: [ spanId=1 ][ traceId=1 ][ parentId=1 ][ spanName=key ][ appName=unknown ][ " +
+        actualMessage === (s"Span: [ spanId=${spanId.selfId} ][ traceId=${spanId.traceId} ][ parentId=${spanId.parentId} ][ spanName=key ][ appName=unknown ][ " +
           "startTime=1 ][ spanDuration=35000 ][ spanSuccess=true ][ bob=craig ][ what=1 ][ when=2 ]"))
     }
     "honor the span-start from the config" in {
@@ -106,7 +107,7 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
       val spanLogFormatter = SpanLogFormatter(conf)
       val actualMessage = spanLogFormatter.buildMessage(sampleData)
       assert(
-        actualMessage === ("Start :|: [ span-id=1 ][ trace-id=1 ][ parent-id=1 ][ span-name=key ][ app-name=unknown ][ " +
+        actualMessage === (s"Start :|: [ span-id=${spanId.selfId} ][ trace-id=${spanId.traceId} ][ parent-id=${spanId.parentId} ][ span-name=key ][ app-name=unknown ][ " +
           "start-time=1 ][ span-duration=35000 ][ span-success=true ][ bob=craig ][ what=1 ][ when=2 ]"))
     }
     "honor the log-template from the config" in {
@@ -122,7 +123,7 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
       val spanLogFormatter = SpanLogFormatter(conf)
       val actualMessage = spanLogFormatter.buildMessage(sampleData)
       assert(
-        actualMessage === ("""Span: span-id="1" trace-id="1" parent-id="1" span-name="key" """ +
+        actualMessage === (s"""Span: span-id="${spanId.selfId}" trace-id="${spanId.traceId}" parent-id="${spanId.parentId}" span-name="key" """ +
           """app-name="unknown" start-time="1" span-duration="35000" span-success="true" """ +
           """bob="craig" what="1" when="2" """))
     }

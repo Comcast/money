@@ -24,7 +24,7 @@ class CoreSpanInfoSpec extends AnyWordSpec with Matchers {
 
   "CoreSpanInfo" should {
     "have acceptable default values" in {
-      val spanId = new SpanId()
+      val spanId = SpanId.createNew()
       val underTest = CoreSpanInfo(spanId, "test")
 
       underTest.id shouldBe spanId

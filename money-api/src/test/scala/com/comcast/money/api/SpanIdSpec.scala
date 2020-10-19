@@ -23,74 +23,113 @@ import org.scalatest.matchers.should.Matchers
 class SpanIdSpec extends AnyWordSpec with Matchers {
 
   "SpanId" should {
-    "take 3 constructor arguments" in {
-      val spanId = new SpanId("foo", 1L, 2L)
-
-      spanId.traceId shouldBe "foo"
-      spanId.parentId shouldBe 1L
-      spanId.selfId shouldBe 2L
-    }
-
-    "set self id to a random long if not specified in the constructor" in {
-      val spanId = new SpanId("foo", 1L)
-
-      spanId.traceId shouldBe "foo"
-      spanId.parentId shouldBe 1L
-      Long.box(spanId.selfId) should not be null
-    }
-
-    "set the self and parent id to a random long if not specified" in {
-      val spanId = new SpanId("foo")
-
-      spanId.traceId shouldBe "foo"
-      Long.box(spanId.parentId) should not be null
-      Long.box(spanId.selfId) should not be null
-    }
-
-    "set the self id to the parent id when neither is specified" in {
-      val spanId: SpanId = new SpanId()
-      assert(spanId.parentId === spanId.selfId)
-    }
-
-    "generate a string matching SpanId~%s~%s~%s" in {
-      val format = "SpanId~%s~%s~%s"
-      val expected = format.format("foo", 1L, 2L)
-
-      val spanId = new SpanId("foo", 1L, 2L)
-      val result = spanId.toString
-
-      result shouldEqual expected
-    }
-
-    "parse a string into a span id" in {
-      val spanId = new SpanId("foo", 1L, 2L)
-      val str = spanId.toString
-
-      val parsed = SpanId.fromString(str)
-      parsed.traceId shouldBe spanId.traceId
-      parsed.parentId shouldBe spanId.parentId
-      parsed.selfId shouldBe spanId.selfId
-    }
-
-    "default traceId to UUID if set to null" in {
-      val spanId = new SpanId(null, 1L)
+    "create a new root span id" in {
+      val spanId = SpanId.createNew()
 
       spanId.traceId should not be null
+      spanId.selfId should not be 0
+      spanId.isValid shouldBe true
+      spanId.isRoot shouldBe true
+      spanId.isRemote shouldBe false
+      spanId.isSampled shouldBe true
     }
 
-    "isRoot returns true for a root span id" in {
-      val spanId = new SpanId("foo", 1L, 1L)
-      spanId.isRoot shouldBe true
+    "create a new non-sampled root span id" in {
+      val spanId = SpanId.createNew(false)
 
-      val childSpanId = spanId.newChildId()
-      childSpanId.isRoot shouldBe false
+      spanId.traceId should not be null
+      spanId.selfId should not be 0
+      spanId.isValid shouldBe true
+      spanId.isRoot shouldBe true
+      spanId.isRemote shouldBe false
+      spanId.isSampled shouldBe false
+    }
+
+    "create a child span id" in {
+      val parentId = SpanId.createNew(false)
+      val childId = parentId.createChild()
+
+      childId.traceId shouldBe parentId.traceId
+      childId.parentId shouldBe parentId.selfId
+      childId.isRoot shouldBe false
+      childId.isValid shouldBe true
+      childId.isRemote shouldBe false
+      childId.isSampled shouldBe parentId.isSampled
+    }
+
+    "create a root span without a parent span id" in {
+      val spanId = SpanId.createChild(null)
+
+      spanId.isRoot shouldBe true
+    }
+
+    "create a root span with an invalid parent span id" in {
+      val spanId = SpanId.createChild(SpanId.getInvalid)
+
+      spanId.isRoot shouldBe true
+    }
+
+    "create a remote span id" in {
+      val traceId = SpanId.randomTraceId()
+      val selfId = SpanId.randomNonZeroLong()
+      val parentId = SpanId.randomNonZeroLong()
+      val state = TraceState.builder().set("foo", "bar").build()
+      val remoteId = SpanId.createRemote(traceId, parentId, selfId, TraceFlags.getSampled, state)
+
+      remoteId.traceId shouldBe traceId
+      remoteId.parentId shouldBe parentId
+      remoteId.selfId shouldBe selfId
+      remoteId.isRoot shouldBe false
+      remoteId.isValid shouldBe true
+      remoteId.isRemote shouldBe true
+      remoteId.isSampled shouldBe true
+    }
+
+    "fails to create a remote span with an invalid trace id" in {
+      val traceId = "foo"
+      val selfId = SpanId.randomNonZeroLong()
+      val parentId = SpanId.randomNonZeroLong()
+
+      assertThrows[IllegalArgumentException] {
+        SpanId.createRemote(traceId, parentId, selfId, TraceFlags.getSampled, TraceState.getDefault)
+      }
+    }
+
+    "create a child span id from a remote span id" in {
+      val traceId = SpanId.randomTraceId()
+      val selfId = SpanId.randomNonZeroLong()
+      val parentId = SpanId.randomNonZeroLong()
+      val state = TraceState.builder().set("foo", "bar").build()
+      val remoteId = SpanId.createRemote(traceId, parentId, selfId, TraceFlags.getSampled, state)
+
+      val childId = remoteId.createChild()
+
+      childId.parentId shouldBe remoteId.selfId
+      childId.isRoot shouldBe false
+      childId.isValid shouldBe true
+      childId.isRemote shouldBe false
+      childId.isSampled shouldBe remoteId.isSampled
+    }
+
+    "creates span id from SpanContext" in {
+      val spanContext = SpanContext.create("01234567890abcdef01234567890abcd", "0123456789abcdef", TraceFlags.getDefault, TraceState.getDefault)
+      val spanId = SpanId.fromSpanContext(spanContext)
+
+      spanId.traceId() shouldBe "01234567-890a-bcde-f012-34567890abcd"
+      spanId.selfId() shouldBe 81985529216486895L
+      spanId.parentId() shouldBe 81985529216486895L
+    }
+
+    "creates span id from invalid SpanContext" in {
+      val spanContext = SpanContext.getInvalid
+      val spanId = SpanId.fromSpanContext(spanContext)
+
+      spanId.isValid shouldBe false
     }
 
     "isValid returns false for an invalid span id" in {
-      val invalidSpanId = new SpanId("", 0L, 0L)
+      val invalidSpanId = SpanId.getInvalid
       invalidSpanId.isValid shouldBe false
-
-      SpanId.getInvalid.isValid shouldBe false
     }
 
     "returns traceId as hex" in {
@@ -127,13 +166,35 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
       spanContext.getTraceState shouldBe TraceState.getDefault
     }
 
-    "returns span if from SpanContext" in {
-      val spanContext = SpanContext.create("01234567890abcdef01234567890abcd", "0123456789abcdef", TraceFlags.getDefault, TraceState.getDefault)
-      val spanId = SpanId.fromSpanContext(spanContext)
+    "implements equality" in {
+      val traceId = SpanId.randomTraceId()
+      val selfId = SpanId.randomNonZeroLong()
+      val spanId1 = new SpanId(traceId, selfId, selfId)
+      val spanId2 = new SpanId(traceId, selfId, selfId)
 
-      spanId.traceId() shouldBe "01234567-890a-bcde-f012-34567890abcd"
-      spanId.selfId() shouldBe 81985529216486895L
-      spanId.parentId() shouldBe 81985529216486895L
+      spanId1 shouldBe spanId2
+      spanId1.hashCode() shouldBe spanId2.hashCode()
+
+      val spanId3 = new SpanId(SpanId.randomTraceId(), selfId, selfId)
+
+      spanId1 should not be spanId3
+      spanId1.hashCode() should not be spanId3.hashCode()
+
+      val otherId = SpanId.randomNonZeroLong()
+      val spanId4 = new SpanId(traceId, otherId, otherId)
+
+      spanId1 should not be spanId4
+      spanId1.hashCode() should not be spanId4.hashCode()
+    }
+
+    "implements toString" in {
+      val spanId = SpanId.createNew()
+
+      val text = spanId.toString
+
+      text should include(spanId.traceId)
+      text should include(spanId.selfId.toString)
+      text should include(spanId.parentId.toString)
     }
   }
 }

@@ -35,7 +35,7 @@ class TraceFriendlyThreadPoolExecutorSpec
 
   "TraceFriendlyThreadPoolExecutor cachedThreadPool" should {
     "propagate the current span local value" in {
-      val traceId = new SpanId("1", 2L, 3L)
+      val traceId = SpanId.createNew()
       SpanLocal.push(testSpan(traceId))
 
       val future = executor.submit(testCallable)
@@ -52,8 +52,8 @@ class TraceFriendlyThreadPoolExecutorSpec
       SpanLocal.current shouldEqual None
     }
     "propagate only the current span id value" in {
-      val traceId1 = new SpanId()
-      val traceId2 = new SpanId()
+      val traceId1 = SpanId.createNew()
+      val traceId2 = SpanId.createNew()
       SpanLocal.push(testSpan(traceId1))
       SpanLocal.push(testSpan(traceId2))
 
@@ -61,7 +61,7 @@ class TraceFriendlyThreadPoolExecutorSpec
       future.get shouldEqual Some(traceId2)
     }
     "propagate MDC" in {
-      val traceId = new SpanId("1", 2L, 3L)
+      val traceId = SpanId.createNew()
       SpanLocal.push(testSpan(traceId))
       MDC.put("foo", "bar")
 
