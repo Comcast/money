@@ -17,6 +17,7 @@
 package com.comcast.money.core
 
 import com.comcast.money.api.{ Note, SpanHandler, SpanId }
+import com.comcast.money.core.formatters.MoneyTraceFormatter
 import com.comcast.money.core.handlers.TestData
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -72,7 +73,7 @@ class CoreSpanFactorySpec extends AnyWordSpec with Matchers with MockitoSugar wi
       val parentSpan = underTest.newSpan("parent")
 
       Formatters.toHttpHeaders(parentSpan.info.id, (headerName, headerValue) => headerName match {
-        case Formatters.MoneyTraceHeader => {
+        case MoneyTraceFormatter.MoneyTraceHeader => {
           val childSpan = underTest.newSpanFromHeader("child", _ => headerValue)
 
           childSpan.info.id.traceId shouldBe parentSpan.info.id.traceId
