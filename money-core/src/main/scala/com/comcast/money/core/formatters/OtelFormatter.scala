@@ -31,10 +31,13 @@ class OtelFormatter(propagator: TextMapPropagator) extends Formatter {
 
   def fromHttpHeaders(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId] = {
     val context = propagator.extract[Unit](Context.ROOT, (), (_, key) => getHeader(key))
-    Option(TracingContextUtils.getSpan(context))
-      .map { _.getContext }
-      .filter { _.isValid }
-      .map { SpanId.fromSpanContext }
+
+    for {
+      span <- Option(TracingContextUtils.getSpanWithoutDefault(context))
+      spanContext = span.getContext
+      if spanContext.isValid
+      spanId = SpanId.fromSpanContext(spanContext)
+    } yield spanId
   }
 
   override def fields: Seq[String] = propagator.fields.asScala

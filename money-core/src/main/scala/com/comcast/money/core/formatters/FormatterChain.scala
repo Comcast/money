@@ -22,7 +22,7 @@ case class FormatterChain(formatters: Seq[Formatter]) extends Formatter {
     formatter => formatter.toHttpHeaders(spanId, addHeader)
   }
 
-  override def fromHttpHeaders(getHeader: String => String, log: String => Unit): Option[SpanId] = formatters.flatMap {
+  override def fromHttpHeaders(getHeader: String => String, log: String => Unit): Option[SpanId] = formatters.toStream.flatMap {
     formatter => formatter.fromHttpHeaders(getHeader, log)
   } headOption
 

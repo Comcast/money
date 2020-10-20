@@ -20,13 +20,15 @@ import java.util.UUID
 
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.formatters.MoneyTraceFormatter.{ MoneyHeaderFormat, MoneyTraceHeader }
-import com.comcast.money.core.{ Formatters, TraceGenerators }
+import com.comcast.money.core.TraceGenerators
 import io.opentelemetry.trace.{ TraceFlags, TraceState }
+import org.mockito.Mockito.{ verify, verifyNoMoreInteractions }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
-class MoneyTraceFormatterSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
+class MoneyTraceFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
 
   "MoneyTraceFormatter" should {
     "read a money http header" in {
@@ -58,6 +60,21 @@ class MoneyTraceFormatterSpec extends AnyWordSpec with Matchers with ScalaCheckD
           value shouldBe MoneyHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId)
         })
       }
+    }
+
+    "lists the MoneyTrace headers" in {
+      MoneyTraceFormatter.fields shouldBe Seq(MoneyTraceHeader)
+    }
+
+    "copy the request headers to the response" in {
+      val setHeader = mock[(String, String) => Unit]
+
+      MoneyTraceFormatter.setResponseHeaders({
+        case MoneyTraceHeader => MoneyTraceHeader
+      }, setHeader)
+
+      verify(setHeader).apply(MoneyTraceHeader, MoneyTraceHeader)
+      verifyNoMoreInteractions(setHeader)
     }
   }
 }

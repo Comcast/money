@@ -16,6 +16,78 @@
 
 package com.comcast.money.core.formatters
 
-class FormatterChainSpec {
+import com.comcast.money.api.SpanId
+import org.mockito.Mockito
+import org.mockito.Mockito.{ verify, verifyZeroInteractions, when }
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
 
+class FormatterChainSpec extends AnyWordSpec with MockitoSugar with Matchers {
+  private val formatter1 = mock[Formatter]
+  private val formatter2 = mock[Formatter]
+
+  private val underTest = FormatterChain(Seq(formatter1, formatter2))
+
+  "FormatterChain" should {
+    "calls toHttpHeaders on all Formatters" in {
+      val spanId = SpanId.createNew()
+      val setter = mock[(String, String) => Unit]
+      underTest.toHttpHeaders(spanId, setter)
+
+      val inOrder = Mockito.inOrder(formatter1, formatter2)
+      inOrder.verify(formatter1).toHttpHeaders(spanId, setter)
+      inOrder.verify(formatter2).toHttpHeaders(spanId, setter)
+    }
+
+    "attempts fromHttpHeaders on all Formatters" in {
+      val getter = mock[String => String]
+      val log = mock[String => Unit]
+
+      when(formatter1.fromHttpHeaders(getter, log)).thenReturn(None)
+      when(formatter2.fromHttpHeaders(getter, log)).thenReturn(None)
+
+      val result = underTest.fromHttpHeaders(getter, log)
+
+      result shouldBe None
+
+      val inOrder = Mockito.inOrder(formatter1, formatter2)
+      inOrder.verify(formatter1).fromHttpHeaders(getter, log)
+      inOrder.verify(formatter2).fromHttpHeaders(getter, log)
+    }
+
+    "returns the first SpanId in the chain" in {
+      val spanId = SpanId.createNew()
+      val getter = mock[String => String]
+      val log = mock[String => Unit]
+
+      when(formatter1.fromHttpHeaders(getter, log)).thenReturn(Some(spanId))
+      when(formatter2.fromHttpHeaders(getter, log)).thenReturn(None)
+
+      val result = underTest.fromHttpHeaders(getter, log)
+
+      result shouldBe Some(spanId)
+
+      verify(formatter1).fromHttpHeaders(getter, log)
+      verifyZeroInteractions(formatter2)
+    }
+
+    "returns the combined fields from each Formatter in the chain" in {
+      when(formatter1.fields).thenReturn(Seq("A", "B"))
+      when(formatter2.fields).thenReturn(Seq("C", "D"))
+
+      underTest.fields shouldBe Seq("A", "B", "C", "D")
+    }
+
+    "sets the response headers for each Formatter" in {
+      val getter = mock[String => String]
+      val setter = mock[(String, String) => Unit]
+
+      underTest.setResponseHeaders(getter, setter)
+
+      val inOrder = Mockito.inOrder(formatter1, formatter2)
+      inOrder.verify(formatter1).setResponseHeaders(getter, setter)
+      inOrder.verify(formatter2).setResponseHeaders(getter, setter)
+    }
+  }
 }

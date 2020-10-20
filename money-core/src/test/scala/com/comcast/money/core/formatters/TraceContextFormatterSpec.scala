@@ -26,8 +26,10 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import FormatterUtils._
+import org.mockito.Mockito.{ verify, verifyNoMoreInteractions }
+import org.scalatestplus.mockito.MockitoSugar
 
-class TraceContextFormatterSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
+class TraceContextFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
   "TraceContextFormatter" should {
     "read a traceparent http header" in {
       forAll { (traceIdValue: UUID, spanIdValue: Long, sampled: Boolean) =>
@@ -65,6 +67,23 @@ class TraceContextFormatterSpec extends AnyWordSpec with Matchers with ScalaChec
           })
         }
       }
+    }
+
+    "lists the Trace Context headers" in {
+      TraceContextFormatter.fields shouldBe Seq(TraceParentHeader, TraceStateHeader)
+    }
+
+    "copy the request headers to the response" in {
+      val setHeader = mock[(String, String) => Unit]
+
+      TraceContextFormatter.setResponseHeaders({
+        case TraceParentHeader => TraceParentHeader
+        case TraceStateHeader => TraceStateHeader
+      }, setHeader)
+
+      verify(setHeader).apply(TraceParentHeader, TraceParentHeader)
+      verify(setHeader).apply(TraceStateHeader, TraceStateHeader)
+      verifyNoMoreInteractions(setHeader)
     }
   }
 }
