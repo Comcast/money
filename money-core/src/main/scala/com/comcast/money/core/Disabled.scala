@@ -23,6 +23,8 @@ import io.opentelemetry.context.Scope
 import io.opentelemetry.trace.{ DefaultSpan, EndSpanOptions, SpanContext, StatusCanonicalCode, Span => OtelSpan }
 import java.util.function
 
+import com.comcast.money.core.formatters.Formatter
+
 // $COVERAGE-OFF$
 object DisabledSpanHandler extends SpanHandler {
 
@@ -62,6 +64,16 @@ object DisabledTracer extends Tracer {
   override def stopTimer(key: String): Unit = ()
 
   override def close(): Unit = ()
+}
+
+object DisabledFormatter extends Formatter {
+  override def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit = ()
+
+  override def fromHttpHeaders(getHeader: String => String, log: String => Unit): Option[SpanId] = None
+
+  override def fields: Seq[String] = Nil
+
+  override def setResponseHeaders(getHeader: String => String, addHeader: (String, String) => Unit): Unit = ()
 }
 
 object DisabledSpanFactory extends SpanFactory {

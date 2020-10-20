@@ -21,6 +21,7 @@ import java.util.concurrent.TimeUnit
 
 import com.comcast.money.api.{ SpanFactory, SpanHandler }
 import com.comcast.money.core.async.{ AsyncNotificationHandler, AsyncNotifier }
+import com.comcast.money.core.formatters.{ B3MultiHeaderFormatter, Formatter, FormatterChain, MoneyTraceFormatter, TraceContextFormatter }
 import com.comcast.money.core.handlers.HandlerChain
 import com.typesafe.config.{ Config, ConfigFactory }
 
@@ -31,6 +32,7 @@ case class Money(
   hostName: String,
   factory: SpanFactory,
   tracer: Tracer,
+  formatter: Formatter,
   logExceptions: Boolean = false,
   formatIdsAsHex: Boolean = false,
   asyncNotifier: AsyncNotifier = new AsyncNotifier(Seq()))
@@ -47,19 +49,20 @@ object Money {
     if (enabled) {
       val handler = HandlerChain(conf.getConfig("handling"))
       val clock = new NanoClock(SystemClock, TimeUnit.MILLISECONDS.toNanos(50L))
-      val factory: SpanFactory = new CoreSpanFactory(clock, handler)
+      val formatter = FormatterChain(Seq(MoneyTraceFormatter, B3MultiHeaderFormatter, TraceContextFormatter))
+      val factory: SpanFactory = new CoreSpanFactory(clock, handler, formatter)
       val tracer = new Tracer {
         override val spanFactory: SpanFactory = factory
       }
       val logExceptions = conf.getBoolean("log-exceptions")
       val asyncNotificationHandlerChain = AsyncNotifier(conf.getConfig("async-notifier"))
       val formatIdsAsHex = conf.hasPath("format-ids-as-hex") && conf.getBoolean("format-ids-as-hex")
-      Money(enabled, handler, applicationName, hostName, factory, tracer, logExceptions, formatIdsAsHex, asyncNotificationHandlerChain)
+      Money(enabled, handler, applicationName, hostName, factory, tracer, formatter, logExceptions, formatIdsAsHex, asyncNotificationHandlerChain)
     } else {
       disabled(applicationName, hostName)
     }
   }
 
   private def disabled(applicationName: String, hostName: String): Money =
-    Money(enabled = false, DisabledSpanHandler, applicationName, hostName, DisabledSpanFactory, DisabledTracer)
+    Money(enabled = false, DisabledSpanHandler, applicationName, hostName, DisabledSpanFactory, DisabledTracer, DisabledFormatter)
 }

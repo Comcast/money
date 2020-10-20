@@ -272,7 +272,7 @@ trait Tracer extends MoneyTracer with Closeable {
    * @param result The result of the span, this will be Result.success or Result.failed
    * @deprecated Close the [[Scope]] returned from [[Tracer.startSpan()]]
    */
-  @deprecated
+  @deprecated("Call close on the Scope returned from Tracer.startSpan", "money-core 0.10.0")
   @Deprecated
   def stopSpan(result: Boolean = true): Unit = {
     spanContext.current.foreach { span =>
@@ -320,7 +320,7 @@ trait Tracer extends MoneyTracer with Closeable {
    * @param key the identifier for the timer
    * @deprecated Close the [[Scope]] returned from [[Tracer.startTimer()]]
    */
-  @deprecated
+  @deprecated("Call close on the Scope returned from Tracer.startTimer", "money-core 0.10.0")
   @Deprecated
   def stopTimer(key: String): Unit = withCurrentSpan { span =>
     span.stopTimer(key)

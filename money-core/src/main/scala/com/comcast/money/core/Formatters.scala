@@ -19,18 +19,22 @@ package com.comcast.money.core
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.formatters.{ B3MultiHeaderFormatter, Formatter, FormatterChain, MoneyTraceFormatter, TraceContextFormatter }
 
+/**
+ * @deprecated Use `Money.Environment.formatter` to get the configured `Formatter`
+ */
+@deprecated("Use Money.Environment.formatter", "money-core 0.10.0")
+@Deprecated
 object Formatters extends Formatter {
-  //TODO: make configurable!
-  private[core] val chain = FormatterChain(Seq(MoneyTraceFormatter, B3MultiHeaderFormatter, TraceContextFormatter))
+  private[core] val formatter = Money.Environment.formatter
 
   def fromHttpHeaders(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId] =
-    chain.fromHttpHeaders(getHeader, log)
+    formatter.fromHttpHeaders(getHeader, log)
 
   def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit =
-    chain.toHttpHeaders(spanId, addHeader)
+    formatter.toHttpHeaders(spanId, addHeader)
 
-  override def fields: Seq[String] = chain.fields
+  override def fields: Seq[String] = formatter.fields
 
   override def setResponseHeaders(getHeader: String => String, addHeader: (String, String) => Unit): Unit =
-    chain.setResponseHeaders(getHeader, addHeader)
+    formatter.setResponseHeaders(getHeader, addHeader)
 }

@@ -17,7 +17,8 @@
 package com.comcast.money.http.client
 
 import com.comcast.money.annotations.Traced
-import com.comcast.money.core.{ Formatters, Money, Tracer }
+import com.comcast.money.core.formatters.Formatter
+import com.comcast.money.core.{ Money, Tracer }
 import com.comcast.money.core.internal.SpanLocal
 import org.apache.http.HttpResponse
 import org.apache.http.client.methods.HttpUriRequest
@@ -30,6 +31,7 @@ class HttpTraceAspect {
   import HttpTraceConfig._
 
   def tracer: Tracer = Money.Environment.tracer
+  def formatter: Formatter = Money.Environment.formatter
 
   @Pointcut("execution(@com.comcast.money.annotations.Traced * *(..)) && @annotation(traceAnnotation)")
   def traced(traceAnnotation: Traced): Unit = {}
@@ -134,7 +136,7 @@ class HttpTraceAspect {
     if (httpRequest != null) {
       SpanLocal.current.foreach {
         span =>
-          Formatters.toHttpHeaders(span.info.id, httpRequest.setHeader)
+          formatter.toHttpHeaders(span.info.id, httpRequest.setHeader)
       }
     }
   }

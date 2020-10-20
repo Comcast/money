@@ -19,7 +19,7 @@ package com.comcast.money.http.client
 import java.io.Closeable
 
 import com.comcast.money.api.SpanId
-import com.comcast.money.core.{ SpecHelpers, Tracer, Formatters => CoreSpanId }
+import com.comcast.money.core.{ SpecHelpers, Tracer }
 import com.comcast.money.core.internal.SpanLocal
 import io.opentelemetry.context.Scope
 import org.apache.http.client.methods.{ CloseableHttpResponse, HttpUriRequest }
