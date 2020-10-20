@@ -77,7 +77,7 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
       when(mockRequest.getHeader("X-B3-TraceId"))
         .thenReturn(existingSpanId.traceId.fromGuid)
       when(mockRequest.getHeader("X-B3-ParentSpanId"))
-        .thenReturn(existingSpanId.parentId.toHexString)
+        .thenReturn(existingSpanId.parentId.hex64)
 
       underTest.doFilter(mockRequest, mockResponse, filterChain)
 
@@ -90,9 +90,9 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
       when(mockRequest.getHeader("X-B3-TraceId"))
         .thenReturn(existingSpanId.traceId.fromGuid)
       when(mockRequest.getHeader("X-B3-ParentSpanId"))
-        .thenReturn(existingSpanId.parentId.toHexString)
+        .thenReturn(existingSpanId.parentId.hex64)
       when(mockRequest.getHeader("X-B3-SpanId"))
-        .thenReturn(existingSpanId.selfId.toHexString)
+        .thenReturn(existingSpanId.selfId.hex64)
       underTest.doFilter(mockRequest, mockResponse, filterChain)
       capturedSpan.value.info.id shouldEqual existingSpanId
     }
@@ -129,9 +129,9 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
       when(mockRequest.getHeader("X-B3-TraceId"))
         .thenReturn(existingSpanId.traceId.fromGuid)
       when(mockRequest.getHeader("X-B3-ParentSpanId"))
-        .thenReturn(existingSpanId.parentId.toHexString)
+        .thenReturn(existingSpanId.parentId.hex64)
       when(mockRequest.getHeader("X-B3-SpanId"))
-        .thenReturn(existingSpanId.selfId.toHexString)
+        .thenReturn(existingSpanId.selfId.hex64)
       when(mockRequest.getHeader("traceparent"))
         .thenReturn(traceParentHeader(SpanId.createNew()))
       underTest.doFilter(mockRequest, mockResponse, filterChain)
@@ -146,9 +146,9 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
 
     "not set the trace context if the X-B3-TraceId header is not present" in {
       when(mockRequest.getHeader("X-B3-ParentSpanId"))
-        .thenReturn(existingSpanId.parentId.toHexString)
+        .thenReturn(existingSpanId.parentId.hex64)
       when(mockRequest.getHeader("X-B3-SpanId"))
-        .thenReturn(existingSpanId.selfId.toHexString)
+        .thenReturn(existingSpanId.selfId.hex64)
       underTest.doFilter(mockRequest, mockResponse, filterChain)
       capturedSpan shouldBe None
     }
@@ -159,7 +159,7 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
       when(mockRequest.getHeader("X-B3-ParentSpanId"))
         .thenReturn("This is not a hex number")
       when(mockRequest.getHeader("X-B3-SpanId"))
-        .thenReturn(existingSpanId.selfId.toHexString)
+        .thenReturn(existingSpanId.selfId.hex64)
       underTest.doFilter(mockRequest, mockResponse, filterChain)
       capturedSpan shouldBe None
     }
@@ -168,7 +168,7 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
       when(mockRequest.getHeader("X-B3-TraceId"))
         .thenReturn(existingSpanId.traceId.fromGuid)
       when(mockRequest.getHeader("X-B3-ParentSpanId"))
-        .thenReturn(existingSpanId.parentId().toHexString)
+        .thenReturn(existingSpanId.parentId().hex64)
       when(mockRequest.getHeader("X-B3-SpanId"))
         .thenReturn("This is not a hex number")
       underTest.doFilter(mockRequest, mockResponse, filterChain)
@@ -179,7 +179,7 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
       when(mockRequest.getHeader("X-B3-TraceId"))
         .thenReturn(existingSpanId.traceId.fromGuid)
       when(mockRequest.getHeader("X-B3-SpanId"))
-        .thenReturn(existingSpanId.selfId().toHexString)
+        .thenReturn(existingSpanId.selfId().hex64)
       underTest.doFilter(mockRequest, mockResponse, filterChain)
       capturedSpan.value.info.id.traceId() shouldEqual existingSpanId.traceId()
       capturedSpan.value.info.id.parentId() shouldEqual capturedSpan.value.info.id.selfId()
@@ -206,28 +206,28 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
       when(mockRequest.getHeader("X-B3-TraceId"))
         .thenReturn(existingSpanId.traceId.fromGuid)
       when(mockRequest.getHeader("X-B3-ParentSpanId"))
-        .thenReturn(existingSpanId.parentId.toHexString)
+        .thenReturn(existingSpanId.parentId.hex64)
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
       verify(mockResponse).addHeader(
         "X-B3-TraceId", existingSpanId.traceId.fromGuid)
       verify(mockResponse).addHeader(
-        "X-B3-ParentSpanId", existingSpanId.parentId().toHexString)
+        "X-B3-ParentSpanId", existingSpanId.parentId().hex64)
     }
 
     "adds X-B3-TraceId, X-B3-ParentSpanId and X-B3-SpanId headers to response" in {
       when(mockRequest.getHeader("X-B3-TraceId"))
         .thenReturn(existingSpanId.traceId.fromGuid)
       when(mockRequest.getHeader("X-B3-ParentSpanId"))
-        .thenReturn(existingSpanId.parentId.toHexString)
+        .thenReturn(existingSpanId.parentId.hex64)
       when(mockRequest.getHeader("X-B3-SpanId"))
-        .thenReturn(existingSpanId.selfId().toHexString)
+        .thenReturn(existingSpanId.selfId().hex64)
       underTest.doFilter(mockRequest, mockResponse, mockFilterChain)
       verify(mockResponse).addHeader(
         "X-B3-TraceId", existingSpanId.traceId.fromGuid)
       verify(mockResponse).addHeader(
-        "X-B3-ParentSpanId", existingSpanId.parentId().toHexString)
+        "X-B3-ParentSpanId", existingSpanId.parentId().hex64)
       verify(mockResponse).addHeader(
-        "X-B3-SpanId", existingSpanId.selfId().toHexString)
+        "X-B3-SpanId", existingSpanId.selfId().hex64)
     }
 
     "adds Trace Context header to response" in {
