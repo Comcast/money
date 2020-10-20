@@ -27,7 +27,7 @@ private[core] class CoreSpanFactory(clock: Clock, handler: SpanHandler) extends 
 
   private val logger = LoggerFactory.getLogger(classOf[CoreSpanFactory])
 
-  override def newSpan(spanName: String): Span = newSpan(new SpanId(), spanName)
+  override def newSpan(spanName: String): Span = newSpan(SpanId.createNew(), spanName)
 
   /**
    * Continues a trace by creating a child span from the given x-moneytrace header
@@ -40,7 +40,7 @@ private[core] class CoreSpanFactory(clock: Clock, handler: SpanHandler) extends 
    */
   override def newSpanFromHeader(childName: String, getHeader: function.Function[String, String]): Span =
     Formatters.fromHttpHeaders(getHeader.apply, logger.warn) match {
-      case Some(spanId) => newSpan(new SpanId(spanId.traceId, spanId.parentId), childName)
+      case Some(spanId) => newSpan(spanId.createChild(), childName)
       case None =>
         logger.warn(s"creating root span because http header '${getHeader}' was malformed")
         newSpan(childName)
@@ -50,7 +50,7 @@ private[core] class CoreSpanFactory(clock: Clock, handler: SpanHandler) extends 
 
   override def childSpan(childName: String, span: Span, sticky: Boolean): Span = {
     val info = span.info
-    val child = newSpan(info.id.newChildId, childName)
+    val child = newSpan(info.id.createChild(), childName)
 
     if (sticky) {
       info.notes.values.asScala

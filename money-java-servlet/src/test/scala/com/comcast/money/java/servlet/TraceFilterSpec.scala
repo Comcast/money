@@ -34,7 +34,7 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
   val mockRequest = mock[HttpServletRequest]
   val mockResponse = mock[HttpServletResponse]
   val mockFilterChain = mock[FilterChain]
-  val existingSpanId = new SpanId()
+  val existingSpanId = SpanId.createNew()
   val underTest = new TraceFilter()
   val MoneyTraceFormat = "trace-id=%s;parent-id=%s;span-id=%s"
   val filterChain: FilterChain = (_: ServletRequest, _: ServletResponse) => capturedSpan = SpanLocal.current
@@ -121,7 +121,7 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
       when(mockRequest.getHeader("X-MoneyTrace"))
         .thenReturn(MoneyTraceFormat.format(existingSpanId.traceId, existingSpanId.parentId, existingSpanId.selfId))
       when(mockRequest.getHeader("traceparent"))
-        .thenReturn(traceParentHeader(new SpanId()))
+        .thenReturn(traceParentHeader(SpanId.createNew()))
       underTest.doFilter(mockRequest, mockResponse, filterChain)
       capturedSpan.value.info.id shouldEqual existingSpanId
     }
@@ -134,7 +134,7 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
       when(mockRequest.getHeader("X-B3-SpanId"))
         .thenReturn(existingSpanId.selfId.toHexString)
       when(mockRequest.getHeader("traceparent"))
-        .thenReturn(traceParentHeader(new SpanId()))
+        .thenReturn(traceParentHeader(SpanId.createNew()))
       underTest.doFilter(mockRequest, mockResponse, filterChain)
       capturedSpan.value.info.id shouldEqual existingSpanId
     }

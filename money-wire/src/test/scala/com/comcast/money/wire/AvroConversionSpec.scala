@@ -31,7 +31,7 @@ class AvroConversionSpec extends AnyWordSpec with Matchers with Inspectors {
   "Avro Conversion" should {
     "roundtrip" in {
       val orig = TestSpanInfo(
-        id = new SpanId("foo", 1L),
+        id = SpanId.createNew(),
         name = "key",
         appName = "app",
         host = "host",

@@ -25,6 +25,7 @@ import scala.concurrent.duration._
 import scala.language.higherKinds
 import Arbitrary.arbitrary
 import com.comcast.money.api.{ Note, Span, SpanId }
+import io.opentelemetry.trace.{ TraceFlags, TraceState }
 import org.scalacheck.Gen.{ alphaLowerChar, alphaUpperChar, choose, frequency }
 
 trait TraceGenerators {
@@ -55,7 +56,9 @@ trait TraceGenerators {
     traceId <- genUUID
     parentId <- arbitrary[Long]
     childId <- arbitrary[Long]
-  } yield new SpanId(traceId.toString, parentId, childId)
+    remoteId = SpanId.createRemote(traceId.toString, parentId, childId, TraceFlags.getSampled, TraceState.getDefault)
+    spanId = remoteId.createChild()
+  } yield spanId
 
 }
 

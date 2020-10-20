@@ -17,6 +17,7 @@
 package com.comcast.money.core
 
 import com.comcast.money.api.SpanId
+import io.opentelemetry.trace.{ TraceFlags, TraceState }
 
 import scala.util.{ Failure, Success, Try }
 
@@ -67,7 +68,7 @@ object Formatters {
       val parentId = parts(1).split('=')(1)
       val selfId = parts(2).split('=')(1)
 
-      new SpanId(traceId, parentId.toLong, selfId.toLong)
+      SpanId.createRemote(traceId, parentId.toLong, selfId.toLong, TraceFlags.getSampled, TraceState.getDefault)
     }
 
     def parseHeader(headerValue: String): Option[SpanId] =
@@ -89,10 +90,12 @@ object Formatters {
 
     def spanIdFromB3Headers(traceId: String, maybeParentSpanId: Option[String], maybeSpanId: Option[String]): Try[SpanId] = Try {
       (maybeParentSpanId, maybeSpanId) match {
-        case (Some(ps), Some(s)) => new SpanId(traceId.toGuid, ps.fromHexStringToLong, s.fromHexStringToLong)
-        case (Some(ps), _) => new SpanId(traceId.toGuid, ps.fromHexStringToLong)
-        case (_, Some(s)) => new SpanId(traceId.toGuid, s.fromHexStringToLong, s.fromHexStringToLong) // root span
-        case _ => new SpanId(traceId.toGuid)
+        case (Some(ps), Some(s)) => SpanId.createRemote(traceId.toGuid, ps.fromHexStringToLong, s.fromHexStringToLong, TraceFlags.getSampled, TraceState.getDefault)
+        case (Some(ps), _) => SpanId.createRemote(traceId.toGuid, ps.fromHexStringToLong, SpanId.randomNonZeroLong(), TraceFlags.getSampled, TraceState.getDefault)
+        case (_, Some(s)) => SpanId.createRemote(traceId.toGuid, s.fromHexStringToLong, s.fromHexStringToLong, TraceFlags.getSampled, TraceState.getDefault) // root span
+        case _ =>
+          val selfId = SpanId.randomNonZeroLong()
+          SpanId.createRemote(traceId.toGuid, selfId, selfId, TraceFlags.getSampled, TraceState.getDefault)
       }
     }
 
@@ -132,7 +135,7 @@ object Formatters {
 
     def spanIdFromHeader(traceId: String, parentSpanId: String): Try[SpanId] = Try {
       val parentSpanIdAsLong = parentSpanId.fromHexStringToLong
-      new SpanId(traceId.toGuid, parentSpanIdAsLong, parentSpanIdAsLong)
+      SpanId.createRemote(traceId.toGuid, parentSpanIdAsLong, parentSpanIdAsLong, TraceFlags.getSampled, TraceState.getDefault)
     }
 
     def parseHeader(traceParentHeader: String): Option[SpanId] = {
