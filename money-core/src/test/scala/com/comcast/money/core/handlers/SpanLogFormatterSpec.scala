@@ -37,7 +37,7 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
     """)
   val spanLogFormatter = SpanLogFormatter(emitterConf)
 
-  val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L)
+  val spanId = SpanId.createNew()
   val sampleData = CoreSpanInfo(
     id = spanId,
     startTimeNanos = 1000000L,
@@ -65,8 +65,8 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
       val actualMessage = spanLogFormatter.buildMessage(sampleData)
 
       assert(
-        actualMessage === ("Span: [ span-id=81985529216486895 ][ trace-id=01234567-890A-BCDE-F012-34567890ABCD ][ parent-id=81985529216486895 ]" +
-          "[ span-name=key ][ app-name=unknown ][ start-time=1 ][ span-duration=35000 ][ span-success=true ][ bob=craig ][ what=1 ][ when=2 ]"))
+        actualMessage === (s"Span: [ span-id=${spanId.selfId} ][ trace-id=${spanId.traceId} ][ parent-id=${spanId.parentId} ][ span-name=key ][ app-name=unknown ][ " +
+          "start-time=1 ][ span-duration=35000 ][ span-success=true ][ bob=craig ][ what=1 ][ when=2 ]"))
     }
     "honor key names from the config" in {
       val conf = ConfigFactory.parseString(
@@ -91,8 +91,8 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
 
       val actualMessage = spanLogFormatter.buildMessage(sampleData)
       assert(
-        actualMessage === ("Span: [ spanId=81985529216486895 ][ traceId=01234567-890A-BCDE-F012-34567890ABCD ][ parentId=81985529216486895 ]" +
-          "[ spanName=key ][ appName=unknown ][ startTime=1 ][ spanDuration=35000 ][ spanSuccess=true ][ bob=craig ][ what=1 ][ when=2 ]"))
+        actualMessage === (s"Span: [ spanId=${spanId.selfId} ][ traceId=${spanId.traceId} ][ parentId=${spanId.parentId} ][ spanName=key ][ appName=unknown ][ " +
+          "startTime=1 ][ spanDuration=35000 ][ spanSuccess=true ][ bob=craig ][ what=1 ][ when=2 ]"))
     }
     "honor the span-start from the config" in {
       val conf = ConfigFactory.parseString(
@@ -107,8 +107,8 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
       val spanLogFormatter = SpanLogFormatter(conf)
       val actualMessage = spanLogFormatter.buildMessage(sampleData)
       assert(
-        actualMessage === ("Start :|: [ span-id=81985529216486895 ][ trace-id=01234567-890A-BCDE-F012-34567890ABCD ][ parent-id=81985529216486895 ]" +
-          "[ span-name=key ][ app-name=unknown ][ start-time=1 ][ span-duration=35000 ][ span-success=true ][ bob=craig ][ what=1 ][ when=2 ]"))
+        actualMessage === (s"Start :|: [ span-id=${spanId.selfId} ][ trace-id=${spanId.traceId} ][ parent-id=${spanId.parentId} ][ span-name=key ][ app-name=unknown ][ " +
+          "start-time=1 ][ span-duration=35000 ][ span-success=true ][ bob=craig ][ what=1 ][ when=2 ]"))
     }
     "honor the log-template from the config" in {
       val conf = ConfigFactory.parseString(
@@ -123,8 +123,8 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
       val spanLogFormatter = SpanLogFormatter(conf)
       val actualMessage = spanLogFormatter.buildMessage(sampleData)
       assert(
-        actualMessage === ("""Span: span-id="81985529216486895" trace-id="01234567-890A-BCDE-F012-34567890ABCD" parent-id="81985529216486895" """ +
-          """span-name="key" app-name="unknown" start-time="1" span-duration="35000" span-success="true" """ +
+        actualMessage === (s"""Span: span-id="${spanId.selfId}" trace-id="${spanId.traceId}" parent-id="${spanId.parentId}" span-name="key" """ +
+          """app-name="unknown" start-time="1" span-duration="35000" span-success="true" """ +
           """bob="craig" what="1" when="2" """))
     }
     "honor the span-duration-ms settings in the config" in {
@@ -179,7 +179,7 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
       val spanLogFormatter = SpanLogFormatter(conf)
       val expectedLogMessage = spanLogFormatter.buildMessage(sampleData)
 
-      expectedLogMessage should include("[ span-id=0123456789abcdef ][ trace-id=01234567890abcdef01234567890abcd ][ parent-id=0123456789abcdef ]")
+      expectedLogMessage should include(f"[ span-id=${spanId.selfIdAsHex} ][ trace-id=${spanId.traceIdAsHex} ][ parent-id=${spanId.parentIdAsHex} ]")
     }
   }
 }

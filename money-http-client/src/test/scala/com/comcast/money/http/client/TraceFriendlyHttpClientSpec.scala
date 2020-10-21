@@ -43,7 +43,7 @@ class TraceFriendlyHttpClientSpec extends AnyWordSpec with SpecHelpers
   val statusLine = mock[StatusLine]
   val httpHost = new HttpHost("localhost")
   val httpContext = mock[HttpContext]
-  val spanId = new SpanId()
+  val spanId = SpanId.createNew()
   val scope = mock[Scope]
 
   when(httpResponse.getStatusLine).thenReturn(statusLine)

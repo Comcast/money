@@ -70,7 +70,7 @@ class MoneyTraceSpec extends AnyWordSpec with ScalatestRouteTest with BeforeAndA
 
     "continue a span for a request with a span" in {
       import scala.collection.immutable.Seq
-      val parentSpanId: SpanId = new SpanId()
+      val parentSpanId: SpanId = SpanId.createNew()
 
       Formatters.toHttpHeaders(parentSpanId, (name, value) => {
         val parentSpanIdHeader = HttpHeader.parse(name, value) match {

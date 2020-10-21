@@ -21,7 +21,7 @@ import java.util.Collections
 import com.comcast.money.api.{ Note, SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.{ Clock, CoreSpan, CoreSpanInfo, SystemClock }
 import com.typesafe.config.Config
-import io.opentelemetry.trace.{ StatusCanonicalCode, Span => OtelSpan }
+import io.opentelemetry.trace.{ StatusCanonicalCode, TraceFlags, TraceState, Span => OtelSpan }
 
 class ConfiguredHandler extends ConfigurableHandler {
 
@@ -47,7 +47,7 @@ trait TestData {
   val clock: Clock = SystemClock
 
   val testSpanInfo = CoreSpanInfo(
-    id = new SpanId(),
+    id = SpanId.createNew(),
     startTimeNanos = clock.now,
     endTimeNanos = clock.now,
     durationNanos = 123456000L,
@@ -58,11 +58,14 @@ trait TestData {
     notes = Map[String, Note[_]]("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote).asJava,
     events = Collections.emptyList())
 
-  val testSpan = CoreSpan(new SpanId(), "test-span", OtelSpan.Kind.INTERNAL, SystemClock, null)
-  val childSpan = CoreSpan(new SpanId(), "child-span", OtelSpan.Kind.INTERNAL, SystemClock, null)
+  val testSpanId = SpanId.createNew()
+  val testSpan = CoreSpan(testSpanId, "test-span", OtelSpan.Kind.INTERNAL, SystemClock, null)
+  val childSpanId = testSpanId.createChild()
+  val childSpan = CoreSpan(childSpanId, "child-span", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
+  val fixedTestSpanId = SpanId.createRemote("5092ddfe-3701-4f84-b3d2-21f5501c0d28", 5176425846116696835L, 5176425846116696835L, TraceFlags.getSampled, TraceState.getDefault)
   val fixedTestSpanInfo = CoreSpanInfo(
-    id = new SpanId("5092ddfe-3701-4f84-b3d2-21f5501c0d28", 5176425846116696835L, 5176425846116696835L),
+    id = fixedTestSpanId,
     startTimeNanos = 100000000L,
     endTimeNanos = 300000000L,
     durationNanos = 200000L,

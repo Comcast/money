@@ -48,7 +48,7 @@ class TraceFriendlyExecutionContextExecutorSpec extends AnyWordSpec
 
   "TraceFriendlyExecutionContext" should {
     "propagate the current trace local value" in {
-      val originalSpanId = new SpanId("1", 2L, 3L)
+      val originalSpanId = SpanId.createNew()
       val originalSpan = testSpan(originalSpanId)
       SpanLocal.push(originalSpan)
 
@@ -70,8 +70,8 @@ class TraceFriendlyExecutionContextExecutorSpec extends AnyWordSpec
       futureResult shouldEqual None
     }
     "propagate only the latest span id value" in {
-      val spanId1 = new SpanId()
-      val spanId2 = new SpanId()
+      val spanId1 = SpanId.createNew()
+      val spanId2 = SpanId.createNew()
       SpanLocal.push(testSpan(spanId1))
       SpanLocal.push(testSpan(spanId2))
 
