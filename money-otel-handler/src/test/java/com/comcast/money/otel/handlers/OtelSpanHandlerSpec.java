@@ -105,7 +105,7 @@ public class OtelSpanHandlerSpec {
         PowerMockito.verifyStatic(BatchSpanProcessor.class, never());
         BatchSpanProcessor.newBuilder(spanExporter);
 
-        SpanId spanId = new SpanId();
+        SpanId spanId = SpanId.createNew();
         SpanInfo spanInfo = new TestSpanInfo(spanId);
 
         underTest.handle(spanInfo);
@@ -144,7 +144,7 @@ public class OtelSpanHandlerSpec {
         PowerMockito.verifyStatic(SimpleSpanProcessor.class, never());
         SimpleSpanProcessor.newBuilder(spanExporter);
 
-        SpanId spanId = new SpanId();
+        SpanId spanId = SpanId.createNew();
         SpanInfo spanInfo = new TestSpanInfo(spanId);
 
         underTest.handle(spanInfo);

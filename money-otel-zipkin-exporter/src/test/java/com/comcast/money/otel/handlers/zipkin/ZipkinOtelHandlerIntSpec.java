@@ -58,7 +58,7 @@ public class ZipkinOtelHandlerIntSpec {
         ZipkinOtelSpanHandler handler = new ZipkinOtelSpanHandler();
         handler.configure(config);
 
-        SpanId spanId = new SpanId();
+        SpanId spanId = SpanId.createNew();
         SpanInfo spanInfo = new TestSpanInfo(spanId);
 
         handler.handle(spanInfo);

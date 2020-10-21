@@ -86,7 +86,7 @@ public class ZipkinOtelHandlerSpec {
         Mockito.verify(spanExporterBuilder).setServiceName("service-name");
         Mockito.verify(spanExporterBuilder).build();
 
-        SpanId spanId = new SpanId();
+        SpanId spanId = SpanId.createNew();
         SpanInfo spanInfo = new TestSpanInfo(spanId);
 
         underTest.handle(spanInfo);

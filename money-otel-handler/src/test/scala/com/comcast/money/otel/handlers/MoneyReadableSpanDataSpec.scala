@@ -17,6 +17,7 @@
 package com.comcast.money.otel.handlers
 
 import java.util
+import java.util.UUID
 
 import com.comcast.money.api.{ Event, Note, SpanId, SpanInfo }
 import io.opentelemetry.common.{ AttributeKey, Attributes }
@@ -29,8 +30,8 @@ import org.scalatest.wordspec.AnyWordSpec
 import scala.collection.JavaConverters._
 
 class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
-  val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L)
-  val childSpanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 1147797409030816545L, 81985529216486895L)
+  val spanId = SpanId.createFrom(UUID.fromString("01234567-890A-BCDE-F012-34567890ABCD"), 81985529216486895L, 81985529216486895L)
+  val childSpanId = SpanId.createFrom(UUID.fromString("01234567-890A-BCDE-F012-34567890ABCD"), 1147797409030816545L, 81985529216486895L)
 
   "MoneyReadableSpanDataSpec" should {
     "wrap Money SpanInfo" in {
