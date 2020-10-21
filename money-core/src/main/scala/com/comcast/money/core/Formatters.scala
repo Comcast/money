@@ -17,7 +17,7 @@
 package com.comcast.money.core
 
 import com.comcast.money.api.SpanId
-import com.comcast.money.core.formatters.{ B3MultiHeaderFormatter, Formatter, FormatterChain, MoneyTraceFormatter, TraceContextFormatter }
+import com.comcast.money.core.formatters.Formatter
 
 /**
  * @deprecated Use `Money.Environment.formatter` to get the configured `Formatter`
