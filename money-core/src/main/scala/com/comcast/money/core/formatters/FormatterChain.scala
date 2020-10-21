@@ -19,7 +19,7 @@ import com.comcast.money.api.SpanId
 import com.typesafe.config.Config
 import scala.collection.JavaConverters._
 
-case class FormatterChain(formatters: Seq[Formatter]) extends Formatter {
+final case class FormatterChain(formatters: Seq[Formatter]) extends Formatter {
   override def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit = formatters.foreach {
     formatter => formatter.toHttpHeaders(spanId, addHeader)
   }
