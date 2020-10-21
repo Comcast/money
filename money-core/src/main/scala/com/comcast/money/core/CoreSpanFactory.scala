@@ -19,11 +19,15 @@ package com.comcast.money.core
 import java.util.function
 
 import com.comcast.money.api.{ Span, SpanFactory, SpanHandler, SpanId }
+import com.comcast.money.core.formatters.Formatter
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
-private[core] class CoreSpanFactory(clock: Clock, handler: SpanHandler) extends SpanFactory {
+private[core] class CoreSpanFactory(
+  clock: Clock,
+  handler: SpanHandler,
+  formatter: Formatter) extends SpanFactory {
 
   private val logger = LoggerFactory.getLogger(classOf[CoreSpanFactory])
 
@@ -39,7 +43,7 @@ private[core] class CoreSpanFactory(clock: Clock, handler: SpanHandler) extends 
    * traceContextHeader is malformed.
    */
   override def newSpanFromHeader(childName: String, getHeader: function.Function[String, String]): Span =
-    Formatters.fromHttpHeaders(getHeader.apply, logger.warn) match {
+    formatter.fromHttpHeaders(getHeader.apply, logger.warn) match {
       case Some(spanId) => newSpan(spanId.createChild(), childName)
       case None =>
         logger.warn(s"creating root span because http header '${getHeader}' was malformed")

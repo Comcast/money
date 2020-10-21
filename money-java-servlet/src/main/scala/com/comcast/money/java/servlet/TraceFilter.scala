@@ -16,7 +16,6 @@
 
 package com.comcast.money.java.servlet
 
-import com.comcast.money.core.Formatters._
 import com.comcast.money.core.Money
 import io.opentelemetry.context.Scope
 import javax.servlet._
@@ -31,6 +30,7 @@ class TraceFilter extends Filter {
 
   private val logger = LoggerFactory.getLogger(classOf[TraceFilter])
   private val tracer = Money.Environment.tracer
+  private val formatter = Money.Environment.formatter
 
   override def init(filterConfig: FilterConfig): Unit = {}
 
@@ -42,7 +42,7 @@ class TraceFilter extends Filter {
 
     val httpRequest = new HttpServletRequestWrapper(request.asInstanceOf[HttpServletRequest])
 
-    val scope: Scope = fromHttpHeaders(httpRequest.getHeader, logger.warn) match {
+    val scope: Scope = formatter.fromHttpHeaders(httpRequest.getHeader, logger.warn) match {
       case Some(spanId) =>
         tracer.withSpan(tracer.spanFactory.newSpan(spanId, spanName))
       case None => () => ()
@@ -50,7 +50,7 @@ class TraceFilter extends Filter {
 
     try {
       val httpResponse = response.asInstanceOf[HttpServletResponse]
-      setResponseHeaders(httpRequest.getHeader, httpResponse.addHeader)
+      formatter.setResponseHeaders(httpRequest.getHeader, httpResponse.addHeader)
 
       chain.doFilter(request, response)
     } finally {

@@ -23,8 +23,7 @@ import akka.http.scaladsl.server.Route
 import akka.stream.scaladsl.{ Sink, Source }
 import com.comcast.money.akka.{ MoneyExtension, SpanContextWithStack, TraceContext }
 import com.comcast.money.api.{ Note, SpanId }
-import com.comcast.money.core.Formatters.fromHttpHeaders
-import com.comcast.money.core.Tracer
+import com.comcast.money.core.{ Money, Tracer }
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{ Failure, Success }
@@ -39,6 +38,8 @@ import scala.util.{ Failure, Success }
  */
 
 object MoneyTrace {
+
+  private val formatter = Money.Environment.formatter
 
   /**
    * Returns a Route to be used to complete a Akka Http Routing DSL
@@ -204,7 +205,7 @@ object MoneyTrace {
   private def maybeExtractHeaderSpanId(request: HttpRequest): Option[SpanId] =
     request
       .headers
-      .flatMap(header => fromHttpHeaders(_ => header.value))
+      .flatMap(header => formatter.fromHttpHeaders(_ => header.value))
       .headOption
 }
 

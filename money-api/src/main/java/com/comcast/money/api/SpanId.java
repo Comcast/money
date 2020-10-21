@@ -252,6 +252,20 @@ public final class SpanId {
     }
 
     /**
+     * @return the bitmask of flags for the span ID
+     */
+    public byte traceFlags() {
+        return flags;
+    }
+
+    /**
+     * @return the state attached to the span in name/value pairs
+     */
+    public TraceState traceState() {
+        return state;
+    }
+
+    /**
      * @return {@code true} if the span ID is a root span; otherwise, {@code false}
      */
     public boolean isRoot() {
@@ -313,7 +327,10 @@ public final class SpanId {
 
         if (parentId != spanId.parentId) return false;
         if (selfId != spanId.selfId) return false;
-        return traceId.equals(spanId.traceId);
+        if (remote != spanId.remote) return false;
+        if (flags != spanId.flags) return false;
+        if (!traceId.equals(spanId.traceId)) return false;
+        return state.equals(spanId.state);
     }
 
     @Override
@@ -321,6 +338,9 @@ public final class SpanId {
         int result = traceId.hashCode();
         result = 31 * result + (int) (parentId ^ (parentId >>> 32));
         result = 31 * result + (int) (selfId ^ (selfId >>> 32));
+        result = 31 * result + (remote ? 1 : 0);
+        result = 31 * result + (int) flags;
+        result = 31 * result + state.hashCode();
         return result;
     }
 

@@ -19,7 +19,7 @@ package com.comcast.money.http.client
 import java.io.Closeable
 
 import com.comcast.money.api.SpanId
-import com.comcast.money.core.{ SpecHelpers, Tracer, Formatters => CoreSpanId }
+import com.comcast.money.core.{ SpecHelpers, Tracer }
 import com.comcast.money.core.internal.SpanLocal
 import io.opentelemetry.context.Scope
 import org.apache.http.client.methods.{ CloseableHttpResponse, HttpUriRequest }
@@ -74,9 +74,7 @@ class TraceFriendlyHttpClientSpec extends AnyWordSpec with SpecHelpers
     verify(scope).close()
     verify(underTest.tracer).record("http-response-code", 200L)
     verify(httpUriRequest).setHeader("X-MoneyTrace", s"trace-id=${spanId.traceId};parent-id=${spanId.parentId};span-id=${spanId.selfId}")
-    verify(httpUriRequest).setHeader("X-B3-TraceId", spanId.traceId.replace("-", ""))
-    verify(httpUriRequest).setHeader("X-B3-SpanId", f"${spanId.selfId}%016x")
-    verify(httpUriRequest).setHeader("traceparent", f"00-${spanId.traceId.replace("-", "")}%s-${spanId.selfId}%016x-00")
+    verify(httpUriRequest).setHeader("traceparent", f"00-${spanId.traceId.replace("-", "")}%s-${spanId.selfId}%016x-01")
   }
 
   "TraceFriendlyHttpClient" should {

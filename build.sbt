@@ -29,6 +29,7 @@ lazy val money =
       moneyWire,
       moneyKafka,
       moneySpring,
+      moneyOtelFormatters,
       moneyOtelHandler,
       moneyOtelZipkinExporter,
       moneyOtelJaegerExporter
@@ -58,6 +59,22 @@ lazy val moneyCore =
           typesafeConfig
         ) ++ commonTestDependencies
     ).dependsOn(moneyApi)
+
+lazy val moneyOtelFormatters =
+  Project("money-otel-formatters", file("./money-otel-formatters"))
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          slf4j,
+          log4jbinding,
+          metricsCore,
+          openTelemetryApi,
+          openTelemetryProp,
+          typesafeConfig
+        ) ++ commonTestDependencies
+    ).dependsOn(moneyApi, moneyCore % "test->test;compile->compile")
 
 lazy val moneyAkka =
   Project("money-akka", file("./money-akka"))
@@ -110,7 +127,7 @@ lazy val moneyJavaServlet =
           javaxServlet
         ) ++ commonTestDependencies
     )
-    .dependsOn(moneyCore)
+    .dependsOn(moneyCore % "test->test;compile->compile")
 
 lazy val moneyWire =
   Project("money-wire", file("./money-wire"))
@@ -127,7 +144,7 @@ lazy val moneyWire =
       // Configure the desired Avro version.  sbt-avro automatically injects a libraryDependency.
       (version in AvroConfig) := "1.7.6",
       (stringType in AvroConfig) := "String"
-    ).dependsOn(moneyCore)
+    ).dependsOn(moneyCore % "test->test;compile->compile")
 
 lazy val moneyKafka =
   Project("money-kafka", file("./money-kafka"))
@@ -167,7 +184,7 @@ lazy val moneySpring =
         ) ++ commonTestDependencies,
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
     )
-    .dependsOn(moneyCore)
+    .dependsOn(moneyCore % "test->test;compile->compile")
 
 lazy val moneyOtelHandler =
   Project("money-otel-handler", file("./money-otel-handler"))

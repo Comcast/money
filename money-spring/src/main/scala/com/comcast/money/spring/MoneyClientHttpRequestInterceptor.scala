@@ -16,7 +16,8 @@
 
 package com.comcast.money.spring
 
-import com.comcast.money.core.Formatters
+import com.comcast.money.core.Money
+import com.comcast.money.core.formatters.Formatter
 import com.comcast.money.core.internal.SpanLocal
 import org.springframework.http.HttpRequest
 import org.springframework.http.client.{ ClientHttpRequestExecution, ClientHttpRequestInterceptor, ClientHttpResponse }
@@ -65,10 +66,12 @@ import org.springframework.stereotype.Component
  */
 @Component
 class MoneyClientHttpRequestInterceptor extends ClientHttpRequestInterceptor {
+  def formatter: Formatter = Money.Environment.formatter
+
   override def intercept(httpRequest: HttpRequest, body: Array[Byte], clientHttpRequestExecution: ClientHttpRequestExecution): ClientHttpResponse = {
     SpanLocal.current foreach { span =>
       val headers = httpRequest.getHeaders
-      Formatters.toHttpHeaders(span.info.id, headers.add)
+      formatter.toHttpHeaders(span.info.id, headers.add)
     }
     clientHttpRequestExecution.execute(httpRequest, body)
   }

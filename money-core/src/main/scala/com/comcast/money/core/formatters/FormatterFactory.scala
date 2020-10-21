@@ -14,24 +14,14 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core
+package com.comcast.money.core.formatters
 
-import java.util.UUID
+import com.typesafe.config.Config
 
-import com.comcast.money.api.SpanId
-import Formatters._
-import io.opentelemetry.trace.{ TraceFlags, TraceState }
-import org.scalacheck.Arbitrary
-import org.scalacheck.Test.Failed
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
-
-class FormattersSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
-
-  implicit val arbitraryUUID: Arbitrary[UUID] = Arbitrary(genUUID)
-
-  "Http Formatting" should {
-
+object FormatterFactory {
+  def create(config: Config): Formatter = {
+    val className = config.getString("class")
+    val formatterInstance = Class.forName(className).newInstance().asInstanceOf[Formatter]
+    formatterInstance
   }
 }

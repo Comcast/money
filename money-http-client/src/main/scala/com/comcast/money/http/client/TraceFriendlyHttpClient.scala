@@ -18,8 +18,9 @@ package com.comcast.money.http.client
 
 import java.io.{ Closeable, IOException }
 
-import com.comcast.money.core.{ Formatters, Money, Tracer }
+import com.comcast.money.core.{ Money, Tracer }
 import com.comcast.money.core.Tracers._
+import com.comcast.money.core.formatters.Formatter
 import com.comcast.money.core.internal.SpanLocal
 import org.apache.http.client.methods.HttpUriRequest
 import org.apache.http.client.{ ClientProtocolException, HttpClient, ResponseHandler }
@@ -32,6 +33,8 @@ import org.apache.http.{ HttpHost, HttpRequest, HttpResponse }
 import scala.util.Try
 
 object TraceFriendlyHttpSupport {
+
+  def formatter: Formatter = Money.Environment.formatter
 
   def wrapSimpleExecute(httpRequest: HttpRequest, tracer: Tracer)(f: => HttpResponse): HttpResponse = {
     var responseCode = 0L
@@ -58,7 +61,7 @@ object TraceFriendlyHttpSupport {
 
     if (httpRequest != null) {
       SpanLocal.current.foreach {
-        span => Formatters.toHttpHeaders(span.info.id, httpRequest.setHeader)
+        span => formatter.toHttpHeaders(span.info.id, httpRequest.setHeader)
       }
     }
   }

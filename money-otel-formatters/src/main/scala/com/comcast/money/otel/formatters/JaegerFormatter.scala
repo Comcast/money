@@ -14,24 +14,13 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core
+package com.comcast.money.otel.formatters
 
-import java.util.UUID
+import com.comcast.money.core.formatters.OtelFormatter
+import io.opentelemetry.extensions.trace.propagation.JaegerPropagator
 
-import com.comcast.money.api.SpanId
-import Formatters._
-import io.opentelemetry.trace.{ TraceFlags, TraceState }
-import org.scalacheck.Arbitrary
-import org.scalacheck.Test.Failed
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
-
-class FormattersSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
-
-  implicit val arbitraryUUID: Arbitrary[UUID] = Arbitrary(genUUID)
-
-  "Http Formatting" should {
-
-  }
+object JaegerFormatter {
+  private[formatters] val UberTraceIdHeader = "uber-trace-id"
 }
+
+final class JaegerFormatter extends OtelFormatter(JaegerPropagator.getInstance)

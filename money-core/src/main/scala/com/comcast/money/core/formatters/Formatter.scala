@@ -14,24 +14,17 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core
-
-import java.util.UUID
+package com.comcast.money.core.formatters
 
 import com.comcast.money.api.SpanId
-import Formatters._
-import io.opentelemetry.trace.{ TraceFlags, TraceState }
-import org.scalacheck.Arbitrary
-import org.scalacheck.Test.Failed
-import org.scalatest.matchers.should.Matchers
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
-class FormattersSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
+trait Formatter {
+  def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit
+  def fromHttpHeaders(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId]
+  def fields: Seq[String]
 
-  implicit val arbitraryUUID: Arbitrary[UUID] = Arbitrary(genUUID)
-
-  "Http Formatting" should {
-
+  def setResponseHeaders(getHeader: String => String, addHeader: (String, String) => Unit): Unit = {
+    def setResponseHeader(headerName: String): Unit = Option(getHeader(headerName)).foreach(v => addHeader(headerName, v))
+    fields.foreach(setResponseHeader)
   }
 }
