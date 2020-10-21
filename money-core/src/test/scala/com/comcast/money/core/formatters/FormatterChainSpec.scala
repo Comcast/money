@@ -17,8 +17,9 @@
 package com.comcast.money.core.formatters
 
 import com.comcast.money.api.SpanId
+import com.typesafe.config.ConfigFactory
 import org.mockito.Mockito
-import org.mockito.Mockito.{ verify, verifyZeroInteractions, when }
+import org.mockito.Mockito.{verify, verifyZeroInteractions, when}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
@@ -30,6 +31,35 @@ class FormatterChainSpec extends AnyWordSpec with MockitoSugar with Matchers {
   private val underTest = FormatterChain(Seq(formatter1, formatter2))
 
   "FormatterChain" should {
+    "return the default formatters" in {
+      val result = FormatterChain.default
+
+      result.formatters should have size 2
+      val Seq(formatter1, formatter2)  = result.formatters
+      formatter1 shouldBe a [MoneyTraceFormatter]
+      formatter2 shouldBe a [TraceContextFormatter]
+    }
+
+    "return configured formatters" in {
+      val config = ConfigFactory.parseString(
+        """
+          | formatters = [
+          |   {
+          |     class = com.comcast.money.core.formatters.TraceContextFormatter
+          |   },
+          |   {
+          |     class = com.comcast.money.core.formatters.MoneyTraceFormatter
+          |   }
+          | ]
+          |""".stripMargin)
+
+      val result = FormatterChain(config)
+
+      val Seq(formatter1, formatter2)  = result.formatters
+      formatter1 shouldBe a [TraceContextFormatter]
+      formatter2 shouldBe a [MoneyTraceFormatter]
+    }
+
     "calls toHttpHeaders on all Formatters" in {
       val spanId = SpanId.createNew()
       val setter = mock[(String, String) => Unit]
