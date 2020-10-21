@@ -20,10 +20,10 @@ import java.util.UUID
 
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.TraceGenerators
-import com.comcast.money.core.formatters.FormatterUtils.{LongToHexConversion, UUIDToHexConversion, isValidIds}
-import com.comcast.money.otel.formatters.B3MultiHeaderFormatter.{B3ParentSpanIdHeader, B3SampledHeader, B3SpanIdHeader, B3TraceIdHeader}
-import io.opentelemetry.trace.{TraceFlags, TraceState}
-import org.mockito.Mockito.{verify, verifyNoMoreInteractions}
+import com.comcast.money.core.formatters.FormatterUtils.{ LongToHexConversion, UUIDToHexConversion, isValidIds }
+import com.comcast.money.otel.formatters.B3MultiHeaderFormatter.{ B3ParentSpanIdHeader, B3SampledHeader, B3SpanIdHeader, B3TraceIdHeader }
+import io.opentelemetry.trace.{ TraceFlags, TraceState }
+import org.mockito.Mockito.{ verify, verifyNoMoreInteractions }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar

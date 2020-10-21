@@ -19,7 +19,7 @@ package com.comcast.money.core.formatters
 import com.comcast.money.api.SpanId
 import com.typesafe.config.ConfigFactory
 import org.mockito.Mockito
-import org.mockito.Mockito.{verify, verifyZeroInteractions, when}
+import org.mockito.Mockito.{ verify, verifyZeroInteractions, when }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
@@ -35,9 +35,9 @@ class FormatterChainSpec extends AnyWordSpec with MockitoSugar with Matchers {
       val result = FormatterChain.default
 
       result.formatters should have size 2
-      val Seq(formatter1, formatter2)  = result.formatters
-      formatter1 shouldBe a [MoneyTraceFormatter]
-      formatter2 shouldBe a [TraceContextFormatter]
+      val Seq(formatter1, formatter2) = result.formatters
+      formatter1 shouldBe a[MoneyTraceFormatter]
+      formatter2 shouldBe a[TraceContextFormatter]
     }
 
     "return configured formatters" in {
@@ -55,9 +55,9 @@ class FormatterChainSpec extends AnyWordSpec with MockitoSugar with Matchers {
 
       val result = FormatterChain(config)
 
-      val Seq(formatter1, formatter2)  = result.formatters
-      formatter1 shouldBe a [TraceContextFormatter]
-      formatter2 shouldBe a [MoneyTraceFormatter]
+      val Seq(formatter1, formatter2) = result.formatters
+      formatter1 shouldBe a[TraceContextFormatter]
+      formatter2 shouldBe a[MoneyTraceFormatter]
     }
 
     "calls toHttpHeaders on all Formatters" in {

@@ -22,8 +22,8 @@ import com.comcast.money.api.SpanId
 import com.comcast.money.core.TraceGenerators
 import com.comcast.money.core.formatters.FormatterUtils._
 import com.comcast.money.otel.formatters.B3SingleHeaderFormatter.B3Header
-import io.opentelemetry.trace.{TraceFlags, TraceState}
-import org.mockito.Mockito.{verify, verifyNoMoreInteractions}
+import io.opentelemetry.trace.{ TraceFlags, TraceState }
+import org.mockito.Mockito.{ verify, verifyNoMoreInteractions }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
