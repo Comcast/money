@@ -93,6 +93,20 @@ public final class SpanId {
     }
 
     /**
+     * @return a new span from the specified parameters, should only be used for testing
+     */
+    public static SpanId createFrom(UUID traceId, long parentId, long selfId) {
+        return createFrom(traceId, parentId, selfId, false, TraceFlags.getSampled(), TraceState.getDefault());
+    }
+
+    /**
+     * @return a new span from the specified parameters, should only be used for testing
+     */
+    public static SpanId createFrom(UUID traceId, long parentId, long selfId, boolean remote, byte flags, TraceState state) {
+        return new SpanId(traceId.toString(), parentId, selfId, remote, flags, state);
+    }
+
+    /**
      * Creates a span ID from the OpenTelemetry {@link SpanContext}
      */
     public static SpanId fromSpanContext(SpanContext spanContext) {
@@ -186,7 +200,7 @@ public final class SpanId {
         this(traceId, parentId, selfId, false, (byte) 0, TraceState.getDefault());
     }
 
-    private SpanId(String traceId, long parentId, long selfId, boolean remote, byte flags, TraceState traceState) {
+    SpanId(String traceId, long parentId, long selfId, boolean remote, byte flags, TraceState traceState) {
         this.traceId = traceId.toLowerCase(Locale.US);
         this.parentId = parentId;
         this.selfId = selfId;
@@ -283,7 +297,11 @@ public final class SpanId {
      * @return the span ID as an OpenTelemetry {@link SpanContext} with the specified trace flags and trace state.
      */
     public SpanContext toSpanContext(byte traceFlags, TraceState traceState) {
-        return SpanContext.create(traceIdAsHex(), selfIdAsHex(), traceFlags, traceState);
+        if (remote) {
+            return SpanContext.createFromRemoteParent(traceIdAsHex(), selfIdAsHex(), traceFlags, traceState);
+        } else {
+            return SpanContext.create(traceIdAsHex(), selfIdAsHex(), traceFlags, traceState);
+        }
     }
 
     @Override

@@ -29,14 +29,19 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
+import scala.collection.mutable
+
 class B3SingleHeaderFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
+  val underTest = new B3SingleHeaderFormatter()
+  val nullString = null.asInstanceOf[String]
+
   "B3SingleHeaderFormatter" should {
     "read B3 header correctly for any valid hex encoded header" in {
       forAll { (traceIdValue: UUID, spanIdValue: Long, sampled: Boolean, debug: Boolean) =>
         whenever(isValidIds(traceIdValue, spanIdValue)) {
           val traceFlags = if (sampled | debug) TraceFlags.getSampled else TraceFlags.getDefault
           val expectedSpanId = SpanId.createRemote(traceIdValue.toString, spanIdValue, spanIdValue, traceFlags, TraceState.getDefault)
-          val spanId = B3SingleHeaderFormatter.fromHttpHeaders(
+          val spanId = underTest.fromHttpHeaders(
             getHeader = {
               case B3Header => f"${traceIdValue.hex64or128}-${spanIdValue.hex64}-${sampledFlag(sampled, debug)}"
             })
@@ -46,7 +51,7 @@ class B3SingleHeaderFormatterSpec extends AnyWordSpec with MockitoSugar with Mat
     }
 
     "fail to read B3 headers correctly for invalid headers" in {
-      val spanId = B3SingleHeaderFormatter.fromHttpHeaders(getHeader = _ => "garbage")
+      val spanId = underTest.fromHttpHeaders(getHeader = _ => "garbage")
       spanId shouldBe None
     }
 
@@ -56,21 +61,33 @@ class B3SingleHeaderFormatterSpec extends AnyWordSpec with MockitoSugar with Mat
 
           val traceFlags = if (sampled) TraceFlags.getSampled else TraceFlags.getDefault
           val expectedSpanId = SpanId.createRemote(traceIdValue.toString, spanIdValue, spanIdValue, traceFlags, TraceState.getDefault)
-          B3SingleHeaderFormatter.toHttpHeaders(expectedSpanId, (k, v) => k match {
+          underTest.toHttpHeaders(expectedSpanId, (k, v) => k match {
             case B3Header => v shouldBe f"${traceIdValue.hex128}-${spanIdValue.hex64}-${if (sampled) "1" else "0"}"
           })
         }
       }
     }
 
+    "can roundtrip a span id" in {
+      val spanId = SpanId.createNew()
+
+      val map = mutable.Map[String, String]()
+
+      underTest.toHttpHeaders(spanId, map.put)
+
+      val result = underTest.fromHttpHeaders(k => map.getOrElse(k, nullString))
+
+      result shouldBe Some(spanId)
+    }
+
     "lists the B3 headers" in {
-      B3SingleHeaderFormatter.fields shouldBe Seq(B3Header)
+      underTest.fields shouldBe Seq(B3Header)
     }
 
     "copy the request headers to the response" in {
       val setHeader = mock[(String, String) => Unit]
 
-      B3SingleHeaderFormatter.setResponseHeaders({
+      underTest.setResponseHeaders({
         case B3Header => B3Header
       }, setHeader)
 

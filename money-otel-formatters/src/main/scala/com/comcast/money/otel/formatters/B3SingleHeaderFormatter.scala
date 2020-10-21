@@ -5,7 +5,7 @@ import com.comcast.money.otel.formatters.B3SingleHeaderFormatter.B3Header
 import io.opentelemetry.extensions.trace.propagation.B3Propagator
 
 object B3SingleHeaderFormatter {
-  private[core] val B3Header = "b3"
+  private[formatters] val B3Header = "b3"
 }
 
 final class B3SingleHeaderFormatter extends OtelFormatter(B3Propagator.getSingleHeaderPropagator) {

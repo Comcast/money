@@ -61,6 +61,9 @@ object Dependencies {
 
   val openTelemetryApi = "io.opentelemetry" % "opentelemetry-api" % openTelemetryV
   val openTelemetryProp = "io.opentelemetry" % "opentelemetry-extension-trace-propagators" % openTelemetryV
+  val openTelemetrySdk = "io.opentelemetry" % "opentelemetry-sdk" % openTelemetryV
+  val openTelemetryZipkinExporter = "io.opentelemetry" % "opentelemetry-exporters-zipkin" % openTelemetryV
+  val openTelemetryJaegerExporter = "io.opentelemetry" % "opentelemetry-exporters-jaeger" % openTelemetryV
 
   // Spring
   val springWeb = ("org.springframework" % "spring-web" % "4.3.17.RELEASE")
@@ -79,10 +82,14 @@ object Dependencies {
 
   val junit = "junit" % "junit" % "4.12" % Test
   val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test exclude("junit", "junit-dep")
+  val powerMock = "org.powermock" % "powermock-module-junit4" % "2.0.7" % Test
+  val powerMockApi = "org.powermock" % "powermock-api-mockito2" % "2.0.7" % Test
   val springTest = ("org.springframework" % "spring-test" % "4.3.17.RELEASE")
     .exclude("commons-logging", "commons-logging")
   val springOckito = "org.kubek2k" % "springockito" % "1.0.9" % Test
-  val assertj = "org.assertj" % "assertj-core" % "1.7.1" % Test
+  val assertj = "org.assertj" % "assertj-core" % "3.17.2" % Test
+  val awaitility = "org.awaitility" % "awaitility" % "4.0.3" % Test
+  val zipkinJunit = "io.zipkin.zipkin2" % "zipkin-junit" % "2.18.3" % Test
 
   val commonTestDependencies = Seq(
     scalaTest,

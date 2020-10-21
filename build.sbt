@@ -5,6 +5,7 @@ import sbt._
 import sbtavro.SbtAvro._
 import scoverage.ScoverageKeys
 import scoverage.ScoverageSbtPlugin._
+
 import scala.sys.SystemProperties
 
 lazy val copyApiDocsTask = taskKey[Unit]("Copies the scala docs from each project to the doc tree")
@@ -18,7 +19,21 @@ lazy val money =
       publishLocal := {},
       publish := {}
     )
-    .aggregate(moneyApi, moneyAkka, moneyCore, moneyAspectj, moneyHttpClient, moneyJavaServlet, moneyWire, moneyKafka, moneySpring)
+    .aggregate(
+      moneyApi,
+      moneyAkka,
+      moneyCore,
+      moneyAspectj,
+      moneyHttpClient,
+      moneyJavaServlet,
+      moneyWire,
+      moneyKafka,
+      moneySpring,
+      moneyOtelFormatters,
+      moneyOtelHandler,
+      moneyOtelZipkinExporter,
+      moneyOtelJaegerExporter
+    )
 
 lazy val moneyApi =
   Project("money-api", file("./money-api"))
@@ -170,6 +185,70 @@ lazy val moneySpring =
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
     )
     .dependsOn(moneyCore % "test->test;compile->compile")
+
+lazy val moneyOtelHandler =
+  Project("money-otel-handler", file("./money-otel-handler"))
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          typesafeConfig,
+          openTelemetryApi,
+          openTelemetrySdk,
+          junit,
+          junitInterface,
+          assertj,
+          powerMock,
+          powerMockApi
+        ) ++ commonTestDependencies,
+      testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
+    )
+    .dependsOn(moneyCore)
+
+lazy val moneyOtelZipkinExporter =
+  Project("money-otel-zipkin-exporter", file("./money-otel-zipkin-exporter"))
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          typesafeConfig,
+          openTelemetryApi,
+          openTelemetrySdk,
+          openTelemetryZipkinExporter,
+          junit,
+          junitInterface,
+          assertj,
+          powerMock,
+          powerMockApi,
+          awaitility,
+          zipkinJunit
+        ) ++ commonTestDependencies,
+      testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
+    )
+    .dependsOn(moneyCore, moneyOtelHandler % "test->test;compile->compile")
+
+lazy val moneyOtelJaegerExporter =
+  Project("money-otel-jaeger-exporter", file("./money-otel-jaeger-exporter"))
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          typesafeConfig,
+          openTelemetryApi,
+          openTelemetrySdk,
+          openTelemetryJaegerExporter,
+          junit,
+          junitInterface,
+          assertj,
+          powerMock,
+          powerMockApi
+        ) ++ commonTestDependencies,
+      testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
+    )
+    .dependsOn(moneyCore, moneyOtelHandler % "test->test;compile->compile")
 
 def projectSettings = basicSettings ++ Seq(
   ScoverageKeys.coverageHighlighting := true,

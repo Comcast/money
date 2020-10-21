@@ -45,6 +45,7 @@ class StructuredLogSpanHandler(
   import com.comcast.money.core.handlers.LoggingSpanHandler._
 
   protected var logFunction: LogFunction = logger.info
+  protected var formatIdsAsHex: Boolean = false
 
   def configure(config: Config): Unit = {
 
@@ -60,15 +61,18 @@ class StructuredLogSpanHandler(
         case "TRACE" => logFunction = logger.trace
       }
     }
+    if (config.hasPath("formatting.format-ids-as-hex")) {
+      formatIdsAsHex = config.getBoolean("formatting.format-ids-as-hex")
+    }
   }
 
   def handle(spanInfo: SpanInfo): Unit = {
     import scala.collection.JavaConverters._
     val baseFields = Seq(
       // The field names below are the same as cedi-dtrace. This makes it easier to query a transaction in elastic search.
-      ("trace-id", spanInfo.id.traceId()),
-      ("parent-id", spanInfo.id.parentId()),
-      ("span-id", spanInfo.id.selfId()),
+      ("trace-id", if (formatIdsAsHex) spanInfo.id.traceIdAsHex() else spanInfo.id.traceId()),
+      ("parent-id", if (formatIdsAsHex) spanInfo.id.parentIdAsHex() else spanInfo.id.parentId()),
+      ("span-id", if (formatIdsAsHex) spanInfo.id.selfIdAsHex() else spanInfo.id.selfId()),
       ("span-name", spanInfo.name()),
       ("app", spanInfo.appName()),
       ("host", spanInfo.host()),
