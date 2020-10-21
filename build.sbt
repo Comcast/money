@@ -144,7 +144,7 @@ lazy val moneyWire =
       // Configure the desired Avro version.  sbt-avro automatically injects a libraryDependency.
       (version in AvroConfig) := "1.7.6",
       (stringType in AvroConfig) := "String"
-    ).dependsOn(moneyCore)
+    ).dependsOn(moneyCore % "test->test;compile->compile")
 
 lazy val moneyKafka =
   Project("money-kafka", file("./money-kafka"))

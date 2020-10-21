@@ -18,12 +18,20 @@ package com.comcast.money.core.formatters
 
 import java.util.{ Locale, UUID }
 
+import com.comcast.money.api.SpanId
+import io.opentelemetry.trace.{ TraceFlags, TraceState }
+
 object FormatterUtils {
   def isValidIds(traceId: UUID, spanId: Long): Boolean =
     (traceId.getLeastSignificantBits != 0 || traceId.getMostSignificantBits != 0) && spanId != 0
 
   def isValidIds(traceId: UUID, parentSpanId: Long, spanId: Long): Boolean =
     (traceId.getLeastSignificantBits != 0 || traceId.getMostSignificantBits != 0) && parentSpanId != 0 && spanId != 0
+
+  def randomRemoteSpanId(): SpanId = {
+    val selfId = SpanId.randomNonZeroLong()
+    SpanId.createRemote(SpanId.randomTraceId(), selfId, selfId, TraceFlags.getSampled, TraceState.getDefault)
+  }
 
   implicit class StringWithHexHeaderConversion(s: String) {
     def fromHexStringToLong: Long = java.lang.Long.parseUnsignedLong(s, 16)
@@ -62,4 +70,13 @@ object FormatterUtils {
     }
   }
 
+  implicit class RemoteSpanIdConversion(spanId: SpanId) {
+    def toRemote: SpanId = SpanId.createFrom(
+      UUID.fromString(spanId.traceId),
+      spanId.parentId,
+      spanId.selfId,
+      true,
+      spanId.traceFlags,
+      spanId.traceState)
+  }
 }

@@ -18,6 +18,7 @@ package com.comcast.money.otel.formatters
 
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.TraceGenerators
+import com.comcast.money.core.formatters.FormatterUtils.randomRemoteSpanId
 import com.comcast.money.otel.formatters.JaegerFormatter.UberTraceIdHeader
 import org.mockito.Mockito.{ verify, verifyNoMoreInteractions }
 import org.scalatest.matchers.should.Matchers
@@ -33,7 +34,7 @@ class JaegerFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers wi
 
   "JaegerFormatter" should {
     "can roundtrip a span id" in {
-      val spanId = SpanId.createNew()
+      val spanId = randomRemoteSpanId()
 
       val map = mutable.Map[String, String]()
 

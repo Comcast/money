@@ -18,6 +18,7 @@ package com.comcast.money.otel.formatters
 
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.TraceGenerators
+import com.comcast.money.core.formatters.FormatterUtils.randomRemoteSpanId
 import com.comcast.money.otel.formatters.LightstepFormatter.{ TracerSampledHeader, TracerSpanIdHeader, TracerTraceIdHeader }
 import org.mockito.Mockito.{ verify, verifyNoMoreInteractions }
 import org.scalatest.matchers.should.Matchers
@@ -33,7 +34,7 @@ class LightstepFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers
 
   "LightstepFormatter" should {
     "can roundtrip a span id" in {
-      val spanId = SpanId.createNew()
+      val spanId = randomRemoteSpanId()
 
       val map = mutable.Map[String, String]()
 

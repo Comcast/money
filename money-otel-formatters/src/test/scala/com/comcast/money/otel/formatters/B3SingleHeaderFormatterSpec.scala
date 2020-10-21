@@ -16,13 +16,9 @@
 
 package com.comcast.money.otel.formatters
 
-import java.util.UUID
-
-import com.comcast.money.api.SpanId
 import com.comcast.money.core.TraceGenerators
 import com.comcast.money.core.formatters.FormatterUtils._
 import com.comcast.money.otel.formatters.B3SingleHeaderFormatter.B3Header
-import io.opentelemetry.trace.{ TraceFlags, TraceState }
 import org.mockito.Mockito.{ verify, verifyNoMoreInteractions }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -36,40 +32,8 @@ class B3SingleHeaderFormatterSpec extends AnyWordSpec with MockitoSugar with Mat
   val nullString = null.asInstanceOf[String]
 
   "B3SingleHeaderFormatter" should {
-    "read B3 header correctly for any valid hex encoded header" in {
-      forAll { (traceIdValue: UUID, spanIdValue: Long, sampled: Boolean, debug: Boolean) =>
-        whenever(isValidIds(traceIdValue, spanIdValue)) {
-          val traceFlags = if (sampled | debug) TraceFlags.getSampled else TraceFlags.getDefault
-          val expectedSpanId = SpanId.createRemote(traceIdValue.toString, spanIdValue, spanIdValue, traceFlags, TraceState.getDefault)
-          val spanId = underTest.fromHttpHeaders(
-            getHeader = {
-              case B3Header => f"${traceIdValue.hex64or128}-${spanIdValue.hex64}-${sampledFlag(sampled, debug)}"
-            })
-          spanId shouldBe Some(expectedSpanId)
-        }
-      }
-    }
-
-    "fail to read B3 headers correctly for invalid headers" in {
-      val spanId = underTest.fromHttpHeaders(getHeader = _ => "garbage")
-      spanId shouldBe None
-    }
-
-    "create B3 header correctly given any valid character UUID for trace-Id and any valid long integers for parent and span ID, where if parent == span id, parent will not be emitted" in {
-      forAll { (traceIdValue: UUID, spanIdValue: Long, sampled: Boolean) =>
-        whenever(isValidIds(traceIdValue, spanIdValue)) {
-
-          val traceFlags = if (sampled) TraceFlags.getSampled else TraceFlags.getDefault
-          val expectedSpanId = SpanId.createRemote(traceIdValue.toString, spanIdValue, spanIdValue, traceFlags, TraceState.getDefault)
-          underTest.toHttpHeaders(expectedSpanId, (k, v) => k match {
-            case B3Header => v shouldBe f"${traceIdValue.hex128}-${spanIdValue.hex64}-${if (sampled) "1" else "0"}"
-          })
-        }
-      }
-    }
-
     "can roundtrip a span id" in {
-      val spanId = SpanId.createNew()
+      val spanId = randomRemoteSpanId()
 
       val map = mutable.Map[String, String]()
 
@@ -93,12 +57,6 @@ class B3SingleHeaderFormatterSpec extends AnyWordSpec with MockitoSugar with Mat
 
       verify(setHeader).apply(B3Header, B3Header)
       verifyNoMoreInteractions(setHeader)
-    }
-
-    def sampledFlag(sampled: Boolean, debug: Boolean): String = (sampled, debug) match {
-      case (_, true) => "d"
-      case (true, false) => "1"
-      case (false, false) => "0"
     }
   }
 }

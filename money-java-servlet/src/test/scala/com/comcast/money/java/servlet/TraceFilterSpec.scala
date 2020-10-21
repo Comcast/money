@@ -19,6 +19,7 @@ package com.comcast.money.java.servlet
 import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
 import javax.servlet.{ FilterChain, FilterConfig, ServletRequest, ServletResponse }
 import com.comcast.money.api.{ Span, SpanId }
+import com.comcast.money.core.formatters.FormatterUtils.randomRemoteSpanId
 import com.comcast.money.core.internal.SpanLocal
 import org.mockito.Mockito._
 import org.scalatest.OptionValues._
@@ -32,7 +33,7 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
   val mockRequest = mock[HttpServletRequest]
   val mockResponse = mock[HttpServletResponse]
   val mockFilterChain = mock[FilterChain]
-  val existingSpanId = SpanId.createNew()
+  val existingSpanId = randomRemoteSpanId()
   val underTest = new TraceFilter()
   val MoneyTraceFormat = "trace-id=%s;parent-id=%s;span-id=%s"
   val filterChain: FilterChain = (_: ServletRequest, _: ServletResponse) => capturedSpan = SpanLocal.current
