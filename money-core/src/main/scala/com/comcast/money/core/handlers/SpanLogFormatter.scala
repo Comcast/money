@@ -27,6 +27,7 @@ object SpanLogFormatter {
       nullValue = configValue("formatting.null-value", "NULL"),
       logTemplate = configValue("formatting.log-template", "[ %s=%s ]"),
       spanDurationMsEnabled = configEnabled("formatting.span-duration-ms-enabled"),
+      formatIdsAsHex = configEnabled("formatting.format-ids-as-hex"),
       spanIdKey = configValue("formatting.keys.span-id", "span-id"),
       traceIdKey = configValue("formatting.keys.trace-id", "trace-id"),
       parentIdKey = configValue("formatting.keys.parent-id", "parent-id"),
@@ -56,6 +57,7 @@ class SpanLogFormatter(
   val nullValue: String,
   val logTemplate: String,
   val spanDurationMsEnabled: Boolean,
+  val formatIdsAsHex: Boolean,
   val spanIdKey: String,
   val traceIdKey: String,
   val parentIdKey: String,
@@ -69,9 +71,9 @@ class SpanLogFormatter(
   def buildMessage(spanInfo: SpanInfo): String = {
     implicit val builder = new StringBuilder()
     builder.append(spanStart)
-    append(spanIdKey, spanInfo.id.selfId)
-    append(traceIdKey, spanInfo.id.traceId)
-    append(parentIdKey, spanInfo.id.parentId)
+    append(spanIdKey, if (formatIdsAsHex) spanInfo.id.selfIdAsHex else spanInfo.id.selfId)
+    append(traceIdKey, if (formatIdsAsHex) spanInfo.id.traceIdAsHex else spanInfo.id.traceId)
+    append(parentIdKey, if (formatIdsAsHex) spanInfo.id.parentIdAsHex else spanInfo.id.parentId)
     append(spanNameKey, spanInfo.name)
     append(appNameKey, spanInfo.appName)
     append(startTimeKey, spanInfo.startTimeMillis)

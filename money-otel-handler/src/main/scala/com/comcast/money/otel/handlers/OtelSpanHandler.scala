@@ -16,12 +16,12 @@
 
 package com.comcast.money.otel.handlers
 
-import com.comcast.money.api.{SpanHandler, SpanInfo}
+import com.comcast.money.api.{ SpanHandler, SpanInfo }
 import com.comcast.money.core.handlers.ConfigurableHandler
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo
 import io.opentelemetry.sdk.trace.SpanProcessor
-import io.opentelemetry.sdk.trace.`export`.{BatchSpanProcessor, SimpleSpanProcessor, SpanExporter}
+import io.opentelemetry.sdk.trace.`export`.{ BatchSpanProcessor, SimpleSpanProcessor, SpanExporter }
 
 object OtelSpanHandler {
   val instrumentationLibraryInfo: InstrumentationLibraryInfo = InstrumentationLibraryInfo.create("money", "0.10.0")

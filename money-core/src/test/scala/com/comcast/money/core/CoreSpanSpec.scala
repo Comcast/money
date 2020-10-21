@@ -24,7 +24,7 @@ import com.comcast.money.core.handlers.TestData
 import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
 import io.opentelemetry.trace.attributes.SemanticAttributes
-import io.opentelemetry.trace.{ EndSpanOptions, StatusCanonicalCode, Span => OtelSpan }
+import io.opentelemetry.trace.{ EndSpanOptions, StatusCanonicalCode, TraceFlags, TraceState, Span => OtelSpan }
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
 import org.scalatest.matchers.should.Matchers
@@ -35,7 +35,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
 
   "CoreSpan" should {
     "set the startTimeMillis and startTimeMicros when started" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
       underTest.start()
 
       val state = underTest.info
@@ -45,7 +45,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set the startTimeMillis and startTimeMicros when started with time stamps" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
       val instant = Instant.now
       underTest.start(instant.getEpochSecond, instant.getNano)
 
@@ -56,7 +56,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "record a timer" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
       underTest.startTimer("foo")
       underTest.stopTimer("foo")
@@ -65,7 +65,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "record a note" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
       underTest.record(testLongNote)
 
@@ -73,7 +73,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set a String attribute" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
       underTest.setAttribute("foo", "bar")
 
@@ -84,7 +84,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set a long attribute" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
       underTest.setAttribute("foo", 200L)
 
@@ -95,7 +95,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set a double attribute" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
       underTest.setAttribute("foo", 2.2)
 
@@ -106,7 +106,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set a boolean attribute" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
       underTest.setAttribute("foo", true)
 
@@ -117,7 +117,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set a attribute with an attribute key" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
       underTest.setAttribute(AttributeKey.stringKey("foo"), "bar")
 
@@ -128,7 +128,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "add an event with name" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
       underTest.addEvent("event")
 
@@ -141,7 +141,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "add an event with name and timestamp" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
       underTest.addEvent("event", 100L)
 
@@ -154,7 +154,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "add an event with name and attributes" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
       underTest.addEvent("event", Attributes.of(AttributeKey.stringKey("foo"), "bar"))
 
@@ -167,7 +167,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "add an event with name, attributes and timestamp" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
       underTest.addEvent("event", Attributes.of(AttributeKey.stringKey("foo"), "bar"), 100L)
 
@@ -181,7 +181,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "record an exception" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
       val exception = new RuntimeException("BOOM")
       underTest.recordException(exception)
@@ -198,7 +198,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "record an exception with attributes" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
       val exception = new RuntimeException("BOOM")
       underTest.recordException(exception, Attributes.of(AttributeKey.stringKey("foo"), "bar"))
@@ -217,7 +217,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
 
     "set the status to OK" in {
       val handler = mock[SpanHandler]
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
 
       underTest.setStatus(StatusCanonicalCode.OK)
 
@@ -230,7 +230,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
 
     "set the status to ERROR" in {
       val handler = mock[SpanHandler]
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
 
       underTest.setStatus(StatusCanonicalCode.ERROR)
 
@@ -243,7 +243,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
 
     "set the status to OK and stop with false result" in {
       val handler = mock[SpanHandler]
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
 
       underTest.setStatus(StatusCanonicalCode.OK)
 
@@ -256,7 +256,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
 
     "set the status to ERROR and stop with true result" in {
       val handler = mock[SpanHandler]
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
 
       underTest.setStatus(StatusCanonicalCode.ERROR)
 
@@ -269,7 +269,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
 
     "set the status with description" in {
       val handler = mock[SpanHandler]
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
 
       underTest.setStatus(StatusCanonicalCode.OK, "description")
 
@@ -277,7 +277,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "update the span name" in {
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
       underTest.name shouldBe "test"
       underTest.info.name shouldBe "test"
@@ -291,7 +291,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
 
     "gets isRecording" in {
       val handler = mock[SpanHandler]
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
 
       underTest.isRecording shouldBe false
 
@@ -305,7 +305,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "gets SpanContext" in {
-      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L)
+      val spanId = SpanId.createRemote("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L, TraceFlags.getSampled, TraceState.getDefault)
       val underTest = CoreSpan(spanId, "test", OtelSpan.Kind.INTERNAL, SystemClock, null)
 
       val context = underTest.getContext
@@ -316,7 +316,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
 
     "set the endTimeMillis and endTimeMicros when stopped" in {
       val handler = mock[SpanHandler]
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
 
       underTest.stop(true)
 
@@ -329,7 +329,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "invoke the span handler when stopped" in {
       val handler = mock[SpanHandler]
       val handleCaptor = ArgumentCaptor.forClass(classOf[SpanInfo])
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
 
       underTest.start()
       underTest.record(testLongNote)
@@ -350,7 +350,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "invoke the span handler when closed" in {
       val handler = mock[SpanHandler]
       val handleCaptor = ArgumentCaptor.forClass(classOf[SpanInfo])
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
 
       underTest.start()
       underTest.record(testLongNote)
@@ -373,7 +373,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       val scope2 = mock[Scope]
 
       val handler = mock[SpanHandler]
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
 
       underTest.attachScope(scope1)
       underTest.attachScope(scope2)
@@ -387,7 +387,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "invoke the span handler when ended" in {
       val handler = mock[SpanHandler]
       val handleCaptor = ArgumentCaptor.forClass(classOf[SpanInfo])
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
 
       underTest.start()
       underTest.record(testLongNote)
@@ -408,7 +408,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "invoke the span handler when ended with options" in {
       val handler = mock[SpanHandler]
       val handleCaptor = ArgumentCaptor.forClass(classOf[SpanInfo])
-      val underTest = CoreSpan(new SpanId(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
+      val underTest = CoreSpan(SpanId.createNew(), "test", OtelSpan.Kind.INTERNAL, SystemClock, handler)
 
       underTest.start()
       underTest.record(testLongNote)
