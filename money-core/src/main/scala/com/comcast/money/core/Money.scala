@@ -21,7 +21,7 @@ import java.util.concurrent.TimeUnit
 
 import com.comcast.money.api.{ SpanFactory, SpanHandler }
 import com.comcast.money.core.async.{ AsyncNotificationHandler, AsyncNotifier }
-import com.comcast.money.core.formatters.{ B3MultiHeaderFormatter, Formatter, FormatterChain, MoneyTraceFormatter, TraceContextFormatter }
+import com.comcast.money.core.formatters.{ Formatter, FormatterChain }
 import com.comcast.money.core.handlers.HandlerChain
 import com.typesafe.config.{ Config, ConfigFactory }
 
@@ -49,7 +49,11 @@ object Money {
     if (enabled) {
       val handler = HandlerChain(conf.getConfig("handling"))
       val clock = new NanoClock(SystemClock, TimeUnit.MILLISECONDS.toNanos(50L))
-      val formatter = FormatterChain(Seq(MoneyTraceFormatter, B3MultiHeaderFormatter, TraceContextFormatter))
+      val formatter = if (conf.hasPath("formatting")) {
+        FormatterChain(conf.getConfig("formatting"))
+      } else {
+        FormatterChain.default
+      }
       val factory: SpanFactory = new CoreSpanFactory(clock, handler, formatter)
       val tracer = new Tracer {
         override val spanFactory: SpanFactory = factory

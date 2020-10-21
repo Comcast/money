@@ -83,21 +83,13 @@ public class MoneyClientHttpInterceptorSpec {
         when(httpRequest.getHeaders()).thenReturn(httpHeaders);
 
         String expectedMoneyHeaderVal = String.format("trace-id=%s;parent-id=%s;span-id=%s", traceId, parentSpanId, spanId);
-        String expectedB3TraceIdHeaderVal = traceId.replace("-", "");
-        String expectedB3SpanIdHeaderVal = String.format("%016x", spanId);
-        String expectedB3ParentSpanIdHeaderVal = String.format("%016x", parentSpanId);
-        String expectedB3SampledHeaderVal = "1";
         String expectedTraceParentHeaderVal = String.format("00-%s-%016x-01", traceId.replace("-", ""), spanId);
 
         underTest.intercept(httpRequest, new byte[0], clientHttpRequestExecution);
 
         verify(httpRequest).getHeaders();
-        Assert.assertEquals(6, httpHeaders.size());
+        Assert.assertEquals(2, httpHeaders.size());
         Assert.assertEquals(expectedMoneyHeaderVal, httpHeaders.get("X-MoneyTrace").get(0));
-        Assert.assertEquals(expectedB3TraceIdHeaderVal, httpHeaders.get("X-B3-TraceId").get(0));
-        Assert.assertEquals(expectedB3ParentSpanIdHeaderVal, httpHeaders.get("X-B3-ParentSpanId").get(0));
-        Assert.assertEquals(expectedB3SpanIdHeaderVal, httpHeaders.get("X-B3-SpanId").get(0));
-        Assert.assertEquals(expectedB3SampledHeaderVal, httpHeaders.get("X-B3-Sampled").get(0));
         Assert.assertEquals(expectedTraceParentHeaderVal, httpHeaders.get("traceparent").get(0));
     }
 }

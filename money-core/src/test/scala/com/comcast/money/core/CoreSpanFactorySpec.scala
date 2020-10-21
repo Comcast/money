@@ -26,7 +26,8 @@ import org.scalatestplus.mockito.MockitoSugar
 class CoreSpanFactorySpec extends AnyWordSpec with Matchers with MockitoSugar with TestData {
 
   val handler = mock[SpanHandler]
-  val underTest = new CoreSpanFactory(clock, handler, MoneyTraceFormatter)
+  val formatter = new MoneyTraceFormatter()
+  val underTest = new CoreSpanFactory(clock, handler, formatter)
 
   "CoreSpanFactory" should {
     "create a new span" in {
@@ -72,7 +73,7 @@ class CoreSpanFactorySpec extends AnyWordSpec with Matchers with MockitoSugar wi
     "create a child span from a well-formed x-moneytrace header" in {
       val parentSpan = underTest.newSpan("parent")
 
-      MoneyTraceFormatter.toHttpHeaders(parentSpan.info.id, (headerName, headerValue) => headerName match {
+      formatter.toHttpHeaders(parentSpan.info.id, (headerName, headerValue) => headerName match {
         case MoneyTraceFormatter.MoneyTraceHeader => {
           val childSpan = underTest.newSpanFromHeader("child", _ => headerValue)
 

@@ -9,6 +9,7 @@ object Dependencies {
   val jodaV = "2.9.9"
   val json4sV = "3.6.10"
   val typesafeConfigV = "1.3.3"
+  val openTelemetryV = "0.9.1"
 
   val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
   val akkaStream =      "com.typesafe.akka"         %% "akka-stream"                 % akkaV
@@ -58,7 +59,8 @@ object Dependencies {
 
   val commonsIo = "commons-io" % "commons-io" % "2.4"
 
-  val openTelemetryApi = "io.opentelemetry" % "opentelemetry-api" % "0.9.1"
+  val openTelemetryApi = "io.opentelemetry" % "opentelemetry-api" % openTelemetryV
+  val openTelemetryProp = "io.opentelemetry" % "opentelemetry-extension-trace-propagators" % openTelemetryV
 
   // Spring
   val springWeb = ("org.springframework" % "spring-web" % "4.3.17.RELEASE")

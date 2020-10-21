@@ -16,11 +16,12 @@
 
 package com.comcast.money.core.formatters
 
-import io.opentelemetry.trace.propagation.HttpTraceContext
+import com.typesafe.config.Config
 
-object TraceContextFormatter {
-  private[core] val TraceParentHeader = "traceparent"
-  private[core] val TraceStateHeader = "tracestate"
+object FormatterFactory {
+  def create(config: Config): Formatter = {
+    val className = config.getString("class")
+    val formatterInstance = Class.forName(className).newInstance().asInstanceOf[Formatter]
+    formatterInstance
+  }
 }
-
-class TraceContextFormatter extends OtelFormatter(HttpTraceContext.getInstance)

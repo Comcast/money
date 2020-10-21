@@ -30,12 +30,14 @@ import org.mockito.Mockito.{ verify, verifyNoMoreInteractions }
 import org.scalatestplus.mockito.MockitoSugar
 
 class TraceContextFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
+  val underTest = new TraceContextFormatter()
+
   "TraceContextFormatter" should {
     "read a traceparent http header" in {
       forAll { (traceIdValue: UUID, spanIdValue: Long, sampled: Boolean) =>
         whenever(isValidIds(traceIdValue, spanIdValue)) {
 
-          val spanId = TraceContextFormatter.fromHttpHeaders(
+          val spanId = underTest.fromHttpHeaders(
             getHeader = {
               case TraceParentHeader => s"00-${traceIdValue.hex128}-${spanIdValue.hex64}-${if (sampled) "01" else "00"}"
               case TraceStateHeader => "foo=bar"
@@ -50,7 +52,7 @@ class TraceContextFormatterSpec extends AnyWordSpec with MockitoSugar with Match
     }
 
     "fail to read traceparent headers correctly for invalid headers" in {
-      val spanId = TraceContextFormatter.fromHttpHeaders(_ => "garbage")
+      val spanId = underTest.fromHttpHeaders(_ => "garbage")
       spanId shouldBe None
     }
 
@@ -61,7 +63,7 @@ class TraceContextFormatterSpec extends AnyWordSpec with MockitoSugar with Match
           val traceState = TraceState.builder().set("foo", "bar").build()
           val expectedSpanId = SpanId.createRemote(traceIdValue.toString, spanIdValue, spanIdValue, traceFlags, traceState)
 
-          TraceContextFormatter.toHttpHeaders(expectedSpanId, (k, v) => k match {
+          underTest.toHttpHeaders(expectedSpanId, (k, v) => k match {
             case TraceParentHeader => v shouldBe s"00-${traceIdValue.hex128}-${spanIdValue.hex64}-${if (sampled) "01" else "00"}"
             case TraceStateHeader => v shouldBe "foo=bar"
           })
@@ -70,13 +72,13 @@ class TraceContextFormatterSpec extends AnyWordSpec with MockitoSugar with Match
     }
 
     "lists the Trace Context headers" in {
-      TraceContextFormatter.fields shouldBe Seq(TraceParentHeader, TraceStateHeader)
+      underTest.fields shouldBe Seq(TraceParentHeader, TraceStateHeader)
     }
 
     "copy the request headers to the response" in {
       val setHeader = mock[(String, String) => Unit]
 
-      TraceContextFormatter.setResponseHeaders({
+      underTest.setResponseHeaders({
         case TraceParentHeader => TraceParentHeader
         case TraceStateHeader => TraceStateHeader
       }, setHeader)

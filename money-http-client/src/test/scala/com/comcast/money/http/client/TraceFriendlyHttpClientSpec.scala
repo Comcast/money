@@ -74,9 +74,6 @@ class TraceFriendlyHttpClientSpec extends AnyWordSpec with SpecHelpers
     verify(scope).close()
     verify(underTest.tracer).record("http-response-code", 200L)
     verify(httpUriRequest).setHeader("X-MoneyTrace", s"trace-id=${spanId.traceId};parent-id=${spanId.parentId};span-id=${spanId.selfId}")
-    verify(httpUriRequest).setHeader("X-B3-TraceId", spanId.traceId.replace("-", ""))
-    verify(httpUriRequest).setHeader("X-B3-SpanId", f"${spanId.selfId}%016x")
-    verify(httpUriRequest).setHeader("X-B3-Sampled", "1")
     verify(httpUriRequest).setHeader("traceparent", f"00-${spanId.traceId.replace("-", "")}%s-${spanId.selfId}%016x-01")
   }
 
