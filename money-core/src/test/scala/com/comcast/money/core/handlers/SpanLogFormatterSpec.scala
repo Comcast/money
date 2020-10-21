@@ -166,5 +166,20 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
 
       expectedLogMessage should include("[ empty=null_value ]")
     }
+    "honor formatting span IDs as hex" in {
+      val conf = ConfigFactory.parseString(
+        """
+              {
+                emitter="com.comcast.money.emitters.LogRecorder"
+                formatting {
+                  format-ids-as-hex = true
+                }
+              }
+        """)
+      val spanLogFormatter = SpanLogFormatter(conf)
+      val expectedLogMessage = spanLogFormatter.buildMessage(sampleData)
+
+      expectedLogMessage should include(f"[ span-id=${spanId.selfIdAsHex} ][ trace-id=${spanId.traceIdAsHex} ][ parent-id=${spanId.parentIdAsHex} ]")
+    }
   }
 }
