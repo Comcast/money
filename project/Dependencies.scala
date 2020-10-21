@@ -9,6 +9,7 @@ object Dependencies {
   val jodaV = "2.9.9"
   val json4sV = "3.6.10"
   val typesafeConfigV = "1.3.3"
+  val otelV = "0.9.1"
 
   val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
   val akkaStream =      "com.typesafe.akka"         %% "akka-stream"                 % akkaV
@@ -58,7 +59,10 @@ object Dependencies {
 
   val commonsIo = "commons-io" % "commons-io" % "2.4"
 
-  val openTelemetryApi = "io.opentelemetry" % "opentelemetry-api" % "0.9.1"
+  val openTelemetryApi = "io.opentelemetry" % "opentelemetry-api" % otelV
+  val openTelemetrySdk = "io.opentelemetry" % "opentelemetry-sdk" % otelV
+  val openTelemetryZipkinExporter = "io.opentelemetry" % "opentelemetry-exporters-zipkin" % otelV
+  val openTelemetryJaegerExporter = "io.opentelemetry" % "opentelemetry-exporters-jaeger" % otelV
 
   // Spring
   val springWeb = ("org.springframework" % "spring-web" % "4.3.17.RELEASE")
@@ -77,10 +81,14 @@ object Dependencies {
 
   val junit = "junit" % "junit" % "4.12" % Test
   val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test exclude("junit", "junit-dep")
+  val powerMock = "org.powermock" % "powermock-module-junit4" % "2.0.7" % Test
+  val powerMockApi = "org.powermock" % "powermock-api-mockito2" % "2.0.7" % Test
   val springTest = ("org.springframework" % "spring-test" % "4.3.17.RELEASE")
     .exclude("commons-logging", "commons-logging")
   val springOckito = "org.kubek2k" % "springockito" % "1.0.9" % Test
-  val assertj = "org.assertj" % "assertj-core" % "1.7.1" % Test
+  val assertj = "org.assertj" % "assertj-core" % "3.17.2" % Test
+  val awaitility = "org.awaitility" % "awaitility" % "4.0.3" % Test
+  val zipkinJunit = "io.zipkin.zipkin2" % "zipkin-junit" % "2.18.3" % Test
 
   val commonTestDependencies = Seq(
     scalaTest,

@@ -205,13 +205,27 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
     }
 
     "returns SpanContext from span id" in {
-      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L)
+      val traceState = TraceState.builder().set("foo", "bar").build();
+      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L, false, TraceFlags.getSampled, traceState)
       val spanContext = spanId.toSpanContext
 
       spanContext.getTraceIdAsHexString shouldBe "01234567890abcdef01234567890abcd"
       spanContext.getSpanIdAsHexString shouldBe "0123456789abcdef"
-      spanContext.getTraceFlags shouldBe TraceFlags.getDefault
-      spanContext.getTraceState shouldBe TraceState.getDefault
+      spanContext.isRemote shouldBe false
+      spanContext.getTraceFlags shouldBe TraceFlags.getSampled
+      spanContext.getTraceState shouldBe traceState
+    }
+
+    "returns SpanContext from remote span id" in {
+      val traceState = TraceState.builder().set("foo", "bar").build();
+      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L, true, TraceFlags.getSampled, traceState)
+      val spanContext = spanId.toSpanContext
+
+      spanContext.getTraceIdAsHexString shouldBe "01234567890abcdef01234567890abcd"
+      spanContext.getSpanIdAsHexString shouldBe "0123456789abcdef"
+      spanContext.isRemote shouldBe true
+      spanContext.getTraceFlags shouldBe TraceFlags.getSampled
+      spanContext.getTraceState shouldBe traceState
     }
 
     "implements equality" in {
