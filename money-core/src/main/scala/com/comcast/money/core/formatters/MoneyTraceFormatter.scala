@@ -26,7 +26,7 @@ object MoneyTraceFormatter {
   private[core] val MoneyHeaderFormat = "trace-id=%s;parent-id=%s;span-id=%s"
 }
 
-class MoneyTraceFormatter extends Formatter {
+final class MoneyTraceFormatter extends Formatter {
   import com.comcast.money.core.formatters.MoneyTraceFormatter.{ MoneyHeaderFormat, MoneyTraceHeader }
 
   override def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit =

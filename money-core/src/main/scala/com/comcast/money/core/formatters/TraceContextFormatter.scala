@@ -23,4 +23,4 @@ object TraceContextFormatter {
   private[core] val TraceStateHeader = "tracestate"
 }
 
-class TraceContextFormatter extends OtelFormatter(HttpTraceContext.getInstance)
+final class TraceContextFormatter extends OtelFormatter(HttpTraceContext.getInstance)

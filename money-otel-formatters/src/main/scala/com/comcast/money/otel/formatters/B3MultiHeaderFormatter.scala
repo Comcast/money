@@ -11,6 +11,6 @@ object B3MultiHeaderFormatter {
   private[core] val B3SampledHeader = "X-B3-Sampled"
 }
 
-class B3MultiHeaderFormatter extends OtelFormatter(B3Propagator.getMultipleHeaderPropagator) {
+final class B3MultiHeaderFormatter extends OtelFormatter(B3Propagator.getMultipleHeaderPropagator) {
   override def fields: Seq[String] = Seq(B3TraceIdHeader, B3SpanIdHeader, B3ParentSpanIdHeader, B3SampledHeader)
 }

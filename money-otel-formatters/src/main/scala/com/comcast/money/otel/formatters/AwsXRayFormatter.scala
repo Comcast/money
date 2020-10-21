@@ -7,4 +7,4 @@ object AwsXRayFormatter {
   private[core] val AmznTraceIdHeader = "X-Amzn-Trace-Id"
 }
 
-class AwsXRayFormatter extends OtelFormatter(AwsXRayPropagator.getInstance)
+final class AwsXRayFormatter extends OtelFormatter(AwsXRayPropagator.getInstance)

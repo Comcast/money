@@ -7,4 +7,4 @@ object JaegerFormatter {
   private[core] val UberTraceIdHeader = "uber-trace-id"
 }
 
-class JaegerFormatter extends OtelFormatter(JaegerPropagator.getInstance)
+final class JaegerFormatter extends OtelFormatter(JaegerPropagator.getInstance)

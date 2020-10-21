@@ -9,4 +9,4 @@ object LightstepFormatter {
   private[core] val TracerSampledHeader = "ot-tracer-sampled"
 }
 
-class LightstepFormatter extends OtelFormatter(OtTracerPropagator.getInstance)
+final class LightstepFormatter extends OtelFormatter(OtTracerPropagator.getInstance)

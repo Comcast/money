@@ -8,6 +8,6 @@ object B3SingleHeaderFormatter {
   private[core] val B3Header = "b3"
 }
 
-class B3SingleHeaderFormatter extends OtelFormatter(B3Propagator.getSingleHeaderPropagator) {
+final class B3SingleHeaderFormatter extends OtelFormatter(B3Propagator.getSingleHeaderPropagator) {
   override def fields: Seq[String] = Seq(B3Header)
 }
