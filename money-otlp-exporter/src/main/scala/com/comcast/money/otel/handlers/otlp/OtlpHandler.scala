@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package com.comcast.money.otel.handlers.jaeger
+package com.comcast.money.otel.handlers.otlp
 
 import com.comcast.money.otel.handlers.OtelSpanHandler
 import com.typesafe.config.Config
-import io.opentelemetry.exporters.jaeger.JaegerGrpcSpanExporter
+import io.opentelemetry.exporters.otlp.OtlpGrpcSpanExporter
 import io.opentelemetry.sdk.trace.`export`.SpanExporter
 
 /**
- * A Money [[com.comcast.money.api.SpanHandler]] that can export spans to Jaeger
- * through the OpenTelemetry [[JaegerGrpcSpanExporter]].
+ * A Money [[com.comcast.money.api.SpanHandler]] that can export spans to OTLP Collector
+ * through the OpenTelemetry OTLP `SpanExporter`.
  *
  * Sample configuration:
  *
@@ -32,7 +32,7 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
  *     async = true
  *     handlers = [
  *       {
- *         class = "com.comcast.money.otel.handlers.jaeger.JaegerOtelSpanHandler"
+ *         class = "com.comcast.money.otel.handlers.otlp.OtlpHandler"
  *         batch = true
  *         export-only-sampled = true
  *         exporter-timeout-ms = 30000
@@ -40,9 +40,9 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
  *         max-queue-size = 2048
  *         schedule-delay-ms = 5000
  *         exporter {
- *           service-name = "myApp"
  *           endpoint = "localhost:14250"
  *           deadline-ms = 1000
+ *           use-tls = true
  *         }
  *       }
  *     ]
@@ -50,20 +50,22 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
  * }}}
  *
  */
-class JaegerOtelSpanHandler extends OtelSpanHandler {
+class OtlpHandler extends OtelSpanHandler {
   override protected def createSpanExporter(config: Config): SpanExporter = {
-    val builder = JaegerGrpcSpanExporter.newBuilder()
+    val builder = OtlpGrpcSpanExporter.newBuilder()
 
-    val serviceNameKey = "service-name"
     val endpointKey = "endpoint"
     val deadlineMillisKey = "deadline-ms"
+    val useTlsKey = "use-tls"
 
-    builder.setServiceName(config.getString(serviceNameKey))
     if (config.hasPath(endpointKey)) {
       builder.setEndpoint(config.getString(endpointKey))
     }
     if (config.hasPath(deadlineMillisKey)) {
       builder.setDeadlineMs(config.getLong(deadlineMillisKey))
+    }
+    if (config.hasPath(useTlsKey)) {
+      builder.setUseTls(config.getBoolean(useTlsKey))
     }
 
     builder.build()
