@@ -16,6 +16,8 @@
 
 package com.comcast.money.api
 
+import java.util.UUID
+
 import io.opentelemetry.trace.{ SpanContext, TraceFlags, TraceState }
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
@@ -32,6 +34,8 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
       spanId.isRoot shouldBe true
       spanId.isRemote shouldBe false
       spanId.isSampled shouldBe true
+      spanId.traceFlags shouldBe TraceFlags.getSampled
+      spanId.traceState shouldBe TraceState.getDefault
     }
 
     "create a new non-sampled root span id" in {
@@ -43,6 +47,8 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
       spanId.isRoot shouldBe true
       spanId.isRemote shouldBe false
       spanId.isSampled shouldBe false
+      spanId.traceFlags shouldBe TraceFlags.getDefault
+      spanId.traceState shouldBe TraceState.getDefault
     }
 
     "create a child span id" in {
@@ -70,9 +76,9 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
     }
 
     "create a remote span id" in {
-      val traceId = SpanId.randomTraceId()
-      val selfId = SpanId.randomNonZeroLong()
-      val parentId = SpanId.randomNonZeroLong()
+      val traceId = IdGenerator.generateRandomTraceId()
+      val selfId = IdGenerator.generateRandomId()
+      val parentId = IdGenerator.generateRandomId()
       val state = TraceState.builder().set("foo", "bar").build()
       val remoteId = SpanId.createRemote(traceId, parentId, selfId, TraceFlags.getSampled, state)
 
@@ -87,8 +93,8 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
 
     "fails to create a remote span with an invalid trace id" in {
       val traceId = "foo"
-      val selfId = SpanId.randomNonZeroLong()
-      val parentId = SpanId.randomNonZeroLong()
+      val selfId = IdGenerator.generateRandomId()
+      val parentId = IdGenerator.generateRandomId()
 
       assertThrows[IllegalArgumentException] {
         SpanId.createRemote(traceId, parentId, selfId, TraceFlags.getSampled, TraceState.getDefault)
@@ -96,9 +102,9 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
     }
 
     "create a child span id from a remote span id" in {
-      val traceId = SpanId.randomTraceId()
-      val selfId = SpanId.randomNonZeroLong()
-      val parentId = SpanId.randomNonZeroLong()
+      val traceId = IdGenerator.generateRandomTraceId()
+      val selfId = IdGenerator.generateRandomId()
+      val parentId = IdGenerator.generateRandomId()
       val state = TraceState.builder().set("foo", "bar").build()
       val remoteId = SpanId.createRemote(traceId, parentId, selfId, TraceFlags.getSampled, state)
 
@@ -127,52 +133,32 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
       spanId.isValid shouldBe false
     }
 
-    "parses a 128-bit hexadecimal string into a trace id" in {
-      val hex = "01234567890abcdef01234567890abcd"
+    "create span from raw ids" in {
+      val uuid = UUID.randomUUID()
+      val parentId = IdGenerator.generateRandomId()
+      val selfId = IdGenerator.generateRandomId()
+      val spanId = SpanId.createFrom(uuid, parentId, selfId)
 
-      val traceId = SpanId.parseTraceIdFromHex(hex)
-
-      traceId shouldBe "01234567-890a-bcde-f012-34567890abcd"
+      spanId.traceId shouldBe uuid.toString
+      spanId.selfId shouldBe selfId
+      spanId.parentId shouldBe parentId
+      spanId.isRemote shouldBe false
+      spanId.traceFlags shouldBe TraceFlags.getSampled
+      spanId.traceState shouldBe TraceState.getDefault
     }
 
-    "parses a 64-bit hexadecimal string into a trace id" in {
-      val hex = "01234567890abcde"
+    "create span from raw parameters" in {
+      val uuid = UUID.randomUUID()
+      val parentId = IdGenerator.generateRandomId()
+      val selfId = IdGenerator.generateRandomId()
+      val spanId = SpanId.createFrom(uuid, parentId, selfId, true, TraceFlags.getSampled, TraceState.getDefault)
 
-      val traceId = SpanId.parseTraceIdFromHex(hex)
-
-      traceId shouldBe "00000000-0000-0000-0123-4567890abcde"
-    }
-
-    "fails to parse a null hexadecimal string into a trace id" in {
-      assertThrows[NullPointerException] {
-        SpanId.parseTraceIdFromHex(null)
-      }
-    }
-
-    "fails to parse garbage string into a trace id" in {
-      assertThrows[IllegalArgumentException] {
-        SpanId.parseTraceIdFromHex("foo")
-      }
-    }
-
-    "parses a 64-bit hexadecimal string into a long id" in {
-      val hex = "0123456789abcdef"
-
-      val id = SpanId.parseIdFromHex(hex)
-
-      id shouldBe 81985529216486895L
-    }
-
-    "fails to parse a null hexadecimal string into a long id" in {
-      assertThrows[NullPointerException] {
-        SpanId.parseIdFromHex(null)
-      }
-    }
-
-    "fails to parse garbage hexadecimal string into a long id" in {
-      assertThrows[IllegalArgumentException] {
-        SpanId.parseIdFromHex("foo")
-      }
+      spanId.traceId shouldBe uuid.toString
+      spanId.selfId shouldBe selfId
+      spanId.parentId shouldBe parentId
+      spanId.isRemote shouldBe true
+      spanId.traceFlags shouldBe TraceFlags.getSampled
+      spanId.traceState shouldBe TraceState.getDefault
     }
 
     "isValid returns false for an invalid span id" in {
@@ -184,12 +170,6 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
       val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L)
 
       spanId.traceIdAsHex shouldBe "01234567890abcdef01234567890abcd"
-    }
-
-    "returns traceId as is when not in expected format" in {
-      val spanId = new SpanId("foo", 81985529216486895L, 81985529216486895L)
-
-      spanId.traceIdAsHex shouldBe "foo"
     }
 
     "returns span id as hex" in {
@@ -229,20 +209,20 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
     }
 
     "implements equality" in {
-      val traceId = SpanId.randomTraceId()
-      val selfId = SpanId.randomNonZeroLong()
+      val traceId = IdGenerator.generateRandomTraceId()
+      val selfId = IdGenerator.generateRandomId()
       val spanId1 = new SpanId(traceId, selfId, selfId)
       val spanId2 = new SpanId(traceId, selfId, selfId)
 
       spanId1 shouldBe spanId2
       spanId1.hashCode() shouldBe spanId2.hashCode()
 
-      val spanId3 = new SpanId(SpanId.randomTraceId(), selfId, selfId)
+      val spanId3 = new SpanId(IdGenerator.generateRandomTraceId(), selfId, selfId)
 
       spanId1 should not be spanId3
       spanId1.hashCode() should not be spanId3.hashCode()
 
-      val otherId = SpanId.randomNonZeroLong()
+      val otherId = IdGenerator.generateRandomId()
       val spanId4 = new SpanId(traceId, otherId, otherId)
 
       spanId1 should not be spanId4

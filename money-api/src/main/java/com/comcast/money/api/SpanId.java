@@ -28,16 +28,15 @@ import io.opentelemetry.trace.SpanContext;
 import io.opentelemetry.trace.TraceFlags;
 import io.opentelemetry.trace.TraceState;
 
+import static com.comcast.money.api.IdGenerator.INVALID_ID;
+import static com.comcast.money.api.IdGenerator.INVALID_TRACE_ID;
+
 /**
  * A unique identifier for a Span.
  */
 public final class SpanId {
 
-    private static final Random rand = new Random();
-    private static final String INVALID_TRACE_ID = "00000000-0000-0000-0000-000000000000";
-    private static final SpanId INVALID_SPAN_ID = new SpanId(INVALID_TRACE_ID, 0L, 0L, false, (byte) 0, TraceState.getDefault());
-    private static final Pattern TRACE_ID_PATTERN = Pattern.compile("^([0-9a-f]{8})-?([0-9a-f]{4})-([0-9a-f]{4})-?([0-9a-f]{4})-?([0-9a-f]{12})$", Pattern.CASE_INSENSITIVE);
-    private static final Pattern TRACE_ID_HEX_PATTERN = Pattern.compile("^(?:[0-9a-f]{16}){1,2}$", Pattern.CASE_INSENSITIVE);
+    private static final SpanId INVALID_SPAN_ID = new SpanId(INVALID_TRACE_ID, INVALID_ID, INVALID_ID, false, TraceFlags.getDefault(), TraceState.getDefault());
     private static final byte SAMPLED = TraceFlags.getSampled();
 
     private final String traceId;
@@ -58,8 +57,8 @@ public final class SpanId {
      * Creates a new root span ID
      */
     public static SpanId createNew(boolean sampled) {
-        String traceId = UUID.randomUUID().toString();
-        long selfId = randomNonZeroLong();
+        String traceId = IdGenerator.generateRandomTraceId();
+        long selfId = IdGenerator.generateRandomId();
         byte flags = sampled ? TraceFlags.getSampled() : TraceFlags.getDefault();
         return new SpanId(traceId, selfId, selfId, false, flags, TraceState.getDefault());
     }
@@ -70,7 +69,8 @@ public final class SpanId {
     public static SpanId createChild(SpanId parentSpanId) {
 
         if (parentSpanId != null && parentSpanId.isValid()) {
-            return new SpanId(parentSpanId.traceId, parentSpanId.selfId, randomNonZeroLong(), false, parentSpanId.flags, parentSpanId.state);
+            long selfId = IdGenerator.generateRandomId();
+            return new SpanId(parentSpanId.traceId, parentSpanId.selfId, selfId, false, parentSpanId.flags, parentSpanId.state);
         } else {
             return createNew();
         }
@@ -82,12 +82,8 @@ public final class SpanId {
     public static SpanId createRemote(String traceId, long parentId, long selfId, byte flags, TraceState state) {
 
         Objects.requireNonNull(traceId);
-        Matcher matcher = TRACE_ID_PATTERN.matcher(traceId);
-        if (!matcher.matches()) {
+        if (!IdGenerator.isValidTraceId(traceId)) {
             throw new IllegalArgumentException("traceId is not in the required format: '" + traceId + "'");
-        }
-        if (parentId == 0) {
-            parentId = selfId;
         }
         return new SpanId(traceId, parentId, selfId, true, flags, state);
     }
@@ -133,68 +129,6 @@ public final class SpanId {
         return INVALID_SPAN_ID;
     }
 
-    /**
-     * Generates a random non-zero 64-bit ID that can be used as span ID
-     */
-    public static long randomNonZeroLong() {
-        long id;
-        do {
-            id = rand.nextLong();
-        } while (id == 0L);
-        return id;
-    }
-
-    /**
-     * Generates a random trace ID.
-     */
-    public static String randomTraceId() {
-        return UUID.randomUUID().toString();
-    }
-
-    /**
-     * Parses a 64-bit or 128-bit hexadecimal string into a trace ID.
-     */
-    public static String parseTraceIdFromHex(String traceIdAsHex) {
-
-        Objects.requireNonNull(traceIdAsHex);
-        Matcher matcher = TRACE_ID_HEX_PATTERN.matcher(traceIdAsHex);
-        if (matcher.matches()) {
-            if (traceIdAsHex.length() == 16) {
-                // 64-bit trace ID, pad it to 128-bit
-                traceIdAsHex = "0000000000000000" + traceIdAsHex;
-            }
-            return new StringBuilder(36)
-                    .append(traceIdAsHex.subSequence(0, 8))
-                    .append('-')
-                    .append(traceIdAsHex.subSequence(8, 12))
-                    .append('-')
-                    .append(traceIdAsHex.subSequence(12, 16))
-                    .append('-')
-                    .append(traceIdAsHex.subSequence(16, 20))
-                    .append('-')
-                    .append(traceIdAsHex.subSequence(20, 32))
-                    .toString()
-                    .toLowerCase(Locale.US);
-        }
-        throw new IllegalArgumentException("traceId is not in a supported hexadecimal format: '" + traceIdAsHex + "'");
-    }
-
-    /**
-     * Parses a 64-bit hexadecimal string into a numeric ID.
-     */
-    public static long parseIdFromHex(String idAsHex) {
-
-        Objects.requireNonNull(idAsHex);
-        if (idAsHex.length() == 16) {
-            try {
-                return Long.parseUnsignedLong(idAsHex, 16);
-            } catch (NumberFormatException exception) {
-                throw new IllegalArgumentException("Id is not in a supported hexadecimal format: '" + idAsHex + "'", exception);
-            }
-        }
-        throw new IllegalArgumentException("Id is not in a supported hexadecimal format: '" + idAsHex + "'");
-    }
-
     // for testing purposes
     SpanId(String traceId, long parentId, long selfId) {
         this(traceId, parentId, selfId, false, (byte) 0, TraceState.getDefault());
@@ -202,7 +136,7 @@ public final class SpanId {
 
     SpanId(String traceId, long parentId, long selfId, boolean remote, byte flags, TraceState traceState) {
         this.traceId = traceId.toLowerCase(Locale.US);
-        this.parentId = parentId;
+        this.parentId = parentId != 0 ? parentId : selfId;
         this.selfId = selfId;
         this.remote = remote;
         this.flags = flags;
@@ -220,21 +154,21 @@ public final class SpanId {
      * @return the trace ID formatted as 32 lowercase hexadecimal characters
      */
     public String traceIdAsHex() {
-        return traceId.replace("-", "");
+        return IdGenerator.convertTraceIdToHex(traceId);
     }
 
     /**
      * @return the parent span ID, which will be the same as the span ID in the case of a root span
      */
     public long parentId() {
-        return parentId != 0 ? parentId : selfId;
+        return parentId;
     }
 
     /**
      * @return the parent span ID, formatted as 16 lowercase hexadecimal characters
      */
     public String parentIdAsHex() {
-        return io.opentelemetry.trace.SpanId.fromLong(parentId);
+        return IdGenerator.convertIdToHex(parentId);
     }
 
     /**
@@ -248,7 +182,7 @@ public final class SpanId {
      * @return the span ID formatted as 16 lowercase hexadecimal characters
      */
     public String selfIdAsHex() {
-        return io.opentelemetry.trace.SpanId.fromLong(selfId);
+        return IdGenerator.convertIdToHex(selfId);
     }
 
     /**
@@ -269,14 +203,14 @@ public final class SpanId {
      * @return {@code true} if the span ID is a root span; otherwise, {@code false}
      */
     public boolean isRoot() {
-        return parentId == 0 || parentId == selfId;
+        return parentId == selfId;
     }
 
     /**
      * @return {@code true} if the trace ID and span ID are valid.
      */
     public boolean isValid() {
-        return selfId != 0L && !INVALID_TRACE_ID.equals(traceId);
+        return selfId != INVALID_ID && !INVALID_TRACE_ID.equals(traceId);
     }
 
     /**
