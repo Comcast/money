@@ -17,8 +17,8 @@
 package com.comcast.money.api;
 
 import java.util.Locale;
-import java.util.Random;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -34,14 +34,12 @@ public class IdGenerator {
     private static final Pattern TRACE_ID_HEX_PATTERN = Pattern.compile("^(?:[0-9a-f]{16}){1,2}$", Pattern.CASE_INSENSITIVE);
     private static final Pattern ID_HEX_PATTERN = Pattern.compile("^[0-9a-f]{16}$", Pattern.CASE_INSENSITIVE);
 
-    private static final ThreadLocal<Random> threadLocalRandom = ThreadLocal.withInitial(Random::new);
-
     /**
      * Generates a random trace ID.
      */
     public static String generateRandomTraceId() {
         long hi, lo;
-        Random random = threadLocalRandom.get();
+        ThreadLocalRandom random = ThreadLocalRandom.current();
         do {
             hi = random.nextLong();
             lo = random.nextLong();
@@ -54,7 +52,7 @@ public class IdGenerator {
      */
     public static long generateRandomId() {
         long id;
-        Random random = threadLocalRandom.get();
+        ThreadLocalRandom random = ThreadLocalRandom.current();
         do {
             id = random.nextLong();
         } while (id == INVALID_ID);
@@ -63,7 +61,7 @@ public class IdGenerator {
 
     public static String generateRandomTraceIdAsHex() {
         long hi, lo;
-        Random random = threadLocalRandom.get();
+        ThreadLocalRandom random = ThreadLocalRandom.current();
         do {
             hi = random.nextLong();
             lo = random.nextLong();
