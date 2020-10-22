@@ -1,0 +1,86 @@
+package com.comcast.money.core.formatters
+
+import com.comcast.money.api.SpanId
+import io.grpc.Context
+import io.opentelemetry.context.propagation.TextMapPropagator
+import io.opentelemetry.trace.{DefaultSpan, TraceFlags, TraceState, TracingContextUtils}
+import org.mockito.ArgumentCaptor
+import org.mockito.Matchers.any
+import org.mockito.Mockito.{verify, when}
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
+
+class FormatterPropagatorSpec extends AnyWordSpec with MockitoSugar with Matchers {
+
+  "FormatterPropagator" should {
+    "delegates Formatter.fields to TextMapPropagator.fields" in {
+      val formatter = mock[Formatter]
+      val underTest = FormatterPropagator(formatter)
+
+      when(formatter.fields).thenReturn(Seq("A", "B", "C"))
+
+      val fields = underTest.fields()
+
+      fields should contain theSameElementsInOrderAs Seq("A", "B", "C")
+    }
+
+    "delegates Formatter.toHttpHeaders to TextMapPropagator.inject" in {
+      val formatter = mock[Formatter]
+      val setter = mock[TextMapPropagator.Setter[Unit]]
+      val underTest = FormatterPropagator(formatter)
+
+      val spanId = SpanId.createNew()
+      val span = DefaultSpan.create(spanId.toSpanContext)
+      val context = TracingContextUtils.withSpan(span, Context.ROOT)
+
+      underTest.inject[Unit](context, (), setter)
+
+      val captor = ArgumentCaptor.forClass(classOf[SpanId])
+      verify(formatter).toHttpHeaders(captor.capture(), any())
+
+      val capturedSpanId = captor.getValue
+
+      capturedSpanId shouldBe spanId
+    }
+
+    "delegates Formatter.fromHttpHeaders to TextMapPropagator.extract" in {
+      val formatter = mock[Formatter]
+      val getter = mock[TextMapPropagator.Getter[Unit]]
+      val underTest = FormatterPropagator(formatter)
+
+      val traceId = SpanId.randomTraceId()
+      val selfId = SpanId.randomNonZeroLong()
+      val spanId = SpanId.createRemote(traceId, selfId, selfId, TraceFlags.getSampled, TraceState.getDefault)
+
+      when(formatter.fromHttpHeaders(any(), any())).thenReturn(Some(spanId))
+
+      val context = underTest.extract[Unit](Context.ROOT, (), getter)
+      val span = TracingContextUtils.getSpanWithoutDefault(context)
+
+      span should not be null
+      val spanContext = span.getContext
+      spanContext.getTraceIdAsHexString shouldBe spanId.traceIdAsHex
+      spanContext.getSpanIdAsHexString shouldBe spanId.selfIdAsHex
+      spanContext.getTraceFlags shouldBe spanId.traceFlags
+      spanContext.isRemote shouldBe true
+    }
+
+    "delegates Formatter.fromHttpHeaders to TextMapPropagator.extract without span" in {
+      val formatter = mock[Formatter]
+      val getter = mock[TextMapPropagator.Getter[Unit]]
+      val underTest = FormatterPropagator(formatter)
+
+      val traceId = SpanId.randomTraceId()
+      val selfId = SpanId.randomNonZeroLong()
+      val spanId = SpanId.createRemote(traceId, selfId, selfId, TraceFlags.getSampled, TraceState.getDefault)
+
+      when(formatter.fromHttpHeaders(any(), any())).thenReturn(None)
+
+      val context = underTest.extract[Unit](Context.ROOT, (), getter)
+      val span = TracingContextUtils.getSpanWithoutDefault(context)
+
+      span shouldBe null
+    }
+  }
+}
