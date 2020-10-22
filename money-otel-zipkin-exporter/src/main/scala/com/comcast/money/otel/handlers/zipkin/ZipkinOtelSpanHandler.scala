@@ -23,8 +23,8 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
 import zipkin2.codec.SpanBytesEncoder
 
 /**
- * A Money `com.comcast.money.api.SpanHandler` that can export spans to Zipkin
- * through the OpenTelemetry Zipkin `SpanExporter`.
+ * A Money [[com.comcast.money.api.SpanHandler]] that can export spans to Zipkin
+ * through the OpenTelemetry Zipkin [[ZipkinSpanExporter]].
  *
  * Sample configuration:
  *

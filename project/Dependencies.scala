@@ -62,8 +62,12 @@ object Dependencies {
   val openTelemetryApi = "io.opentelemetry" % "opentelemetry-api" % openTelemetryV
   val openTelemetryProp = "io.opentelemetry" % "opentelemetry-extension-trace-propagators" % openTelemetryV
   val openTelemetrySdk = "io.opentelemetry" % "opentelemetry-sdk" % openTelemetryV
+  val openTelemetryInMemoryExporter = "io.opentelemetry" % "opentelemetry-exporters-inmemory" % openTelemetryV
+  val openTelemetryLoggingExporter = "io.opentelemetry" % "opentelemetry-exporters-logging" % openTelemetryV
+  val openTelemetryOtlpExporter = "io.opentelemetry" % "opentelemetry-exporters-otlp" % openTelemetryV
   val openTelemetryZipkinExporter = "io.opentelemetry" % "opentelemetry-exporters-zipkin" % openTelemetryV
   val openTelemetryJaegerExporter = "io.opentelemetry" % "opentelemetry-exporters-jaeger" % openTelemetryV
+  val openTelemetryPrometheusExporter = "io.opentelemetry" % "opentelemetry-exporters-prometheus" % openTelemetryV
 
   // Spring
   val springWeb = ("org.springframework" % "spring-web" % "4.3.17.RELEASE")
