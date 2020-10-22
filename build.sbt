@@ -31,6 +31,9 @@ lazy val money =
       moneySpring,
       moneyOtelFormatters,
       moneyOtelHandler,
+      moneyOtlpExporter,
+      moneyOtelInMemoryExporter,
+      moneyOtelLoggingExporter,
       moneyOtelZipkinExporter,
       moneyOtelJaegerExporter
     )
@@ -240,6 +243,70 @@ lazy val moneyOtelJaegerExporter =
           openTelemetryApi,
           openTelemetrySdk,
           openTelemetryJaegerExporter,
+          junit,
+          junitInterface,
+          assertj,
+          powerMock,
+          powerMockApi
+        ) ++ commonTestDependencies,
+      testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
+    )
+    .dependsOn(moneyCore, moneyOtelHandler % "test->test;compile->compile")
+
+lazy val moneyOtelInMemoryExporter =
+  Project("money-otel-inmemory-exporter", file("./money-otel-inmemory-exporter"))
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          typesafeConfig,
+          openTelemetryApi,
+          openTelemetrySdk,
+          openTelemetryInMemoryExporter,
+          junit,
+          junitInterface,
+          assertj,
+          powerMock,
+          powerMockApi
+        ) ++ commonTestDependencies,
+      testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
+    )
+    .dependsOn(moneyCore, moneyOtelHandler % "test->test;compile->compile")
+
+lazy val moneyOtelLoggingExporter =
+  Project("money-otel-logging-exporter", file("./money-otel-logging-exporter"))
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          typesafeConfig,
+          openTelemetryApi,
+          openTelemetrySdk,
+          openTelemetryLoggingExporter,
+          junit,
+          junitInterface,
+          assertj,
+          powerMock,
+          powerMockApi
+        ) ++ commonTestDependencies,
+      testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
+    )
+    .dependsOn(moneyCore, moneyOtelHandler % "test->test;compile->compile")
+
+
+lazy val moneyOtlpExporter =
+  Project("money-otlp-exporter", file("./money-otlp-exporter"))
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          typesafeConfig,
+          openTelemetryApi,
+          openTelemetrySdk,
+          openTelemetryOtlpExporter,
           junit,
           junitInterface,
           assertj,
