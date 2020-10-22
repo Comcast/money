@@ -19,7 +19,7 @@ package com.comcast.money.core
 import io.opentelemetry.trace
 import io.opentelemetry.trace.TracerProvider
 
-case class MoneyTracerProvider(tracer: Tracer) extends TracerProvider {
+final case class MoneyTracerProvider(tracer: Tracer) extends TracerProvider {
   override def get(instrumentationName: String): trace.Tracer = tracer
   override def get(instrumentationName: String, instrumentationVersion: String): trace.Tracer = tracer
 }

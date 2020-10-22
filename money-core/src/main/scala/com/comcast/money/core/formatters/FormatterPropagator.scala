@@ -25,7 +25,7 @@ import io.opentelemetry.trace.{ DefaultSpan, TracingContextUtils }
 
 import scala.collection.JavaConverters._
 
-case class FormatterPropagator(formatter: Formatter) extends TextMapPropagator {
+final case class FormatterPropagator(formatter: Formatter) extends TextMapPropagator {
 
   override def inject[C](context: Context, carrier: C, setter: TextMapPropagator.Setter[C]): Unit =
     Option(TracingContextUtils.getSpanWithoutDefault(context))

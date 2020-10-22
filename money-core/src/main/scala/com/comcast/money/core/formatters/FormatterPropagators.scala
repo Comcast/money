@@ -18,6 +18,6 @@ package com.comcast.money.core.formatters
 
 import io.opentelemetry.context.propagation.{ ContextPropagators, TextMapPropagator }
 
-case class FormatterPropagators(formatter: Formatter) extends ContextPropagators {
+final case class FormatterPropagators(formatter: Formatter) extends ContextPropagators {
   override def getTextMapPropagator: TextMapPropagator = FormatterPropagator(formatter)
 }
