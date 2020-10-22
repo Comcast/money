@@ -14,16 +14,15 @@
  * limitations under the License.
  */
 
-package com.comcast.money.otel.handlers.jaeger
+package com.comcast.money.otel.handlers.logging
 
 import com.comcast.money.otel.handlers.OtelSpanHandler
 import com.typesafe.config.Config
-import io.opentelemetry.exporters.jaeger.JaegerGrpcSpanExporter
+import io.opentelemetry.exporters.logging.LoggingSpanExporter
 import io.opentelemetry.sdk.trace.`export`.SpanExporter
 
 /**
- * A Money [[com.comcast.money.api.SpanHandler]] that can export spans to Jaeger
- * through the OpenTelemetry [[JaegerGrpcSpanExporter]].
+ * A Money [[com.comcast.money.api.SpanHandler]] that can export spans to [[java.util.logging.Logger]].
  *
  * Sample configuration:
  *
@@ -50,22 +49,9 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
  * }}}
  *
  */
-class JaegerOtelSpanHandler extends OtelSpanHandler {
+class LoggingSpanHandler extends OtelSpanHandler {
   override protected def createSpanExporter(config: Config): SpanExporter = {
-    val builder = JaegerGrpcSpanExporter.newBuilder()
-
-    val serviceNameKey = "service-name"
-    val endpointKey = "endpoint"
-    val deadlineMillisKey = "deadline-ms"
-
-    builder.setServiceName(config.getString(serviceNameKey))
-    if (config.hasPath(endpointKey)) {
-      builder.setEndpoint(config.getString(endpointKey))
-    }
-    if (config.hasPath(deadlineMillisKey)) {
-      builder.setDeadlineMs(config.getLong(deadlineMillisKey))
-    }
-
-    builder.build()
+    val exporter = new LoggingSpanExporter()
+    exporter
   }
 }
