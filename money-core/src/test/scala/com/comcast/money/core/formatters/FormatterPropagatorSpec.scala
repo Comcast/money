@@ -16,13 +16,13 @@
 
 package com.comcast.money.core.formatters
 
-import com.comcast.money.api.SpanId
+import com.comcast.money.api.{IdGenerator, SpanId}
 import io.grpc.Context
 import io.opentelemetry.context.propagation.TextMapPropagator
-import io.opentelemetry.trace.{ DefaultSpan, TraceFlags, TraceState, TracingContextUtils }
+import io.opentelemetry.trace.{DefaultSpan, TraceFlags, TraceState, TracingContextUtils}
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{ verify, when }
+import org.mockito.Mockito.{verify, when}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
@@ -65,8 +65,8 @@ class FormatterPropagatorSpec extends AnyWordSpec with MockitoSugar with Matcher
       val getter = mock[TextMapPropagator.Getter[Unit]]
       val underTest = FormatterPropagator(formatter)
 
-      val traceId = SpanId.randomTraceId()
-      val selfId = SpanId.randomNonZeroLong()
+      val traceId = IdGenerator.generateRandomTraceId()
+      val selfId = IdGenerator.generateRandomId();
       val spanId = SpanId.createRemote(traceId, selfId, selfId, TraceFlags.getSampled, TraceState.getDefault)
 
       when(formatter.fromHttpHeaders(any(), any())).thenReturn(Some(spanId))
@@ -87,8 +87,8 @@ class FormatterPropagatorSpec extends AnyWordSpec with MockitoSugar with Matcher
       val getter = mock[TextMapPropagator.Getter[Unit]]
       val underTest = FormatterPropagator(formatter)
 
-      val traceId = SpanId.randomTraceId()
-      val selfId = SpanId.randomNonZeroLong()
+      val traceId = IdGenerator.generateRandomTraceId()
+      val selfId = IdGenerator.generateRandomId();
       val spanId = SpanId.createRemote(traceId, selfId, selfId, TraceFlags.getSampled, TraceState.getDefault)
 
       when(formatter.fromHttpHeaders(any(), any())).thenReturn(None)
