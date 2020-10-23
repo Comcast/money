@@ -114,6 +114,8 @@ trait SpanWireConverters {
       span.name,
       span.appName,
       span.host,
+      span.library.name,
+      span.library.version,
       span.durationMicros,
       if (success == null) true else success,
       span.startTimeMillis,
@@ -129,6 +131,13 @@ trait SpanWireConverters {
       res
     }
 
+    def toInstrumentationLibrary(span: avro.Span): InstrumentationLibrary =
+      if (span.getLibraryName != null && !span.getLibraryName.isEmpty) {
+        new InstrumentationLibrary(span.getLibraryName, span.getLibraryVersion)
+      } else {
+        InstrumentationLibrary.UNKNOWN
+      }
+
     new SpanInfo {
       override def notes(): util.Map[String, Note[_]] = toNotesMap(from.getNotes)
       override def events(): util.List[Event] = Collections.emptyList()
@@ -140,7 +149,7 @@ trait SpanWireConverters {
       override def id(): SpanId = implicitly[TypeConverter[avro.SpanId, api.SpanId]].convert(from.getId)
       override def name(): String = from.getName
       override def durationNanos(): Long = TimeUnit.MICROSECONDS.toNanos(from.getDuration)
-      override def library(): InstrumentationLibrary = InstrumentationLibrary.UNKNOWN
+      override def library(): InstrumentationLibrary = toInstrumentationLibrary(from)
       override def appName(): String = from.getAppName
       override def host(): String = from.getHost
     }
