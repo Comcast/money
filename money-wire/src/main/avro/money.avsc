@@ -17,6 +17,16 @@
             "type": "string"
         },
         {
+            "name": "libraryName",
+            "type": ["null","string"],
+            "default": null
+        },
+        {
+            "name": "libraryVersion",
+            "type": ["null","string"],
+            "default": null
+        },
+        {
             "name": "duration",
             "type": "long",
             "default": 0
