@@ -28,6 +28,14 @@ object SamplerFactory {
       case "always-on" => AlwaysOnSampler
       case "always-off" => AlwaysOffSampler
       case "percentage-based" => new PercentageBasedSampler(conf.getDouble("percentage"))
+      case "custom" =>
+        val className = conf.getString("class")
+        val sampler = Class.forName(className).newInstance().asInstanceOf[Sampler]
+        sampler match {
+          case configurable: ConfigurableSampler => configurable.configure(conf)
+          case _ =>
+        }
+        sampler
       case unknown =>
         logger.warn("Unknown sampler type: '{}'", unknown)
         AlwaysOnSampler
