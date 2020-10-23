@@ -16,13 +16,13 @@
 
 package com.comcast.money.core.formatters
 
-import com.comcast.money.api.{IdGenerator, SpanId}
+import com.comcast.money.api.{ IdGenerator, SpanId }
 import io.grpc.Context
 import io.opentelemetry.context.propagation.TextMapPropagator
-import io.opentelemetry.trace.{DefaultSpan, TraceFlags, TraceState, TracingContextUtils}
+import io.opentelemetry.trace.{ DefaultSpan, TraceFlags, TraceState, TracingContextUtils }
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{verify, when}
+import org.mockito.Mockito.{ verify, when }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar

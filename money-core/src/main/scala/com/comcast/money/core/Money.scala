@@ -19,10 +19,11 @@ package com.comcast.money.core
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 
-import com.comcast.money.api.{ InstrumentationLibrary, SpanFactory, SpanHandler }
+import com.comcast.money.api.{ InstrumentationLibrary, Sampler, SpanFactory, SpanHandler }
 import com.comcast.money.core.async.{ AsyncNotificationHandler, AsyncNotifier }
 import com.comcast.money.core.formatters.{ Formatter, FormatterChain }
 import com.comcast.money.core.handlers.HandlerChain
+import com.comcast.money.core.samplers.{ AlwaysOnSampler, SamplerFactory }
 import com.typesafe.config.{ Config, ConfigFactory }
 
 case class Money(
@@ -50,12 +51,9 @@ object Money {
     if (enabled) {
       val handler = HandlerChain(conf.getConfig("handling"))
       val clock = new NanoClock(SystemClock, TimeUnit.MILLISECONDS.toNanos(50L))
-      val formatter = if (conf.hasPath("formatting")) {
-        FormatterChain(conf.getConfig("formatting"))
-      } else {
-        FormatterChain.default
-      }
-      val factory: SpanFactory = CoreSpanFactory(clock, handler, formatter, Money.InstrumentationLibrary)
+      val formatter = configureFormatter(conf)
+      val sampler = configureSampler(conf)
+      val factory: SpanFactory = CoreSpanFactory(clock, handler, formatter, sampler, Money.InstrumentationLibrary)
       val tracer = new Tracer {
         override val spanFactory: SpanFactory = factory
       }
@@ -67,6 +65,20 @@ object Money {
       disabled(applicationName, hostName)
     }
   }
+
+  private def configureFormatter(conf: Config): Formatter =
+    if (conf.hasPath("formatting")) {
+      FormatterChain(conf.getConfig("formatting"))
+    } else {
+      FormatterChain.default
+    }
+
+  private def configureSampler(conf: Config): Sampler =
+    if (conf.hasPath("sampling")) {
+      SamplerFactory.create(conf.getConfig("sampling"))
+    } else {
+      AlwaysOnSampler
+    }
 
   private def disabled(applicationName: String, hostName: String): Money =
     Money(enabled = false, DisabledSpanHandler, applicationName, hostName, DisabledSpanFactory, DisabledTracer, DisabledFormatter)

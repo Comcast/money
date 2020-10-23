@@ -19,6 +19,7 @@ package com.comcast.money.core
 import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanHandler, SpanId }
 import com.comcast.money.core.formatters.{ Formatter, MoneyTraceFormatter }
 import com.comcast.money.core.handlers.TestData
+import com.comcast.money.core.samplers.AlwaysOnSampler
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
@@ -27,8 +28,9 @@ class CoreSpanFactorySpec extends AnyWordSpec with Matchers with MockitoSugar wi
 
   val handler = mock[SpanHandler]
   val formatter = new MoneyTraceFormatter()
+  val sampler = AlwaysOnSampler
   val instrumentationLibrary = new InstrumentationLibrary("test", "0.0.1")
-  val underTest = CoreSpanFactory(clock, handler, formatter, instrumentationLibrary)
+  val underTest = CoreSpanFactory(clock, handler, formatter, sampler, instrumentationLibrary)
 
   "CoreSpanFactory" should {
     "create a new span" in {

@@ -18,8 +18,9 @@ package com.comcast.money.core
 
 import java.util.function
 
-import com.comcast.money.api.{ InstrumentationLibrary, Span, SpanFactory, SpanHandler, SpanId }
+import com.comcast.money.api.{ InstrumentationLibrary, Sampler, Span, SpanFactory, SpanHandler, SpanId }
 import com.comcast.money.core.formatters.Formatter
+import io.opentelemetry.trace.TraceFlags
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
@@ -28,11 +29,14 @@ private[core] final case class CoreSpanFactory(
   clock: Clock,
   handler: SpanHandler,
   formatter: Formatter,
+  sampler: Sampler,
   library: InstrumentationLibrary) extends SpanFactory {
 
   private val logger = LoggerFactory.getLogger(classOf[CoreSpanFactory])
 
   override def newSpan(spanName: String): Span = newSpan(SpanId.createNew(), spanName)
+
+  override def newSpan(spanId: SpanId, spanName: String): Span = createNewSpan(spanId, None, spanName)
 
   /**
    * Continues a trace by creating a child span from the given x-moneytrace header
@@ -55,7 +59,9 @@ private[core] final case class CoreSpanFactory(
 
   override def childSpan(childName: String, span: Span, sticky: Boolean): Span = {
     val info = span.info
-    val child = newSpan(info.id.createChild(), childName)
+    val parentSpanId = info.id
+    val spanId = parentSpanId.createChild()
+    val child = createNewSpan(spanId, Some(parentSpanId), childName)
 
     if (sticky) {
       info.notes.values.asScala
@@ -66,11 +72,22 @@ private[core] final case class CoreSpanFactory(
     child
   }
 
-  def newSpan(spanId: SpanId, spanName: String): Span =
-    CoreSpan(
-      id = spanId,
-      name = spanName,
-      library = library,
-      clock = clock,
-      handler = handler)
+  private def createNewSpan(spanId: SpanId, parentSpanId: Option[SpanId], spanName: String): Span =
+    sampler.shouldSample(spanId, parentSpanId, spanName) match {
+      case Sampler.Decision.DROP => UnrecordedSpan(spanId.withTraceFlags(TraceFlags.getDefault), spanName)
+      case Sampler.Decision.RECORD =>
+        CoreSpan(
+          id = spanId.withTraceFlags(TraceFlags.getDefault),
+          name = spanName,
+          library = library,
+          clock = clock,
+          handler = handler)
+      case Sampler.Decision.SAMPLE_AND_RECORD =>
+        CoreSpan(
+          id = spanId.withTraceFlags(TraceFlags.getSampled),
+          name = spanName,
+          library = library,
+          clock = clock,
+          handler = handler)
+    }
 }
