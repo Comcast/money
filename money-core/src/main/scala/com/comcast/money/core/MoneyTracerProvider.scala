@@ -30,9 +30,11 @@ final case class MoneyTracerProvider(tracer: Tracer) extends TracerProvider {
   override def get(instrumentationName: String, instrumentationVersion: String): trace.Tracer = {
     val library = new InstrumentationLibrary(instrumentationName, instrumentationVersion)
     tracers.getOrElseUpdate(library, {
-      val factory = tracer.spanFactory.forInstrumentationLibrary(library)
-      new Tracer {
-        override val spanFactory: SpanFactory = factory
+      tracer.spanFactory match {
+        case csf: CoreSpanFactory => new Tracer {
+          override val spanFactory: SpanFactory = csf.copy(library = library)
+        }
+        case _ => tracer
       }
     })
   }

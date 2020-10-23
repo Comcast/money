@@ -87,8 +87,6 @@ object DisabledSpanFactory extends SpanFactory {
   override def childSpan(childName: String, span: Span, sticky: Boolean): Span = DisabledSpan
 
   override def newSpan(spanId: SpanId, spanName: String): Span = DisabledSpan
-
-  override def forInstrumentationLibrary(library: InstrumentationLibrary): SpanFactory = DisabledSpanFactory
 }
 
 object DisabledSpanBuilder extends Span.Builder {

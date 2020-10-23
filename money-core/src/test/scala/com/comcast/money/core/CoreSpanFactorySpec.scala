@@ -28,7 +28,7 @@ class CoreSpanFactorySpec extends AnyWordSpec with Matchers with MockitoSugar wi
   val handler = mock[SpanHandler]
   val formatter = new MoneyTraceFormatter()
   val instrumentationLibrary = new InstrumentationLibrary("test", "0.0.1")
-  val underTest = new CoreSpanFactory(clock, handler, formatter, instrumentationLibrary)
+  val underTest = CoreSpanFactory(clock, handler, formatter, instrumentationLibrary)
 
   "CoreSpanFactory" should {
     "create a new span" in {

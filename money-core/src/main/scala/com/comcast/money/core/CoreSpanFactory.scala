@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
-private[core] class CoreSpanFactory(
+private[core] final case class CoreSpanFactory(
   clock: Clock,
   handler: SpanHandler,
   formatter: Formatter,
@@ -73,7 +73,4 @@ private[core] class CoreSpanFactory(
       library = library,
       clock = clock,
       handler = handler)
-
-  override def forInstrumentationLibrary(library: InstrumentationLibrary): SpanFactory =
-    new CoreSpanFactory(clock, handler, formatter, library)
 }

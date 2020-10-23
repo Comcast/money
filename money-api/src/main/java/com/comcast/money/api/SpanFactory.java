@@ -38,6 +38,4 @@ public interface SpanFactory {
     Span childSpan(String childName, Span span);
 
     Span childSpan(String childName, Span span, boolean sticky);
-
-    SpanFactory forInstrumentationLibrary(InstrumentationLibrary library);
 }
