@@ -18,7 +18,7 @@ package com.comcast.money.wire
 
 import java.util.Collections
 
-import com.comcast.money.api.{ Event, Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ Event, InstrumentationLibrary, Note, SpanId, SpanInfo }
 import com.comcast.money.core.Money
 import io.opentelemetry.trace.{ Span, StatusCanonicalCode }
 
@@ -26,6 +26,7 @@ case class TestSpanInfo(
   id: SpanId,
   name: String,
   kind: Span.Kind = Span.Kind.INTERNAL,
+  library: InstrumentationLibrary = new InstrumentationLibrary("test", "0.0.1"),
   startTimeNanos: Long = 0L,
   endTimeNanos: Long = 0L,
   durationNanos: Long = 0L,

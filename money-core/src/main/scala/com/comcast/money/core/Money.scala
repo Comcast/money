@@ -19,7 +19,7 @@ package com.comcast.money.core
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 
-import com.comcast.money.api.{ SpanFactory, SpanHandler }
+import com.comcast.money.api.{ InstrumentationLibrary, SpanFactory, SpanHandler }
 import com.comcast.money.core.async.{ AsyncNotificationHandler, AsyncNotifier }
 import com.comcast.money.core.formatters.{ Formatter, FormatterChain }
 import com.comcast.money.core.handlers.HandlerChain
@@ -39,6 +39,7 @@ case class Money(
 
 object Money {
 
+  val InstrumentationLibrary = new InstrumentationLibrary("money-core", "0.10.0")
   lazy val Environment: Money = apply(ConfigFactory.load().getConfig("money"))
 
   def apply(conf: Config): Money = {

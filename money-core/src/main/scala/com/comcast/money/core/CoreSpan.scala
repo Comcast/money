@@ -46,7 +46,8 @@ private[core] case class CoreSpan(
   var name: String,
   var kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL,
   clock: Clock = SystemClock,
-  handler: SpanHandler) extends Span {
+  handler: SpanHandler,
+  var library: InstrumentationLibrary = Money.InstrumentationLibrary) extends Span {
 
   private var startTimeNanos: Long = 0
   private var endTimeNanos: Long = 0
@@ -120,6 +121,7 @@ private[core] case class CoreSpan(
       id = id,
       name = name,
       kind = kind,
+      library = library,
       startTimeNanos = startTimeNanos,
       endTimeNanos = endTimeNanos,
       durationNanos = calculateDurationNanos,

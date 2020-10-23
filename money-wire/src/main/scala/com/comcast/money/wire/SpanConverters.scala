@@ -22,7 +22,7 @@ import java.util.Collections
 import java.util.concurrent.TimeUnit
 
 import com.comcast.money.api
-import com.comcast.money.api.{ Event, Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ Event, InstrumentationLibrary, Note, SpanId, SpanInfo }
 import com.comcast.money.core._
 import com.comcast.money.wire.avro
 import com.comcast.money.wire.avro.NoteType
@@ -140,6 +140,7 @@ trait SpanWireConverters {
       override def id(): SpanId = implicitly[TypeConverter[avro.SpanId, api.SpanId]].convert(from.getId)
       override def name(): String = from.getName
       override def durationNanos(): Long = TimeUnit.MICROSECONDS.toNanos(from.getDuration)
+      override def library(): InstrumentationLibrary = InstrumentationLibrary.UNKNOWN
       override def appName(): String = from.getAppName
       override def host(): String = from.getHost
     }
