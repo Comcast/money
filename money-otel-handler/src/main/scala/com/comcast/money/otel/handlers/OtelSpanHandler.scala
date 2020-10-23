@@ -23,10 +23,6 @@ import io.opentelemetry.sdk.common.InstrumentationLibraryInfo
 import io.opentelemetry.sdk.trace.SpanProcessor
 import io.opentelemetry.sdk.trace.`export`.{ BatchSpanProcessor, SimpleSpanProcessor, SpanExporter }
 
-object OtelSpanHandler {
-  val instrumentationLibraryInfo: InstrumentationLibraryInfo = InstrumentationLibraryInfo.create("money", "0.10.0")
-}
-
 /**
  * An abstract `SpanHandler` that can wrap an OpenTelemetry `SpanExporter` implementation
  * and export spans to an OpenTelemetry-compatible exporter such as ZipKin or Jaeger.

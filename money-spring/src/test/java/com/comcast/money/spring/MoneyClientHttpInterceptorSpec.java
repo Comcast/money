@@ -16,6 +16,7 @@
 
 package com.comcast.money.spring;
 
+import com.comcast.money.api.InstrumentationLibrary;
 import com.comcast.money.api.Span;
 import com.comcast.money.api.SpanId;
 import com.comcast.money.api.SpanInfo;
@@ -59,6 +60,7 @@ public class MoneyClientHttpInterceptorSpec {
                 "",
                 Collections.emptyMap(),
                 Collections.emptyList(),
+                new InstrumentationLibrary("test", "0.0.1"),
                 "testAppName",
                 "testHost");
 

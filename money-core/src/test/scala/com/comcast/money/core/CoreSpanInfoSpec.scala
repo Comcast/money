@@ -31,6 +31,7 @@ class CoreSpanInfoSpec extends AnyWordSpec with Matchers {
       underTest.name shouldBe "test"
       underTest.appName shouldBe Money.Environment.applicationName
       underTest.host shouldBe Money.Environment.hostName
+      underTest.library shouldBe Money.InstrumentationLibrary
       underTest.notes shouldBe empty
       underTest.success shouldBe null
       underTest.durationMicros shouldBe 0L
