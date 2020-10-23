@@ -31,6 +31,18 @@ object DisabledSpanHandler extends SpanHandler {
   override def handle(spanInfo: SpanInfo): Unit = ()
 }
 
+object DisabledTracerProvider extends TracerProvider {
+  override val clock: Clock = SystemClock
+  override val formatter: Formatter = DisabledFormatter
+  override val handler: SpanHandler = DisabledSpanHandler
+
+  override def get(instrumentationName: String): MoneyTracer = DisabledTracer
+
+  override def get(instrumentationName: String, instrumentationVersion: String): MoneyTracer = DisabledTracer
+
+  override def get(instrumentationLibrary: InstrumentationLibrary): Tracer = DisabledTracer
+}
+
 object DisabledTracer extends Tracer {
 
   val spanFactory: SpanFactory = DisabledSpanFactory

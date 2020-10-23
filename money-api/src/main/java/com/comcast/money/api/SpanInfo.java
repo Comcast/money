@@ -138,6 +138,11 @@ public interface SpanInfo {
     long durationNanos();
 
     /**
+     * @return the instrumentation library from which the span originated
+     */
+    InstrumentationLibrary instrumentationLibrary();
+
+    /**
      * @return the current application name
      */
     String appName();

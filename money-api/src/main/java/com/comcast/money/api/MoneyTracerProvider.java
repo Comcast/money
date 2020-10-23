@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core
+package com.comcast.money.api;
 
-import io.opentelemetry.trace
-import io.opentelemetry.trace.TracerProvider
+import io.opentelemetry.trace.TracerProvider;
 
-final case class MoneyTracerProvider(tracer: Tracer) extends TracerProvider {
-  override def get(instrumentationName: String): trace.Tracer = tracer
-  override def get(instrumentationName: String, instrumentationVersion: String): trace.Tracer = tracer
+public interface MoneyTracerProvider extends TracerProvider {
+    @Override
+    MoneyTracer get(String instrumentationName);
+
+    @Override
+    MoneyTracer get(String instrumentationName, String instrumentationVersion);
 }

@@ -19,7 +19,7 @@ package com.comcast.money.otel.handlers
 import java.util
 import java.util.UUID
 
-import com.comcast.money.api.{ Event, Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ Event, InstrumentationLibrary, Note, SpanId, SpanInfo }
 import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.data.ImmutableStatus
@@ -37,7 +37,8 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
     "wrap Money SpanInfo" in {
       val underTest = new MoneyReadableSpanData(TestSpanInfo(spanId))
 
-      underTest.getInstrumentationLibraryInfo.getName shouldBe "money"
+      underTest.getInstrumentationLibraryInfo.getName shouldBe "instrumentation-library"
+      underTest.getInstrumentationLibraryInfo.getVersion shouldBe "0.0.1"
       underTest.getTraceId shouldBe "01234567890abcdef01234567890abcd"
       underTest.getSpanId shouldBe "0123456789abcdef"
       underTest.getParentSpanId shouldBe "0000000000000000"
@@ -65,7 +66,8 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
     "wrap child Money SpanInfo" in {
       val underTest = new MoneyReadableSpanData(TestSpanInfo(childSpanId))
 
-      underTest.getInstrumentationLibraryInfo.getName shouldBe "money"
+      underTest.getInstrumentationLibraryInfo.getName shouldBe "instrumentation-library"
+      underTest.getInstrumentationLibraryInfo.getVersion shouldBe "0.0.1"
       underTest.getTraceId shouldBe "01234567890abcdef01234567890abcd"
       underTest.getSpanId shouldBe "0123456789abcdef"
       underTest.getParentSpanId shouldBe "0fedcba987654321"
@@ -95,6 +97,8 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
     override def appName(): String = "app"
     override def host(): String = "host"
     override def name(): String = "name"
+    override def instrumentationLibrary(): InstrumentationLibrary =
+      new InstrumentationLibrary("instrumentation-library", "0.0.1")
     override def kind(): Span.Kind = Span.Kind.INTERNAL
     override def startTimeNanos(): Long = 1000000L
     override def endTimeNanos(): Long = 3000000L

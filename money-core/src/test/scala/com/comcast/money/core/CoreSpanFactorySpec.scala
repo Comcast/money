@@ -16,7 +16,7 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ Note, SpanHandler, SpanId }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanHandler, SpanId }
 import com.comcast.money.core.formatters.{ Formatter, MoneyTraceFormatter }
 import com.comcast.money.core.handlers.TestData
 import org.scalatest.matchers.should.Matchers

@@ -29,6 +29,8 @@ case class TestSpanInfo(
   startTimeNanos: Long = 0L,
   endTimeNanos: Long = 0L,
   durationNanos: Long = 0L,
+  instrumentationName: String = "",
+  instrumentationVersion: String = "",
   status: StatusCanonicalCode = StatusCanonicalCode.UNSET,
   description: String = "",
   notes: java.util.Map[String, Note[_]] = Collections.emptyMap(),

@@ -19,8 +19,8 @@ package com.comcast.money.core
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 
-import com.comcast.money.api.{ SpanFactory, SpanHandler }
-import com.comcast.money.core.async.{ AsyncNotificationHandler, AsyncNotifier }
+import com.comcast.money.api.{ InstrumentationLibrary, MoneyTracerProvider, SpanFactory, SpanHandler }
+import com.comcast.money.core.async.AsyncNotifier
 import com.comcast.money.core.formatters.{ Formatter, FormatterChain }
 import com.comcast.money.core.handlers.HandlerChain
 import com.typesafe.config.{ Config, ConfigFactory }
@@ -30,6 +30,8 @@ case class Money(
   handler: SpanHandler,
   applicationName: String,
   hostName: String,
+  clock: Clock,
+  tracerProvider: MoneyTracerProvider,
   factory: SpanFactory,
   tracer: Tracer,
   formatter: Formatter,
@@ -49,24 +51,33 @@ object Money {
     if (enabled) {
       val handler = HandlerChain(conf.getConfig("handling"))
       val clock = new NanoClock(SystemClock, TimeUnit.MILLISECONDS.toNanos(50L))
-      val formatter = if (conf.hasPath("formatting")) {
-        FormatterChain(conf.getConfig("formatting"))
-      } else {
-        FormatterChain.default
+      val formatter = createFormatter(conf)
+
+      val tracerProvider = new TracerProvider {
+        override val clock: Clock = clock
+        override val formatter: Formatter = formatter
+        override val handler: SpanHandler = handler
       }
-      val factory: SpanFactory = new CoreSpanFactory(clock, handler, formatter)
-      val tracer = new Tracer {
-        override val spanFactory: SpanFactory = factory
-      }
+
+      val instrumentationLibrary = new InstrumentationLibrary("money-core", "0.10.0")
+      val tracer = tracerProvider.get(instrumentationLibrary)
+      val factory = tracer.spanFactory
+
       val logExceptions = conf.getBoolean("log-exceptions")
       val asyncNotificationHandlerChain = AsyncNotifier(conf.getConfig("async-notifier"))
       val formatIdsAsHex = conf.hasPath("format-ids-as-hex") && conf.getBoolean("format-ids-as-hex")
-      Money(enabled, handler, applicationName, hostName, factory, tracer, formatter, logExceptions, formatIdsAsHex, asyncNotificationHandlerChain)
+      Money(enabled, handler, applicationName, hostName, clock, tracerProvider, factory, tracer, formatter, logExceptions, formatIdsAsHex, asyncNotificationHandlerChain)
     } else {
       disabled(applicationName, hostName)
     }
   }
 
+  private def createFormatter(conf: Config): Formatter = if (conf.hasPath("formatting")) {
+    FormatterChain(conf.getConfig("formatting"))
+  } else {
+    FormatterChain.default
+  }
+
   private def disabled(applicationName: String, hostName: String): Money =
-    Money(enabled = false, DisabledSpanHandler, applicationName, hostName, DisabledSpanFactory, DisabledTracer, DisabledFormatter)
+    Money(enabled = false, DisabledSpanHandler, applicationName, hostName, SystemClock, DisabledTracerProvider, DisabledSpanFactory, DisabledTracer, DisabledFormatter)
 }

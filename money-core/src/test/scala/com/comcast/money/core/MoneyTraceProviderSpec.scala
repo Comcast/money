@@ -24,12 +24,12 @@ class MoneyTraceProviderSpec extends AnyWordSpec with MockitoSugar with Matchers
 
   "MoneyTraceProvider" should {
     "wrap an existing tracer" in {
-      val tracer = mock[Tracer]
+      val money = mock[Money]
 
-      val underTest = MoneyTracerProvider(tracer)
+      val underTest = MoneyTracerProvider(money)
 
-      underTest.get("test") shouldBe tracer
-      underTest.get("test", "1.0") shouldBe tracer
+      underTest.get("test") shouldBe money
+      underTest.get("test", "1.0") shouldBe money
     }
   }
 }

@@ -24,6 +24,7 @@ import io.opentelemetry.trace.Span;
 import io.opentelemetry.trace.StatusCanonicalCode;
 
 import com.comcast.money.api.Event;
+import com.comcast.money.api.InstrumentationLibrary;
 import com.comcast.money.api.Note;
 import com.comcast.money.api.SpanId;
 import com.comcast.money.api.SpanInfo;
@@ -93,5 +94,10 @@ public class TestSpanInfo implements SpanInfo {
     @Override
     public String host() {
         return "host";
+    }
+
+    @Override
+    public InstrumentationLibrary instrumentationLibrary() {
+        return new InstrumentationLibrary("instrumentation-library", "0.0.1");
     }
 }
