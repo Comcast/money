@@ -16,22 +16,20 @@
 
 package com.comcast.money.core
 
-import java.util.UUID
-
-import com.comcast.money.api.SpanId
-import Formatters._
-import io.opentelemetry.trace.{ TraceFlags, TraceState }
-import org.scalacheck.Arbitrary
-import org.scalacheck.Test.Failed
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import org.scalatestplus.mockito.MockitoSugar
 
-class FormattersSpec extends AnyWordSpec with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
+class MoneyTraceProviderSpec extends AnyWordSpec with MockitoSugar with Matchers {
 
-  implicit val arbitraryUUID: Arbitrary[UUID] = Arbitrary(genUUID)
+  "MoneyTraceProvider" should {
+    "wrap an existing tracer" in {
+      val tracer = mock[Tracer]
 
-  "Http Formatting" should {
+      val underTest = MoneyTracerProvider(tracer)
 
+      underTest.get("test") shouldBe tracer
+      underTest.get("test", "1.0") shouldBe tracer
+    }
   }
 }
