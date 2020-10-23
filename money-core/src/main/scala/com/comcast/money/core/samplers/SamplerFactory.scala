@@ -18,9 +18,18 @@ package com.comcast.money.core.samplers
 
 import com.comcast.money.api.Sampler
 import com.typesafe.config.Config
+import org.slf4j.{ Logger, LoggerFactory }
 
 object SamplerFactory {
-  def create(conf: Config): Sampler = {
-    AlwaysOnSampler
-  }
+  private val logger: Logger = LoggerFactory.getLogger(getClass)
+
+  def create(conf: Config): Sampler =
+    conf.getString("type") match {
+      case "always-on" => AlwaysOnSampler
+      case "always-off" => AlwaysOffSampler
+      case "percentage-based" => new PercentageBasedSampler(conf.getDouble("percentage"))
+      case unknown =>
+        logger.warn("Unknown sampler type: '{}'", unknown)
+        AlwaysOnSampler
+    }
 }
