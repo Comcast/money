@@ -16,10 +16,24 @@
 
 package com.comcast.money.core
 
+import com.comcast.money.api.{ InstrumentationLibrary, SpanFactory }
 import io.opentelemetry.trace
 import io.opentelemetry.trace.TracerProvider
 
+import scala.collection.concurrent.TrieMap
+
 final case class MoneyTracerProvider(tracer: Tracer) extends TracerProvider {
-  override def get(instrumentationName: String): trace.Tracer = tracer
-  override def get(instrumentationName: String, instrumentationVersion: String): trace.Tracer = tracer
+
+  private val tracers = new TrieMap[InstrumentationLibrary, Tracer]()
+
+  override def get(instrumentationName: String): trace.Tracer = get(instrumentationName, null)
+  override def get(instrumentationName: String, instrumentationVersion: String): trace.Tracer = {
+    val library = new InstrumentationLibrary(instrumentationName, instrumentationVersion)
+    tracers.getOrElseUpdate(library, {
+      val factory = tracer.spanFactory.forInstrumentationLibrary(library)
+      new Tracer {
+        override val spanFactory: SpanFactory = factory
+      }
+    })
+  }
 }

@@ -55,7 +55,7 @@ object Money {
       } else {
         FormatterChain.default
       }
-      val factory: SpanFactory = new CoreSpanFactory(clock, handler, formatter)
+      val factory: SpanFactory = new CoreSpanFactory(clock, handler, formatter, Money.InstrumentationLibrary)
       val tracer = new Tracer {
         override val spanFactory: SpanFactory = factory
       }

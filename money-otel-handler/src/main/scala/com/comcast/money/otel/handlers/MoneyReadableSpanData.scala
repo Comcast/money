@@ -19,28 +19,28 @@ package com.comcast.money.otel.handlers
 import java.util
 import java.util.Collections
 
-import com.comcast.money.api.{ Event, Note, SpanInfo }
+import com.comcast.money.api.{ Event, InstrumentationLibrary, Note, SpanInfo }
+import com.comcast.money.core.Money
 import io.opentelemetry.common.{ Attributes, ReadableAttributes }
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.ReadableSpan
 import io.opentelemetry.sdk.trace.data.{ ImmutableStatus, SpanData }
-import io.opentelemetry.trace.{ Span => OtelSpan, SpanContext, SpanId, TraceState }
+import io.opentelemetry.trace.{ SpanContext, SpanId, TraceState, Span => OtelSpan }
 
 import scala.collection.JavaConverters._
 
 private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan with SpanData {
-  import OtelSpanHandler.instrumentationLibraryInfo
-
   private val id = info.id
   private lazy val spanContext = id.toSpanContext
+  private lazy val libraryInfo = convertLibraryInfo(info.library)
   private lazy val attributes = convertAttributes(info.notes)
   private lazy val events = convertEvents(info.events)
 
   override def getSpanContext: SpanContext = spanContext
   override def getName: String = info.name
   override def toSpanData: SpanData = this
-  override def getInstrumentationLibraryInfo: InstrumentationLibraryInfo = instrumentationLibraryInfo
+  override def getInstrumentationLibraryInfo: InstrumentationLibraryInfo = libraryInfo
   override def hasEnded: Boolean = info.endTimeNanos > 0L
   override def getLatencyNanos: Long = info.durationNanos
   override def getTraceId: String = id.traceIdAsHex
@@ -61,6 +61,13 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
   override def getTotalAttributeCount: Int = info.notes.size
   override def getAttributes: ReadableAttributes = attributes
   override def getEvents: util.List[SpanData.Event] = events
+
+  private def convertLibraryInfo(library: InstrumentationLibrary): InstrumentationLibraryInfo =
+    if (library != null) {
+      InstrumentationLibraryInfo.create(library.name, library.version)
+    } else {
+      InstrumentationLibraryInfo.getEmpty
+    }
 
   private def appendNoteToBuilder[T](builder: Attributes.Builder, note: Note[T]): Attributes.Builder =
     builder.setAttribute(note.key, note.value)

@@ -18,7 +18,7 @@ package com.comcast.money.core
 
 import java.util.function
 
-import com.comcast.money.api.{ Span, SpanFactory, SpanHandler, SpanId }
+import com.comcast.money.api.{ InstrumentationLibrary, Span, SpanFactory, SpanHandler, SpanId }
 import com.comcast.money.core.formatters.Formatter
 import org.slf4j.LoggerFactory
 
@@ -27,7 +27,8 @@ import scala.collection.JavaConverters._
 private[core] class CoreSpanFactory(
   clock: Clock,
   handler: SpanHandler,
-  formatter: Formatter) extends SpanFactory {
+  formatter: Formatter,
+  library: InstrumentationLibrary) extends SpanFactory {
 
   private val logger = LoggerFactory.getLogger(classOf[CoreSpanFactory])
 
@@ -69,6 +70,10 @@ private[core] class CoreSpanFactory(
     CoreSpan(
       id = spanId,
       name = spanName,
+      library = library,
       clock = clock,
       handler = handler)
+
+  override def forInstrumentationLibrary(library: InstrumentationLibrary): SpanFactory =
+    new CoreSpanFactory(clock, handler, formatter, library)
 }

@@ -62,9 +62,10 @@ public class InstrumentationLibrary {
 
     @Override
     public String toString() {
-        return "InstrumentationLibrary{" +
-                "name='" + name + '\'' +
-                ", version='" + version + '\'' +
-                '}';
+        if (version == null || version.isEmpty()) {
+            return name;
+        } else {
+            return name + ':' + version;
+        }
     }
 }

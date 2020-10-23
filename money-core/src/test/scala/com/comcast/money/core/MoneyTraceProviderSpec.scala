@@ -16,20 +16,56 @@
 
 package com.comcast.money.core
 
+import com.comcast.money.api.{ InstrumentationLibrary, SpanFactory }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatestplus.mockito.MockitoSugar
 
-class MoneyTraceProviderSpec extends AnyWordSpec with MockitoSugar with Matchers {
+class MoneyTraceProviderSpec extends AnyWordSpec with Matchers {
 
   "MoneyTraceProvider" should {
-    "wrap an existing tracer" in {
-      val tracer = mock[Tracer]
+    "wrap an existing Tracer with a decorated SpanFactory" in {
+      val factory = new CoreSpanFactory(SystemClock, DisabledSpanHandler, DisabledFormatter, Money.InstrumentationLibrary)
+      val tracer = new Tracer {
+        override val spanFactory: SpanFactory = factory
+      }
 
       val underTest = MoneyTracerProvider(tracer)
 
-      underTest.get("test") shouldBe tracer
-      underTest.get("test", "1.0") shouldBe tracer
+      val result = underTest.get("test")
+      result shouldBe a[Tracer]
+      result should not be tracer
+
+      val libraryTracer = result.asInstanceOf[Tracer]
+      val span = libraryTracer.startSpan("test")
+      val info = span.info
+      info.library shouldBe new InstrumentationLibrary("test")
+    }
+
+    "returns the same Tracer for equivalent InstrumentationLibraries" in {
+      val factory = new CoreSpanFactory(SystemClock, DisabledSpanHandler, DisabledFormatter, Money.InstrumentationLibrary)
+      val tracer = new Tracer {
+        override val spanFactory: SpanFactory = factory
+      }
+
+      val underTest = MoneyTracerProvider(tracer)
+
+      val result = underTest.get("test", "0.0.1")
+      val other = underTest.get("test", "0.0.1")
+      other shouldBe result
+    }
+
+    "return different Tracers for different InstrumentationLibraries" in {
+      val factory = new CoreSpanFactory(SystemClock, DisabledSpanHandler, DisabledFormatter, Money.InstrumentationLibrary)
+      val tracer = new Tracer {
+        override val spanFactory: SpanFactory = factory
+      }
+
+      val underTest = MoneyTracerProvider(tracer)
+
+      val result = underTest.get("test", "0.0.1")
+      val other = underTest.get("test", "0.0.2")
+      other shouldBe a[Tracer]
+      other should not be result
     }
   }
 }

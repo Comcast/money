@@ -44,11 +44,11 @@ import scala.collection.mutable.ListBuffer
 private[core] case class CoreSpan(
   id: SpanId,
   var name: String,
-  var kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL,
+  library: InstrumentationLibrary = Money.InstrumentationLibrary,
   clock: Clock = SystemClock,
-  handler: SpanHandler,
-  var library: InstrumentationLibrary = Money.InstrumentationLibrary) extends Span {
+  handler: SpanHandler = DisabledSpanHandler) extends Span {
 
+  private var kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL
   private var startTimeNanos: Long = 0
   private var endTimeNanos: Long = 0
   private var status: StatusCanonicalCode = StatusCanonicalCode.UNSET

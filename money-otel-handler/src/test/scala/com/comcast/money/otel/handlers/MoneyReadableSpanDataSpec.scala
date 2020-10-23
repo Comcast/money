@@ -37,7 +37,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
     "wrap Money SpanInfo" in {
       val underTest = new MoneyReadableSpanData(TestSpanInfo(spanId))
 
-      underTest.getInstrumentationLibraryInfo.getName shouldBe "money"
+      underTest.getInstrumentationLibraryInfo.getName shouldBe "test"
       underTest.getTraceId shouldBe "01234567890abcdef01234567890abcd"
       underTest.getSpanId shouldBe "0123456789abcdef"
       underTest.getParentSpanId shouldBe "0000000000000000"
@@ -65,7 +65,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
     "wrap child Money SpanInfo" in {
       val underTest = new MoneyReadableSpanData(TestSpanInfo(childSpanId))
 
-      underTest.getInstrumentationLibraryInfo.getName shouldBe "money"
+      underTest.getInstrumentationLibraryInfo.getName shouldBe "test"
       underTest.getTraceId shouldBe "01234567890abcdef01234567890abcd"
       underTest.getSpanId shouldBe "0123456789abcdef"
       underTest.getParentSpanId shouldBe "0fedcba987654321"

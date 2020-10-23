@@ -59,9 +59,9 @@ trait TestData {
     events = Collections.emptyList())
 
   val testSpanId = SpanId.createNew()
-  val testSpan = CoreSpan(testSpanId, "test-span", OtelSpan.Kind.INTERNAL, SystemClock, null)
+  val testSpan = CoreSpan(testSpanId, "test-span")
   val childSpanId = testSpanId.createChild()
-  val childSpan = CoreSpan(childSpanId, "child-span", OtelSpan.Kind.INTERNAL, SystemClock, null)
+  val childSpan = CoreSpan(childSpanId, "child-span")
 
   val fixedTestSpanId = SpanId.createRemote("5092ddfe-3701-4f84-b3d2-21f5501c0d28", 5176425846116696835L, 5176425846116696835L, TraceFlags.getSampled, TraceState.getDefault)
   val fixedTestSpanInfo = CoreSpanInfo(
