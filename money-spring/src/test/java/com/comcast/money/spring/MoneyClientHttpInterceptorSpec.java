@@ -21,12 +21,11 @@ import com.comcast.money.api.Span;
 import com.comcast.money.api.SpanId;
 import com.comcast.money.api.SpanInfo;
 import com.comcast.money.core.CoreSpanInfo;
-import com.comcast.money.core.internal.SpanLocal;
 
 import io.opentelemetry.context.Context;
-import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.trace.StatusCode;
+import io.opentelemetry.trace.TracingContextUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -35,6 +34,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 
 import static org.mockito.Mockito.*;
@@ -45,12 +45,11 @@ public class MoneyClientHttpInterceptorSpec {
     private final static String traceId = id.traceId();
     private final static long spanId = id.selfId();
     private final static long parentSpanId = id.parentId();
-    private final static ContextKey<Span> SPAN_CONTEXT_KEY = ContextKey.named("opentelemetry-trace-span-key");
 
     private Scope spanScope;
 
     @Before
-    public void setUp() {
+    public void setUp() throws Exception {
         Span span = mock(Span.class);
         SpanInfo testSpanInfo = new CoreSpanInfo(
                 id,
@@ -69,9 +68,11 @@ public class MoneyClientHttpInterceptorSpec {
 
         when(span.info()).thenReturn(testSpanInfo);
 
-        spanScope = Context.root()
-                .with(SPAN_CONTEXT_KEY, span)
-                .makeCurrent();
+        Method withSpan = TracingContextUtils.class.getDeclaredMethod("withSpan", io.opentelemetry.trace.Span.class, Context.class);
+        withSpan.setAccessible(true);
+
+        Context context = (Context) withSpan.invoke(null, span, Context.root());
+        spanScope = context.makeCurrent();
     }
 
     @After
