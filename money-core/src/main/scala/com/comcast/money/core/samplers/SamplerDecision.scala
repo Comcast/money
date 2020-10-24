@@ -16,8 +16,10 @@
 
 package com.comcast.money.core.samplers
 
-import com.typesafe.config.Config
+object SamplerDecision extends Enumeration {
+  type SamplerDecision = Value
 
-trait ConfigurableSampler extends Sampler {
-  def configure(conf: Config): Unit
+  val Drop: SamplerDecision = Value
+  val Record: SamplerDecision = Value
+  val SampleAndRecord: SamplerDecision = Value
 }

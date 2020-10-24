@@ -16,10 +16,7 @@
 
 package com.comcast.money.core.samplers
 
-import java.util
-import java.util.Collections
-
-import com.comcast.money.api.{ Note, Sampler, SpanId }
+import com.comcast.money.api.{ Note, SpanId }
 
 class PercentageBasedSampler(percentage: Double) extends Sampler {
 
@@ -32,10 +29,9 @@ class PercentageBasedSampler(percentage: Double) extends Sampler {
       (Long.MaxValue * percentage).toLong
     }
 
-  override def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], name: String): Sampler.Result =
-    if (spanId.traceIdAsUUID.getLeastSignificantBits.abs < upperBound) new Sampler.Result {
-      override def decision(): Sampler.Decision = Sampler.Decision.SAMPLE_AND_RECORD
-      override def notes(): util.Collection[Note[_]] = Collections.singletonList(Note.of("sampling.probability", percentage))
-    }
-    else Drop
+  override def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], name: String): SamplerResult =
+    if (spanId.traceIdAsUUID.getLeastSignificantBits.abs < upperBound)
+      RecordResult(sample = true, List(Note.of("sampling.probability", percentage)))
+    else
+      DropResult
 }

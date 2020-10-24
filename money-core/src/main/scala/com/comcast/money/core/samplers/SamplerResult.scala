@@ -16,23 +16,9 @@
 
 package com.comcast.money.core.samplers
 
-import java.util
-import java.util.Collections
+import com.comcast.money.api.Note
 
-import com.comcast.money.api.{ Note, Sampler }
+sealed abstract class SamplerResult {}
 
-trait EmptySamplerResult extends Sampler.Result {
-  override def notes(): util.Collection[Note[_]] = Collections.emptyList()
-}
-
-object Drop extends EmptySamplerResult {
-  override def decision(): Sampler.Decision = Sampler.Decision.DROP
-}
-
-object Record extends EmptySamplerResult {
-  override def decision(): Sampler.Decision = Sampler.Decision.RECORD
-}
-
-object SampleAndRecord extends EmptySamplerResult {
-  override def decision(): Sampler.Decision = Sampler.Decision.SAMPLE_AND_RECORD
-}
+case object DropResult extends SamplerResult
+sealed case class RecordResult(sample: Boolean = true, notes: Seq[Note[_]] = Nil) extends SamplerResult

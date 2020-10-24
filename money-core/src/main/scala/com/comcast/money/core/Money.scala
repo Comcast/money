@@ -19,11 +19,11 @@ package com.comcast.money.core
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 
-import com.comcast.money.api.{ InstrumentationLibrary, Sampler, SpanFactory, SpanHandler }
+import com.comcast.money.api.{ InstrumentationLibrary, SpanFactory, SpanHandler }
 import com.comcast.money.core.async.{ AsyncNotificationHandler, AsyncNotifier }
 import com.comcast.money.core.formatters.{ Formatter, FormatterChain }
 import com.comcast.money.core.handlers.HandlerChain
-import com.comcast.money.core.samplers.{ AlwaysOnSampler, SamplerFactory }
+import com.comcast.money.core.samplers.{ AlwaysOnSampler, Sampler, SamplerFactory }
 import com.typesafe.config.{ Config, ConfigFactory }
 
 case class Money(

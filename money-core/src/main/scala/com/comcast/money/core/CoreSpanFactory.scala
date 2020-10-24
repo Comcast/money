@@ -18,8 +18,9 @@ package com.comcast.money.core
 
 import java.util.function
 
-import com.comcast.money.api.{ InstrumentationLibrary, Sampler, Span, SpanFactory, SpanHandler, SpanId }
+import com.comcast.money.api.{ InstrumentationLibrary, Span, SpanFactory, SpanHandler, SpanId }
 import com.comcast.money.core.formatters.Formatter
+import com.comcast.money.core.samplers.{ DropResult, RecordResult, Sampler }
 import io.opentelemetry.trace.TraceFlags
 import org.slf4j.LoggerFactory
 
@@ -72,29 +73,18 @@ private[core] final case class CoreSpanFactory(
     child
   }
 
-  private def createNewSpan(spanId: SpanId, parentSpanId: Option[SpanId], spanName: String): Span = {
-    val result = sampler.shouldSample(spanId, parentSpanId, spanName)
-    val span = result.decision match {
-      case Sampler.Decision.DROP => UnrecordedSpan(spanId.withTraceFlags(TraceFlags.getDefault), spanName)
-      case Sampler.Decision.RECORD =>
-        CoreSpan(
-          id = spanId.withTraceFlags(TraceFlags.getDefault),
+  private def createNewSpan(spanId: SpanId, parentSpanId: Option[SpanId], spanName: String): Span =
+    sampler.shouldSample(spanId, parentSpanId, spanName) match {
+      case DropResult => UnrecordedSpan(spanId.withTraceFlags(TraceFlags.getDefault), spanName)
+      case RecordResult(sample, notes) =>
+        val flags = if (sample) TraceFlags.getSampled else TraceFlags.getDefault
+        val span = CoreSpan(
+          id = spanId.withTraceFlags(flags),
           name = spanName,
           library = library,
           clock = clock,
           handler = handler)
-      case Sampler.Decision.SAMPLE_AND_RECORD =>
-        CoreSpan(
-          id = spanId.withTraceFlags(TraceFlags.getSampled),
-          name = spanName,
-          library = library,
-          clock = clock,
-          handler = handler)
+        notes.foreach { span.record }
+        span
     }
-    val notes = result.notes
-    if (notes != null) {
-      notes.forEach({ span.record(_) })
-    }
-    span
-  }
 }

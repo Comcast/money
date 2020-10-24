@@ -16,7 +16,6 @@
 
 package com.comcast.money.core.samplers
 
-import com.comcast.money.api.Sampler
 import com.typesafe.config.Config
 import org.slf4j.{ Logger, LoggerFactory }
 

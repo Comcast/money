@@ -16,8 +16,8 @@
 
 package com.comcast.money.core.samplers
 
-import com.comcast.money.api.{ Sampler, SpanId }
+import com.comcast.money.api.SpanId
 
 object AlwaysOnSampler extends Sampler {
-  override def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], name: String): Sampler.Result = SampleAndRecord
+  override def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], name: String): SamplerResult = RecordResult()
 }

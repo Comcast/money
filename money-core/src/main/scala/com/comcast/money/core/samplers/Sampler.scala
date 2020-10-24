@@ -14,23 +14,10 @@
  * limitations under the License.
  */
 
-package com.comcast.money.api;
+package com.comcast.money.core.samplers
 
-import java.util.Collection;
+import com.comcast.money.api.SpanId
 
-import scala.Option;
-
-public interface Sampler {
-    Result shouldSample(SpanId spanId, Option<SpanId> parentSpanId, String name);
-
-    enum Decision {
-        DROP,
-        RECORD,
-        SAMPLE_AND_RECORD
-    }
-
-    interface Result {
-        Decision decision();
-        Collection<Note<?>> notes();
-    }
+trait Sampler {
+  def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], spanName: String): SamplerResult
 }
