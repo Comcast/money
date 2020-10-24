@@ -50,10 +50,6 @@ class RatioBasedSamplerSpec extends AnyWordSpec with Matchers {
         case RecordResult(true, Seq(note)) if note.name == "sampling.probability" && note.value == 1.0 =>
       }
     }
-
-    "produces a stable result for all spans within the same trace id" in {
-      val spanId = createSpanIdWithLoBits()
-    }
   }
 
   def createSpanIdWithLoBits(lo: Long): SpanId =

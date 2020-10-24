@@ -27,6 +27,10 @@ object SamplerFactory {
       case "always-on" => AlwaysOnSampler
       case "always-off" => AlwaysOffSampler
       case "ratio-based" => new RatioBasedSampler(conf.getDouble("ratio"))
+      case "parent-based" =>
+        val sampler = new ParentBasedSampler
+        sampler.configure(conf)
+        sampler
       case "custom" =>
         val className = conf.getString("class")
         val sampler = Class.forName(className).newInstance().asInstanceOf[Sampler]
