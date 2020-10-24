@@ -14,23 +14,25 @@
  * limitations under the License.
  */
 
-package com.comcast.money.api;
+package com.comcast.money.core.samplers
 
-import java.util.Collection;
+import java.util
+import java.util.Collections
 
-import scala.Option;
+import com.comcast.money.api.{ Note, Sampler }
 
-public interface Sampler {
-    Result shouldSample(SpanId spanId, Option<SpanId> parentSpanId, String name);
+trait EmptySamplerResult extends Sampler.Result {
+  override def notes(): util.Collection[Note[_]] = Collections.emptyList()
+}
 
-    enum Decision {
-        DROP,
-        RECORD,
-        SAMPLE_AND_RECORD
-    }
+object Drop extends EmptySamplerResult {
+  override def decision(): Sampler.Decision = Sampler.Decision.DROP
+}
 
-    interface Result {
-        Decision decision();
-        Collection<Note<?>> notes();
-    }
+object Record extends EmptySamplerResult {
+  override def decision(): Sampler.Decision = Sampler.Decision.RECORD
+}
+
+object SampleAndRecord extends EmptySamplerResult {
+  override def decision(): Sampler.Decision = Sampler.Decision.SAMPLE_AND_RECORD
 }

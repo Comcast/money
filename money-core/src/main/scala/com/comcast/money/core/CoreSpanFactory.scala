@@ -72,8 +72,9 @@ private[core] final case class CoreSpanFactory(
     child
   }
 
-  private def createNewSpan(spanId: SpanId, parentSpanId: Option[SpanId], spanName: String): Span =
-    sampler.shouldSample(spanId, parentSpanId, spanName) match {
+  private def createNewSpan(spanId: SpanId, parentSpanId: Option[SpanId], spanName: String): Span = {
+    val result = sampler.shouldSample(spanId, parentSpanId, spanName)
+    val span = result.decision match {
       case Sampler.Decision.DROP => UnrecordedSpan(spanId.withTraceFlags(TraceFlags.getDefault), spanName)
       case Sampler.Decision.RECORD =>
         CoreSpan(
@@ -90,4 +91,10 @@ private[core] final case class CoreSpanFactory(
           clock = clock,
           handler = handler)
     }
+    val notes = result.notes
+    if (notes != null) {
+      notes.forEach({ span.record(_) })
+    }
+    span
+  }
 }
