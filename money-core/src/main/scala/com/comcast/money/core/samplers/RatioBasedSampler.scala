@@ -19,23 +19,23 @@ package com.comcast.money.core.samplers
 import com.comcast.money.api.{ Note, SpanId }
 
 /**
- * A sampler that calculates that a percentage of spans should be recorded based on the lower 64-bits of the trace id.
- * @param percentage of spans to be recorded and sampled
+ * A sampler that calculates that a ratio of spans should be recorded based on the lower 64-bits of the trace id.
+ * @param ratio of spans to be recorded and sampled, between 0.0 and 1.0
  */
-class PercentageBasedSampler(val percentage: Double) extends Sampler {
+class RatioBasedSampler(val ratio: Double) extends Sampler {
 
   private val upperBound =
-    if (percentage <= 0.0) {
+    if (ratio <= 0.0) {
       0L
-    } else if (percentage >= 1.0) {
+    } else if (ratio >= 1.0) {
       Long.MaxValue
     } else {
-      (Long.MaxValue * percentage).toLong
+      (Long.MaxValue * ratio).toLong
     }
 
   override def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], name: String): SamplerResult =
     if (spanId.traceIdAsUUID.getLeastSignificantBits.abs < upperBound)
-      RecordResult(sample = true, List(Note.of("sampling.probability", percentage)))
+      RecordResult(sample = true, List(Note.of("sampling.probability", ratio)))
     else
       DropResult
 }

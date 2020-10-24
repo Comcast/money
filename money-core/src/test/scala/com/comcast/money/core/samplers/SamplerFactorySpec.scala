@@ -20,16 +20,16 @@ class SamplerFactorySpec extends AnyWordSpec with Matchers {
       sampler shouldBe AlwaysOffSampler
     }
 
-    "return a PercentageBasedSampler" in {
+    "return a RatioBasedSampler" in {
       val config = ConfigFactory.parseString(
         """
-          |type = "percentage-based"
-          |percentage = 0.5
+          |type = "ratio-based"
+          |ratio = 0.5
           |""".stripMargin)
 
       val sampler = SamplerFactory.create(config)
-      sampler shouldBe a[PercentageBasedSampler]
-      sampler.asInstanceOf[PercentageBasedSampler].percentage shouldBe 0.5
+      sampler shouldBe a[RatioBasedSampler]
+      sampler.asInstanceOf[RatioBasedSampler].ratio shouldBe 0.5
     }
 
     "create a custom sampler by class name" in {

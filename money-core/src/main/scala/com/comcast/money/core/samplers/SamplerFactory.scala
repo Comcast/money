@@ -26,7 +26,7 @@ object SamplerFactory {
     conf.getString("type") match {
       case "always-on" => AlwaysOnSampler
       case "always-off" => AlwaysOffSampler
-      case "percentage-based" => new PercentageBasedSampler(conf.getDouble("percentage"))
+      case "ratio-based" => new RatioBasedSampler(conf.getDouble("ratio"))
       case "custom" =>
         val className = conf.getString("class")
         val sampler = Class.forName(className).newInstance().asInstanceOf[Sampler]
