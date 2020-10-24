@@ -18,7 +18,31 @@ package com.comcast.money.core.samplers
 
 import com.comcast.money.api.Note
 
-sealed abstract class SamplerResult {}
+/**
+ * The result for testing whether or not a new span should be recorded or sampled.
+ */
+sealed abstract class SamplerResult
 
+/**
+ * Specifies that the span should be dropped and not recorded or sampled.  The span id will be propagated in the current
+ * context but the span will not be reported to the [[com.comcast.money.api.SpanHandler]] and no notes will be recorded.
+ */
 case object DropResult extends SamplerResult
+
+/**
+ * Specifies that the span will be recorded along with all notes.
+ * @param sample indicates whether the span will be marked as sampled which will be propagated to upstream systems
+ * @param notes to be recorded on the span
+ */
 sealed case class RecordResult(sample: Boolean = true, notes: Seq[Note[_]] = Nil) extends SamplerResult
+
+/**
+ * Helper functions for creating [[SamplerResult]]s from Java.
+ */
+object SamplerResult {
+  def drop(): SamplerResult = DropResult
+  def record(): SamplerResult = RecordResult(sample = false)
+  def record(notes: Seq[Note[_]]): SamplerResult = RecordResult(sample = false, notes = notes)
+  def recordAndSample(): SamplerResult = RecordResult()
+  def recordAndSample(notes: Seq[Note[_]]): SamplerResult = RecordResult(notes = notes)
+}

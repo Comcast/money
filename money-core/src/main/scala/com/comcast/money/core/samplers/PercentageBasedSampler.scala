@@ -18,6 +18,10 @@ package com.comcast.money.core.samplers
 
 import com.comcast.money.api.{ Note, SpanId }
 
+/**
+ * A sampler that calculates that a percentage of spans should be recorded based on the lower 64-bits of the trace id.
+ * @param percentage of spans to be recorded and sampled
+ */
 class PercentageBasedSampler(percentage: Double) extends Sampler {
 
   private val upperBound =

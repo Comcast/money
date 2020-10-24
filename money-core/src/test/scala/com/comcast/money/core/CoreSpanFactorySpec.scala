@@ -17,9 +17,10 @@
 package com.comcast.money.core
 
 import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanHandler, SpanId }
-import com.comcast.money.core.formatters.{ Formatter, MoneyTraceFormatter }
+import com.comcast.money.core.formatters.MoneyTraceFormatter
 import com.comcast.money.core.handlers.TestData
-import com.comcast.money.core.samplers.AlwaysOnSampler
+import com.comcast.money.core.samplers.{ AlwaysOffSampler, AlwaysOnSampler, RecordResult, Sampler, SamplerResult }
+import io.opentelemetry.trace.TraceFlags
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
@@ -98,5 +99,40 @@ class CoreSpanFactorySpec extends AnyWordSpec with Matchers with MockitoSugar wi
       childSpan.info.id.selfId == parentSpan.info.id.selfId shouldBe false
       childSpan.info.id.selfId shouldBe childSpan.info.id.parentId
     }
+
+    "creates an unrecorded span when the sampler drops the span" in {
+      val underTest = this.underTest.copy(sampler = AlwaysOffSampler)
+      val span = underTest.newSpan("test")
+
+      span shouldBe a[UnrecordedSpan]
+    }
+
+    "sets the trace flags to not sample when the sample only records the span" in {
+      val sampler = new Sampler {
+        override def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], spanName: String): SamplerResult =
+          RecordResult(sample = false)
+      }
+      val underTest = this.underTest.copy(sampler = sampler)
+      val span = underTest.newSpan("test")
+
+      span.info.id.isSampled shouldBe false
+      span.info.id.traceFlags shouldBe TraceFlags.getDefault
+    }
+
+    "records sampler notes on the span" in {
+      val note = Note.of("foo", "bar", true, 0L)
+      val underTest = this.underTest.copy(sampler = new SamplerWithNote(note))
+      val span = underTest.newSpan("test")
+
+      val notes = span.info.notes
+      notes should have size 1
+      notes should contain key "foo"
+      notes should contain value note
+    }
+  }
+
+  class SamplerWithNote(note: Note[_]) extends Sampler {
+    override def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], spanName: String): SamplerResult =
+      RecordResult(notes = Seq(note))
   }
 }
