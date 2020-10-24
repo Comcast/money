@@ -21,7 +21,7 @@ import java.io.Closeable
 import com.comcast.money.api.{ MoneyTracer, Note, Span, SpanFactory }
 import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
 import io.opentelemetry.context.Scope
-import io.opentelemetry.trace.{ StatusCanonicalCode, Span => OtelSpan }
+import io.opentelemetry.trace.{ StatusCode, Span => OtelSpan }
 
 /**
  * Primary API to be used for tracing
@@ -32,12 +32,7 @@ trait Tracer extends MoneyTracer with Closeable {
 
   val spanContext: SpanContext = SpanLocal
 
-  override def getCurrentSpan: Span = spanContext.current.getOrElse(DisabledSpan)
-
-  override def withSpan(span: OtelSpan): Scope = span match {
-    case moneySpan: Span => withSpan(moneySpan)
-    case _ => throw new IllegalArgumentException("span is not a compatible Money span")
-  }
+  def getCurrentSpan: Span = spanContext.current.getOrElse(DisabledSpan)
 
   override def withSpan(span: Span): Scope = spanContext.push(span)
 
@@ -276,7 +271,7 @@ trait Tracer extends MoneyTracer with Closeable {
   @Deprecated
   def stopSpan(result: Boolean = true): Unit = {
     spanContext.current.foreach { span =>
-      span.setStatus(if (result) StatusCanonicalCode.OK else StatusCanonicalCode.ERROR)
+      span.setStatus(if (result) StatusCode.OK else StatusCode.ERROR)
       span.close()
     }
   }

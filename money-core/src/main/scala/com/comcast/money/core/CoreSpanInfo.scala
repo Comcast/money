@@ -19,7 +19,7 @@ package com.comcast.money.core
 import java.util.Collections
 
 import com.comcast.money.api.{ Event, InstrumentationLibrary, Note, SpanId, SpanInfo }
-import io.opentelemetry.trace.{ Span, StatusCanonicalCode }
+import io.opentelemetry.trace.{ Span, StatusCode }
 
 private[core] case class CoreSpanInfo(
   id: SpanId,
@@ -28,7 +28,7 @@ private[core] case class CoreSpanInfo(
   startTimeNanos: Long = 0L,
   endTimeNanos: Long = 0L,
   durationNanos: Long = 0L,
-  status: StatusCanonicalCode = StatusCanonicalCode.UNSET,
+  status: StatusCode = StatusCode.UNSET,
   description: String = "",
   notes: java.util.Map[String, Note[_]] = Collections.emptyMap(),
   events: java.util.List[Event] = Collections.emptyList(),

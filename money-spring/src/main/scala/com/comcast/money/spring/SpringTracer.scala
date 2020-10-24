@@ -37,8 +37,6 @@ class SpringTracer extends Tracer {
 
   override def getCurrentSpan: Span = tracer.getCurrentSpan
 
-  override def withSpan(span: trace.Span): Scope = tracer.withSpan(span)
-
   override def withSpan(span: Span): Scope = tracer.withSpan(span)
 
   override def spanBuilder(spanName: String): Span.Builder = tracer.spanBuilder(spanName)

@@ -66,8 +66,8 @@ public class OtelSpanHandlerSpec {
         simpleSpanProcessor = PowerMockito.mock(SimpleSpanProcessor.class);
         simpleSpanProcessorBuilder = PowerMockito.mock(SimpleSpanProcessor.Builder.class);
 
-        PowerMockito.when(BatchSpanProcessor.newBuilder(spanExporter)).thenReturn(batchSpanProcessorBuilder);
-        PowerMockito.when(SimpleSpanProcessor.newBuilder(spanExporter)).thenReturn(simpleSpanProcessorBuilder);
+        PowerMockito.when(BatchSpanProcessor.builder(spanExporter)).thenReturn(batchSpanProcessorBuilder);
+        PowerMockito.when(SimpleSpanProcessor.builder(spanExporter)).thenReturn(simpleSpanProcessorBuilder);
         PowerMockito.when(batchSpanProcessorBuilder.build()).thenReturn(batchSpanProcessor);
         PowerMockito.when(simpleSpanProcessorBuilder.build()).thenReturn(simpleSpanProcessor);
 
@@ -82,9 +82,9 @@ public class OtelSpanHandlerSpec {
 
         PowerMockito.verifyZeroInteractions(spanExporter);
         PowerMockito.verifyStatic(BatchSpanProcessor.class, never());
-        BatchSpanProcessor.newBuilder(spanExporter);
+        BatchSpanProcessor.builder(spanExporter);
         PowerMockito.verifyStatic(SimpleSpanProcessor.class, never());
-        SimpleSpanProcessor.newBuilder(spanExporter);
+        SimpleSpanProcessor.builder(spanExporter);
     }
 
     @Test
@@ -98,12 +98,12 @@ public class OtelSpanHandlerSpec {
         underTest.configure(config);
 
         PowerMockito.verifyStatic(SimpleSpanProcessor.class);
-        SimpleSpanProcessor.newBuilder(spanExporter);
+        SimpleSpanProcessor.builder(spanExporter);
         Mockito.verify(simpleSpanProcessorBuilder).setExportOnlySampled(true);
         Mockito.verify(simpleSpanProcessorBuilder).build();
 
         PowerMockito.verifyStatic(BatchSpanProcessor.class, never());
-        BatchSpanProcessor.newBuilder(spanExporter);
+        BatchSpanProcessor.builder(spanExporter);
 
         SpanId spanId = SpanId.createNew();
         SpanInfo spanInfo = new TestSpanInfo(spanId);
@@ -133,7 +133,7 @@ public class OtelSpanHandlerSpec {
         underTest.configure(config);
 
         PowerMockito.verifyStatic(BatchSpanProcessor.class);
-        BatchSpanProcessor.newBuilder(spanExporter);
+        BatchSpanProcessor.builder(spanExporter);
         Mockito.verify(batchSpanProcessorBuilder).setExportOnlySampled(true);
         Mockito.verify(batchSpanProcessorBuilder).setExporterTimeoutMillis(250);
         Mockito.verify(batchSpanProcessorBuilder).setMaxExportBatchSize(500);
@@ -142,7 +142,7 @@ public class OtelSpanHandlerSpec {
         Mockito.verify(batchSpanProcessorBuilder).build();
 
         PowerMockito.verifyStatic(SimpleSpanProcessor.class, never());
-        SimpleSpanProcessor.newBuilder(spanExporter);
+        SimpleSpanProcessor.builder(spanExporter);
 
         SpanId spanId = SpanId.createNew();
         SpanInfo spanInfo = new TestSpanInfo(spanId);

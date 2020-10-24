@@ -48,7 +48,7 @@ class MoneyTracerProviderFactorySpec extends AnyWordSpec with MockitoSugar with 
     }
 
     "integrates with OpenTelemetry.getTracer" in {
-      val tracer = OpenTelemetry.getTracer("test")
+      val tracer = OpenTelemetry.getGlobalTracer("test")
       tracer shouldBe a[Tracer]
     }
   }

@@ -17,10 +17,11 @@
 package com.comcast.money.core
 
 import com.comcast.money.api.{ Note, Span, SpanFactory }
-import io.grpc.Context
 import io.opentelemetry.common.AttributeKey
-import io.opentelemetry.trace.{ Span => OtelSpan, TracingContextUtils }
+import io.opentelemetry.context.Context
+import io.opentelemetry.trace.{ TracingContextUtils, Span => OtelSpan }
 import org.mockito.ArgumentCaptor
+import org.mockito.Matchers.any
 import org.mockito.Mockito.{ times, verify, when }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -93,12 +94,13 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
     "create a span with an parent span from context" in {
       val spanFactory = mock[SpanFactory]
       val parentSpan = mock[Span]
-      val updatedContext = TracingContextUtils.withSpan(parentSpan, Context.current())
+      val context = mock[Context]
+      when(context.get(any())).thenReturn(parentSpan)
       val span = mock[Span]
       when(spanFactory.childSpan("test", parentSpan, true)).thenReturn(span)
 
       val underTest = new CoreSpanBuilder(None, "test", spanFactory)
-        .setParent(updatedContext)
+        .setParent(context)
 
       val result = underTest.startSpan()
       result shouldBe span

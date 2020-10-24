@@ -17,10 +17,9 @@
 package com.comcast.money.core
 
 import com.comcast.money.api._
-import io.grpc.Context
 import io.opentelemetry.common.{ AttributeKey, Attributes }
-import io.opentelemetry.context.Scope
-import io.opentelemetry.trace.{ DefaultSpan, EndSpanOptions, SpanContext, StatusCanonicalCode, Span => OtelSpan }
+import io.opentelemetry.context.{ Context, Scope }
+import io.opentelemetry.trace.{ EndSpanOptions, SpanContext, StatusCode, Span => OtelSpan }
 import java.util.function
 
 import com.comcast.money.core.formatters.Formatter
@@ -135,7 +134,7 @@ object DisabledSpan extends Span {
 
   override def stopTimer(timerKey: String): Unit = ()
 
-  override def record(note: Note[_]): Unit = ()
+  override def record(note: Note[_]): Span = this
 
   override def startTimer(timerKey: String): Scope = () => ()
 
@@ -145,41 +144,41 @@ object DisabledSpan extends Span {
 
   override def close(): Unit = ()
 
-  override def setAttribute(key: String, value: String): Unit = ()
+  override def setAttribute(key: String, value: String): Span = this
 
-  override def setAttribute(key: String, value: Long): Unit = ()
+  override def setAttribute(key: String, value: Long): Span = this
 
-  override def setAttribute(key: String, value: Double): Unit = ()
+  override def setAttribute(key: String, value: Double): Span = this
 
-  override def setAttribute(key: String, value: Boolean): Unit = ()
+  override def setAttribute(key: String, value: Boolean): Span = this
 
-  override def setAttribute[T](key: AttributeKey[T], value: T): Unit = ()
+  override def setAttribute[T](key: AttributeKey[T], value: T): Span = this
 
-  override def addEvent(name: String): Unit = ()
+  override def addEvent(name: String): Span = this
 
-  override def addEvent(name: String, timestamp: Long): Unit = ()
+  override def addEvent(name: String, timestamp: Long): Span = this
 
-  override def addEvent(name: String, attributes: Attributes): Unit = ()
+  override def addEvent(name: String, attributes: Attributes): Span = this
 
-  override def addEvent(name: String, attributes: Attributes, timestamp: Long): Unit = ()
+  override def addEvent(name: String, attributes: Attributes, timestamp: Long): Span = this
 
-  override def setStatus(canonicalCode: StatusCanonicalCode): Unit = ()
+  override def setStatus(canonicalCode: StatusCode): Span = this
 
-  override def setStatus(canonicalCode: StatusCanonicalCode, description: String): Unit = ()
+  override def setStatus(canonicalCode: StatusCode, description: String): Span = this
 
-  override def recordException(exception: Throwable): Unit = ()
+  override def recordException(exception: Throwable): Span = this
 
-  override def recordException(exception: Throwable, additionalAttributes: Attributes): Unit = ()
+  override def recordException(exception: Throwable, additionalAttributes: Attributes): Span = this
 
-  override def updateName(name: String): Unit = ()
+  override def updateName(name: String): Span = this
 
-  override def updateKind(kind: OtelSpan.Kind): Unit = ()
+  override def updateKind(kind: OtelSpan.Kind): Span = this
 
   override def `end`(): Unit = ()
 
   override def `end`(endOptions: EndSpanOptions): Unit = ()
 
-  override def getContext: SpanContext = DefaultSpan.getInvalid.getContext
+  override def getSpanContext: SpanContext = SpanContext.getInvalid
 
   override def isRecording: Boolean = false
 }

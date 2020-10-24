@@ -19,17 +19,17 @@ package com.comcast.money.core.formatters
 import java.util
 
 import com.comcast.money.api.SpanId
-import io.grpc.Context
+import io.opentelemetry.context.Context
 import io.opentelemetry.context.propagation.TextMapPropagator
-import io.opentelemetry.trace.{ DefaultSpan, TracingContextUtils }
+import io.opentelemetry.trace.{ Span, TracingContextUtils }
 
 import scala.collection.JavaConverters._
 
 final case class FormatterPropagator(formatter: Formatter) extends TextMapPropagator {
 
   override def inject[C](context: Context, carrier: C, setter: TextMapPropagator.Setter[C]): Unit =
-    Option(TracingContextUtils.getSpanWithoutDefault(context))
-      .map { _.getContext }
+    Option(Span.fromContextOrNull(context))
+      .map { _.getSpanContext }
       .map { SpanId.fromSpanContext }
       .filter { _.isValid }
       .foreach {
@@ -40,8 +40,8 @@ final case class FormatterPropagator(formatter: Formatter) extends TextMapPropag
     formatter.fromHttpHeaders(key => getter.get(carrier, key))
       .filter { _.isValid }
       .map { _.toSpanContext() }
-      .map { DefaultSpan.create }
-      .map { TracingContextUtils.withSpan(_, context) }
+      .map { Span.wrap }
+      .map { _.storeInContext(context) }
       .getOrElse(context)
 
   override def fields(): util.List[String] = formatter.fields.asJava

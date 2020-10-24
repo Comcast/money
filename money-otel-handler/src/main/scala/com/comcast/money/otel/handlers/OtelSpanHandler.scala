@@ -61,7 +61,7 @@ abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
   }
 
   private def configureSimpleProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
-    val builder = SimpleSpanProcessor.newBuilder(spanExporter)
+    val builder = SimpleSpanProcessor.builder(spanExporter)
 
     val exportOnlySampledKey = "export-only-sampled"
 
@@ -73,7 +73,7 @@ abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
   }
 
   private def configureBatchProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
-    val builder = BatchSpanProcessor.newBuilder(spanExporter)
+    val builder = BatchSpanProcessor.builder(spanExporter)
 
     val exportOnlySampledKey = "export-only-sampled"
     val exporterTimeoutMillisKey = "exporter-timeout-ms"

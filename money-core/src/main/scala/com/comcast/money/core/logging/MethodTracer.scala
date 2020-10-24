@@ -24,6 +24,7 @@ import com.comcast.money.core.{ Money, Tracer }
 import com.comcast.money.core.async.AsyncNotifier
 import com.comcast.money.core.internal.{ MDCSupport, SpanContext, SpanLocal }
 import com.comcast.money.core.reflect.Reflections
+import io.opentelemetry.context.Context
 import org.slf4j.MDC
 
 import scala.util.{ Failure, Success, Try }

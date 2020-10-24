@@ -61,7 +61,7 @@ public class JaegerOtelSpanHandlerSpec {
         spanExporter = PowerMockito.mock(JaegerGrpcSpanExporter.class);
         spanExporterBuilder = PowerMockito.mock(JaegerGrpcSpanExporter.Builder.class);
 
-        PowerMockito.when(JaegerGrpcSpanExporter.newBuilder()).thenReturn(spanExporterBuilder);
+        PowerMockito.when(JaegerGrpcSpanExporter.builder()).thenReturn(spanExporterBuilder);
         PowerMockito.when(spanExporterBuilder.build()).thenReturn(spanExporter);
         PowerMockito.when(spanExporter.export(any())).thenReturn(CompletableResultCode.ofSuccess());
 
@@ -81,7 +81,7 @@ public class JaegerOtelSpanHandlerSpec {
         underTest.configure(config);
 
         PowerMockito.verifyStatic(JaegerGrpcSpanExporter.class);
-        JaegerGrpcSpanExporter.newBuilder();
+        JaegerGrpcSpanExporter.builder();
         Mockito.verify(spanExporterBuilder).setServiceName("service-name");
         Mockito.verify(spanExporterBuilder).build();
 
@@ -116,7 +116,7 @@ public class JaegerOtelSpanHandlerSpec {
         underTest.configure(config);
 
         PowerMockito.verifyStatic(JaegerGrpcSpanExporter.class);
-        JaegerGrpcSpanExporter.newBuilder();
+        JaegerGrpcSpanExporter.builder();
         Mockito.verify(spanExporterBuilder).setServiceName("service-name");
         Mockito.verify(spanExporterBuilder).setEndpoint("endpoint");
         Mockito.verify(spanExporterBuilder, never()).setDeadlineMs(anyLong());
@@ -137,7 +137,7 @@ public class JaegerOtelSpanHandlerSpec {
         underTest.configure(config);
 
         PowerMockito.verifyStatic(JaegerGrpcSpanExporter.class);
-        JaegerGrpcSpanExporter.newBuilder();
+        JaegerGrpcSpanExporter.builder();
         Mockito.verify(spanExporterBuilder).setServiceName("service-name");
         Mockito.verify(spanExporterBuilder, never()).setEndpoint(anyString());
         Mockito.verify(spanExporterBuilder).setDeadlineMs(1000);

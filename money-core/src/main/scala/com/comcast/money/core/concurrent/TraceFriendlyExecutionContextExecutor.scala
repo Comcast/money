@@ -18,7 +18,7 @@ package com.comcast.money.core.concurrent
 
 import com.comcast.money.core.internal.{ MDCSupport, SpanLocal }
 import com.comcast.money.core.logging.TraceLogging
-import io.grpc.Context
+import io.opentelemetry.context.Context
 import org.slf4j.MDC
 
 import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
@@ -36,7 +36,7 @@ class TraceFriendlyExecutionContextExecutor(wrapped: ExecutionContext)
       () => {
         mdcSupport.propagateMDC(submittingThreadsContext)
         try {
-          context.run(task)
+          context.wrap(task).run()
         } catch {
           case t: Throwable =>
             logException(t)

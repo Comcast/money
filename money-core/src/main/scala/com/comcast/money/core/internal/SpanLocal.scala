@@ -17,9 +17,8 @@
 package com.comcast.money.core.internal
 
 import com.comcast.money.api.Span
-import io.grpc.Context
-import io.opentelemetry.context.Scope
-import io.opentelemetry.trace.TracingContextUtils
+import io.opentelemetry.context.{ Context, Scope }
+import io.opentelemetry.trace.{ Span => OtelSpan }
 
 trait SpanContext {
   def push(span: Span): Scope
@@ -41,23 +40,24 @@ object SpanLocal extends SpanContext {
 
   override def push(span: Span): Scope =
     if (span != null) {
-      val updatedContext = TracingContextUtils.withSpan(span, Context.current)
-      val previousContext = updatedContext.attach()
+      val context = Context.current
+      val updatedContext = span.storeInContext(context)
+      val scope = updatedContext.makeCurrent()
       setSpanMDC(Some(span))
       () => {
-        updatedContext.detach(previousContext)
+        scope.close()
         setSpanMDC(current)
       }
     } else () => ()
 
   def fromContext(context: Context): Option[Span] =
-    Option(TracingContextUtils.getSpanWithoutDefault(context)) match {
+    Option(OtelSpan.fromContextOrNull(context)) match {
       case Some(span: Span) => Some(span)
       case _ => None
     }
 
   def clear(): Unit = {
-    Context.current().detach(Context.ROOT)
+    Context.root.makeCurrent()
     setSpanMDC(None)
   }
 }

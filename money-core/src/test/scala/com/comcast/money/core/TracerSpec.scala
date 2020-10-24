@@ -18,7 +18,8 @@ package com.comcast.money.core
 
 import com.comcast.money.api.{ Note, Span, SpanFactory, SpanId }
 import com.comcast.money.core.handlers.TestData
-import com.comcast.money.core.internal.SpanLocal
+import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
+import io.opentelemetry.context.{ Context, Scope }
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers._
 import org.mockito.Mockito._
@@ -26,49 +27,52 @@ import org.scalatest.{ BeforeAndAfterEach, OneInstancePerTest }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-import io.opentelemetry.trace.StatusCanonicalCode
+import io.opentelemetry.trace.StatusCode
 
 class TracerSpec extends AnyWordSpec
   with Matchers with MockitoSugar with TestData with BeforeAndAfterEach with OneInstancePerTest {
 
   val mockSpanFactory = mock[SpanFactory]
   val mockSpan = mock[Span]
+  val mockSpanContext = mock[SpanContext]
   val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
   val underTest = new Tracer {
     val spanFactory = mockSpanFactory
+    override val spanContext = mockSpanContext
   }
 
   override def beforeEach(): Unit = {
-    SpanLocal.clear()
 
-    doReturn(mockSpan).when(mockSpanFactory).newSpan(any[SpanId], anyString())
-    doReturn(mockSpan).when(mockSpanFactory).newSpan(anyString())
-    doReturn(mockSpan).when(mockSpanFactory).childSpan(anyString(), any[Span])
+    when(mockSpanFactory.newSpan(any[SpanId], anyString())).thenReturn(mockSpan)
+    when(mockSpanFactory.newSpan(anyString())).thenReturn(mockSpan)
+    when(mockSpanFactory.childSpan(anyString(), any[Span])).thenReturn(mockSpan)
     doReturn(testSpanInfo).when(mockSpan).info()
   }
 
   "Tracer" should {
     "start a new span when no span exists" in {
+      when(mockSpanContext.current).thenReturn(None)
+
       underTest.startSpan("foo")
 
       verify(mockSpan).start()
 
-      SpanLocal.current shouldBe Some(mockSpan)
+      verify(mockSpanContext).push(mockSpan)
     }
 
     "start a child span if a span already exsits" in {
-      SpanLocal.push(testSpan)
+      when(mockSpanContext.current).thenReturn(Some(testSpan))
 
       underTest.startSpan("bar")
 
       verify(mockSpanFactory).childSpan("bar", testSpan)
       verify(mockSpan).start()
 
-      SpanLocal.current shouldBe Some(mockSpan)
+      verify(mockSpanContext).push(mockSpan)
     }
 
     "record a time" in {
-      SpanLocal.push(mockSpan)
+      when(mockSpanContext.current).thenReturn(Some(mockSpan))
 
       underTest.time("foo")
 
@@ -76,7 +80,7 @@ class TracerSpec extends AnyWordSpec
     }
 
     "record a double" in {
-      SpanLocal.push(mockSpan)
+      when(mockSpanContext.current).thenReturn(Some(mockSpan))
 
       underTest.record("dbl", 1.2)
 
@@ -89,7 +93,7 @@ class TracerSpec extends AnyWordSpec
     }
 
     "record a sticky double" in {
-      SpanLocal.push(mockSpan)
+      when(mockSpanContext.current).thenReturn(Some(mockSpan))
 
       underTest.record("dbl", 1.2, true)
 
@@ -103,7 +107,7 @@ class TracerSpec extends AnyWordSpec
     }
 
     "record a string" in {
-      SpanLocal.push(mockSpan)
+      when(mockSpanContext.current).thenReturn(Some(mockSpan))
 
       underTest.record("str", "bar")
 
@@ -116,7 +120,7 @@ class TracerSpec extends AnyWordSpec
     }
 
     "record a sticky string" in {
-      SpanLocal.push(mockSpan)
+      when(mockSpanContext.current).thenReturn(Some(mockSpan))
 
       underTest.record("str", "bar", true)
 
@@ -130,7 +134,7 @@ class TracerSpec extends AnyWordSpec
     }
 
     "record a long" in {
-      SpanLocal.push(mockSpan)
+      when(mockSpanContext.current).thenReturn(Some(mockSpan))
 
       underTest.record("lng", 100L)
 
@@ -143,7 +147,7 @@ class TracerSpec extends AnyWordSpec
     }
 
     "record a sticky long" in {
-      SpanLocal.push(mockSpan)
+      when(mockSpanContext.current).thenReturn(Some(mockSpan))
 
       underTest.record("lng", 100L, true)
 
@@ -157,7 +161,7 @@ class TracerSpec extends AnyWordSpec
     }
 
     "record a boolean" in {
-      SpanLocal.push(mockSpan)
+      when(mockSpanContext.current).thenReturn(Some(mockSpan))
 
       underTest.record("bool", true)
 
@@ -170,7 +174,7 @@ class TracerSpec extends AnyWordSpec
     }
 
     "record a sticky boolean" in {
-      SpanLocal.push(mockSpan)
+      when(mockSpanContext.current).thenReturn(Some(mockSpan))
 
       underTest.record("bool", true, true)
 
@@ -184,7 +188,7 @@ class TracerSpec extends AnyWordSpec
     }
 
     "record a note" in {
-      SpanLocal.push(mockSpan)
+      when(mockSpanContext.current).thenReturn(Some(mockSpan))
 
       underTest.record(testLongNote)
 
@@ -197,16 +201,16 @@ class TracerSpec extends AnyWordSpec
     }
 
     "stop the current span" in {
-      SpanLocal.push(mockSpan)
+      when(mockSpanContext.current).thenReturn(Some(mockSpan))
 
       underTest.stopSpan(true)
 
-      verify(mockSpan).setStatus(StatusCanonicalCode.OK)
+      verify(mockSpan).setStatus(StatusCode.OK)
       verify(mockSpan).close()
     }
 
     "start a timer" in {
-      SpanLocal.push(mockSpan)
+      when(mockSpanContext.current).thenReturn(Some(mockSpan))
 
       underTest.startTimer("timer")
 
@@ -214,7 +218,7 @@ class TracerSpec extends AnyWordSpec
     }
 
     "stop a timer" in {
-      SpanLocal.push(mockSpan)
+      when(mockSpanContext.current).thenReturn(Some(mockSpan))
 
       underTest.stopTimer("t")
 
@@ -222,11 +226,11 @@ class TracerSpec extends AnyWordSpec
     }
 
     "stop the span on close" in {
-      SpanLocal.push(mockSpan)
+      when(mockSpanContext.current).thenReturn(Some(mockSpan))
 
       underTest.close()
 
-      verify(mockSpan).setStatus(StatusCanonicalCode.OK)
+      verify(mockSpan).setStatus(StatusCode.OK)
       verify(mockSpan).close()
     }
   }

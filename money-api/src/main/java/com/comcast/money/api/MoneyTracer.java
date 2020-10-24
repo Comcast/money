@@ -25,15 +25,8 @@ import io.opentelemetry.trace.Tracer;
 public interface MoneyTracer extends Tracer {
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    Span getCurrentSpan();
-
-    /**
      * Enters a scope where the {@link Span} is in the current Context.
-     * @see Tracer#withSpan(io.opentelemetry.trace.Span)
-     * @param span The {@link io.opentelemetry.trace.Span} to be set to the current Context.
+     * @param span The {@link Span} to be set to the current Context.
      * @return an object that defines a scope where the given {@link io.opentelemetry.trace.Span} will be set to the current
      *     Context.
      * @throws NullPointerException if {@code span} is {@code null}.

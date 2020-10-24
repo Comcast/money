@@ -28,7 +28,7 @@ import com.comcast.money.wire.avro
 import com.comcast.money.wire.avro.NoteType
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.{ DeserializationFeature, ObjectMapper }
-import io.opentelemetry.trace.{ Span, StatusCanonicalCode, TraceFlags, TraceState }
+import io.opentelemetry.trace.{ Span, StatusCode, TraceFlags, TraceState }
 import org.apache.avro.Schema
 import org.apache.avro.io.{ DecoderFactory, EncoderFactory }
 import org.apache.avro.specific.{ SpecificDatumReader, SpecificDatumWriter }
@@ -143,7 +143,7 @@ trait SpanWireConverters {
       override def events(): util.List[Event] = Collections.emptyList()
       override def startTimeNanos(): Long = TimeUnit.MILLISECONDS.toNanos(from.getStartTime)
       override def endTimeNanos(): Long = startTimeNanos + durationNanos
-      override def status(): StatusCanonicalCode = if (from.getSuccess) StatusCanonicalCode.OK else StatusCanonicalCode.ERROR
+      override def status(): StatusCode = if (from.getSuccess) StatusCode.OK else StatusCode.ERROR
       override def kind(): Span.Kind = Span.Kind.INTERNAL
       override def description(): String = ""
       override def id(): SpanId = implicitly[TypeConverter[avro.SpanId, api.SpanId]].convert(from.getId)

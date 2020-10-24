@@ -58,7 +58,7 @@ public class OtlpHandlerSpec {
         spanExporter = PowerMockito.mock(OtlpGrpcSpanExporter.class);
         spanExporterBuilder = PowerMockito.mock(OtlpGrpcSpanExporter.Builder.class);
 
-        PowerMockito.when(OtlpGrpcSpanExporter.newBuilder()).thenReturn(spanExporterBuilder);
+        PowerMockito.when(OtlpGrpcSpanExporter.builder()).thenReturn(spanExporterBuilder);
         PowerMockito.when(spanExporterBuilder.build()).thenReturn(spanExporter);
         PowerMockito.when(spanExporter.export(any())).thenReturn(CompletableResultCode.ofSuccess());
 
@@ -75,7 +75,7 @@ public class OtlpHandlerSpec {
         underTest.configure(config);
 
         PowerMockito.verifyStatic(OtlpGrpcSpanExporter.class);
-        OtlpGrpcSpanExporter.newBuilder();
+        OtlpGrpcSpanExporter.builder();
         Mockito.verify(spanExporterBuilder).build();
 
         SpanId spanId = SpanId.createNew();
@@ -108,7 +108,7 @@ public class OtlpHandlerSpec {
         underTest.configure(config);
 
         PowerMockito.verifyStatic(OtlpGrpcSpanExporter.class);
-        OtlpGrpcSpanExporter.newBuilder();
+        OtlpGrpcSpanExporter.builder();
         Mockito.verify(spanExporterBuilder).setEndpoint("endpoint");
         Mockito.verify(spanExporterBuilder).build();
     }
@@ -126,7 +126,7 @@ public class OtlpHandlerSpec {
         underTest.configure(config);
 
         PowerMockito.verifyStatic(OtlpGrpcSpanExporter.class);
-        OtlpGrpcSpanExporter.newBuilder();
+        OtlpGrpcSpanExporter.builder();
         Mockito.verify(spanExporterBuilder).setDeadlineMs(500L);
         Mockito.verify(spanExporterBuilder).build();
     }
@@ -144,7 +144,7 @@ public class OtlpHandlerSpec {
         underTest.configure(config);
 
         PowerMockito.verifyStatic(OtlpGrpcSpanExporter.class);
-        OtlpGrpcSpanExporter.newBuilder();
+        OtlpGrpcSpanExporter.builder();
         Mockito.verify(spanExporterBuilder).setUseTls(true);
         Mockito.verify(spanExporterBuilder).build();
     }

@@ -52,7 +52,7 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
  */
 class OtlpHandler extends OtelSpanHandler {
   override protected def createSpanExporter(config: Config): SpanExporter = {
-    val builder = OtlpGrpcSpanExporter.newBuilder()
+    val builder = OtlpGrpcSpanExporter.builder()
 
     val endpointKey = "endpoint"
     val deadlineMillisKey = "deadline-ms"

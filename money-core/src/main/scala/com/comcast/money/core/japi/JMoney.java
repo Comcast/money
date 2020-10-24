@@ -254,16 +254,6 @@ public class JMoney {
     }
 
     /**
-     * Enters a scope where the specified {@link Span} is in the current Context.
-     * @param span the span
-     * @return the scope of the span
-     */
-    public static Scope withSpan(Span span) {
-
-        return tracer().withSpan(span);
-    }
-
-    /**
      * Stops the existing span if one is present.
      *
      * Once the span is stopped, the data for the span will be emitted

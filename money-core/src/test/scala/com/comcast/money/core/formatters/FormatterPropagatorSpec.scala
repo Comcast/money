@@ -16,13 +16,13 @@
 
 package com.comcast.money.core.formatters
 
-import com.comcast.money.api.{IdGenerator, SpanId}
-import io.grpc.Context
+import com.comcast.money.api.{ IdGenerator, Span, SpanId }
+import io.opentelemetry.context.Context
 import io.opentelemetry.context.propagation.TextMapPropagator
-import io.opentelemetry.trace.{DefaultSpan, TraceFlags, TraceState, TracingContextUtils}
+import io.opentelemetry.trace.{ Span => OtelSpan, TraceFlags, TraceState, TracingContextUtils }
 import org.mockito.ArgumentCaptor
 import org.mockito.Matchers.any
-import org.mockito.Mockito.{verify, when}
+import org.mockito.Mockito.{ verify, when }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
@@ -47,8 +47,8 @@ class FormatterPropagatorSpec extends AnyWordSpec with MockitoSugar with Matcher
       val underTest = FormatterPropagator(formatter)
 
       val spanId = SpanId.createNew()
-      val span = DefaultSpan.create(spanId.toSpanContext)
-      val context = TracingContextUtils.withSpan(span, Context.ROOT)
+      val span = OtelSpan.wrap(spanId.toSpanContext)
+      val context = span.storeInContext(Context.root)
 
       underTest.inject[Unit](context, (), setter)
 
@@ -71,11 +71,11 @@ class FormatterPropagatorSpec extends AnyWordSpec with MockitoSugar with Matcher
 
       when(formatter.fromHttpHeaders(any(), any())).thenReturn(Some(spanId))
 
-      val context = underTest.extract[Unit](Context.ROOT, (), getter)
-      val span = TracingContextUtils.getSpanWithoutDefault(context)
+      val context = underTest.extract[Unit](Context.root, (), getter)
+      val span = OtelSpan.fromContextOrNull(context)
 
       span should not be null
-      val spanContext = span.getContext
+      val spanContext = span.getSpanContext
       spanContext.getTraceIdAsHexString shouldBe spanId.traceIdAsHex
       spanContext.getSpanIdAsHexString shouldBe spanId.selfIdAsHex
       spanContext.getTraceFlags shouldBe spanId.traceFlags
@@ -93,8 +93,8 @@ class FormatterPropagatorSpec extends AnyWordSpec with MockitoSugar with Matcher
 
       when(formatter.fromHttpHeaders(any(), any())).thenReturn(None)
 
-      val context = underTest.extract[Unit](Context.ROOT, (), getter)
-      val span = TracingContextUtils.getSpanWithoutDefault(context)
+      val context = underTest.extract[Unit](Context.root(), (), getter)
+      val span = OtelSpan.fromContextOrNull(context)
 
       span shouldBe null
     }

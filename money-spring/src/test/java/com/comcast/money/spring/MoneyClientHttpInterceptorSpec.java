@@ -23,8 +23,10 @@ import com.comcast.money.api.SpanInfo;
 import com.comcast.money.core.CoreSpanInfo;
 import com.comcast.money.core.internal.SpanLocal;
 
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.ContextKey;
 import io.opentelemetry.context.Scope;
-import io.opentelemetry.trace.StatusCanonicalCode;
+import io.opentelemetry.trace.StatusCode;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -43,6 +45,7 @@ public class MoneyClientHttpInterceptorSpec {
     private final static String traceId = id.traceId();
     private final static long spanId = id.selfId();
     private final static long parentSpanId = id.parentId();
+    private final static ContextKey<Span> SPAN_CONTEXT_KEY = ContextKey.named("opentelemetry-trace-span-key");
 
     private Scope spanScope;
 
@@ -56,7 +59,7 @@ public class MoneyClientHttpInterceptorSpec {
                 0L,
                 0L,
                 0L,
-                StatusCanonicalCode.OK,
+                StatusCode.OK,
                 "",
                 Collections.emptyMap(),
                 Collections.emptyList(),
@@ -65,7 +68,10 @@ public class MoneyClientHttpInterceptorSpec {
                 "testHost");
 
         when(span.info()).thenReturn(testSpanInfo);
-        spanScope = SpanLocal.push(span);
+
+        spanScope = Context.root()
+                .with(SPAN_CONTEXT_KEY, span)
+                .makeCurrent();
     }
 
     @After

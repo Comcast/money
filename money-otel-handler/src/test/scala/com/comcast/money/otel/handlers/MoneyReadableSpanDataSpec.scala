@@ -23,7 +23,8 @@ import com.comcast.money.api.{ Event, InstrumentationLibrary, Note, SpanId, Span
 import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.data.ImmutableStatus
-import io.opentelemetry.trace.{ Span, StatusCanonicalCode, TraceState }
+import io.opentelemetry.sdk.trace.data.SpanData.Status
+import io.opentelemetry.trace.{ Span, StatusCode, TraceState }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -54,7 +55,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getResource shouldBe Resource.getDefault
       underTest.getHasRemoteParent shouldBe false
       underTest.getLatencyNanos shouldBe 2000000L
-      underTest.getStatus shouldBe ImmutableStatus.create(StatusCanonicalCode.OK, "description")
+      underTest.getStatus shouldBe Status.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
       underTest.getAttributes shouldBe Attributes.of(AttributeKey.stringKey("foo"), "bar")
       underTest.getTotalRecordedEvents shouldBe 1
@@ -82,7 +83,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getResource shouldBe Resource.getDefault
       underTest.getHasRemoteParent shouldBe false
       underTest.getLatencyNanos shouldBe 2000000L
-      underTest.getStatus shouldBe ImmutableStatus.create(StatusCanonicalCode.OK, "description")
+      underTest.getStatus shouldBe Status.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
       underTest.getAttributes shouldBe Attributes.of(AttributeKey.stringKey("foo"), "bar")
       underTest.getTotalRecordedEvents shouldBe 1
@@ -99,7 +100,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
     override def kind(): Span.Kind = Span.Kind.INTERNAL
     override def startTimeNanos(): Long = 1000000L
     override def endTimeNanos(): Long = 3000000L
-    override def status(): StatusCanonicalCode = StatusCanonicalCode.OK
+    override def status(): StatusCode = StatusCode.OK
     override def description(): String = "description"
     override def durationNanos(): Long = 2000000L
     override def notes(): util.Map[String, Note[_]] = Map[String, Note[_]]("foo" -> Note.of("foo", "bar")).asJava

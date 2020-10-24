@@ -25,7 +25,8 @@ import io.opentelemetry.common.{ Attributes, ReadableAttributes }
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.ReadableSpan
-import io.opentelemetry.sdk.trace.data.{ ImmutableStatus, SpanData }
+import io.opentelemetry.sdk.trace.data.SpanData.Status
+import io.opentelemetry.sdk.trace.data.SpanData
 import io.opentelemetry.trace.{ SpanContext, SpanId, TraceState, Span => OtelSpan }
 
 import scala.collection.JavaConverters._
@@ -52,7 +53,7 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
   override def getKind: OtelSpan.Kind = info.kind
   override def getStartEpochNanos: Long = info.startTimeNanos
   override def getLinks: util.List[SpanData.Link] = Collections.emptyList()
-  override def getStatus: SpanData.Status = ImmutableStatus.create(info.status, info.description)
+  override def getStatus: SpanData.Status = Status.create(info.status, info.description)
   override def getEndEpochNanos: Long = info.endTimeNanos
   override def getHasRemoteParent: Boolean = false
   override def getHasEnded: Boolean = info.endTimeNanos > 0L
@@ -70,13 +71,13 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
     }
 
   private def appendNoteToBuilder[T](builder: Attributes.Builder, note: Note[T]): Attributes.Builder =
-    builder.setAttribute(note.key, note.value)
+    builder.put(note.key, note.value)
 
   private def convertAttributes(notes: util.Map[String, Note[_]]): Attributes =
     notes.values.asScala
-      .foldLeft(Attributes.newBuilder)({
+      .foldLeft(Attributes.builder) {
         (builder, note) => appendNoteToBuilder(builder, note)
-      })
+      }
       .build()
 
   private def convertEvents(events: util.List[Event]): util.List[SpanData.Event] =

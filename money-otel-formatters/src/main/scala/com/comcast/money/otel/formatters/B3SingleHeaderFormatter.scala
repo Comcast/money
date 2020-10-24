@@ -24,6 +24,6 @@ object B3SingleHeaderFormatter {
   private[formatters] val B3Header = "b3"
 }
 
-final class B3SingleHeaderFormatter extends OtelFormatter(B3Propagator.getSingleHeaderPropagator) {
+final class B3SingleHeaderFormatter extends OtelFormatter(B3Propagator.getInstance) {
   override def fields: Seq[String] = Seq(B3Header)
 }

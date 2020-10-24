@@ -32,7 +32,7 @@ import scala.collection.JavaConverters._
 import java.{ util => ju }
 
 import com.comcast.money.wire.TestSpanInfo
-import io.opentelemetry.trace.StatusCanonicalCode
+import io.opentelemetry.trace.StatusCode
 
 trait MockProducerMaker extends ProducerMaker {
 
@@ -71,7 +71,7 @@ class KafkaSpanHandlerSpec extends AnyWordSpec
       appName = "app",
       host = "host",
       startTimeNanos = 1000000L,
-      status = StatusCanonicalCode.OK,
+      status = StatusCode.OK,
       durationNanos = 35000L,
       notes = Map[String, Note[_]]("what" -> api.Note.of("what", 1L), "when" -> api.Note.of("when", 2L), "bob" -> api.Note.of("bob", "craig")).asJava)
   }

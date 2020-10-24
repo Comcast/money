@@ -19,9 +19,9 @@ package com.comcast.money.core
 import java.util.concurrent.TimeUnit
 
 import com.comcast.money.api.{ Note, Span, SpanFactory }
-import io.grpc.Context
 import io.opentelemetry.common.{ AttributeKey, Attributes }
-import io.opentelemetry.trace.{ SpanContext, TracingContextUtils, Span => OtelSpan }
+import io.opentelemetry.context.Context
+import io.opentelemetry.trace.{ SpanContext, Span => OtelSpan }
 
 private[core] class CoreSpanBuilder(
   var parentSpan: Option[Span],
@@ -35,7 +35,7 @@ private[core] class CoreSpanBuilder(
 
   override def setParent(context: Context): Span.Builder = {
     parentSpan = Option(context)
-      .map(TracingContextUtils.getSpanWithoutDefault)
+      .flatMap { ctx => Option(OtelSpan.fromContextOrNull(ctx)) }
       .flatMap {
         case span: Span => Some(span)
         case _ => None

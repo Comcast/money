@@ -24,7 +24,7 @@ import com.comcast.money.core.handlers.TestData
 import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
 import io.opentelemetry.trace.attributes.SemanticAttributes
-import io.opentelemetry.trace.{ EndSpanOptions, StatusCanonicalCode, TraceFlags, TraceState, Span => OtelSpan }
+import io.opentelemetry.trace.{ EndSpanOptions, StatusCode, TraceFlags, TraceState, Span => OtelSpan }
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
 import org.scalatest.matchers.should.Matchers
@@ -218,7 +218,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "set the status to OK" in {
       val underTest = CoreSpan(SpanId.createNew(), "test")
 
-      underTest.setStatus(StatusCanonicalCode.OK)
+      underTest.setStatus(StatusCode.OK)
 
       underTest.info.success shouldBe (null)
 
@@ -230,7 +230,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "set the status to ERROR" in {
       val underTest = CoreSpan(SpanId.createNew(), "test")
 
-      underTest.setStatus(StatusCanonicalCode.ERROR)
+      underTest.setStatus(StatusCode.ERROR)
 
       underTest.info.success shouldBe (null)
 
@@ -242,7 +242,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "set the status to OK and stop with false result" in {
       val underTest = CoreSpan(SpanId.createNew(), "test")
 
-      underTest.setStatus(StatusCanonicalCode.OK)
+      underTest.setStatus(StatusCode.OK)
 
       underTest.info.success shouldBe (null)
 
@@ -254,7 +254,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "set the status to ERROR and stop with true result" in {
       val underTest = CoreSpan(SpanId.createNew(), "test")
 
-      underTest.setStatus(StatusCanonicalCode.ERROR)
+      underTest.setStatus(StatusCode.ERROR)
 
       underTest.info.success shouldBe (null)
 
@@ -266,7 +266,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "set the status with description" in {
       val underTest = CoreSpan(SpanId.createNew(), "test")
 
-      underTest.setStatus(StatusCanonicalCode.OK, "description")
+      underTest.setStatus(StatusCode.OK, "description")
 
       underTest.info.description shouldBe "description"
     }
@@ -302,7 +302,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       val spanId = SpanId.createRemote("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L, TraceFlags.getSampled, TraceState.getDefault)
       val underTest = CoreSpan(spanId, "test")
 
-      val context = underTest.getContext
+      val context = underTest.getSpanContext
 
       context.getTraceIdAsHexString shouldBe "01234567890abcdef01234567890abcd"
       context.getSpanIdAsHexString shouldBe "0123456789abcdef"

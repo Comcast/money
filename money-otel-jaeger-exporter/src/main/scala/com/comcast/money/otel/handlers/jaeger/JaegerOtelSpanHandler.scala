@@ -52,7 +52,7 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
  */
 class JaegerOtelSpanHandler extends OtelSpanHandler {
   override protected def createSpanExporter(config: Config): SpanExporter = {
-    val builder = JaegerGrpcSpanExporter.newBuilder()
+    val builder = JaegerGrpcSpanExporter.builder()
 
     val serviceNameKey = "service-name"
     val endpointKey = "endpoint"
