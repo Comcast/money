@@ -20,7 +20,7 @@ import com.comcast.money.api.{ Note, Span, SpanFactory, SpanId }
 import com.comcast.money.core.handlers.TestData
 import com.comcast.money.core.internal.SpanLocal
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.{ BeforeAndAfterEach, OneInstancePerTest }
 import org.scalatest.matchers.should.Matchers
@@ -41,10 +41,10 @@ class TracerSpec extends AnyWordSpec
   override def beforeEach(): Unit = {
     SpanLocal.clear()
 
-    doReturn(mockSpan).when(mockSpanFactory).newSpan(any[SpanId], anyString())
-    doReturn(mockSpan).when(mockSpanFactory).newSpan(anyString())
-    doReturn(mockSpan).when(mockSpanFactory).childSpan(anyString(), any[Span])
-    doReturn(testSpanInfo).when(mockSpan).info()
+    when(mockSpanFactory.newSpan(any[SpanId], anyString())).thenReturn(mockSpan)
+    when(mockSpanFactory.newSpan(anyString())).thenReturn(mockSpan)
+    when(mockSpanFactory.childSpan(anyString(), any[Span])).thenReturn(mockSpan)
+    when(mockSpan.info).thenReturn(testSpanInfo)
   }
 
   "Tracer" should {

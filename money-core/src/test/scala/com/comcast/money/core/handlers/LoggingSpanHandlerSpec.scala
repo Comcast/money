@@ -19,7 +19,7 @@ package com.comcast.money.core.handlers
 import com.comcast.money.api.SpanInfo
 import com.typesafe.config.{ Config, ConfigFactory }
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.slf4j.Logger
 import org.scalatest.wordspec.AnyWordSpec
@@ -36,8 +36,8 @@ class LoggingSpanHandlerSpec extends AnyWordSpec
   val sampleMessage = "sample formatted log message"
   val sampleFormatterConfig = ConfigFactory.parseString("formatting { this=that }")
 
-  doReturn(mockFormatter).when(mockMakeFormatter).apply(any[Config])
-  doReturn(sampleMessage).when(mockFormatter).buildMessage(any[SpanInfo])
+  when(mockMakeFormatter.apply(any[Config])).thenReturn(mockFormatter)
+  when(mockFormatter.buildMessage(any[SpanInfo])).thenReturn(sampleMessage)
 
   val logEntryCaptor = ArgumentCaptor.forClass(classOf[String])
   val underTest = new LoggingSpanHandler(mockLogger, mockMakeFormatter)
