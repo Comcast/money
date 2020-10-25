@@ -18,6 +18,9 @@ package com.comcast.money.core.formatters
 
 import com.comcast.money.api.SpanId
 
+/**
+ * Formats the span id into HTTP headers so that it can be propagated to other services.
+ */
 trait Formatter {
   def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit
   def fromHttpHeaders(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId]
