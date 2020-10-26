@@ -32,10 +32,6 @@ trait Tracer extends MoneyTracer with Closeable {
 
   val spanContext: SpanContext = SpanLocal
 
-  def getCurrentSpan: Span = spanContext.current.getOrElse(DisabledSpan)
-
-  override def withSpan(span: Span): Scope = spanContext.push(span)
-
   override def spanBuilder(spanName: String): Span.Builder = new CoreSpanBuilder(spanContext.current, spanName, spanFactory)
 
   /**

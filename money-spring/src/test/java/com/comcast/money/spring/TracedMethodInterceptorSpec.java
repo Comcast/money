@@ -16,6 +16,7 @@
 
 package com.comcast.money.spring;
 
+import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import org.junit.After;
 import org.junit.Before;
@@ -35,6 +36,7 @@ import com.comcast.money.api.Note;
 import com.comcast.money.api.Span;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -59,13 +61,17 @@ public class TracedMethodInterceptorSpec {
     private Span span;
 
     @Mock
+    private Context context;
+
+    @Mock
     private Scope scope;
 
     @Before
     public void setUp() {
         when(springTracer.spanBuilder(anyString())).thenReturn(spanBuilder);
         when(spanBuilder.startSpan()).thenReturn(span);
-        when(springTracer.withSpan(span)).thenReturn(scope);
+        when(span.storeInContext(any())).thenReturn(context);
+        when(context.makeCurrent()).thenReturn(scope);
     }
 
     @After
@@ -80,7 +86,8 @@ public class TracedMethodInterceptorSpec {
         sampleTraceBean.doSomethingGood();
         verify(springTracer).spanBuilder("SampleTrace");
         verify(spanBuilder).startSpan();
-        verify(springTracer).withSpan(span);
+        verify(span).storeInContext(any());
+        verify(context).makeCurrent();
         verify(springTracer).record("foo", "bar", false);
         verify(span).stop(true);
         verify(scope).close();
@@ -147,7 +154,8 @@ public class TracedMethodInterceptorSpec {
         }
         verify(springTracer).spanBuilder("SampleTrace");
         verify(spanBuilder).startSpan();
-        verify(springTracer).withSpan(span);
+        verify(span).storeInContext(any());
+        verify(context).makeCurrent();
         verify(springTracer).record("foo", "bar", false);
         verify(span).stop(false);
         verify(scope).close();

@@ -42,7 +42,8 @@ trait MethodTracer extends Reflections with TraceLogging {
     recordTracedParameters(method, args, builder.record)
 
     val span = builder.startSpan()
-    val scope = tracer.withSpan(span)
+    val scope = span.storeInContext(Context.current())
+      .makeCurrent()
 
     try {
       Try {
@@ -104,7 +105,8 @@ trait MethodTracer extends Reflections with TraceLogging {
       mdcSupport.propagateMDC(mdc)
 
       // apply the span onto the current thread context
-      val scope = tracer.withSpan(span)
+      val scope = span.storeInContext(Context.root())
+        .makeCurrent()
 
       try {
         // determine if the future completed successfully or exceptionally

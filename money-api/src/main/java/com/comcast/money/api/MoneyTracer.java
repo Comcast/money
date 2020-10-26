@@ -16,22 +16,12 @@
 
 package com.comcast.money.api;
 
-import io.opentelemetry.context.Scope;
 import io.opentelemetry.trace.Tracer;
 
 /**
  * OpenTelemetry compatible API to be used for tracing
  */
 public interface MoneyTracer extends Tracer {
-
-    /**
-     * Enters a scope where the {@link Span} is in the current Context.
-     * @param span The {@link Span} to be set to the current Context.
-     * @return an object that defines a scope where the given {@link io.opentelemetry.trace.Span} will be set to the current
-     *     Context.
-     * @throws NullPointerException if {@code span} is {@code null}.
-     */
-    Scope withSpan(Span span);
 
     /**
      * {@inheritDoc}

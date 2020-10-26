@@ -23,8 +23,8 @@ import com.comcast.money.api.Span
 import com.comcast.money.core.Tracer
 import com.comcast.money.core.async.{ AsyncNotificationHandler, AsyncNotifier }
 import com.comcast.money.core.internal.{ MDCSupport, SpanContext }
-import io.opentelemetry.context.Scope
-import org.mockito.ArgumentMatchers.{ any => argAny }
+import io.opentelemetry.context.{ Context, Scope }
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 
 import scala.util.{ Failure, Success, Try }
@@ -38,6 +38,7 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
   val mockTracer: Tracer = mock[Tracer]
   val mockSpanBuilder: Span.Builder = mock[Span.Builder]
   val mockSpan: Span = mock[Span]
+  val mockContext: Context = mock[Context]
   val mockScope: Scope = mock[Scope]
   val mockAsyncNotifier: AsyncNotifier = mock[AsyncNotifier]
   val mockMdcSupport: MDCSupport = mock[MDCSupport]
@@ -69,14 +70,16 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
         when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
-        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
+        when(mockSpan.storeInContext(any())).thenReturn(mockContext)
+        when(mockContext.makeCurrent()).thenReturn(mockScope)
         when(proceed.apply()).thenReturn("result")
 
         val result = methodTracer.traceMethod(method, traced, empty, proceed)
 
         verify(mockTracer).spanBuilder(traced.value())
         verify(mockSpanBuilder).startSpan()
-        verify(mockTracer).withSpan(mockSpan)
+        verify(mockSpan).storeInContext(any())
+        verify(mockContext).makeCurrent()
         verify(mockSpan).stop(true)
         verify(mockScope).close()
 
@@ -92,7 +95,8 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
         when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
-        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
+        when(mockSpan.storeInContext(any())).thenReturn(mockContext)
+        when(mockContext.makeCurrent()).thenReturn(mockScope)
         when(proceed.apply()).thenThrow(new IllegalArgumentException())
 
         assertThrows[IllegalArgumentException] {
@@ -101,7 +105,8 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         verify(mockTracer).spanBuilder(traced.value())
         verify(mockSpanBuilder).startSpan()
-        verify(mockTracer).withSpan(mockSpan)
+        verify(mockSpan).storeInContext(any())
+        verify(mockContext).makeCurrent()
         verify(mockSpan).stop(false)
         verify(mockScope).close()
       }
@@ -114,7 +119,8 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
         when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
-        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
+        when(mockSpan.storeInContext(any())).thenReturn(mockContext)
+        when(mockContext.makeCurrent()).thenReturn(mockScope)
         when(proceed.apply()).thenThrow(new IllegalArgumentException())
 
         assertThrows[IllegalArgumentException] {
@@ -123,7 +129,8 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         verify(mockTracer).spanBuilder(traced.value())
         verify(mockSpanBuilder).startSpan()
-        verify(mockTracer).withSpan(mockSpan)
+        verify(mockSpan).storeInContext(any())
+        verify(mockContext).makeCurrent()
         verify(mockSpan).stop(true)
         verify(mockScope).close()
       }
@@ -139,7 +146,8 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
         when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
-        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
+        when(mockSpan.storeInContext(any())).thenReturn(mockContext)
+        when(mockContext.makeCurrent()).thenReturn(mockScope)
         when(proceed.apply()).thenReturn("result")
         when(mockAsyncNotifier.resolveHandler(classOf[String], "result")).thenReturn(Some(handler))
 
@@ -147,8 +155,9 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         verify(mockTracer).spanBuilder(traced.value())
         verify(mockSpanBuilder).startSpan()
-        verify(mockTracer).withSpan(mockSpan)
-        verify(mockSpan, never()).stop(argAny())
+        verify(mockSpan).storeInContext(any())
+        verify(mockContext).makeCurrent()
+        verify(mockSpan, never()).stop(any())
         verify(mockScope).close()
 
         result shouldBe "result2"
@@ -167,7 +176,8 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
         when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
-        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
+        when(mockSpan.storeInContext(any())).thenReturn(mockContext)
+        when(mockContext.makeCurrent()).thenReturn(mockScope)
         when(proceed.apply()).thenReturn("result")
         when(mockAsyncNotifier.resolveHandler(classOf[String], "result")).thenReturn(Some(handler))
 
@@ -175,8 +185,9 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         verify(mockTracer).spanBuilder(traced.value())
         verify(mockSpanBuilder).startSpan()
-        verify(mockTracer).withSpan(mockSpan)
-        verify(mockSpan, never()).stop(argAny())
+        verify(mockSpan).storeInContext(any())
+        verify(mockContext).makeCurrent()
+        verify(mockSpan, never()).stop(any())
         verify(mockScope).close()
 
         result shouldBe "result2"
@@ -195,7 +206,8 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
         when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
-        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
+        when(mockSpan.storeInContext(any())).thenReturn(mockContext)
+        when(mockContext.makeCurrent()).thenReturn(mockScope)
         when(proceed.apply()).thenReturn("result")
         when(mockAsyncNotifier.resolveHandler(classOf[String], "result")).thenReturn(Some(handler))
 
@@ -203,8 +215,9 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         verify(mockTracer).spanBuilder(traced.value())
         verify(mockSpanBuilder).startSpan()
-        verify(mockTracer).withSpan(mockSpan)
-        verify(mockSpan, never()).stop(argAny())
+        verify(mockSpan).storeInContext(any())
+        verify(mockContext).makeCurrent()
+        verify(mockSpan, never()).stop(any())
         verify(mockScope).close()
 
         result shouldBe "result2"
@@ -219,11 +232,11 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         val empty = Array.empty[AnyRef]
         val proceed = mock[() => String]
-        val handler = new TestAsyncHandler("result2")
 
         when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
         when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
-        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
+        when(mockSpan.storeInContext(any())).thenReturn(mockContext)
+        when(mockContext.makeCurrent()).thenReturn(mockScope)
         when(proceed.apply()).thenReturn("result")
         when(mockAsyncNotifier.resolveHandler(classOf[String], "result")).thenReturn(None)
 
@@ -231,7 +244,8 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         verify(mockTracer).spanBuilder(traced.value())
         verify(mockSpanBuilder).startSpan()
-        verify(mockTracer).withSpan(mockSpan)
+        verify(mockSpan).storeInContext(any())
+        verify(mockContext).makeCurrent()
         verify(mockSpan).stop(true)
         verify(mockScope).close()
 
@@ -247,7 +261,8 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         when(mockTracer.spanBuilder(traced.value())).thenReturn(mockSpanBuilder)
         when(mockSpanBuilder.startSpan()).thenReturn(mockSpan)
-        when(mockTracer.withSpan(mockSpan)).thenReturn(mockScope)
+        when(mockSpan.storeInContext(any())).thenReturn(mockContext)
+        when(mockContext.makeCurrent()).thenReturn(mockScope)
         when(proceed.apply()).thenThrow(new IllegalArgumentException())
 
         assertThrows[IllegalArgumentException] {
@@ -256,7 +271,8 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
 
         verify(mockTracer).spanBuilder(traced.value())
         verify(mockSpanBuilder).startSpan()
-        verify(mockTracer).withSpan(mockSpan)
+        verify(mockSpan).storeInContext(any())
+        verify(mockContext).makeCurrent()
         verify(mockSpan).stop(false)
         verify(mockScope).close()
       }

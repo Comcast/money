@@ -17,7 +17,7 @@
 package com.comcast.money.java.servlet
 
 import com.comcast.money.core.Money
-import io.opentelemetry.context.Scope
+import io.opentelemetry.context.{ Context, Scope }
 import javax.servlet._
 import javax.servlet.http.{ HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse }
 import org.slf4j.LoggerFactory
@@ -44,7 +44,10 @@ class TraceFilter extends Filter {
 
     val scope: Scope = formatter.fromHttpHeaders(httpRequest.getHeader, logger.warn) match {
       case Some(spanId) =>
-        tracer.withSpan(tracer.spanFactory.newSpan(spanId, spanName))
+        val span = tracer.spanFactory.newSpan(spanId, spanName)
+        Context.root()
+          .`with`(span)
+          .makeCurrent()
       case None => () => ()
     }
 

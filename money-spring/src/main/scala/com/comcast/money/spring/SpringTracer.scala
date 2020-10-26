@@ -35,10 +35,6 @@ class SpringTracer extends Tracer {
   private[spring] def setTracer(toSet: Tracer): Unit =
     tracer = toSet
 
-  override def getCurrentSpan: Span = tracer.getCurrentSpan
-
-  override def withSpan(span: Span): Scope = tracer.withSpan(span)
-
   override def spanBuilder(spanName: String): Span.Builder = tracer.spanBuilder(spanName)
 
   /**
