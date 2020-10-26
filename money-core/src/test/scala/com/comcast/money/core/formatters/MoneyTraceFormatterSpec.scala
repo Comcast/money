@@ -20,9 +20,9 @@ import java.util.UUID
 
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.TraceGenerators
-import com.comcast.money.core.formatters.MoneyTraceFormatter.{ MoneyHeaderFormat, MoneyTraceHeader }
-import io.opentelemetry.trace.{ TraceFlags, TraceState }
-import org.mockito.Mockito.{ verify, verifyNoMoreInteractions }
+import com.comcast.money.core.formatters.MoneyTraceFormatter.{MoneyHeaderFormat, MoneySampledHeader, MoneyTraceHeader}
+import io.opentelemetry.trace.{TraceFlags, TraceState}
+import org.mockito.Mockito.{verify, verifyNoMoreInteractions}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
@@ -39,6 +39,43 @@ class MoneyTraceFormatterSpec extends AnyWordSpec with MockitoSugar with Matcher
         val spanId = underTest.fromHttpHeaders(
           getHeader = {
             case MoneyTraceHeader => MoneyHeaderFormat.format(expectedSpanId.traceId, expectedSpanId.parentId, expectedSpanId.selfId)
+            case MoneySampledHeader => null
+          })
+        spanId shouldBe Some(expectedSpanId)
+      }
+    }
+
+    "read a money http header with a sampled flag" in {
+      forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
+        val expectedSpanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getSampled, TraceState.getDefault)
+        val spanId = underTest.fromHttpHeaders(
+          getHeader = {
+            case MoneyTraceHeader => MoneyHeaderFormat.format(expectedSpanId.traceId, expectedSpanId.parentId, expectedSpanId.selfId)
+            case MoneySampledHeader => "1"
+          })
+        spanId shouldBe Some(expectedSpanId)
+      }
+    }
+
+    "read a money http header with a not sampled flag" in {
+      forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
+        val expectedSpanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getDefault, TraceState.getDefault)
+        val spanId = underTest.fromHttpHeaders(
+          getHeader = {
+            case MoneyTraceHeader => MoneyHeaderFormat.format(expectedSpanId.traceId, expectedSpanId.parentId, expectedSpanId.selfId)
+            case MoneySampledHeader => "0"
+          })
+        spanId shouldBe Some(expectedSpanId)
+      }
+    }
+
+    "read a money http header with an unexpected sampled flag" in {
+      forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
+        val expectedSpanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getDefault, TraceState.getDefault)
+        val spanId = underTest.fromHttpHeaders(
+          getHeader = {
+            case MoneyTraceHeader => MoneyHeaderFormat.format(expectedSpanId.traceId, expectedSpanId.parentId, expectedSpanId.selfId)
+            case MoneySampledHeader => "FOO"
           })
         spanId shouldBe Some(expectedSpanId)
       }
@@ -49,23 +86,34 @@ class MoneyTraceFormatterSpec extends AnyWordSpec with MockitoSugar with Matcher
         val spanId = underTest.fromHttpHeaders(
           getHeader = {
             case MoneyTraceHeader => MoneyHeaderFormat.format(traceIdValue, parentSpanIdValue, spanIdValue)
+            case MoneySampledHeader => null
           })
         spanId shouldBe None
       }
     }
 
-    "create a money http header" in {
+    "create a money http header for a sampled span" in {
       forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
         val spanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getSampled, TraceState.getDefault)
-        underTest.toHttpHeaders(spanId, (header, value) => {
-          header shouldBe MoneyTraceHeader
-          value shouldBe MoneyHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId)
+        underTest.toHttpHeaders(spanId, (header, value) => header match {
+          case MoneyTraceHeader => value shouldBe MoneyHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId)
+          case MoneySampledHeader => value shouldBe "1"
+        })
+      }
+    }
+
+    "create a money http header for a non sampled span" in {
+      forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
+        val spanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getDefault, TraceState.getDefault)
+        underTest.toHttpHeaders(spanId, (header, value) => header match {
+          case MoneyTraceHeader => value shouldBe MoneyHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId)
+          case MoneySampledHeader => value shouldBe "0"
         })
       }
     }
 
     "lists the MoneyTrace headers" in {
-      underTest.fields shouldBe Seq(MoneyTraceHeader)
+      underTest.fields shouldBe Seq(MoneyTraceHeader, MoneySampledHeader)
     }
 
     "copy the request headers to the response" in {
@@ -73,9 +121,11 @@ class MoneyTraceFormatterSpec extends AnyWordSpec with MockitoSugar with Matcher
 
       underTest.setResponseHeaders({
         case MoneyTraceHeader => MoneyTraceHeader
+        case MoneySampledHeader => MoneySampledHeader
       }, setHeader)
 
       verify(setHeader).apply(MoneyTraceHeader, MoneyTraceHeader)
+      verify(setHeader).apply(MoneySampledHeader, MoneySampledHeader)
       verifyNoMoreInteractions(setHeader)
     }
   }

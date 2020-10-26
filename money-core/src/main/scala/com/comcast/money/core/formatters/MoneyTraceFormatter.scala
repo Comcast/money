@@ -17,41 +17,52 @@
 package com.comcast.money.core.formatters
 
 import com.comcast.money.api.SpanId
-import io.opentelemetry.trace.{ TraceFlags, TraceState }
+import io.opentelemetry.trace.{TraceFlags, TraceState}
 
-import scala.util.{ Failure, Success, Try }
+import scala.util.{Failure, Success, Try}
 
 object MoneyTraceFormatter {
   private[core] val MoneyTraceHeader = "X-MoneyTrace"
+  private[core] val MoneySampledHeader = "X-MoneySampled"
   private[core] val MoneyHeaderFormat = "trace-id=%s;parent-id=%s;span-id=%s"
 }
 
 final class MoneyTraceFormatter extends Formatter {
-  import com.comcast.money.core.formatters.MoneyTraceFormatter.{ MoneyHeaderFormat, MoneyTraceHeader }
+  import com.comcast.money.core.formatters.MoneyTraceFormatter.{ MoneyHeaderFormat, MoneyTraceHeader, MoneySampledHeader }
 
-  override def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit =
+  override def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit = {
     addHeader(MoneyTraceHeader, MoneyHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId))
+    addHeader(MoneySampledHeader, if (spanId.isSampled) "1" else "0")
+  }
 
   override def fromHttpHeaders(getHeader: String => String, log: String => Unit): Option[SpanId] = {
-    def spanIdFromMoneyHeader(httpHeader: String): Try[SpanId] = Try {
+    def spanIdFromMoneyHeader(httpHeader: String, maybeSampled: Option[String]): Try[SpanId] = Try {
       val parts = httpHeader.split(';')
       val traceId = parts(0).split('=')(1)
       val parentId = parts(1).split('=')(1)
       val selfId = parts(2).split('=')(1)
 
-      SpanId.createRemote(traceId, parentId.toLong, selfId.toLong, TraceFlags.getSampled, TraceState.getDefault)
+      val flags = maybeSampled match {
+        case Some("1") | None => TraceFlags.getSampled
+        case Some("0") => TraceFlags.getDefault
+        case _ => TraceFlags.getDefault
+      }
+
+      SpanId.createRemote(traceId, parentId.toLong, selfId.toLong, flags, TraceState.getDefault)
     }
 
-    def parseHeader(headerValue: String): Option[SpanId] =
-      spanIdFromMoneyHeader(headerValue) match {
+    def parseHeader(headerValue: String): Option[SpanId] = {
+      val maybeSampled = Option(getHeader(MoneySampledHeader))
+      spanIdFromMoneyHeader(headerValue, maybeSampled) match {
         case Success(spanId) => Some(spanId)
         case Failure(_) =>
           log(s"Unable to parse money trace for request header $headerValue")
           None
       }
+    }
 
     Option(getHeader(MoneyTraceHeader)).flatMap(parseHeader)
   }
 
-  override def fields: Seq[String] = Seq(MoneyTraceHeader)
+  override def fields: Seq[String] = Seq(MoneyTraceHeader, MoneySampledHeader)
 }
