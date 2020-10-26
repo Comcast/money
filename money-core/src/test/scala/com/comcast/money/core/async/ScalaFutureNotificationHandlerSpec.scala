@@ -19,7 +19,7 @@ package com.comcast.money.core.async
 import com.comcast.money.core.SpecHelpers
 import com.comcast.money.core.concurrent.ConcurrentSupport
 import org.mockito.Mockito._
-import org.mockito.Matchers.{ any, eq => argEq }
+import org.mockito.ArgumentMatchers.{ any, eq => argEq }
 
 import scala.concurrent.{ ExecutionContext, Future, Promise }
 import scala.util.{ Failure, Try }
@@ -77,7 +77,7 @@ class ScalaFutureNotificationHandlerSpec
     "calls transform method on the future" in {
       val future = mock[Future[String]]
       val transformed = mock[Future[String]]
-      doReturn(transformed).when(future).transform(any(), any())(argEq(underTest.executionContext))
+      when(future.transform(any(), any())(argEq(underTest.executionContext))).thenReturn(transformed.asInstanceOf[Future[Nothing]])
 
       val result = underTest.whenComplete(futureClass, future)(_ => {})
 

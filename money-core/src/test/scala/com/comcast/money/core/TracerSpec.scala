@@ -21,7 +21,7 @@ import com.comcast.money.core.handlers.TestData
 import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
 import io.opentelemetry.context.{ Context, Scope }
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.scalatest.{ BeforeAndAfterEach, OneInstancePerTest }
 import org.scalatest.matchers.should.Matchers
@@ -46,7 +46,7 @@ class TracerSpec extends AnyWordSpec
     when(mockSpanFactory.newSpan(any[SpanId], anyString())).thenReturn(mockSpan)
     when(mockSpanFactory.newSpan(anyString())).thenReturn(mockSpan)
     when(mockSpanFactory.childSpan(anyString(), any[Span])).thenReturn(mockSpan)
-    doReturn(testSpanInfo).when(mockSpan).info()
+    when(mockSpan.info).thenReturn(testSpanInfo)
   }
 
   "Tracer" should {

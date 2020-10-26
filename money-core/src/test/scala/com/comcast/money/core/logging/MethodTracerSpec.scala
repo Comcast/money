@@ -24,7 +24,7 @@ import com.comcast.money.core.Tracer
 import com.comcast.money.core.async.{ AsyncNotificationHandler, AsyncNotifier }
 import com.comcast.money.core.internal.{ MDCSupport, SpanContext }
 import io.opentelemetry.context.Scope
-import org.mockito.Matchers.{ any => argAny }
+import org.mockito.ArgumentMatchers.{ any => argAny }
 import org.mockito.Mockito._
 
 import scala.util.{ Failure, Success, Try }

@@ -23,7 +23,7 @@ import io.opentelemetry.context.propagation.TextMapPropagator
 import io.opentelemetry.context.propagation.TextMapPropagator.{ Getter, Setter }
 import io.opentelemetry.trace.{ Span => OtelSpan }
 import org.mockito.{ ArgumentCaptor, Mockito }
-import org.mockito.Matchers.{ any, eq => argEq }
+import org.mockito.ArgumentMatchers.{ any, eq => argEq }
 import org.mockito.Mockito.{ verify, when }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec

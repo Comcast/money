@@ -22,7 +22,7 @@ import com.comcast.money.core.Tracer
 import com.comcast.money.core.internal.SpanLocal
 import com.comcast.money.core.japi.JMoney._
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 import org.mockito.Mockito.doReturn
 import org.scalatest._
@@ -140,7 +140,7 @@ class JMoneySpec extends AnyWordSpec
     }
     "support callable lambda" in {
       val callable = mock[CheckedCallable[String, Exception]]
-      doReturn("Hello").when(callable).call()
+      when(callable.call()).thenReturn("Hello")
       val result = JMoney.trace("callable", callable)
 
       result shouldBe "Hello"
@@ -162,7 +162,7 @@ class JMoneySpec extends AnyWordSpec
     }
     "support function lambda with span" in {
       val function = mock[CheckedFunction[TraceSpan, String, Exception]]
-      doReturn("Hello").when(function).apply(any())
+      when(function.apply(any())).thenReturn("Hello")
 
       val result = JMoney.trace("function", function)
 
@@ -236,7 +236,7 @@ class JMoneySpec extends AnyWordSpec
     }
     "support callable timer lambda" in {
       val callable = mock[CheckedCallable[String, Exception]]
-      doReturn("Hello").when(callable).call()
+      when(callable.call()).thenReturn("Hello")
 
       val result = JMoney.time("the-timer", callable)
 

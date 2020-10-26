@@ -80,13 +80,13 @@ class HttpTraceAspectSpec
   }
 
   before {
-    doReturn(responseEntityStream).when(mockHttpEntity).getContent
-    doReturn(200).when(mockStatusLine).getStatusCode
-    doReturn(mockStatusLine).when(mockHttpResponse).getStatusLine
-    doReturn(mockHttpEntity).when(mockHttpResponse).getEntity
-    doReturn(mockHttpResponse).when(mockHttpClient).execute(mockHttpRequest)
-    doReturn(mockHttpResponse).when(mockJoinPoint).proceed()
-    doReturn("test-response").when(mockHttpResponseHandler).handleResponse(mockHttpResponse)
+    when(mockHttpEntity.getContent).thenReturn(responseEntityStream)
+    when(mockStatusLine.getStatusCode).thenReturn(200)
+    when(mockHttpResponse.getStatusLine).thenReturn(mockStatusLine)
+    when(mockHttpResponse.getEntity).thenReturn(mockHttpEntity)
+    when(mockHttpClient.execute(mockHttpRequest)).thenReturn(mockHttpResponse)
+    when(mockJoinPoint.proceed()).thenReturn(mockHttpResponse, Nil: _*)
+    when(mockHttpResponseHandler.handleResponse(mockHttpResponse)).thenReturn("test-response")
   }
 
   after {
@@ -148,7 +148,7 @@ class HttpTraceAspectSpec
   feature("Capturing http metrics on a method that calls http client and passes in a response handler") {
     scenario("happy path") {
       Given("the method calls execute on an Http Client passing in a response handler")
-      doReturn("test-response").when(mockHttpClient).execute(mockHttpRequest, mockHttpResponseHandler)
+      when(mockHttpClient.execute(mockHttpRequest, mockHttpResponseHandler)).thenReturn("test-response")
 
       When("the method is invoked")
       val result = methodWithHttpCallUsingResponseHandler()
@@ -170,14 +170,14 @@ class HttpTraceAspectSpec
   feature("advising calls to the http response handler") {
     scenario("happy path") {
       Given("a response handler that returns a simple value is advised")
-      doReturn("test-result").when(mockJoinPoint).proceed()
+      when(mockJoinPoint.proceed()).thenReturn("test-result", Nil: _*)
 
       And("a traced annotation is present")
-      doReturn("test-annotation").when(mockTracedAnnotation).value()
+      when(mockTracedAnnotation.value()).thenReturn("test-annotation")
 
       And("a http response has a 200 status code")
-      doReturn(200).when(mockStatusLine).getStatusCode
-      doReturn(mockStatusLine).when(mockHttpResponse).getStatusLine
+      when(mockStatusLine.getStatusCode).thenReturn(200)
+      when(mockHttpResponse.getStatusLine).thenReturn(mockStatusLine)
 
       When("the response handler is advised by the Http Trace Aspect")
       val result = testAspect.adviseHttpResponseHandler(mockJoinPoint, mockHttpResponse, mockTracedAnnotation)
@@ -199,7 +199,7 @@ class HttpTraceAspectSpec
       doThrow(new IllegalStateException()).when(mockJoinPoint).proceed()
 
       And("a traced annotation is present")
-      doReturn("test-annotation").when(mockTracedAnnotation).value()
+      when(mockTracedAnnotation.value()).thenReturn("test-annotation")
 
       When("the response handler is advised by the Http Trace Aspect")
       intercept[IllegalStateException] {
@@ -217,7 +217,7 @@ class HttpTraceAspectSpec
       doThrow(new IllegalStateException()).when(mockHttpResponse).getStatusLine
 
       And("a traced annotation is present")
-      doReturn("test-annotation").when(mockTracedAnnotation).value()
+      when(mockTracedAnnotation.value()).thenReturn("test-annotation")
 
       When("the response handler is advised by the Http Trace Aspect")
       intercept[IllegalStateException] {
@@ -234,7 +234,7 @@ class HttpTraceAspectSpec
       Given("a call to the response handler passes in an http response that is null")
 
       And("a traced annotation is present")
-      doReturn("test-annotation").when(mockTracedAnnotation).value()
+      when(mockTracedAnnotation.value()).thenReturn("test-annotation")
 
       When("the response handler is advised by the Http Trace Aspect")
       testAspect.adviseHttpResponseHandler(mockJoinPoint, null, mockTracedAnnotation)
@@ -249,7 +249,7 @@ class HttpTraceAspectSpec
   feature("advising the call to http client execute with a response handler") {
     scenario("happy path") {
       Given("A call to http client that takes an http response handler")
-      doReturn("test-annotation").when(mockTracedAnnotation).value()
+      when(mockTracedAnnotation.value()).thenReturn("test-annotation")
 
       And("a span has been started")
       SpanLocal.push(testSpan(spanId))
@@ -268,7 +268,7 @@ class HttpTraceAspectSpec
     }
     scenario("no span has been started") {
       Given("A call to http client that takes an http response handler")
-      doReturn("test-annotation").when(mockTracedAnnotation).value()
+      when(mockTracedAnnotation.value()).thenReturn("test-annotation")
 
       And("a span has NOT been started")
       // no span started here
@@ -287,7 +287,7 @@ class HttpTraceAspectSpec
     }
     scenario("the http request is null") {
       Given("A call to http client that takes an http response handler")
-      doReturn("test-annotation").when(mockTracedAnnotation).value()
+      when(mockTracedAnnotation.value()).thenReturn("test-annotation")
 
       And("a span has been started")
       SpanLocal.push(testSpan(spanId))
@@ -308,10 +308,10 @@ class HttpTraceAspectSpec
   feature("advising a method that calls http client execute that returns an HttpResponse") {
     scenario("happy path") {
       Given("A call to http client that returns an http response is being traced")
-      doReturn("test-annotation").when(mockTracedAnnotation).value()
+      when(mockTracedAnnotation.value()).thenReturn("test-annotation")
 
       And("the http response code returned is a 204")
-      doReturn(204).when(mockStatusLine).getStatusCode
+      when(mockStatusLine.getStatusCode).thenReturn(204)
 
       And("a span has been started")
       SpanLocal.push(testSpan(spanId))

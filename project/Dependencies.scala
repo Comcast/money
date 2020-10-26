@@ -81,7 +81,7 @@ object Dependencies {
   val scalaTest = "org.scalatest" %% "scalatest" % "3.2.2" % Test
   val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.14.3" % Test
   val scalaTestWordSpec = "org.scalatest" %% "scalatest-wordspec" % "3.2.2" % Test
-  val scalaTestPlus = "org.scalatestplus" %% "scalatestplus-mockito" % "1.0.0-M2" % Test
+  val scalaTestPlus = "org.scalatestplus" %% "mockito-3-4" % "3.2.2.0" % Test
   val scalaTestCheck = "org.scalatestplus" %% "scalacheck-1-14" % "3.2.2.0" % Test
 
   val junit = "junit" % "junit" % "4.12" % Test
@@ -90,7 +90,8 @@ object Dependencies {
   val powerMockApi = "org.powermock" % "powermock-api-mockito2" % "2.0.7" % Test
   val springTest = ("org.springframework" % "spring-test" % "4.3.17.RELEASE")
     .exclude("commons-logging", "commons-logging")
-  val springOckito = "org.kubek2k" % "springockito" % "1.0.9" % Test
+  val springBootTest = "org.springframework.boot" % "spring-boot-starter-test" % "1.5.11.RELEASE" % Test
+  val aspectJ = "org.aspectj" % "aspectjweaver" % "1.8.9" % Test
   val assertj = "org.assertj" % "assertj-core" % "3.17.2" % Test
   val awaitility = "org.awaitility" % "awaitility" % "4.0.3" % Test
   val zipkinJunit = "io.zipkin.zipkin2" % "zipkin-junit" % "2.18.3" % Test

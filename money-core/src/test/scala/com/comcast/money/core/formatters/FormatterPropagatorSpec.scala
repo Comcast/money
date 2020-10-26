@@ -21,7 +21,7 @@ import io.opentelemetry.context.Context
 import io.opentelemetry.context.propagation.TextMapPropagator
 import io.opentelemetry.trace.{ Span => OtelSpan, TraceFlags, TraceState, TracingContextUtils }
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.any
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{ verify, when }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
