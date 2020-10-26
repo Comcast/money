@@ -20,8 +20,8 @@ import java.util.concurrent.{ CompletableFuture, CompletionStage }
 
 import com.comcast.money.core.SpecHelpers
 import com.comcast.money.core.concurrent.ConcurrentSupport
-import org.mockito.Matchers.{ any, eq => argEq }
-import org.mockito.Mockito.{ doReturn, never, times, verify }
+import org.mockito.ArgumentMatchers.{ any, eq => argEq }
+import org.mockito.Mockito.{ doReturn, never, times, verify, when }
 
 import scala.util.{ Failure, Try }
 import org.scalatest.wordspec.AnyWordSpec
@@ -72,7 +72,7 @@ class CompletionStageNotificationHandlerSpec
     }
     "calls whenComplete method on the completion stage" in {
       val stage = mock[CompletionStage[String]]
-      doReturn(stage).when(stage).whenComplete(any())
+      when(stage.whenComplete(any())).thenReturn(stage)
 
       val result = underTest.whenComplete(futureClass, stage) { _ => {} }
 
