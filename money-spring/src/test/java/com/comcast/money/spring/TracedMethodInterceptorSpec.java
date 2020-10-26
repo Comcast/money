@@ -63,9 +63,6 @@ public class TracedMethodInterceptorSpec {
 
     @Before
     public void setUp() {
-        // Needed to init the Argument Captor
-        // MockitoAnnotations.initMocks(this);
-
         when(springTracer.spanBuilder(anyString())).thenReturn(spanBuilder);
         when(spanBuilder.startSpan()).thenReturn(span);
         when(springTracer.withSpan(span)).thenReturn(scope);
