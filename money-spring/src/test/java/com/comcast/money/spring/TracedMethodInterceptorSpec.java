@@ -22,29 +22,35 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import com.comcast.money.api.Note;
 import com.comcast.money.api.Span;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration("classpath:test-context.xml")
+@RunWith(SpringRunner.class)
+@ContextConfiguration(classes = {TracedMethodInterceptorSpec.TestConfig.class})
 public class TracedMethodInterceptorSpec {
+
+    @MockBean
+    private SpringTracer springTracer;
 
     @Autowired
     private SampleTraceBean sampleTraceBean;
-
-    // This bean is intercepted by springockito, so it is actually a mock!  Living the life!
-    @Autowired
-    private SpringTracer springTracer;
 
     @Mock
     private Span.Builder spanBuilder;
@@ -55,14 +61,8 @@ public class TracedMethodInterceptorSpec {
     @Mock
     private Scope scope;
 
-    @Captor
-    private ArgumentCaptor<Boolean> spanResultCaptor;
-
     @Before
     public void setUp() {
-        // Needed to init the Argument Captor
-        MockitoAnnotations.initMocks(this);
-
         when(springTracer.spanBuilder(anyString())).thenReturn(spanBuilder);
         when(spanBuilder.startSpan()).thenReturn(span);
         when(springTracer.withSpan(span)).thenReturn(scope);
@@ -164,5 +164,24 @@ public class TracedMethodInterceptorSpec {
     public void testTracingIgnoresException() {
         sampleTraceBean.doSomethingButIgnoreException();
         verify(span).stop(true);
+    }
+
+    @Configuration
+    @EnableAspectJAutoProxy
+    public static class TestConfig {
+        @Bean
+        public TracedMethodInterceptor tracedMethodInterceptor(SpringTracer springTracer) {
+            return new TracedMethodInterceptor(springTracer);
+        }
+
+        @Bean
+        public TracedMethodAdvisor tracedMethodAdvisor(TracedMethodInterceptor tracedMethodInterceptor) {
+            return new TracedMethodAdvisor(tracedMethodInterceptor);
+        }
+
+        @Bean
+        public SampleTraceBean sampleTraceBean() {
+            return new SampleTraceBean();
+        }
     }
 }

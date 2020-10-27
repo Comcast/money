@@ -27,7 +27,7 @@ import org.apache.http.client.{ HttpClient, ResponseHandler }
 import org.apache.http.impl.client.CloseableHttpClient
 import org.apache.http.protocol.HttpContext
 import org.apache.http.{ HttpHost, HttpResponse, StatusLine }
-import org.mockito.Matchers.anyString
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito._
 import org.scalatest._
 import org.scalatest.matchers.should.Matchers

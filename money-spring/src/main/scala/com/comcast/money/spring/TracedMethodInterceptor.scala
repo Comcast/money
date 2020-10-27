@@ -22,6 +22,7 @@ import com.comcast.money.annotations.Traced
 import com.comcast.money.core.logging.MethodTracer
 import org.aopalliance.aop.Advice
 import org.aopalliance.intercept.{ MethodInterceptor, MethodInvocation }
+import org.aspectj.lang.annotation.Aspect
 import org.springframework.aop.Pointcut
 import org.springframework.aop.support.{ AbstractPointcutAdvisor, StaticMethodMatcherPointcut }
 import org.springframework.beans.factory.annotation.{ Autowired, Qualifier }
@@ -49,6 +50,7 @@ class TracedMethodInterceptor @Autowired() (@Qualifier("springTracer") override 
  * Used by spring so that only those methods that have the @Traced annotation
  * are actually advised
  */
+@Aspect
 @Component
 class TracedMethodAdvisor @Autowired() (val interceptor: TracedMethodInterceptor) extends AbstractPointcutAdvisor {
 

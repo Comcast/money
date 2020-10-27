@@ -18,30 +18,34 @@ package com.comcast.money.spring
 
 import java.lang.reflect.AccessibleObject
 
-import com.comcast.money.annotations.{ Traced, TracedData }
-import com.comcast.money.api.{ Note, Span }
+import com.comcast.money.annotations.{Traced, TracedData}
+import com.comcast.money.api.{Note, Span}
 import com.sun.istack.internal.NotNull
 import io.opentelemetry.context.Scope
 import org.aopalliance.intercept.MethodInvocation
-import org.aspectj.lang.JoinPoint
+import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
-import org.mockito.Matchers.{ any, anyString }
+import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito._
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.boot.test.mock.mockito.MockBean
+import org.springframework.context.annotation.{Bean, Configuration, EnableAspectJAutoProxy}
 import org.springframework.stereotype.Component
-import org.springframework.test.context.{ ContextConfiguration, TestContextManager }
+import org.springframework.test.context.junit4.SpringRunner
+import org.springframework.test.context.{ContextConfiguration, TestContextManager}
 
-@ContextConfiguration(Array("classpath:test-context.xml"))
+@RunWith(classOf[SpringRunner])
+@ContextConfiguration(classes = Array(classOf[TestConfig]))
 class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfterEach {
 
   @Autowired
   private var sampleScalaBean: SampleScalaBean = _
 
-  @Autowired
+  @MockBean
   private var springTracer: SpringTracer = _
 
   private var spanBuilder: Span.Builder = _
@@ -55,7 +59,7 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
     span = mock[Span]
     scope = mock[Scope]
 
-    when(springTracer.spanBuilder(anyString())).thenReturn(spanBuilder)
+    when(springTracer.spanBuilder(any())).thenReturn(spanBuilder)
     when(spanBuilder.record(any())).thenReturn(spanBuilder)
     when(spanBuilder.startSpan()).thenReturn(span)
     when(springTracer.withSpan(span)).thenReturn(scope)
@@ -67,51 +71,51 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
 
   "Spring Tracing in scala" should {
     "record traced data parameters" in {
-      val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
+      val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
 
       sampleScalaBean.doSomethingWithTracedParams("tp", true, 200L, 3.14)
       verify(spanBuilder, times(4)).record(noteCaptor.capture)
 
-      val note: Note[String] = noteCaptor.getAllValues.get(0).asInstanceOf[Note[String]]
+      val note = noteCaptor.getAllValues.get(0).asInstanceOf[Note[String]]
       note.name shouldBe "STRING"
       note.value shouldBe "tp"
 
-      val boolNote: Note[java.lang.Boolean] = noteCaptor.getAllValues.get(1).asInstanceOf[Note[java.lang.Boolean]]
+      val boolNote = noteCaptor.getAllValues.get(1).asInstanceOf[Note[java.lang.Boolean]]
       boolNote.name shouldBe "BOOLEAN"
       boolNote.value shouldBe true
 
-      val longNote: Note[Long] = noteCaptor.getAllValues.get(2).asInstanceOf[Note[Long]]
+      val longNote = noteCaptor.getAllValues.get(2).asInstanceOf[Note[Long]]
       longNote.name shouldBe "LONG"
       longNote.value shouldBe 200L
 
-      val dblNote: Note[Double] = noteCaptor.getAllValues.get(3).asInstanceOf[Note[Double]]
+      val dblNote = noteCaptor.getAllValues.get(3).asInstanceOf[Note[Double]]
       dblNote.name shouldBe "DOUBLE"
       dblNote.value shouldBe 3.14
     }
     "record null traced data parameters" in {
-      val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
+      val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
 
       sampleScalaBean.doSomethingWithTracedJavaParams(null, null, null, null)
       verify(spanBuilder, times(4)).record(noteCaptor.capture)
 
-      val strNote: Note[String] = noteCaptor.getAllValues.get(0).asInstanceOf[Note[String]]
+      val strNote = noteCaptor.getAllValues.get(0).asInstanceOf[Note[String]]
       strNote.name shouldBe "STRING"
       strNote.value shouldBe null
 
-      val boolNote: Note[String] = noteCaptor.getAllValues.get(1).asInstanceOf[Note[String]]
+      val boolNote = noteCaptor.getAllValues.get(1).asInstanceOf[Note[String]]
       boolNote.name shouldBe "BOOLEAN"
       boolNote.value shouldBe null
 
-      val longNote: Note[String] = noteCaptor.getAllValues.get(2).asInstanceOf[Note[String]]
+      val longNote = noteCaptor.getAllValues.get(2).asInstanceOf[Note[String]]
       longNote.name shouldBe "LONG"
       longNote.value shouldBe null
 
-      val dblNote: Note[String] = noteCaptor.getAllValues.get(3).asInstanceOf[Note[String]]
+      val dblNote = noteCaptor.getAllValues.get(3).asInstanceOf[Note[String]]
       dblNote.name shouldBe "DOUBLE"
       dblNote.value shouldBe null
     }
     "record traced parameters when more than one annotation is present" in {
-      val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
+      val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
 
       sampleScalaBean.doSomethingWithTracedParamsAndNonTracedParams("foo", "bar")
       verify(spanBuilder, times(1)).record(noteCaptor.capture)
@@ -120,7 +124,7 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
       noteCaptor.getValue.value shouldBe "foo"
     }
     "record a string note of None if traced data annotation is on parameter of invalid type with null value" in {
-      val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
+      val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
 
       sampleScalaBean.doSomethingWithIllegalTracedParams(null)
       verify(spanBuilder, times(1)).record(noteCaptor.capture)
@@ -128,7 +132,7 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
       noteCaptor.getValue.asInstanceOf[Note[String]].value shouldBe null
     }
     "record a string note on a parameter of an unsupported type that is not null" in {
-      val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
+      val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
 
       sampleScalaBean.doSomethingWithIllegalTracedParams(List(1))
       verify(spanBuilder, times(1)).record(noteCaptor.capture)
@@ -136,8 +140,8 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
       noteCaptor.getValue.value shouldBe "List(1)"
     }
     "propagate traced data params" in {
-      val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
-      val propCaptor: ArgumentCaptor[Boolean] = ArgumentCaptor.forClass(classOf[Boolean])
+      val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
+      val propCaptor = ArgumentCaptor.forClass(classOf[Boolean])
 
       sampleScalaBean.doSomethingWithTracedParamsPropagated("prop", "bar")
       verify(spanBuilder, times(1)).record(noteCaptor.capture)
@@ -151,8 +155,8 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
       val interceptor = new TracedMethodInterceptor(tracer)
       val invocation = mock[MethodInvocation]
       val accessibleObject = mock[AccessibleObject]
-      doReturn(accessibleObject).when(invocation).getStaticPart
-      doReturn(null).when(accessibleObject).getAnnotation(classOf[Traced])
+      when(invocation.getStaticPart).thenReturn(accessibleObject)
+      when(accessibleObject.getAnnotation(classOf[Traced])).thenReturn(null)
 
       interceptor.invoke(invocation)
 
@@ -169,11 +173,11 @@ class SampleScalaBean {
   @Autowired
   private var springTracer: SpringTracer = _
 
-  @Traced("SampleTrace") def doSomethingGood {
+  @Traced("SampleTrace") def doSomethingGood(): Unit = {
     springTracer.record("foo", "bar")
   }
 
-  @Traced("SampleTrace") def doSomethingBad {
+  @Traced("SampleTrace") def doSomethingBad(): Unit = {
     springTracer.record("foo", "bar")
     throw new IllegalStateException("fail")
   }
@@ -183,40 +187,38 @@ class SampleScalaBean {
     @TracedData("STRING") str: String,
     @TracedData("BOOLEAN") bool: Boolean,
     @TracedData("LONG") lng: Long,
-    @TracedData("DOUBLE") dbl: Double) {
-
-    return
-  }
+    @TracedData("DOUBLE") dbl: Double): Unit = ()
 
   @Traced("SampleTrace")
   def doSomethingWithTracedJavaParams(
     @TracedData("STRING") str: String,
     @TracedData("BOOLEAN") bool: java.lang.Boolean,
     @TracedData("LONG") lng: java.lang.Long,
-    @TracedData("DOUBLE") dbl: java.lang.Double) {
-
-    return
-  }
+    @TracedData("DOUBLE") dbl: java.lang.Double): Unit = ()
 
   @Traced("SampleTrace")
   def doSomethingWithTracedParamsAndNonTracedParams(
     @TracedData("STRING")@NotNull str: String,
-    @NotNull nn: String): Unit = {
-
-    return
-  }
+    @NotNull nn: String): Unit = ()
 
   @Traced("SampleTrace")
   def doSomethingWithTracedParamsPropagated(
     @TracedData(value = "STRING", propagate = true)@NotNull str: String,
-    @NotNull nn: String): Unit = {
-
-    return
-  }
+    @NotNull nn: String): Unit = ()
 
   @Traced("SampleTrace")
-  def doSomethingWithIllegalTracedParams(@TracedData("WHAT") lst: List[Byte]): Unit = {
+  def doSomethingWithIllegalTracedParams(@TracedData("WHAT") lst: List[Byte]): Unit = ()
+}
 
-    return
-  }
+@Configuration
+@EnableAspectJAutoProxy
+class TestConfig {
+  @Bean
+  def tracedMethodInterceptor(springTracer: SpringTracer) = new TracedMethodInterceptor(springTracer)
+
+  @Bean
+  def tracedMethodAdvisor(tracedMethodInterceptor: TracedMethodInterceptor) = new TracedMethodAdvisor(tracedMethodInterceptor)
+
+  @Bean
+  def sampleScalaBean(): SampleScalaBean = new SampleScalaBean
 }
