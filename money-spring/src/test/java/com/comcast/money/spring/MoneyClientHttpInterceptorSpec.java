@@ -85,6 +85,7 @@ public class MoneyClientHttpInterceptorSpec {
         when(httpRequest.getHeaders()).thenReturn(httpHeaders);
 
         String expectedMoneyHeaderVal = String.format("trace-id=%s;parent-id=%s;span-id=%s", traceId, parentSpanId, spanId);
+        String expectedMoneyStateVal = "sampled=1";
         String expectedTraceParentHeaderVal = String.format("00-%s-%016x-01", traceId.replace("-", ""), spanId);
 
         underTest.intercept(httpRequest, new byte[0], clientHttpRequestExecution);
@@ -92,6 +93,7 @@ public class MoneyClientHttpInterceptorSpec {
         verify(httpRequest).getHeaders();
         Assert.assertEquals(3, httpHeaders.size());
         Assert.assertEquals(expectedMoneyHeaderVal, httpHeaders.get("X-MoneyTrace").get(0));
+        Assert.assertEquals(expectedMoneyStateVal, httpHeaders.get("X-MoneyState").get(0));
         Assert.assertEquals(expectedTraceParentHeaderVal, httpHeaders.get("traceparent").get(0));
     }
 }
