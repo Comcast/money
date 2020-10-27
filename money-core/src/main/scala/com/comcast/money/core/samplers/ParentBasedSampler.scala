@@ -6,7 +6,7 @@ import com.typesafe.config.Config
  * A sampler that uses the parent span sampling decision if one exists, otherwise uses the root sampler
  * to determine the sampler result.
  */
-class ParentBasedSampler extends ConfigurableSampler {
+final class ParentBasedSampler extends ConfigurableSampler {
   var root: Sampler = AlwaysOnSampler
   var remoteSampled: Sampler = AlwaysOnSampler
   var remoteNotSampled: Sampler = AlwaysOffSampler

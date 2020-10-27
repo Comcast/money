@@ -22,7 +22,7 @@ import com.comcast.money.api.{ Note, SpanId }
  * A sampler that calculates that a ratio of spans should be recorded based on the lower 64-bits of the trace id.
  * @param ratio of spans to be recorded and sampled, between 0.0 and 1.0
  */
-class RatioBasedSampler(val ratio: Double) extends Sampler {
+final class RatioBasedSampler(val ratio: Double) extends Sampler {
 
   private val upperBound =
     if (ratio <= 0.0) {
