@@ -34,7 +34,7 @@ case object DropResult extends SamplerResult
  * @param sample indicates whether the span will be marked as sampled which will be propagated to upstream systems
  * @param notes to be recorded on the span
  */
-sealed case class RecordResult(sample: Boolean = true, notes: Seq[Note[_]] = Nil) extends SamplerResult
+final case class RecordResult(sample: Boolean = true, notes: Seq[Note[_]] = Nil) extends SamplerResult
 
 /**
  * Helper functions for creating [[SamplerResult]]s from Java.
