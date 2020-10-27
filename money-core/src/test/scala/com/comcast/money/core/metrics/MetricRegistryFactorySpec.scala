@@ -43,7 +43,7 @@ class MetricRegistryFactorySpec extends AnyWordSpec with BeforeAndAfter with Moc
     "use the DefaultMetricRegistryFactory" should {
       "creating MetricRegistries" in {
 
-        doReturn("com.comcast.money.metrics.DefaultMetricRegistryFactory").when(conf).getString("metrics-registry.class-name")
+        when(conf.getString("metrics-registry.class-name")).thenReturn("com.comcast.money.metrics.DefaultMetricRegistryFactory")
 
         val registry = MetricRegistryFactory.metricRegistry(conf)
 
@@ -55,8 +55,8 @@ class MetricRegistryFactorySpec extends AnyWordSpec with BeforeAndAfter with Moc
   "fall back to the DefaultMetricRegistryFactory" should {
     "when the config is broken" in {
 
-      doReturn(true).when(conf).hasPath("metrics-registry.class-name")
-      doReturn("lorem ipsum").when(conf).getString("metrics-registry.class-name")
+      when(conf.hasPath("metrics-registry.class-name")).thenReturn(true)
+      when(conf.getString("metrics-registry.class-name")).thenReturn("lorem ipsum")
 
       intercept[ClassNotFoundException] {
         val registry = MetricRegistryFactory.metricRegistry(conf)
@@ -67,8 +67,8 @@ class MetricRegistryFactorySpec extends AnyWordSpec with BeforeAndAfter with Moc
   "use the MockMetricRegistryFactory" should {
     "when configured so" in {
 
-      doReturn(true).when(conf).hasPath("metrics-registry.class-name")
-      doReturn("com.comcast.money.core.metrics.MockMetricRegistryFactory").when(conf).getString("metrics-registry.class-name")
+      when(conf.hasPath("metrics-registry.class-name")).thenReturn(true)
+      when(conf.getString("metrics-registry.class-name")).thenReturn("com.comcast.money.core.metrics.MockMetricRegistryFactory")
 
       val registry1 = MetricRegistryFactory.metricRegistry(conf)
       val registry2 = MetricRegistryFactory.metricRegistry(conf)

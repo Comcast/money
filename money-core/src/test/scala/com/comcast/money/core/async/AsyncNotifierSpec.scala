@@ -19,7 +19,7 @@ package com.comcast.money.core.async
 import com.comcast.money.core.SpecHelpers
 import com.comcast.money.core.concurrent.ConcurrentSupport
 import com.typesafe.config.ConfigFactory
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
 
 import scala.concurrent.Future
@@ -82,7 +82,7 @@ class AsyncNotifierSpec
       val future = mock[Future[String]]
 
       val asyncNotifier = AsyncNotifier(Seq(mockHandler))
-      doReturn(true).when(mockHandler).supports(futureClass, future)
+      when(mockHandler.supports(futureClass, future)).thenReturn(true)
 
       val result = asyncNotifier.resolveHandler(futureClass, future)
 
@@ -96,7 +96,7 @@ class AsyncNotifierSpec
       val future = mock[Future[String]]
 
       val asyncNotifier = AsyncNotifier(Seq(mockHandler))
-      doReturn(true).when(mockHandler).supports(any[Class[_]], any)
+      when(mockHandler.supports(any[Class[_]], any)).thenReturn(true)
 
       val result = asyncNotifier.resolveHandler(null, future)
 
@@ -107,7 +107,7 @@ class AsyncNotifierSpec
       val mockHandler = mock[AsyncNotificationHandler]
 
       val asyncNotifier = AsyncNotifier(Seq(mockHandler))
-      doReturn(true).when(mockHandler).supports(any[Class[_]], any)
+      when(mockHandler.supports(any[Class[_]], any)).thenReturn(true)
 
       val result = asyncNotifier.resolveHandler(classOf[Future[_]], null)
 
@@ -118,7 +118,7 @@ class AsyncNotifierSpec
       val mockHandler = mock[AsyncNotificationHandler]
 
       val asyncNotifier = AsyncNotifier(Seq(mockHandler))
-      doReturn(false).when(mockHandler).supports(any[Class[_]], any)
+      when(mockHandler.supports(any[Class[_]], any)).thenReturn(false)
 
       val result = asyncNotifier.resolveHandler(classOf[Future[_]], new Object)
 

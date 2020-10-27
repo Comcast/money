@@ -183,7 +183,8 @@ lazy val moneySpring =
           junitInterface,
           assertj,
           springTest,
-          springOckito
+          springBootTest,
+          aspectJ
         ) ++ commonTestDependencies,
       testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
     )

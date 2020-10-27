@@ -20,7 +20,7 @@ import com.codahale.metrics.{ Histogram, Meter, MetricRegistry }
 import com.typesafe.config.Config
 import io.opentelemetry.trace.StatusCanonicalCode
 import org.mockito.Mockito._
-import org.mockito.Matchers._
+import org.mockito.ArgumentMatchers._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatestplus.mockito.MockitoSugar
@@ -29,8 +29,8 @@ import org.scalatest.OneInstancePerTest
 class MetricsHandlerSpec extends AnyWordSpec with Matchers with MockitoSugar with TestData with OneInstancePerTest {
 
   val conf = mock[Config]
-  doReturn(true).when(conf).hasPath("metrics-registry.class-name")
-  doReturn("com.comcast.money.core.metrics.MockMetricRegistryFactory").when(conf).getString("metrics-registry.class-name")
+  when(conf.hasPath("metrics-registry.class-name")).thenReturn(true)
+  when(conf.getString("metrics-registry.class-name")).thenReturn("com.comcast.money.core.metrics.MockMetricRegistryFactory")
 
   "MetricsSpanHandler" should {
     "configure the metrics registry" in {
@@ -46,8 +46,8 @@ class MetricsHandlerSpec extends AnyWordSpec with Matchers with MockitoSugar wit
 
       val latencyMetric = mock[Histogram]
       val errorMetric = mock[Meter]
-      doReturn(latencyMetric).when(underTest.metricRegistry).histogram(anyString())
-      doReturn(errorMetric).when(underTest.metricRegistry).meter(anyString())
+      when(underTest.metricRegistry.histogram(anyString())).thenReturn(latencyMetric)
+      when(underTest.metricRegistry.meter(anyString())).thenReturn(errorMetric)
 
       underTest.handle(testSpanInfo)
 
@@ -61,8 +61,8 @@ class MetricsHandlerSpec extends AnyWordSpec with Matchers with MockitoSugar wit
 
       val latencyMetric = mock[Histogram]
       val errorMetric = mock[Meter]
-      doReturn(latencyMetric).when(underTest.metricRegistry).histogram(anyString())
-      doReturn(errorMetric).when(underTest.metricRegistry).meter(anyString())
+      when(underTest.metricRegistry.histogram(anyString())).thenReturn(latencyMetric)
+      when(underTest.metricRegistry.meter(anyString())).thenReturn(errorMetric)
 
       underTest.handle(testSpanInfo.copy(status = StatusCanonicalCode.ERROR))
 
