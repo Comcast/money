@@ -45,6 +45,43 @@ class MoneyTraceFormatterSpec extends AnyWordSpec with MockitoSugar with Matcher
       }
     }
 
+    "read a money http header with a sampled flag" in {
+      forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
+        val expectedSpanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getSampled, TraceState.getDefault)
+        val spanId = underTest.fromHttpHeaders(
+          getHeader = {
+            case MoneyTraceHeader => MoneyHeaderFormat.format(expectedSpanId.traceId, expectedSpanId.parentId, expectedSpanId.selfId)
+            case MoneyStateHeader => "sampled=1"
+          })
+        spanId shouldBe Some(expectedSpanId)
+      }
+    }
+
+    "read a money http header with a sampled flag set to not sample" in {
+      forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
+        val expectedSpanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getDefault, TraceState.getDefault)
+        val spanId = underTest.fromHttpHeaders(
+          getHeader = {
+            case MoneyTraceHeader => MoneyHeaderFormat.format(expectedSpanId.traceId, expectedSpanId.parentId, expectedSpanId.selfId)
+            case MoneyStateHeader => "sampled=0"
+          })
+        spanId shouldBe Some(expectedSpanId)
+      }
+    }
+
+    "read a money http header with state" in {
+      forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
+        val state = TraceState.builder.set("foo", "bar").set("fizz", "buzz").build
+        val expectedSpanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getSampled, state)
+        val spanId = underTest.fromHttpHeaders(
+          getHeader = {
+            case MoneyTraceHeader => MoneyHeaderFormat.format(expectedSpanId.traceId, expectedSpanId.parentId, expectedSpanId.selfId)
+            case MoneyStateHeader => "sampled=1;foo=bar;fizz=buzz"
+          })
+        spanId shouldBe Some(expectedSpanId)
+      }
+    }
+
     "fail to read a badly formatted money http header" in {
       forAll { (traceIdValue: String, parentSpanIdValue: String, spanIdValue: String) =>
         val spanId = underTest.fromHttpHeaders(
@@ -56,12 +93,45 @@ class MoneyTraceFormatterSpec extends AnyWordSpec with MockitoSugar with Matcher
       }
     }
 
+    "read a money http header with a malformed state header" in {
+      forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
+        val expectedSpanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getSampled, TraceState.getDefault)
+        val spanId = underTest.fromHttpHeaders(
+          getHeader = {
+            case MoneyTraceHeader => MoneyHeaderFormat.format(expectedSpanId.traceId, expectedSpanId.parentId, expectedSpanId.selfId)
+            case MoneyStateHeader => "garbage"
+          })
+        spanId shouldBe Some(expectedSpanId)
+      }
+    }
+
     "create a money http header" in {
       forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
         val spanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getSampled, TraceState.getDefault)
         underTest.toHttpHeaders(spanId, {
           case (MoneyTraceHeader, v) => v shouldBe MoneyHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId)
-          case (MoneyStateHeader, _) =>
+          case (MoneyStateHeader, v) => v shouldBe "sampled=1"
+        })
+      }
+    }
+
+    "create a money http header for a not sampled span" in {
+      forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
+        val spanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getDefault, TraceState.getDefault)
+        underTest.toHttpHeaders(spanId, {
+          case (MoneyTraceHeader, v) => v shouldBe MoneyHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId)
+          case (MoneyStateHeader, v) => v shouldBe "sampled=0"
+        })
+      }
+    }
+
+    "create a money http header with state" in {
+      forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
+        val state = TraceState.builder.set("foo", "bar").build
+        val spanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getSampled, state)
+        underTest.toHttpHeaders(spanId, {
+          case (MoneyTraceHeader, v) => v shouldBe MoneyHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId)
+          case (MoneyStateHeader, v) => v shouldBe "sampled=1;foo=bar"
         })
       }
     }

@@ -59,7 +59,7 @@ final class MoneyTraceFormatter extends Formatter {
 
     def parseStateHeader(stateHeader: String): (Byte, TraceState) = {
 
-      var flags: Byte = 0
+      var flags: Byte = TraceFlags.getSampled
       val stateBuilder = TraceState.builder
       parseHeaderMap(stateHeader).foreach {
         case (SampledKey, "1") => flags = TraceFlags.getSampled
