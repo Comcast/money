@@ -59,15 +59,15 @@ object Dependencies {
 
   val commonsIo = "commons-io" % "commons-io" % "2.4"
 
-  val openTelemetryApi = "io.opentelemetry" % "opentelemetry-api" % openTelemetryV
-  val openTelemetryProp = "io.opentelemetry" % "opentelemetry-extension-trace-propagators" % openTelemetryV
-  val openTelemetrySdk = "io.opentelemetry" % "opentelemetry-sdk" % openTelemetryV
-  val openTelemetryInMemoryExporter = "io.opentelemetry" % "opentelemetry-exporters-inmemory" % openTelemetryV
-  val openTelemetryLoggingExporter = "io.opentelemetry" % "opentelemetry-exporters-logging" % openTelemetryV
-  val openTelemetryOtlpExporter = "io.opentelemetry" % "opentelemetry-exporters-otlp" % openTelemetryV
-  val openTelemetryZipkinExporter = "io.opentelemetry" % "opentelemetry-exporters-zipkin" % openTelemetryV
-  val openTelemetryJaegerExporter = "io.opentelemetry" % "opentelemetry-exporters-jaeger" % openTelemetryV
-  val openTelemetryPrometheusExporter = "io.opentelemetry" % "opentelemetry-exporters-prometheus" % openTelemetryV
+  val openTelemetryApi = "io.opentelemetry" % "opentelemetry-api" % openTelemetryV changing()
+  val openTelemetryProp = "io.opentelemetry" % "opentelemetry-extension-trace-propagators" % openTelemetryV changing()
+  val openTelemetrySdk = "io.opentelemetry" % "opentelemetry-sdk" % openTelemetryV changing()
+  val openTelemetryInMemoryExporter = "io.opentelemetry" % "opentelemetry-exporters-inmemory" % openTelemetryV changing()
+  val openTelemetryLoggingExporter = "io.opentelemetry" % "opentelemetry-exporters-logging" % openTelemetryV changing()
+  val openTelemetryOtlpExporter = "io.opentelemetry" % "opentelemetry-exporters-otlp" % openTelemetryV changing()
+  val openTelemetryZipkinExporter = "io.opentelemetry" % "opentelemetry-exporters-zipkin" % openTelemetryV changing()
+  val openTelemetryJaegerExporter = "io.opentelemetry" % "opentelemetry-exporters-jaeger" % openTelemetryV changing()
+  val openTelemetryPrometheusExporter = "io.opentelemetry" % "opentelemetry-exporters-prometheus" % openTelemetryV changing()
 
   // Spring
   val springWeb = ("org.springframework" % "spring-web" % "4.3.17.RELEASE")
