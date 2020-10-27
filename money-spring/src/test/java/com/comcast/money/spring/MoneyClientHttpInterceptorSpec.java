@@ -90,7 +90,7 @@ public class MoneyClientHttpInterceptorSpec {
         underTest.intercept(httpRequest, new byte[0], clientHttpRequestExecution);
 
         verify(httpRequest).getHeaders();
-        Assert.assertEquals(2, httpHeaders.size());
+        Assert.assertEquals(3, httpHeaders.size());
         Assert.assertEquals(expectedMoneyHeaderVal, httpHeaders.get("X-MoneyTrace").get(0));
         Assert.assertEquals(expectedTraceParentHeaderVal, httpHeaders.get("traceparent").get(0));
     }

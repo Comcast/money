@@ -20,9 +20,9 @@ import java.util.UUID
 
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.TraceGenerators
-import com.comcast.money.core.formatters.MoneyTraceFormatter.{ MoneyHeaderFormat, MoneyTraceHeader }
-import io.opentelemetry.trace.{ TraceFlags, TraceState }
-import org.mockito.Mockito.{ verify, verifyNoMoreInteractions }
+import com.comcast.money.core.formatters.MoneyTraceFormatter.{MoneyHeaderFormat, MoneyStateHeader, MoneyTraceHeader}
+import io.opentelemetry.trace.{TraceFlags, TraceState}
+import org.mockito.Mockito.{verify, verifyNoMoreInteractions}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
@@ -39,6 +39,7 @@ class MoneyTraceFormatterSpec extends AnyWordSpec with MockitoSugar with Matcher
         val spanId = underTest.fromHttpHeaders(
           getHeader = {
             case MoneyTraceHeader => MoneyHeaderFormat.format(expectedSpanId.traceId, expectedSpanId.parentId, expectedSpanId.selfId)
+            case MoneyStateHeader => null
           })
         spanId shouldBe Some(expectedSpanId)
       }
@@ -49,6 +50,7 @@ class MoneyTraceFormatterSpec extends AnyWordSpec with MockitoSugar with Matcher
         val spanId = underTest.fromHttpHeaders(
           getHeader = {
             case MoneyTraceHeader => MoneyHeaderFormat.format(traceIdValue, parentSpanIdValue, spanIdValue)
+            case MoneyStateHeader => null
           })
         spanId shouldBe None
       }
@@ -57,15 +59,15 @@ class MoneyTraceFormatterSpec extends AnyWordSpec with MockitoSugar with Matcher
     "create a money http header" in {
       forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
         val spanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getSampled, TraceState.getDefault)
-        underTest.toHttpHeaders(spanId, (header, value) => {
-          header shouldBe MoneyTraceHeader
-          value shouldBe MoneyHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId)
+        underTest.toHttpHeaders(spanId, {
+          case (MoneyTraceHeader, v) => v shouldBe MoneyHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId)
+          case (MoneyStateHeader, _) =>
         })
       }
     }
 
     "lists the MoneyTrace headers" in {
-      underTest.fields shouldBe Seq(MoneyTraceHeader)
+      underTest.fields shouldBe Seq(MoneyTraceHeader, MoneyStateHeader)
     }
 
     "copy the request headers to the response" in {
@@ -73,9 +75,11 @@ class MoneyTraceFormatterSpec extends AnyWordSpec with MockitoSugar with Matcher
 
       underTest.setResponseHeaders({
         case MoneyTraceHeader => MoneyTraceHeader
+        case MoneyStateHeader => MoneyStateHeader
       }, setHeader)
 
       verify(setHeader).apply(MoneyTraceHeader, MoneyTraceHeader)
+      verify(setHeader).apply(MoneyStateHeader, MoneyStateHeader)
       verifyNoMoreInteractions(setHeader)
     }
   }
