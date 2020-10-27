@@ -17,11 +17,11 @@
 package com.comcast.money.core.formatters
 
 import com.comcast.money.api.SpanId
-import com.comcast.money.core.formatters.MoneyTraceFormatter.{KeyValueDelimiter, MoneyStateDelimiter, MoneyStateHeader, ParentIdKey, SampledKey, SpanIdKey, TraceIdKey}
-import io.opentelemetry.trace.{TraceFlags, TraceState}
+import com.comcast.money.core.formatters.MoneyTraceFormatter.{ KeyValueDelimiter, MoneyStateDelimiter, MoneyStateHeader, ParentIdKey, SampledKey, SpanIdKey, TraceIdKey }
+import io.opentelemetry.trace.{ TraceFlags, TraceState }
 
 import scala.collection.JavaConverters._
-import scala.util.{Success, Try}
+import scala.util.{ Success, Try }
 
 object MoneyTraceFormatter {
   private[core] val MoneyTraceHeader = "X-MoneyTrace"
@@ -47,15 +47,15 @@ final class MoneyTraceFormatter extends Formatter {
     val stateEntries = sampled +: spanId.traceState.getEntries.asScala.toStream
       .map { entry => entry.getKey -> entry.getValue }
 
-    addHeader(MoneyStateHeader, stateEntries.map { case (k, v) => s"$k=$v"}.mkString(";"))
+    addHeader(MoneyStateHeader, stateEntries.map { case (k, v) => s"$k=$v" }.mkString(";"))
   }
 
   override def fromHttpHeaders(getHeader: String => String, log: String => Unit): Option[SpanId] = {
     def parseHeaderMap(header: String): Map[String, String] = MoneyStateDelimiter.split(header)
-        .map { KeyValueDelimiter.split }
-        .filter { _.length == 2 }
-        .map { case Array(key, value) => key -> value }
-        .toMap
+      .map { KeyValueDelimiter.split }
+      .filter { _.length == 2 }
+      .map { case Array(key, value) => key -> value }
+      .toMap
 
     def parseStateHeader(stateHeader: String): (Byte, TraceState) = {
 

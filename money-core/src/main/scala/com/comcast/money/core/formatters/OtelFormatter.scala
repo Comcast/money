@@ -40,7 +40,7 @@ class OtelFormatter(propagator: TextMapPropagator) extends Formatter {
     } yield spanId
   }
 
-  override def fields: Seq[String] = propagator.fields.asScala
+  override def fields: Seq[String] = propagator.fields.asScala.toSeq
 
   private case class PropagatingSpan(spanId: SpanId) extends Span {
     override def getContext: SpanContext = spanId.toSpanContext

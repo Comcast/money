@@ -20,9 +20,9 @@ import java.util.UUID
 
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.TraceGenerators
-import com.comcast.money.core.formatters.MoneyTraceFormatter.{MoneyHeaderFormat, MoneyStateHeader, MoneyTraceHeader}
-import io.opentelemetry.trace.{TraceFlags, TraceState}
-import org.mockito.Mockito.{verify, verifyNoMoreInteractions}
+import com.comcast.money.core.formatters.MoneyTraceFormatter.{ MoneyHeaderFormat, MoneyStateHeader, MoneyTraceHeader }
+import io.opentelemetry.trace.{ TraceFlags, TraceState }
+import org.mockito.Mockito.{ verify, verifyNoMoreInteractions }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
