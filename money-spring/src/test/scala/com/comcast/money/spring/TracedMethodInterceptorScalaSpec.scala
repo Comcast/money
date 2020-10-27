@@ -18,8 +18,8 @@ package com.comcast.money.spring
 
 import java.lang.reflect.AccessibleObject
 
-import com.comcast.money.annotations.{Traced, TracedData}
-import com.comcast.money.api.{Note, Span}
+import com.comcast.money.annotations.{ Traced, TracedData }
+import com.comcast.money.api.{ Note, Span }
 import com.sun.istack.internal.NotNull
 import io.opentelemetry.context.Scope
 import org.aopalliance.intercept.MethodInvocation
@@ -33,10 +33,10 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.mock.mockito.MockBean
-import org.springframework.context.annotation.{Bean, Configuration, EnableAspectJAutoProxy}
+import org.springframework.context.annotation.{ Bean, Configuration, EnableAspectJAutoProxy }
 import org.springframework.stereotype.Component
 import org.springframework.test.context.junit4.SpringRunner
-import org.springframework.test.context.{ContextConfiguration, TestContextManager}
+import org.springframework.test.context.{ ContextConfiguration, TestContextManager }
 
 @RunWith(classOf[SpringRunner])
 @ContextConfiguration(classes = Array(classOf[TestConfig]))
