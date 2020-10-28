@@ -15,19 +15,14 @@
  */
 
 package com.comcast.money.core.formatters
-
 import com.comcast.money.api.SpanId
 
 /**
- * Formats the span id into HTTP headers so that it can be propagated to other services.
+ * Decorates a formatter so that it interprets headers for incoming requests but does not write headers for outgoing requests.
  */
-trait Formatter {
-  def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit
-  def fromHttpHeaders(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId]
-  def fields: Seq[String]
-
-  def setResponseHeaders(getHeader: String => String, addHeader: (String, String) => Unit): Unit = {
-    def setResponseHeader(headerName: String): Unit = Option(getHeader(headerName)).foreach(v => addHeader(headerName, v))
-    fields.foreach(setResponseHeader)
-  }
+final class IngressFormatter(val formatter: Formatter) extends Formatter {
+  override def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit = ()
+  override def fromHttpHeaders(getHeader: String => String, log: String => Unit): Option[SpanId] =
+    formatter.fromHttpHeaders(getHeader, log)
+  override def fields: Seq[String] = formatter.fields
 }

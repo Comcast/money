@@ -45,9 +45,11 @@ class FormatterChainSpec extends AnyWordSpec with MockitoSugar with Matchers {
         """
           | formatters = [
           |   {
+          |     type = custom
           |     class = com.comcast.money.core.formatters.TraceContextFormatter
           |   },
           |   {
+          |     type = custom
           |     class = com.comcast.money.core.formatters.MoneyTraceFormatter
           |   }
           | ]
