@@ -34,8 +34,8 @@ final class RatioBasedSampler(val ratio: Double) extends Sampler {
     }
 
   override def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], name: String): SamplerResult =
-    if (spanId.traceIdAsUUID.getLeastSignificantBits.abs < upperBound)
-      RecordResult(sample = true, List(Note.of("sampling.probability", ratio)))
-    else
-      DropResult
+    if (spanId.traceIdAsUUID.getLeastSignificantBits.abs < upperBound) {
+      SamplerResult.RecordAndSample.withNote(Note.of("sampling.probability", ratio))
+    } else
+      SamplerResult.Drop
 }

@@ -22,5 +22,5 @@ import com.comcast.money.api.SpanId
  * A sampler which always indicates that spans should be recorded and sampled.
  */
 object AlwaysOnSampler extends Sampler {
-  override def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], name: String): SamplerResult = RecordResult()
+  override def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], name: String): SamplerResult = SamplerResult.RecordAndSample
 }
