@@ -63,7 +63,7 @@ class RatioBasedSamplerSpec extends AnyWordSpec with Matchers {
       val result = underTest.shouldSample(spanId, None, "name")
 
       result should matchPattern {
-        case RecordResult(true, Seq(note)) if note.name == "sampling.probability" && note.value == 1.0 =>
+        case RecordResult(true, List(note)) if note.name == "sampling.probability" && note.value == 1.0 =>
       }
     }
   }

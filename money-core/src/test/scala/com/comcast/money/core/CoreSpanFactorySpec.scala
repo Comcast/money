@@ -133,6 +133,6 @@ class CoreSpanFactorySpec extends AnyWordSpec with Matchers with MockitoSugar wi
 
   class SamplerWithNote(note: Note[_]) extends Sampler {
     override def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], spanName: String): SamplerResult =
-      RecordResult(notes = Seq(note))
+      RecordResult(notes = List(note))
   }
 }

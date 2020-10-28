@@ -34,17 +34,17 @@ case object DropResult extends SamplerResult
  * @param sample indicates whether the span will be marked as sampled which will be propagated to upstream systems
  * @param notes to be recorded on the span
  */
-final case class RecordResult(sample: Boolean = true, notes: Seq[Note[_]] = Nil) extends SamplerResult {
+final case class RecordResult(sample: Boolean = true, notes: List[Note[_]] = Nil) extends SamplerResult {
 
   /**
    * Adds a note to the sampler result to be recorded on the created span
    */
-  def withNote(note: Note[_]): SamplerResult = withNotes(Seq(note))
+  def withNote(note: Note[_]): SamplerResult = withNotes(List(note))
 
   /**
    * Adds notes to the sampler result to be recorded on the created span
    */
-  def withNotes(notes: Seq[Note[_]]): SamplerResult = RecordResult(sample, this.notes ++ notes)
+  def withNotes(notes: List[Note[_]]): SamplerResult = RecordResult(sample, this.notes ++ notes)
 }
 
 object SamplerResult {
