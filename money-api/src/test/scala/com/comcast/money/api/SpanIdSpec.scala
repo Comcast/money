@@ -172,6 +172,13 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
       spanId.traceIdAsHex shouldBe "01234567890abcdef01234567890abcd"
     }
 
+    "returns traceId as uuid" in {
+      val spanId = SpanId.createNew()
+      val uuid = spanId.traceIdAsUUID()
+
+      uuid shouldBe UUID.fromString(spanId.traceId)
+    }
+
     "returns span id as hex" in {
       val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L)
 
