@@ -85,7 +85,7 @@ public class IdGenerator {
     }
 
     public static String convertIdToHex(long id) {
-        return io.opentelemetry.trace.SpanId.fromLong(id);
+        return io.opentelemetry.api.trace.SpanId.fromLong(id);
     }
 
     public static boolean isValidTraceId(String traceId) {

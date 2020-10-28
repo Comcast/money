@@ -21,7 +21,7 @@ import java.util.function
 import com.comcast.money.api.{ InstrumentationLibrary, Span, SpanFactory, SpanHandler, SpanId }
 import com.comcast.money.core.formatters.Formatter
 import com.comcast.money.core.samplers.{ DropResult, RecordResult, Sampler }
-import io.opentelemetry.trace.TraceFlags
+import io.opentelemetry.api.trace.TraceFlags
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._

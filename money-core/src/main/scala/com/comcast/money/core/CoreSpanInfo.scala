@@ -19,7 +19,7 @@ package com.comcast.money.core
 import java.util.Collections
 
 import com.comcast.money.api.{ Event, InstrumentationLibrary, Note, SpanId, SpanInfo }
-import io.opentelemetry.trace.{ Span, StatusCode }
+import io.opentelemetry.api.trace.{ Span, StatusCode }
 
 private[core] case class CoreSpanInfo(
   id: SpanId,

@@ -19,7 +19,7 @@ package com.comcast.money.core.handlers
 import com.comcast.money.api.{ Note, SpanId }
 import com.comcast.money.core.CoreSpanInfo
 import com.typesafe.config.ConfigFactory
-import io.opentelemetry.trace.StatusCode
+import io.opentelemetry.api.trace.StatusCode
 
 import scala.collection.JavaConverters._
 import scala.collection._

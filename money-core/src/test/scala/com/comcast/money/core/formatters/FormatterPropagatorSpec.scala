@@ -19,7 +19,7 @@ package com.comcast.money.core.formatters
 import com.comcast.money.api.{ IdGenerator, Span, SpanId }
 import io.opentelemetry.context.Context
 import io.opentelemetry.context.propagation.TextMapPropagator
-import io.opentelemetry.trace.{ Span => OtelSpan, TraceFlags, TraceState, TracingContextUtils }
+import io.opentelemetry.api.trace.{ Span => OtelSpan, TraceFlags, TraceState, TracingContextUtils }
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{ verify, when }

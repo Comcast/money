@@ -17,9 +17,9 @@
 package com.comcast.money.core
 
 import com.comcast.money.api._
-import io.opentelemetry.common.{ AttributeKey, Attributes }
+import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.{ Context, Scope }
-import io.opentelemetry.trace.{ EndSpanOptions, SpanContext, StatusCode, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ EndSpanOptions, SpanContext, StatusCode, Span => OtelSpan }
 import java.util.function
 
 import com.comcast.money.core.formatters.Formatter

@@ -16,7 +16,7 @@
 
 package com.comcast.money.api;
 
-import io.opentelemetry.trace.Tracer;
+import io.opentelemetry.api.trace.Tracer;
 
 /**
  * OpenTelemetry compatible API to be used for tracing

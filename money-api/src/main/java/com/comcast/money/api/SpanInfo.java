@@ -20,8 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import io.opentelemetry.trace.Span;
-import io.opentelemetry.trace.StatusCode;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.Span;
 
 public interface SpanInfo {
 

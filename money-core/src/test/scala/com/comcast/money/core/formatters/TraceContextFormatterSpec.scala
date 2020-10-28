@@ -21,7 +21,7 @@ import java.util.UUID
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.formatters.TraceContextFormatter.{ TraceParentHeader, TraceStateHeader }
 import com.comcast.money.core.TraceGenerators
-import io.opentelemetry.trace.{ TraceFlags, TraceState }
+import io.opentelemetry.api.trace.{ TraceFlags, TraceState }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks

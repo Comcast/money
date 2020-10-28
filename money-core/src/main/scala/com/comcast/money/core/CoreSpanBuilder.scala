@@ -19,9 +19,9 @@ package com.comcast.money.core
 import java.util.concurrent.TimeUnit
 
 import com.comcast.money.api.{ Note, Span, SpanFactory }
-import io.opentelemetry.common.{ AttributeKey, Attributes }
+import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Context
-import io.opentelemetry.trace.{ SpanContext, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ SpanContext, Span => OtelSpan }
 
 private[core] class CoreSpanBuilder(
   var parentSpan: Option[Span],

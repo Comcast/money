@@ -21,7 +21,7 @@ import java.util.Collections
 import com.comcast.money.api.{ Note, SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.{ Clock, CoreSpan, CoreSpanInfo, SystemClock }
 import com.typesafe.config.Config
-import io.opentelemetry.trace.{ StatusCode, TraceFlags, TraceState, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ StatusCode, TraceFlags, TraceState, Span => OtelSpan }
 
 class ConfiguredHandler extends ConfigurableHandler {
 

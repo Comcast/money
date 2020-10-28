@@ -18,7 +18,7 @@ package com.comcast.money.core.internal
 
 import com.comcast.money.api.Span
 import io.opentelemetry.context.{ Context, Scope }
-import io.opentelemetry.trace.{ Span => OtelSpan }
+import io.opentelemetry.api.trace.{ Span => OtelSpan }
 
 trait SpanContext {
   def push(span: Span): Scope

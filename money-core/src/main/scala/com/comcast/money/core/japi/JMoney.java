@@ -16,7 +16,7 @@
 
 package com.comcast.money.core.japi;
 
-import io.opentelemetry.common.AttributeKey;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.context.Scope;
 
 import com.comcast.money.api.Note;

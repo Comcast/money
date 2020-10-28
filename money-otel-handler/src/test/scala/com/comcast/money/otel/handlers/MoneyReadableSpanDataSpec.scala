@@ -20,11 +20,11 @@ import java.util
 import java.util.UUID
 
 import com.comcast.money.api.{ Event, InstrumentationLibrary, Note, SpanId, SpanInfo }
-import io.opentelemetry.common.{ AttributeKey, Attributes }
+import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.data.ImmutableStatus
 import io.opentelemetry.sdk.trace.data.SpanData.Status
-import io.opentelemetry.trace.{ Span, StatusCode, TraceState }
+import io.opentelemetry.api.trace.{ Span, StatusCode, TraceState }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 

@@ -19,8 +19,8 @@ package com.comcast.money.core
 import java.io.{ PrintWriter, StringWriter }
 
 import com.comcast.money.api.Event
-import io.opentelemetry.common.Attributes
-import io.opentelemetry.trace.attributes.SemanticAttributes
+import io.opentelemetry.api.common.Attributes
+import io.opentelemetry.api.trace.attributes.SemanticAttributes
 
 private[core] case class CoreEvent(
   name: String,

@@ -17,9 +17,9 @@
 package com.comcast.money.core
 
 import com.comcast.money.api.{ Note, Span, SpanFactory }
-import io.opentelemetry.common.AttributeKey
+import io.opentelemetry.api.common.AttributeKey
 import io.opentelemetry.context.Context
-import io.opentelemetry.trace.{ Span => OtelSpan }
+import io.opentelemetry.api.trace.{ Span => OtelSpan }
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{ times, verify, when }

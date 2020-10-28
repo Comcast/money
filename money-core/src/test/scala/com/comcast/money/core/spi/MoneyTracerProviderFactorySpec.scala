@@ -18,9 +18,9 @@ package com.comcast.money.core.spi
 
 import java.util.ServiceLoader
 
-import com.comcast.money.core.{ Money, MoneyTracerProvider, Tracer }
-import io.opentelemetry.OpenTelemetry
-import io.opentelemetry.trace.spi.TracerProviderFactory
+import com.comcast.money.core.{ MoneyTracerProvider, Tracer }
+import io.opentelemetry.api.OpenTelemetry
+import io.opentelemetry.api.trace.spi.TracerProviderFactory
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar

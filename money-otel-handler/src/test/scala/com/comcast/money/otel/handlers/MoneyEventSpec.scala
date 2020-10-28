@@ -17,7 +17,7 @@
 package com.comcast.money.otel.handlers
 
 import com.comcast.money.api.Event
-import io.opentelemetry.common.{ AttributeKey, Attributes }
+import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 

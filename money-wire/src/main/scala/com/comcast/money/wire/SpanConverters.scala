@@ -28,7 +28,7 @@ import com.comcast.money.wire.avro
 import com.comcast.money.wire.avro.NoteType
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.{ DeserializationFeature, ObjectMapper }
-import io.opentelemetry.trace.{ Span, StatusCode, TraceFlags, TraceState }
+import io.opentelemetry.api.trace.{ Span, StatusCode, TraceFlags, TraceState }
 import org.apache.avro.Schema
 import org.apache.avro.io.{ DecoderFactory, EncoderFactory }
 import org.apache.avro.specific.{ SpecificDatumReader, SpecificDatumWriter }

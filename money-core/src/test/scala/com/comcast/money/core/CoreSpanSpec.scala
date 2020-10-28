@@ -21,10 +21,10 @@ import java.util.concurrent.TimeUnit
 
 import com.comcast.money.api.{ SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.handlers.TestData
-import io.opentelemetry.common.{ AttributeKey, Attributes }
+import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
-import io.opentelemetry.trace.attributes.SemanticAttributes
-import io.opentelemetry.trace.{ EndSpanOptions, StatusCode, TraceFlags, TraceState, Span => OtelSpan }
+import io.opentelemetry.api.trace.attributes.SemanticAttributes
+import io.opentelemetry.api.trace.{ EndSpanOptions, StatusCode, TraceFlags, TraceState, Span => OtelSpan }
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
 import org.scalatest.matchers.should.Matchers

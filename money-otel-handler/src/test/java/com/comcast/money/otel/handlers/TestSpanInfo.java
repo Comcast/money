@@ -20,8 +20,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import io.opentelemetry.trace.Span;
-import io.opentelemetry.trace.StatusCode;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
 
 import com.comcast.money.api.Event;
 import com.comcast.money.api.InstrumentationLibrary;

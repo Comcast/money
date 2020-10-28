@@ -24,8 +24,8 @@ import com.comcast.money.core.CoreSpanInfo;
 
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
-import io.opentelemetry.trace.StatusCode;
-import io.opentelemetry.trace.TracingContextUtils;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.TracingContextUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -54,7 +54,7 @@ public class MoneyClientHttpInterceptorSpec {
         SpanInfo testSpanInfo = new CoreSpanInfo(
                 id,
                 "testName",
-                io.opentelemetry.trace.Span.Kind.INTERNAL,
+                io.opentelemetry.api.trace.Span.Kind.INTERNAL,
                 0L,
                 0L,
                 0L,
@@ -68,7 +68,7 @@ public class MoneyClientHttpInterceptorSpec {
 
         when(span.info()).thenReturn(testSpanInfo);
 
-        Method withSpan = TracingContextUtils.class.getDeclaredMethod("withSpan", io.opentelemetry.trace.Span.class, Context.class);
+        Method withSpan = TracingContextUtils.class.getDeclaredMethod("withSpan", io.opentelemetry.api.trace.Span.class, Context.class);
         withSpan.setAccessible(true);
 
         Context context = (Context) withSpan.invoke(null, span, Context.root());

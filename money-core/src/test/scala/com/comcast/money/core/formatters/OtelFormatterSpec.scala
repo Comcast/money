@@ -21,7 +21,7 @@ import com.comcast.money.core.{ CoreSpan, DisabledSpanHandler }
 import io.opentelemetry.context.Context
 import io.opentelemetry.context.propagation.TextMapPropagator
 import io.opentelemetry.context.propagation.TextMapPropagator.{ Getter, Setter }
-import io.opentelemetry.trace.{ Span => OtelSpan }
+import io.opentelemetry.api.trace.{ Span => OtelSpan }
 import org.mockito.{ ArgumentCaptor, Mockito }
 import org.mockito.ArgumentMatchers.{ any, eq => argEq }
 import org.mockito.Mockito.{ verify, when }

@@ -22,7 +22,7 @@ import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
-import io.opentelemetry.trace.SpanContext;
+import io.opentelemetry.api.trace.SpanContext;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

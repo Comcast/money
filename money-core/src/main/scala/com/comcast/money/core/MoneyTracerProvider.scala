@@ -17,8 +17,8 @@
 package com.comcast.money.core
 
 import com.comcast.money.api.{ InstrumentationLibrary, SpanFactory }
-import io.opentelemetry.trace
-import io.opentelemetry.trace.TracerProvider
+import io.opentelemetry.api.trace
+import io.opentelemetry.api.trace.TracerProvider
 
 import scala.collection.concurrent.TrieMap
 

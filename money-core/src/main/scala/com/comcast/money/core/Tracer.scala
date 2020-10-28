@@ -21,7 +21,7 @@ import java.io.Closeable
 import com.comcast.money.api.{ MoneyTracer, Note, Span, SpanFactory }
 import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
 import io.opentelemetry.context.Scope
-import io.opentelemetry.trace.{ StatusCode, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ StatusCode, Span => OtelSpan }
 
 /**
  * Primary API to be used for tracing

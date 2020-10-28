@@ -21,13 +21,13 @@ import java.util.Collections
 
 import com.comcast.money.api.{ Event, InstrumentationLibrary, Note, SpanInfo }
 import com.comcast.money.core.Money
-import io.opentelemetry.common.{ Attributes, ReadableAttributes }
+import io.opentelemetry.api.common.{ Attributes, ReadableAttributes }
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.ReadableSpan
 import io.opentelemetry.sdk.trace.data.SpanData.Status
 import io.opentelemetry.sdk.trace.data.SpanData
-import io.opentelemetry.trace.{ SpanContext, SpanId, TraceState, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ SpanContext, SpanId, TraceState, Span => OtelSpan }
 
 import scala.collection.JavaConverters._
 

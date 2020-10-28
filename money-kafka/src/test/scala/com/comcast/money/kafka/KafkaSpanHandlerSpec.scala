@@ -32,7 +32,7 @@ import scala.collection.JavaConverters._
 import java.{ util => ju }
 
 import com.comcast.money.wire.TestSpanInfo
-import io.opentelemetry.trace.StatusCode
+import io.opentelemetry.api.trace.StatusCode
 
 trait MockProducerMaker extends ProducerMaker {
 

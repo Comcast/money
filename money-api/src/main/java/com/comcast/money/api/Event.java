@@ -16,7 +16,7 @@
 
 package com.comcast.money.api;
 
-import io.opentelemetry.common.Attributes;
+import io.opentelemetry.api.common.Attributes;
 
 /**
  * An event that was recorded on a {@link Span}.

@@ -20,7 +20,7 @@ import java.util.Collections
 
 import com.comcast.money.api.{ Event, InstrumentationLibrary, Note, SpanId, SpanInfo }
 import com.comcast.money.core.Money
-import io.opentelemetry.trace.{ Span, StatusCode }
+import io.opentelemetry.api.trace.{ Span, StatusCode }
 
 case class TestSpanInfo(
   id: SpanId,

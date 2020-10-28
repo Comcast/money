@@ -17,7 +17,7 @@
 package com.comcast.money.core.formatters
 
 import com.comcast.money.api.SpanId
-import io.opentelemetry.trace.{ TraceFlags, TraceState }
+import io.opentelemetry.api.trace.{ TraceFlags, TraceState }
 
 import scala.util.{ Failure, Success, Try }
 

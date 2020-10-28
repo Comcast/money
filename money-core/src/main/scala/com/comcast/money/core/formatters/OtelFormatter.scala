@@ -17,10 +17,10 @@
 package com.comcast.money.core.formatters
 
 import com.comcast.money.api.SpanId
-import io.opentelemetry.common.{ AttributeKey, Attributes }
+import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Context
 import io.opentelemetry.context.propagation.TextMapPropagator
-import io.opentelemetry.trace._
+import io.opentelemetry.api.trace._
 
 import scala.collection.JavaConverters._
 

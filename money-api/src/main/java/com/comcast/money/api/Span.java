@@ -16,12 +16,12 @@
 
 package com.comcast.money.api;
 
-import io.opentelemetry.common.AttributeKey;
-import io.opentelemetry.common.Attributes;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
-import io.opentelemetry.trace.SpanContext;
-import io.opentelemetry.trace.StatusCode;
 import scala.Option;
 
 /**
@@ -30,7 +30,7 @@ import scala.Option;
  *
  * A Span is immutable, all changes to the span result in a new Span being created.
  */
-public interface Span extends io.opentelemetry.trace.Span, Scope {
+public interface Span extends io.opentelemetry.api.trace.Span, Scope {
 
     /**
      * Signals the span that it has started
@@ -121,7 +121,7 @@ public interface Span extends io.opentelemetry.trace.Span, Scope {
     /**
      * Updates the kind of the span
      */
-    Span updateKind(io.opentelemetry.trace.Span.Kind kind);
+    Span updateKind(io.opentelemetry.api.trace.Span.Kind kind);
 
     /**
      * Attaches a {@link Scope} to the span which will be closed when the span is stopped
@@ -136,7 +136,7 @@ public interface Span extends io.opentelemetry.trace.Span, Scope {
     /**
      * A builder used to construct {@link Span} instances.
      */
-    interface Builder extends io.opentelemetry.trace.Span.Builder {
+    interface Builder extends io.opentelemetry.api.trace.Span.Builder {
 
         /**
          * {@inheritDoc}

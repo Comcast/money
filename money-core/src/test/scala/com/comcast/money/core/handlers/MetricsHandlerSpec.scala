@@ -18,7 +18,7 @@ package com.comcast.money.core.handlers
 
 import com.codahale.metrics.{ Histogram, Meter, MetricRegistry }
 import com.typesafe.config.Config
-import io.opentelemetry.trace.StatusCode
+import io.opentelemetry.api.trace.StatusCode
 import org.mockito.Mockito._
 import org.mockito.ArgumentMatchers._
 import org.scalatest.wordspec.AnyWordSpec

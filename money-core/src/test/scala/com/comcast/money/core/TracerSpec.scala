@@ -27,7 +27,7 @@ import org.scalatest.{ BeforeAndAfterEach, OneInstancePerTest }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-import io.opentelemetry.trace.StatusCode
+import io.opentelemetry.api.trace.StatusCode
 
 class TracerSpec extends AnyWordSpec
   with Matchers with MockitoSugar with TestData with BeforeAndAfterEach with OneInstancePerTest {

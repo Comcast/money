@@ -19,7 +19,7 @@ package com.comcast.money.spring
 import com.comcast.money.api.{ Note, Span, SpanFactory }
 import com.comcast.money.core._
 import io.opentelemetry.context.Scope
-import io.opentelemetry.trace
+import io.opentelemetry.api.trace
 import org.springframework.stereotype.Component
 
 /**

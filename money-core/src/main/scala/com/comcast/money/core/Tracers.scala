@@ -17,7 +17,7 @@
 package com.comcast.money.core
 
 import com.comcast.money.core.logging.TraceLogging
-import io.opentelemetry.trace.StatusCode
+import io.opentelemetry.api.trace.StatusCode
 
 object Tracers extends TraceLogging {
 
