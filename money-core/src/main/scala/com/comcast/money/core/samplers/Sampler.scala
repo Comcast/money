@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core.formatters
+package com.comcast.money.core.samplers
 
 import com.comcast.money.api.SpanId
 
 /**
- * Formats the span id into HTTP headers so that it can be propagated to other services.
+ * A sampler that tests whether or not a span should be recorded or sampled.
  */
-trait Formatter {
-  def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit
-  def fromHttpHeaders(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId]
-  def fields: Seq[String]
-
-  def setResponseHeaders(getHeader: String => String, addHeader: (String, String) => Unit): Unit = {
-    def setResponseHeader(headerName: String): Unit = Option(getHeader(headerName)).foreach(v => addHeader(headerName, v))
-    fields.foreach(setResponseHeader)
-  }
+trait Sampler {
+  /**
+   * Tests the span to determine if it should be recorded or sampled.
+   * @param spanId the id of the span
+   * @param parentSpanId the id of the parent span, if any
+   * @param spanName the name of the span
+   * @return a [[SamplerResult]] indicating whether or not the span should be recorded or sampled
+   */
+  def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], spanName: String): SamplerResult
 }

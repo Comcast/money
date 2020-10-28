@@ -16,12 +16,29 @@
 
 package com.comcast.money.core.formatters
 
+import com.comcast.money.core.DisabledFormatter
 import com.typesafe.config.Config
+import org.slf4j.LoggerFactory
 
 object FormatterFactory {
-  def create(config: Config): Formatter = {
-    val className = config.getString("class")
-    val formatterInstance = Class.forName(className).newInstance().asInstanceOf[Formatter]
-    formatterInstance
-  }
+  private val logger = LoggerFactory.getLogger(getClass)
+
+  def create(config: Config): Formatter =
+    config.getString("type") match {
+      case "trace-context" => new TraceContextFormatter()
+      case "money-trace" => new MoneyTraceFormatter()
+      case "ingress" => new IngressFormatter(FormatterChain(config))
+      case "egress" => new EgressFormatter(FormatterChain(config))
+      case "custom" =>
+        val className = config.getString("class")
+        Class.forName(className).newInstance() match {
+          case configurable: ConfigurableFormatter =>
+            configurable.configure(config)
+            configurable
+          case formatter: Formatter => formatter
+        }
+      case unknown =>
+        logger.warn("Unknown formatter type: '{}'", unknown)
+        DisabledFormatter
+    }
 }

@@ -14,20 +14,17 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core.formatters
+package com.comcast.money.core.samplers
 
 import com.comcast.money.api.SpanId
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
 
-/**
- * Formats the span id into HTTP headers so that it can be propagated to other services.
- */
-trait Formatter {
-  def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit
-  def fromHttpHeaders(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId]
-  def fields: Seq[String]
-
-  def setResponseHeaders(getHeader: String => String, addHeader: (String, String) => Unit): Unit = {
-    def setResponseHeader(headerName: String): Unit = Option(getHeader(headerName)).foreach(v => addHeader(headerName, v))
-    fields.foreach(setResponseHeader)
+class AlwaysOnSamplerSpec extends AnyWordSpec with Matchers {
+  "AlwaysOnSampler" should {
+    "always return a record result with sampling" in {
+      val spanId = SpanId.createNew()
+      AlwaysOnSampler.shouldSample(spanId, None, "name") should matchPattern { case RecordResult(true, Nil) => }
+    }
   }
 }

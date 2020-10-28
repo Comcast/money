@@ -158,6 +158,13 @@ public final class SpanId {
     }
 
     /**
+     * @return the trace ID as a UUID
+     */
+    public UUID traceIdAsUUID() {
+        return UUID.fromString(traceId);
+    }
+
+    /**
      * @return the parent span ID, which will be the same as the span ID in the case of a root span
      */
     public long parentId() {
@@ -232,6 +239,16 @@ public final class SpanId {
      */
     public SpanId createChild() {
         return createChild(this);
+    }
+
+    /**
+     * Creates a copy of the span ID with the new trace flags
+     */
+    public SpanId withTraceFlags(byte flags) {
+        if (flags != this.flags) {
+            return new SpanId(traceId, parentId, selfId, remote, flags, state);
+        }
+        return this;
     }
 
     /**
