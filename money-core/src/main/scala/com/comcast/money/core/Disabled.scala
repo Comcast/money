@@ -78,9 +78,9 @@ object DisabledFormatter extends Formatter {
 
 object DisabledSpanFactory extends SpanFactory {
 
-  override def newSpan(spanName: String): Span = DisabledSpan
+  override def spanBuilder(spanName: String): Span.Builder = DisabledSpanBuilder
 
-  override def newSpanFromHeader(childName: String, getHeader: function.Function[String, String]): Span = DisabledSpan
+  override def newSpan(spanName: String): Span = DisabledSpan
 
   override def childSpan(childName: String, span: Span): Span = DisabledSpan
 

@@ -16,13 +16,11 @@
 
 package com.comcast.money.core
 
-import java.util.function
-
 import com.comcast.money.api.{ InstrumentationLibrary, Span, SpanFactory, SpanHandler, SpanId }
 import com.comcast.money.core.formatters.Formatter
 import com.comcast.money.core.samplers.{ DropResult, RecordResult, Sampler }
+import io.grpc.Context
 import io.opentelemetry.trace.TraceFlags
-import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
@@ -33,28 +31,13 @@ private[core] final case class CoreSpanFactory(
   sampler: Sampler,
   library: InstrumentationLibrary) extends SpanFactory {
 
-  private val logger = LoggerFactory.getLogger(classOf[CoreSpanFactory])
+  override def spanBuilder(spanName: String): Span.Builder =
+    new CoreSpanBuilder(None, spanName, this)
+      .setParent(Context.current)
 
   override def newSpan(spanName: String): Span = newSpan(SpanId.createNew(), spanName)
 
   override def newSpan(spanId: SpanId, spanName: String): Span = createNewSpan(spanId, None, spanName)
-
-  /**
-   * Continues a trace by creating a child span from the given x-moneytrace header
-   * value or a root span if header is malformed.
-   *
-   * @param childName - the name of the child span to create
-   * @param getHeader - function for retrieving value of x-moneytrace header
-   * @return a child span with trace id and parent id from trace context header or a new root span if the
-   * traceContextHeader is malformed.
-   */
-  override def newSpanFromHeader(childName: String, getHeader: function.Function[String, String]): Span =
-    formatter.fromHttpHeaders(getHeader.apply, logger.warn) match {
-      case Some(spanId) => newSpan(spanId.createChild(), childName)
-      case None =>
-        logger.warn(s"creating root span because http header '${getHeader}' was malformed")
-        newSpan(childName)
-    }
 
   override def childSpan(childName: String, span: Span): Span = childSpan(childName, span, sticky = true)
 

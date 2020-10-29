@@ -74,32 +74,6 @@ class CoreSpanFactorySpec extends AnyWordSpec with Matchers with MockitoSugar wi
       childInfo.notes shouldNot contain value nonStickyNote
     }
 
-    "create a child span from a well-formed x-moneytrace header" in {
-      val parentSpan = underTest.newSpan("parent")
-
-      formatter.toHttpHeaders(parentSpan.info.id, (headerName, headerValue) => headerName match {
-        case MoneyTraceFormatter.MoneyTraceHeader => {
-          val childSpan = underTest.newSpanFromHeader("child", _ => headerValue)
-
-          childSpan.info.id.traceId shouldBe parentSpan.info.id.traceId
-          childSpan.info.id.parentId shouldBe parentSpan.info.id.selfId
-          childSpan.info.id.selfId == parentSpan.info.id.selfId shouldBe false
-        }
-        case _ =>
-      })
-    }
-
-    "create a root span from a malformed x-moneytrace header" in {
-      val parentSpan = underTest.newSpan("parent")
-      val traceContextHeader = "mangled header value"
-      val childSpan = underTest.newSpanFromHeader("child", headerName => traceContextHeader)
-
-      childSpan.info.id.traceId == parentSpan.info.id.traceId shouldBe false
-      childSpan.info.id.parentId == parentSpan.info.id.selfId shouldBe false
-      childSpan.info.id.selfId == parentSpan.info.id.selfId shouldBe false
-      childSpan.info.id.selfId shouldBe childSpan.info.id.parentId
-    }
-
     "creates an unrecorded span when the sampler drops the span" in {
       val underTest = this.underTest.copy(sampler = AlwaysOffSampler)
       val span = underTest.newSpan("test")
