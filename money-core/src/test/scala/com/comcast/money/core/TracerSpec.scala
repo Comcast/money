@@ -52,8 +52,6 @@ class TracerSpec extends AnyWordSpec
     "start a new span when no span exists" in {
       underTest.startSpan("foo")
 
-      verify(mockSpan).start()
-
       SpanLocal.current shouldBe Some(mockSpan)
     }
 
@@ -63,7 +61,6 @@ class TracerSpec extends AnyWordSpec
       underTest.startSpan("bar")
 
       verify(mockSpanFactory).childSpan("bar", testSpan)
-      verify(mockSpan).start()
 
       SpanLocal.current shouldBe Some(mockSpan)
     }

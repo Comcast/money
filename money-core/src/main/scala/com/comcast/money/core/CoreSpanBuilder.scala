@@ -16,8 +16,6 @@
 
 package com.comcast.money.core
 
-import java.util.concurrent.TimeUnit
-
 import com.comcast.money.api.{ InstrumentationLibrary, Note, Span, SpanHandler, SpanId }
 import com.comcast.money.core.samplers.{ DropResult, RecordResult, Sampler }
 import io.grpc.Context
@@ -36,7 +34,7 @@ private[core] class CoreSpanBuilder(
 
   var sticky: Boolean = true
   var spanKind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL
-  var startTimeNanos: Long = 0
+  var startTimeNanos: Long = 0L
   var notes: List[Note[_]] = List()
 
   override def setParent(context: Context): Span.Builder = {
@@ -98,7 +96,16 @@ private[core] class CoreSpanBuilder(
     this
   }
 
-  override def build(): Span = {
+  private[core] def createSpan(id: SpanId, name: String, kind: OtelSpan.Kind, startTimeNanos: Long): Span = CoreSpan(
+    id = id,
+    name = name,
+    startTimeNanos = startTimeNanos,
+    kind = kind,
+    library = library,
+    clock = clock,
+    handler = handler)
+
+  override def startSpan(): Span = {
     val parentSpanId = parentSpan.map { _.info.id }
 
     val spanId = (this.spanId, parentSpanId) match {
@@ -115,6 +122,7 @@ private[core] class CoreSpanBuilder(
         val span = createSpan(
           id = spanId.withTraceFlags(traceFlags),
           name = spanName,
+          startTimeNanos = if (startTimeNanos > 0) startTimeNanos else clock.now,
           kind = spanKind)
 
         // propagate parent span notes
@@ -132,26 +140,5 @@ private[core] class CoreSpanBuilder(
 
         span
     }
-  }
-
-  private[core] def createSpan(id: SpanId, name: String, kind: OtelSpan.Kind): Span = CoreSpan(
-    id = id,
-    name = name,
-    kind = kind,
-    library = library,
-    clock = clock,
-    handler = handler)
-
-  override def startSpan(): Span = {
-    val newSpan = build()
-
-    if (startTimeNanos <= 0) {
-      newSpan.start()
-    } else {
-      val startTimeSeconds = TimeUnit.NANOSECONDS.toSeconds(startTimeNanos)
-      val nanoAdjustment = (startTimeNanos - TimeUnit.SECONDS.toNanos(startTimeSeconds)).toInt
-      newSpan.start(startTimeSeconds, nanoAdjustment)
-    }
-    newSpan
   }
 }

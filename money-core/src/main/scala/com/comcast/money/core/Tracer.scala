@@ -70,7 +70,6 @@ trait Tracer extends MoneyTracer with Closeable {
         spanFactory.newSpan(key))
 
     val scope = spanContext.push(child)
-    child.start()
     child.attachScope(scope)
   }
 

@@ -33,17 +33,17 @@ private[core] final case class CoreSpanFactory(
     spanBuilder(spanName, None, spanContext.current)
 
   override def newSpan(spanName: String): Span =
-    spanBuilder(spanName, None, None).build()
+    spanBuilder(spanName, None, None).startSpan()
 
   override def newSpan(spanId: SpanId, spanName: String): Span =
-    spanBuilder(spanName, Some(spanId), None).build()
+    spanBuilder(spanName, Some(spanId), None).startSpan()
 
   override def childSpan(childName: String, span: Span): Span = childSpan(childName, span, sticky = true)
 
   override def childSpan(childName: String, span: Span, sticky: Boolean): Span =
     spanBuilder(childName, None, Some(span))
       .setSticky(true)
-      .build()
+      .startSpan()
 
   private[core] def spanBuilder(spanName: String, spanId: Option[SpanId] = None, parentSpan: Option[Span] = spanContext.current): Span.Builder =
     new CoreSpanBuilder(
