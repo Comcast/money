@@ -34,6 +34,15 @@ import org.scalatestplus.mockito.MockitoSugar
 class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoSugar {
 
   "CoreSpan" should {
+    "contain the start time stamp" in {
+      val underTest = CoreSpan(SpanId.createNew(), "test", startTimeNanos = 1000000000)
+
+      val info = underTest.info
+      info.startTimeNanos shouldBe 1000000000
+      info.startTimeMicros shouldBe 1000000
+      info.startTimeMillis shouldBe 1000
+    }
+
     "record a timer" in {
       val underTest = CoreSpan(SpanId.createNew(), "test")
 
@@ -284,14 +293,19 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set the endTimeMillis and endTimeMicros when stopped" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val clock = mock[Clock]
+      when(clock.now).thenReturn(3000000000L)
+      val underTest = CoreSpan(SpanId.createNew(), "test", startTimeNanos = 1000000000, clock = clock)
 
       underTest.stop(true)
 
       val state = underTest.info
 
-      state.endTimeMicros.toInt should not be 0
-      state.endTimeMillis.toInt should not be 0
+      state.endTimeNanos shouldBe 3000000000L
+      state.endTimeMicros shouldBe 3000000L
+      state.endTimeMillis shouldBe 3000L
+      state.durationNanos shouldBe 2000000000L
+      state.durationMicros shouldBe 2000000L
     }
 
     "invoke the span handler when stopped" in {
