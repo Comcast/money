@@ -18,15 +18,21 @@ package com.comcast.money.core
 
 import java.util.concurrent.TimeUnit
 
-import com.comcast.money.api.{ Note, Span, SpanFactory }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, Span, SpanHandler, SpanId }
+import com.comcast.money.core.samplers.{ DropResult, RecordResult, Sampler }
 import io.grpc.Context
 import io.opentelemetry.common.{ AttributeKey, Attributes }
-import io.opentelemetry.trace.{ SpanContext, TracingContextUtils, Span => OtelSpan }
+import io.opentelemetry.trace.{ SpanContext, TraceFlags, TracingContextUtils, Span => OtelSpan }
+import scala.collection.JavaConverters._
 
 private[core] class CoreSpanBuilder(
+  spanId: Option[SpanId],
   var parentSpan: Option[Span],
   spanName: String,
-  spanFactory: SpanFactory) extends Span.Builder {
+  clock: Clock,
+  handler: SpanHandler,
+  sampler: Sampler,
+  library: InstrumentationLibrary) extends Span.Builder {
 
   var sticky: Boolean = true
   var spanKind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL
@@ -93,17 +99,48 @@ private[core] class CoreSpanBuilder(
   }
 
   override def build(): Span = {
-    val newSpan = parentSpan match {
-      case Some(s) => spanFactory.childSpan(spanName, s, sticky)
-      case None => spanFactory.newSpan(spanName)
+    val parentSpanId = parentSpan.map { _.info.id }
+
+    val spanId = (this.spanId, parentSpanId) match {
+      case (Some(id), _) => id
+      case (None, Some(id)) => id.createChild()
+      case _ => SpanId.createNew()
     }
 
-    if (spanKind != OtelSpan.Kind.INTERNAL) {
-      //TODO: remember to set the span kind in CoreSpan
+    sampler.shouldSample(spanId, parentSpanId, spanName) match {
+      case DropResult => UnrecordedSpan(spanId, spanName)
+      case RecordResult(sample, notes) =>
+        val traceFlags = if (sample) TraceFlags.getSampled else TraceFlags.getDefault
+
+        val span = createSpan(
+          id = spanId.withTraceFlags(traceFlags),
+          name = spanName,
+          kind = spanKind)
+
+        // propagate parent span notes
+        parentSpan match {
+          case Some(ps) if sticky =>
+            ps.info.notes.values.asScala
+              .filter { _.isSticky }
+              .foreach { span.record }
+          case _ =>
+        }
+        // add sampler notes
+        notes.foreach { span.record }
+        // add builder notes
+        this.notes.foreach { span.record }
+
+        span
     }
-    notes.foreach { newSpan.record }
-    newSpan
   }
+
+  private[core] def createSpan(id: SpanId, name: String, kind: OtelSpan.Kind): Span = CoreSpan(
+    id = id,
+    name = name,
+    kind = kind,
+    library = library,
+    clock = clock,
+    handler = handler)
 
   override def startSpan(): Span = {
     val newSpan = build()

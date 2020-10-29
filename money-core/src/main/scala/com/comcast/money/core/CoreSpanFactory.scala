@@ -18,13 +18,11 @@ package com.comcast.money.core
 
 import com.comcast.money.api.{ InstrumentationLibrary, Span, SpanFactory, SpanHandler, SpanId }
 import com.comcast.money.core.formatters.Formatter
-import com.comcast.money.core.samplers.{ DropResult, RecordResult, Sampler }
-import io.grpc.Context
-import io.opentelemetry.trace.TraceFlags
-
-import scala.collection.JavaConverters._
+import com.comcast.money.core.internal.SpanContext
+import com.comcast.money.core.samplers.Sampler
 
 private[core] final case class CoreSpanFactory(
+  spanContext: SpanContext,
   clock: Clock,
   handler: SpanHandler,
   formatter: Formatter,
@@ -32,42 +30,28 @@ private[core] final case class CoreSpanFactory(
   library: InstrumentationLibrary) extends SpanFactory {
 
   override def spanBuilder(spanName: String): Span.Builder =
-    new CoreSpanBuilder(None, spanName, this)
-      .setParent(Context.current)
+    spanBuilder(spanName, None, spanContext.current)
 
-  override def newSpan(spanName: String): Span = newSpan(SpanId.createNew(), spanName)
+  override def newSpan(spanName: String): Span =
+    spanBuilder(spanName, None, None).build()
 
-  override def newSpan(spanId: SpanId, spanName: String): Span = createNewSpan(spanId, None, spanName)
+  override def newSpan(spanId: SpanId, spanName: String): Span =
+    spanBuilder(spanName, Some(spanId), None).build()
 
   override def childSpan(childName: String, span: Span): Span = childSpan(childName, span, sticky = true)
 
-  override def childSpan(childName: String, span: Span, sticky: Boolean): Span = {
-    val info = span.info
-    val parentSpanId = info.id
-    val spanId = parentSpanId.createChild()
-    val child = createNewSpan(spanId, Some(parentSpanId), childName)
+  override def childSpan(childName: String, span: Span, sticky: Boolean): Span =
+    spanBuilder(childName, None, Some(span))
+      .setSticky(true)
+      .build()
 
-    if (sticky) {
-      info.notes.values.asScala
-        .filter(_.isSticky)
-        .foreach(child.record)
-    }
-
-    child
-  }
-
-  private def createNewSpan(spanId: SpanId, parentSpanId: Option[SpanId], spanName: String): Span =
-    sampler.shouldSample(spanId, parentSpanId, spanName) match {
-      case DropResult => UnrecordedSpan(spanId.withTraceFlags(TraceFlags.getDefault), spanName)
-      case RecordResult(sample, notes) =>
-        val flags = if (sample) TraceFlags.getSampled else TraceFlags.getDefault
-        val span = CoreSpan(
-          id = spanId.withTraceFlags(flags),
-          name = spanName,
-          library = library,
-          clock = clock,
-          handler = handler)
-        notes.foreach { span.record }
-        span
-    }
+  private[core] def spanBuilder(spanName: String, spanId: Option[SpanId] = None, parentSpan: Option[Span] = spanContext.current): Span.Builder =
+    new CoreSpanBuilder(
+      spanId = spanId,
+      parentSpan = parentSpan,
+      spanName = spanName,
+      clock = clock,
+      handler = handler,
+      sampler = sampler,
+      library = library)
 }
