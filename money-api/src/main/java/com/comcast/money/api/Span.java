@@ -178,6 +178,11 @@ public interface Span extends io.opentelemetry.trace.Span, Scope {
         Builder setStartTimestamp(long startTimestampNanos);
 
         /**
+         * Creates the new span without starting it.
+         */
+        Span build();
+
+        /**
          * {@inheritDoc}
          */
         @Override

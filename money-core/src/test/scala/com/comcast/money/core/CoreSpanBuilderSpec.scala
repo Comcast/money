@@ -19,9 +19,10 @@ package com.comcast.money.core
 import com.comcast.money.api.{ Note, Span, SpanFactory }
 import io.grpc.Context
 import io.opentelemetry.common.AttributeKey
-import io.opentelemetry.trace.{ Span => OtelSpan, TracingContextUtils }
+import io.opentelemetry.trace.{ TracingContextUtils, Span => OtelSpan }
 import org.mockito.ArgumentCaptor
-import org.mockito.Mockito.{ times, verify, when }
+import org.mockito.ArgumentMatchers.{ anyInt, anyLong }
+import org.mockito.Mockito.{ never, times, verify, when }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
@@ -202,6 +203,21 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
       verify(spanFactory).newSpan("test")
       verify(span).start(1, 2)
+    }
+
+    "builds a span without starting" in {
+      val spanFactory = mock[SpanFactory]
+      val span = mock[Span]
+      when(spanFactory.newSpan("test")).thenReturn(span)
+
+      val underTest = new CoreSpanBuilder(None, "test", spanFactory)
+
+      val result = underTest.build()
+      result shouldBe span
+
+      verify(spanFactory).newSpan("test")
+      verify(span, never).start()
+      verify(span, never).start(anyLong(), anyInt())
     }
   }
 }

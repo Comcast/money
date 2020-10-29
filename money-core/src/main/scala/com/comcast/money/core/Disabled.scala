@@ -120,6 +120,8 @@ object DisabledSpanBuilder extends Span.Builder {
 
   override def setStartTimestamp(startTimestamp: Long): Span.Builder = this
 
+  override def build(): Span = DisabledSpan
+
   override def startSpan(): Span = DisabledSpan
 }
 

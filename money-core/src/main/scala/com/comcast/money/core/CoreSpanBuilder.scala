@@ -92,7 +92,7 @@ private[core] class CoreSpanBuilder(
     this
   }
 
-  override def startSpan(): Span = {
+  override def build(): Span = {
     val newSpan = parentSpan match {
       case Some(s) => spanFactory.childSpan(spanName, s, sticky)
       case None => spanFactory.newSpan(spanName)
@@ -102,6 +102,11 @@ private[core] class CoreSpanBuilder(
       newSpan.updateKind(spanKind)
     }
     notes.foreach { newSpan.record }
+    newSpan
+  }
+
+  override def startSpan(): Span = {
+    val newSpan = build()
 
     if (startTimeNanos <= 0) {
       newSpan.start()
