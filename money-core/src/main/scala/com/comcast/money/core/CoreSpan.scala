@@ -44,11 +44,11 @@ import scala.collection.mutable.ListBuffer
 private[core] case class CoreSpan(
   id: SpanId,
   var name: String,
+  kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL,
   library: InstrumentationLibrary = Money.InstrumentationLibrary,
   clock: Clock = SystemClock,
   handler: SpanHandler = DisabledSpanHandler) extends Span {
 
-  private var kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL
   private var startTimeNanos: Long = 0
   private var endTimeNanos: Long = 0
   private var status: StatusCanonicalCode = StatusCanonicalCode.UNSET
@@ -164,7 +164,6 @@ private[core] case class CoreSpan(
   }
 
   override def updateName(spanName: String): Unit = name = spanName
-  override def updateKind(spanKind: OtelSpan.Kind): Unit = kind = spanKind
 
   override def end(): Unit = stop()
   override def end(endSpanOptions: EndSpanOptions): Unit = stop(endSpanOptions.getEndTimestamp, StatusCanonicalCode.UNSET)

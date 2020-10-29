@@ -53,7 +53,6 @@ private[core] final case class UnrecordedSpan(
   override def record(note: Note[_]): Unit = ()
   override def startTimer(timerKey: String): Scope = () => ()
   override def stopTimer(timerKey: String): Unit = ()
-  override def updateKind(kind: OtelSpan.Kind): Unit = ()
   override def setAttribute(key: String, value: String): Unit = ()
   override def setAttribute(key: String, value: Long): Unit = ()
   override def setAttribute(key: String, value: Double): Unit = ()
