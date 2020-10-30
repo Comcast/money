@@ -19,7 +19,7 @@ package com.comcast.money.otel.handlers
 import java.util
 import java.util.UUID
 
-import com.comcast.money.api.{ Event, InstrumentationLibrary, Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanId, SpanInfo }
 import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.data.ImmutableStatus
@@ -103,10 +103,10 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
     override def description(): String = "description"
     override def durationNanos(): Long = 2000000L
     override def notes(): util.Map[String, Note[_]] = Map[String, Note[_]]("foo" -> Note.of("foo", "bar")).asJava
-    override def events(): util.List[Event] = List(event).asJava
+    override def events(): util.List[SpanInfo.Event] = List(event).asJava
   }
 
-  val event = new Event {
+  val event = new SpanInfo.Event {
     override def name(): String = "event"
     override def attributes(): Attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
     override def timestamp(): Long = 1234567890L

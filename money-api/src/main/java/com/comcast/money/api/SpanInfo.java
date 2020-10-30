@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.opentelemetry.common.Attributes;
 import io.opentelemetry.trace.Span;
 import io.opentelemetry.trace.StatusCanonicalCode;
 
@@ -151,4 +152,29 @@ public interface SpanInfo {
      * @return the host name or ip
      */
     String host();
+
+    /**
+     * An event that was recorded on a {@link com.comcast.money.api.Span}.
+     */
+    interface Event {
+        /**
+         * @return the name of the event
+         */
+        String name();
+
+        /**
+         * @return the attributes recorded on the event
+         */
+        Attributes attributes();
+
+        /**
+         * @return the timestamp of when the event occurred in nanoseconds since the epoch
+         */
+        long timestamp();
+
+        /**
+         * @return an exception if one was recorded with the event; otherwise {@code null}
+         */
+        Throwable exception();
+    }
 }

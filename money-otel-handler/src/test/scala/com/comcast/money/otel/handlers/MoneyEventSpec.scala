@@ -16,14 +16,14 @@
 
 package com.comcast.money.otel.handlers
 
-import com.comcast.money.api.Event
+import com.comcast.money.api.SpanInfo
 import io.opentelemetry.common.{ AttributeKey, Attributes }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 class MoneyEventSpec extends AnyWordSpec with Matchers {
 
-  val event = new Event {
+  val event = new SpanInfo.Event {
     override def name(): String = "name"
     override def attributes(): Attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
     override def timestamp(): Long = 1234567890L

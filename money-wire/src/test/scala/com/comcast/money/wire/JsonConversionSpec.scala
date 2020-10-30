@@ -16,7 +16,7 @@
 
 package com.comcast.money.wire
 
-import com.comcast.money.api.{ Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ Note, SpanInfo }
 import com.comcast.money.core.formatters.FormatterUtils.randomRemoteSpanId
 import io.opentelemetry.trace.StatusCanonicalCode
 import org.scalatest.Inspectors
