@@ -43,17 +43,15 @@ private[core] final case class UnrecordedSpan(
   }
   override def isRecording: Boolean = false
 
+  // $COVERAGE-OFF$
   override def stop(): Unit = close()
   override def stop(result: lang.Boolean): Unit = close()
   override def `end`(): Unit = close()
   override def `end`(endOptions: EndSpanOptions): Unit = close()
 
-  override def start(): Scope = () => ()
-  override def start(startTimeSeconds: Long, nanoAdjustment: Int): Scope = () => ()
   override def record(note: Note[_]): Unit = ()
   override def startTimer(timerKey: String): Scope = () => ()
   override def stopTimer(timerKey: String): Unit = ()
-  override def updateKind(kind: OtelSpan.Kind): Unit = ()
   override def setAttribute(key: String, value: String): Unit = ()
   override def setAttribute(key: String, value: Long): Unit = ()
   override def setAttribute(key: String, value: Double): Unit = ()
@@ -68,4 +66,5 @@ private[core] final case class UnrecordedSpan(
   override def recordException(exception: Throwable): Unit = ()
   override def recordException(exception: Throwable, additionalAttributes: Attributes): Unit = ()
   override def updateName(name: String): Unit = ()
+  // $COVERAGE-ON$
 }

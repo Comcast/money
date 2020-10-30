@@ -32,8 +32,9 @@ class TracerSpec extends AnyWordSpec
   with Matchers with MockitoSugar with TestData with BeforeAndAfterEach with OneInstancePerTest {
 
   val mockSpanFactory = mock[SpanFactory]
+  val mockSpanBuilder = mock[Span.Builder]
   val mockSpan = mock[Span]
-  val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
+  val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
   val underTest = new Tracer {
     val spanFactory = mockSpanFactory
   }
@@ -51,18 +52,15 @@ class TracerSpec extends AnyWordSpec
     "start a new span when no span exists" in {
       underTest.startSpan("foo")
 
-      verify(mockSpan).start()
-
       SpanLocal.current shouldBe Some(mockSpan)
     }
 
-    "start a child span if a span already exsits" in {
+    "start a child span if a span already exists" in {
       SpanLocal.push(testSpan)
 
       underTest.startSpan("bar")
 
       verify(mockSpanFactory).childSpan("bar", testSpan)
-      verify(mockSpan).start()
 
       SpanLocal.current shouldBe Some(mockSpan)
     }
@@ -228,6 +226,14 @@ class TracerSpec extends AnyWordSpec
 
       verify(mockSpan).setStatus(StatusCanonicalCode.OK)
       verify(mockSpan).close()
+    }
+
+    "obtain a span builder from the span factory" in {
+      when(mockSpanFactory.spanBuilder("test")).thenReturn(mockSpanBuilder)
+
+      underTest.spanBuilder("test") shouldBe mockSpanBuilder
+
+      verify(mockSpanFactory).spanBuilder("test")
     }
   }
 }

@@ -44,12 +44,12 @@ import scala.collection.mutable.ListBuffer
 private[core] case class CoreSpan(
   id: SpanId,
   var name: String,
+  kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL,
+  startTimeNanos: Long = SystemClock.now,
   library: InstrumentationLibrary = Money.InstrumentationLibrary,
   clock: Clock = SystemClock,
   handler: SpanHandler = DisabledSpanHandler) extends Span {
 
-  private var kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL
-  private var startTimeNanos: Long = 0
   private var endTimeNanos: Long = 0
   private var status: StatusCanonicalCode = StatusCanonicalCode.UNSET
   private var description: String = _
@@ -59,16 +59,6 @@ private[core] case class CoreSpan(
   private val noted = new TrieMap[String, Note[_]]()
   private val events = new ListBuffer[Event]()
   private var scopes: List[Scope] = Nil
-
-  override def start(): Scope = {
-    startTimeNanos = clock.now
-    () => stop()
-  }
-
-  override def start(startTimeSeconds: Long, nanoAdjustment: Int): Scope = {
-    startTimeNanos = TimeUnit.SECONDS.toNanos(startTimeSeconds) + nanoAdjustment
-    () => stop()
-  }
 
   override def stop(): Unit = stop(clock.now, StatusCanonicalCode.UNSET)
   override def stop(result: java.lang.Boolean): Unit =
@@ -164,7 +154,6 @@ private[core] case class CoreSpan(
   }
 
   override def updateName(spanName: String): Unit = name = spanName
-  override def updateKind(spanKind: OtelSpan.Kind): Unit = kind = spanKind
 
   override def end(): Unit = stop()
   override def end(endSpanOptions: EndSpanOptions): Unit = stop(endSpanOptions.getEndTimestamp, StatusCanonicalCode.UNSET)

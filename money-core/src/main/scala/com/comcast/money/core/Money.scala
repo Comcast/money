@@ -23,6 +23,7 @@ import com.comcast.money.api.{ InstrumentationLibrary, SpanFactory, SpanHandler 
 import com.comcast.money.core.async.{ AsyncNotificationHandler, AsyncNotifier }
 import com.comcast.money.core.formatters.{ Formatter, FormatterChain }
 import com.comcast.money.core.handlers.HandlerChain
+import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
 import com.comcast.money.core.samplers.{ AlwaysOnSampler, Sampler, SamplerFactory }
 import com.typesafe.config.{ Config, ConfigFactory }
 
@@ -53,7 +54,7 @@ object Money {
       val clock = new NanoClock(SystemClock, TimeUnit.MILLISECONDS.toNanos(50L))
       val formatter = configureFormatter(conf)
       val sampler = configureSampler(conf)
-      val factory: SpanFactory = CoreSpanFactory(clock, handler, formatter, sampler, Money.InstrumentationLibrary)
+      val factory: SpanFactory = CoreSpanFactory(SpanLocal, clock, handler, formatter, sampler, Money.InstrumentationLibrary)
       val tracer = new Tracer {
         override val spanFactory: SpanFactory = factory
       }

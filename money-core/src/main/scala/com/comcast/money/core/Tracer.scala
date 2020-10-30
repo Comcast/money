@@ -41,7 +41,7 @@ trait Tracer extends MoneyTracer with Closeable {
 
   override def withSpan(span: Span): Scope = spanContext.push(span)
 
-  override def spanBuilder(spanName: String): Span.Builder = new CoreSpanBuilder(spanContext.current, spanName, spanFactory)
+  override def spanBuilder(spanName: String): Span.Builder = spanFactory.spanBuilder(spanName)
 
   /**
    * Creates a new span if one is not present; or creates a child span for the existing Span if one is present
@@ -70,7 +70,6 @@ trait Tracer extends MoneyTracer with Closeable {
         spanFactory.newSpan(key))
 
     val scope = spanContext.push(child)
-    child.start()
     child.attachScope(scope)
   }
 
