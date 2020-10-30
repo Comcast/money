@@ -33,9 +33,10 @@ class TracerSpec extends AnyWordSpec
   with Matchers with MockitoSugar with TestData with BeforeAndAfterEach with OneInstancePerTest {
 
   val mockSpanFactory = mock[SpanFactory]
+  val mockSpanBuilder = mock[Span.Builder]
   val mockSpan = mock[Span]
   val mockSpanContext = mock[SpanContext]
-  val noteCaptor = ArgumentCaptor.forClass(classOf[Note[_]])
+  val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])
   val underTest = new Tracer {
     val spanFactory = mockSpanFactory
     override val spanContext = mockSpanContext
@@ -55,7 +56,7 @@ class TracerSpec extends AnyWordSpec
 
       underTest.startSpan("foo")
 
-      verify(mockSpan).start()
+      verify(mockSpanFactory).newSpan("foo")
 
       verify(mockSpanContext).push(mockSpan)
     }
@@ -66,7 +67,6 @@ class TracerSpec extends AnyWordSpec
       underTest.startSpan("bar")
 
       verify(mockSpanFactory).childSpan("bar", testSpan)
-      verify(mockSpan).start()
 
       verify(mockSpanContext).push(mockSpan)
     }
@@ -232,6 +232,14 @@ class TracerSpec extends AnyWordSpec
 
       verify(mockSpan).setStatus(StatusCode.OK)
       verify(mockSpan).close()
+    }
+
+    "obtain a span builder from the span factory" in {
+      when(mockSpanFactory.spanBuilder("test")).thenReturn(mockSpanBuilder)
+
+      underTest.spanBuilder("test") shouldBe mockSpanBuilder
+
+      verify(mockSpanFactory).spanBuilder("test")
     }
   }
 }

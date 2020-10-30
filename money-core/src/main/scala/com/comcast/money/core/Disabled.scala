@@ -20,7 +20,6 @@ import com.comcast.money.api._
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.{ Context, Scope }
 import io.opentelemetry.api.trace.{ EndSpanOptions, SpanContext, StatusCode, Span => OtelSpan }
-import java.util.function
 
 import com.comcast.money.core.formatters.Formatter
 
@@ -77,9 +76,9 @@ object DisabledFormatter extends Formatter {
 
 object DisabledSpanFactory extends SpanFactory {
 
-  override def newSpan(spanName: String): Span = DisabledSpan
+  override def spanBuilder(spanName: String): Span.Builder = DisabledSpanBuilder
 
-  override def newSpanFromHeader(childName: String, getHeader: function.Function[String, String]): Span = DisabledSpan
+  override def newSpan(spanName: String): Span = DisabledSpan
 
   override def childSpan(childName: String, span: Span): Span = DisabledSpan
 
@@ -124,10 +123,6 @@ object DisabledSpanBuilder extends Span.Builder {
 
 object DisabledSpan extends Span {
 
-  override def start(): Scope = () => ()
-
-  override def start(startTimeSeconds: Long, nanoAdjustment: Int): Scope = () => ()
-
   override def stop(): Unit = ()
 
   override def stop(result: java.lang.Boolean): Unit = ()
@@ -171,8 +166,6 @@ object DisabledSpan extends Span {
   override def recordException(exception: Throwable, additionalAttributes: Attributes): Span = this
 
   override def updateName(name: String): Span = this
-
-  override def updateKind(kind: OtelSpan.Kind): Span = this
 
   override def `end`(): Unit = ()
 

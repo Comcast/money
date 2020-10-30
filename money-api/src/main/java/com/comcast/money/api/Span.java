@@ -33,18 +33,6 @@ import scala.Option;
 public interface Span extends io.opentelemetry.api.trace.Span, Scope {
 
     /**
-     * Signals the span that it has started
-     */
-    Scope start();
-
-    /**
-     * Signals the span that it has started at the specified timestamp
-     * @param startTimeSeconds the seconds since the epoch
-     * @param nanoAdjustment the additional nanoseconds from {@code startTimeSeconds}
-     */
-    Scope start(long startTimeSeconds, int nanoAdjustment);
-
-    /**
      * Stops the span asserts a successful result
      */
     void stop();
@@ -117,11 +105,6 @@ public interface Span extends io.opentelemetry.api.trace.Span, Scope {
      * @param timerKey The name of the timer
      */
     void stopTimer(String timerKey);
-
-    /**
-     * Updates the kind of the span
-     */
-    Span updateKind(io.opentelemetry.api.trace.Span.Kind kind);
 
     /**
      * Attaches a {@link Scope} to the span which will be closed when the span is stopped

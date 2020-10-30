@@ -44,12 +44,12 @@ import scala.collection.mutable.ListBuffer
 private[core] case class CoreSpan(
   id: SpanId,
   var name: String,
+  kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL,
+  startTimeNanos: Long = SystemClock.now,
   library: InstrumentationLibrary = Money.InstrumentationLibrary,
   clock: Clock = SystemClock,
   handler: SpanHandler = DisabledSpanHandler) extends Span {
 
-  private var kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL
-  private var startTimeNanos: Long = 0
   private var endTimeNanos: Long = 0
   private var status: StatusCode = StatusCode.UNSET
   private var description: String = _
@@ -60,17 +60,8 @@ private[core] case class CoreSpan(
   private val events = new ListBuffer[Event]()
   private var scopes: List[Scope] = Nil
 
-  override def start(): Scope = {
-    startTimeNanos = clock.now
-    () => stop()
-  }
-
-  override def start(startTimeSeconds: Long, nanoAdjustment: Int): Scope = {
-    startTimeNanos = TimeUnit.SECONDS.toNanos(startTimeSeconds) + nanoAdjustment
-    () => stop()
-  }
-
   override def stop(): Unit = stop(clock.now, StatusCode.UNSET)
+
   override def stop(result: java.lang.Boolean): Unit =
     if (result == null) {
       stop(clock.now, StatusCode.UNSET)
@@ -172,11 +163,6 @@ private[core] case class CoreSpan(
 
   override def updateName(spanName: String): Span = {
     name = spanName
-    this
-  }
-
-  override def updateKind(spanKind: OtelSpan.Kind): Span = {
-    kind = spanKind
     this
   }
 

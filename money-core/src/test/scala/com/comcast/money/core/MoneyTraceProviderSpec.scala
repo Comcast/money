@@ -17,6 +17,7 @@
 package com.comcast.money.core
 
 import com.comcast.money.api.{ InstrumentationLibrary, SpanFactory }
+import com.comcast.money.core.internal.SpanLocal
 import com.comcast.money.core.samplers.AlwaysOnSampler
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -25,7 +26,7 @@ class MoneyTraceProviderSpec extends AnyWordSpec with Matchers {
 
   "MoneyTraceProvider" should {
     "wrap an existing Tracer with a decorated SpanFactory" in {
-      val factory = new CoreSpanFactory(SystemClock, DisabledSpanHandler, DisabledFormatter, AlwaysOnSampler, Money.InstrumentationLibrary)
+      val factory = new CoreSpanFactory(SpanLocal, SystemClock, DisabledSpanHandler, DisabledFormatter, AlwaysOnSampler, Money.InstrumentationLibrary)
       val tracer = new Tracer {
         override val spanFactory: SpanFactory = factory
       }
@@ -43,7 +44,7 @@ class MoneyTraceProviderSpec extends AnyWordSpec with Matchers {
     }
 
     "returns the same Tracer for equivalent InstrumentationLibraries" in {
-      val factory = new CoreSpanFactory(SystemClock, DisabledSpanHandler, DisabledFormatter, AlwaysOnSampler, Money.InstrumentationLibrary)
+      val factory = new CoreSpanFactory(SpanLocal, SystemClock, DisabledSpanHandler, DisabledFormatter, AlwaysOnSampler, Money.InstrumentationLibrary)
       val tracer = new Tracer {
         override val spanFactory: SpanFactory = factory
       }
@@ -56,7 +57,7 @@ class MoneyTraceProviderSpec extends AnyWordSpec with Matchers {
     }
 
     "return different Tracers for different InstrumentationLibraries" in {
-      val factory = new CoreSpanFactory(SystemClock, DisabledSpanHandler, DisabledFormatter, AlwaysOnSampler, Money.InstrumentationLibrary)
+      val factory = new CoreSpanFactory(SpanLocal, SystemClock, DisabledSpanHandler, DisabledFormatter, AlwaysOnSampler, Money.InstrumentationLibrary)
       val tracer = new Tracer {
         override val spanFactory: SpanFactory = factory
       }

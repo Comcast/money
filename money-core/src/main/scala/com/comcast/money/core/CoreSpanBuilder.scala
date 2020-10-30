@@ -16,21 +16,26 @@
 
 package com.comcast.money.core
 
-import java.util.concurrent.TimeUnit
-
-import com.comcast.money.api.{ Note, Span, SpanFactory }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, Span, SpanHandler, SpanId }
+import com.comcast.money.core.samplers.{ DropResult, RecordResult, Sampler }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Context
-import io.opentelemetry.api.trace.{ SpanContext, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ SpanContext, TraceFlags, Span => OtelSpan }
+
+import scala.collection.JavaConverters._
 
 private[core] class CoreSpanBuilder(
+  spanId: Option[SpanId],
   var parentSpan: Option[Span],
   spanName: String,
-  spanFactory: SpanFactory) extends Span.Builder {
+  clock: Clock,
+  handler: SpanHandler,
+  sampler: Sampler,
+  library: InstrumentationLibrary) extends Span.Builder {
 
   var sticky: Boolean = true
   var spanKind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL
-  var startTimeNanos: Long = 0
+  var startTimeNanos: Long = 0L
   var notes: List[Note[_]] = List()
 
   override def setParent(context: Context): Span.Builder = {
@@ -92,24 +97,49 @@ private[core] class CoreSpanBuilder(
     this
   }
 
+  private[core] def createSpan(id: SpanId, name: String, kind: OtelSpan.Kind, startTimeNanos: Long): Span = CoreSpan(
+    id = id,
+    name = name,
+    startTimeNanos = startTimeNanos,
+    kind = kind,
+    library = library,
+    clock = clock,
+    handler = handler)
+
   override def startSpan(): Span = {
-    val newSpan = parentSpan match {
-      case Some(s) => spanFactory.childSpan(spanName, s, sticky)
-      case None => spanFactory.newSpan(spanName)
+    val parentSpanId = parentSpan.map { _.info.id }
+
+    val spanId = (this.spanId, parentSpanId) match {
+      case (Some(id), _) => id
+      case (None, Some(id)) => id.createChild()
+      case _ => SpanId.createNew()
     }
 
-    if (spanKind != OtelSpan.Kind.INTERNAL) {
-      newSpan.updateKind(spanKind)
-    }
-    notes.foreach { newSpan.record }
+    sampler.shouldSample(spanId, parentSpanId, spanName) match {
+      case DropResult => UnrecordedSpan(spanId, spanName)
+      case RecordResult(sample, notes) =>
+        val traceFlags = if (sample) TraceFlags.getSampled else TraceFlags.getDefault
 
-    if (startTimeNanos <= 0) {
-      newSpan.start()
-    } else {
-      val startTimeSeconds = TimeUnit.NANOSECONDS.toSeconds(startTimeNanos)
-      val nanoAdjustment = (startTimeNanos - TimeUnit.SECONDS.toNanos(startTimeSeconds)).toInt
-      newSpan.start(startTimeSeconds, nanoAdjustment)
+        val span = createSpan(
+          id = spanId.withTraceFlags(traceFlags),
+          name = spanName,
+          startTimeNanos = if (startTimeNanos > 0) startTimeNanos else clock.now,
+          kind = spanKind)
+
+        // propagate parent span notes
+        parentSpan match {
+          case Some(ps) if sticky =>
+            ps.info.notes.values.asScala
+              .filter { _.isSticky }
+              .foreach { span.record }
+          case _ =>
+        }
+        // add sampler notes
+        notes.foreach { span.record }
+        // add builder notes
+        this.notes.foreach { span.record }
+
+        span
     }
-    newSpan
   }
 }
