@@ -20,7 +20,6 @@ import java.util
 import java.util.Collections
 
 import com.comcast.money.api.{ Event, InstrumentationLibrary, Note, SpanInfo }
-import com.comcast.money.core.Money
 import io.opentelemetry.api.common.{ Attributes, ReadableAttributes }
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo
 import io.opentelemetry.sdk.resources.Resource
@@ -55,13 +54,12 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
   override def getLinks: util.List[SpanData.Link] = Collections.emptyList()
   override def getStatus: SpanData.Status = Status.create(info.status, info.description)
   override def getEndEpochNanos: Long = info.endTimeNanos
-  override def getHasRemoteParent: Boolean = false
-  override def getHasEnded: Boolean = info.endTimeNanos > 0L
   override def getTotalRecordedEvents: Int = info.events.size
   override def getTotalRecordedLinks: Int = 0
   override def getTotalAttributeCount: Int = info.notes.size
   override def getAttributes: ReadableAttributes = attributes
   override def getEvents: util.List[SpanData.Event] = events
+  override def hasRemoteParent: Boolean = false
 
   private def convertLibraryInfo(library: InstrumentationLibrary): InstrumentationLibraryInfo =
     if (library != null) {

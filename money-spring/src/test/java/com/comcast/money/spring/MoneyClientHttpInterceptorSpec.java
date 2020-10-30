@@ -25,7 +25,6 @@ import com.comcast.money.core.CoreSpanInfo;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.api.trace.StatusCode;
-import io.opentelemetry.api.trace.TracingContextUtils;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -34,7 +33,6 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.client.ClientHttpRequestExecution;
 
-import java.lang.reflect.Method;
 import java.util.Collections;
 
 import static org.mockito.Mockito.*;
@@ -49,7 +47,7 @@ public class MoneyClientHttpInterceptorSpec {
     private Scope spanScope;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         Span span = mock(Span.class);
         SpanInfo testSpanInfo = new CoreSpanInfo(
                 id,
@@ -67,12 +65,10 @@ public class MoneyClientHttpInterceptorSpec {
                 "testHost");
 
         when(span.info()).thenReturn(testSpanInfo);
+        when(span.storeInContext(any())).thenCallRealMethod();
 
-        Method withSpan = TracingContextUtils.class.getDeclaredMethod("withSpan", io.opentelemetry.api.trace.Span.class, Context.class);
-        withSpan.setAccessible(true);
-
-        Context context = (Context) withSpan.invoke(null, span, Context.root());
-        spanScope = context.makeCurrent();
+        Context updatedContext = Context.root().with(span);
+        spanScope = updatedContext.makeCurrent();
     }
 
     @After
@@ -81,7 +77,7 @@ public class MoneyClientHttpInterceptorSpec {
     }
 
     @Test
-    public void testMoneyB3AndTraceParentHeadersAreSet() throws Exception {
+    public void testMoneyAndTraceParentHeadersAreSet() throws Exception {
         System.out.printf("Trace ID: %s%nSpan ID: %d%nParent ID: %d%n", traceId, spanId, parentSpanId);
 
         HttpRequest httpRequest = mock(HttpRequest.class);

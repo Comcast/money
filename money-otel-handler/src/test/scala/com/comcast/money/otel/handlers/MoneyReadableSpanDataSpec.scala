@@ -49,11 +49,10 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getStartEpochNanos shouldBe 1000000L
       underTest.getEndEpochNanos shouldBe 3000000L
       underTest.hasEnded shouldBe true
-      underTest.getHasEnded shouldBe true
       underTest.getLinks shouldBe empty
       underTest.getTotalRecordedLinks shouldBe 0
       underTest.getResource shouldBe Resource.getDefault
-      underTest.getHasRemoteParent shouldBe false
+      underTest.hasRemoteParent shouldBe false
       underTest.getLatencyNanos shouldBe 2000000L
       underTest.getStatus shouldBe Status.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
@@ -77,11 +76,10 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getStartEpochNanos shouldBe 1000000L
       underTest.getEndEpochNanos shouldBe 3000000L
       underTest.hasEnded shouldBe true
-      underTest.getHasEnded shouldBe true
       underTest.getLinks shouldBe empty
       underTest.getTotalRecordedLinks shouldBe 0
       underTest.getResource shouldBe Resource.getDefault
-      underTest.getHasRemoteParent shouldBe false
+      underTest.hasRemoteParent shouldBe false
       underTest.getLatencyNanos shouldBe 2000000L
       underTest.getStatus shouldBe Status.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
