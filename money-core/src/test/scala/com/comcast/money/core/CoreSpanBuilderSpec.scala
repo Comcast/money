@@ -16,17 +16,18 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ InstrumentationLibrary, Note, Span, SpanHandler, SpanId, SpanInfo }
+import com.comcast.money.api.{ IdGenerator, InstrumentationLibrary, Note, Span, SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.samplers.{ Sampler, SamplerResult }
 import io.grpc.Context
-import io.opentelemetry.common.AttributeKey
-import io.opentelemetry.trace.{ TracingContextUtils, Span => OtelSpan }
+import io.opentelemetry.common.{ AttributeKey, Attributes }
+import io.opentelemetry.trace.{ SpanContext, TraceFlags, TraceState, TracingContextUtils, Span => OtelSpan }
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{ any, eq => argEq }
 import org.mockito.Mockito.{ never, times, verify, when }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
+
 import scala.collection.JavaConverters._
 
 class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
@@ -382,6 +383,26 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
         .startSpan()
 
       result.info.startTimeNanos shouldBe 12345789L
+    }
+
+    "create a span with a link" in {
+      val handler = mock[SpanHandler]
+      val sampler = mock[Sampler]
+
+      when(sampler.shouldSample(any(), argEq(None), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
+
+      val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library)
+
+      val linkedContext = SpanContext.create(IdGenerator.generateRandomTraceIdAsHex(), IdGenerator.generateRandomIdAsHex(), TraceFlags.getSampled, TraceState.getDefault)
+      val attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
+
+      val result = underTest.addLink(linkedContext, attributes)
+        .startSpan()
+
+      val links = result.info.links
+      links should have size 1
+      links.get(0).spanContext shouldBe linkedContext
+      links.get(0).attributes shouldBe attributes
     }
   }
 }

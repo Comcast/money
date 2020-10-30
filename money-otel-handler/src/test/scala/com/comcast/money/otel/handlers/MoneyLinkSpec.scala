@@ -16,28 +16,27 @@
 
 package com.comcast.money.otel.handlers
 
-import com.comcast.money.api.SpanInfo
+import com.comcast.money.api.{ IdGenerator, SpanInfo }
 import io.opentelemetry.common.{ AttributeKey, Attributes }
+import io.opentelemetry.trace.{ SpanContext, TraceFlags, TraceState }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
-class MoneyEventSpec extends AnyWordSpec with Matchers {
+class MoneyLinkSpec extends AnyWordSpec with Matchers {
 
-  val event = new SpanInfo.Event {
-    override def name(): String = "name"
+  val linkedContext = SpanContext.create(IdGenerator.generateRandomTraceIdAsHex(), IdGenerator.generateRandomIdAsHex(), TraceFlags.getSampled, TraceState.getDefault)
+  val link = new SpanInfo.Link {
+    override def spanContext(): SpanContext = linkedContext
     override def attributes(): Attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
-    override def timestamp(): Long = 1234567890L
-    override def exception(): Throwable = null
   }
 
-  "MoneyEvent" should {
-    "wrap a Money Event" in {
-      val underTest = MoneyEvent(event)
+  "MoneyLink" should {
+    "should wrap a Money link" in {
+      val underTest = MoneyLink(link)
 
-      underTest.getName shouldBe event.name()
-      underTest.getEpochNanos shouldBe event.timestamp()
+      underTest.getContext shouldBe link.spanContext
+      underTest.getAttributes shouldBe link.attributes
       underTest.getTotalAttributeCount shouldBe 1
-      underTest.getAttributes shouldBe Attributes.of(AttributeKey.stringKey("foo"), "bar")
     }
   }
 }

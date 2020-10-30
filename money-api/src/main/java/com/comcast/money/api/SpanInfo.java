@@ -16,12 +16,14 @@
 
 package com.comcast.money.api;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import io.opentelemetry.common.Attributes;
 import io.opentelemetry.trace.Span;
+import io.opentelemetry.trace.SpanContext;
 import io.opentelemetry.trace.StatusCanonicalCode;
 
 public interface SpanInfo {
@@ -35,7 +37,16 @@ public interface SpanInfo {
     /**
      * @return a list of all of the events that were recorded on the span.
      */
-    List<Event> events();
+    default List<Event> events() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * @return a list of the spans linked to the span
+     */
+    default List<Link> links() {
+        return Collections.emptyList();
+    }
 
     /**
      * @return the time in milliseconds when this span was started
@@ -176,5 +187,22 @@ public interface SpanInfo {
          * @return an exception if one was recorded with the event; otherwise {@code null}
          */
         Throwable exception();
+    }
+
+    /**
+     * A reference to another {@link Span} by span context.
+     *
+     * Can be used to associate multiple traces as a part of a batch operation.
+     */
+    interface Link {
+        /**
+         * @return the context of the linked span
+         */
+        SpanContext spanContext();
+
+        /**
+         * @return the attributes associated with the link between the spans
+         */
+        Attributes attributes();
     }
 }

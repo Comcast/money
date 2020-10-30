@@ -45,6 +45,7 @@ private[core] case class CoreSpan(
   id: SpanId,
   var name: String,
   kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL,
+  links: List[SpanInfo.Link] = Nil,
   startTimeNanos: Long = SystemClock.now,
   library: InstrumentationLibrary = Money.InstrumentationLibrary,
   clock: Clock = SystemClock,
@@ -118,7 +119,8 @@ private[core] case class CoreSpan(
       status = status,
       description = description,
       notes = noted.toMap[String, Note[_]].asJava,
-      events = events.asJava)
+      events = events.asJava,
+      links = links.asJava)
 
   override def close(): Unit = stop()
 

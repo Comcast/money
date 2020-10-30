@@ -33,6 +33,5 @@ case class TestSpanInfo(
   status: StatusCanonicalCode = StatusCanonicalCode.UNSET,
   description: String = "",
   notes: java.util.Map[String, Note[_]] = Collections.emptyMap(),
-  events: java.util.List[SpanInfo.Event] = Collections.emptyList(),
   appName: String = Money.Environment.applicationName,
   host: String = Money.Environment.hostName) extends SpanInfo

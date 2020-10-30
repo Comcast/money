@@ -16,11 +16,12 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ InstrumentationLibrary, Note, Span, SpanHandler, SpanId }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, Span, SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.samplers.{ DropResult, RecordResult, Sampler }
 import io.grpc.Context
 import io.opentelemetry.common.{ AttributeKey, Attributes }
 import io.opentelemetry.trace.{ SpanContext, TraceFlags, TracingContextUtils, Span => OtelSpan }
+
 import scala.collection.JavaConverters._
 
 private[core] class CoreSpanBuilder(
@@ -36,6 +37,7 @@ private[core] class CoreSpanBuilder(
   var spanKind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL
   var startTimeNanos: Long = 0L
   var notes: List[Note[_]] = List()
+  var links: List[SpanInfo.Link] = List()
 
   override def setParent(context: Context): Span.Builder = {
     parentSpan = Option(context)
@@ -67,9 +69,12 @@ private[core] class CoreSpanBuilder(
     this
   }
 
-  override def addLink(spanContext: SpanContext): Span.Builder = this
+  override def addLink(spanContext: SpanContext): Span.Builder = addLink(spanContext, Attributes.empty)
 
-  override def addLink(spanContext: SpanContext, attributes: Attributes): Span.Builder = this
+  override def addLink(spanContext: SpanContext, attributes: Attributes): Span.Builder = {
+    links = CoreLink(spanContext, attributes) :: links
+    this
+  }
 
   override def setAttribute(key: String, value: String): Span.Builder = setAttribute[String](AttributeKey.stringKey(key), value)
 
@@ -101,6 +106,7 @@ private[core] class CoreSpanBuilder(
     name = name,
     startTimeNanos = startTimeNanos,
     kind = kind,
+    links = links,
     library = library,
     clock = clock,
     handler = handler)
