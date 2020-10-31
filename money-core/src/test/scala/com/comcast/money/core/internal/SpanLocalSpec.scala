@@ -29,6 +29,7 @@ class SpanLocalSpec extends AnyWordSpec
 
   override def afterEach(): Unit = {
     SpanLocal.clear()
+    MDC.clear()
   }
 
   "SpanLocal" when {
