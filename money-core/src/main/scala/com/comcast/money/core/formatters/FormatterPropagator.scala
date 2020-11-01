@@ -21,7 +21,7 @@ import java.util
 import com.comcast.money.api.SpanId
 import io.opentelemetry.context.Context
 import io.opentelemetry.context.propagation.TextMapPropagator
-import io.opentelemetry.api.trace.{ Span, TracingContextUtils }
+import io.opentelemetry.api.trace.Span
 
 import scala.collection.JavaConverters._
 
