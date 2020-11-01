@@ -52,7 +52,7 @@ class MetricsHandlerSpec extends AnyWordSpec with Matchers with MockitoSugar wit
       underTest.handle(testSpanInfo)
 
       verify(latencyMetric).update(testSpanInfo.durationMicros)
-      verifyZeroInteractions(errorMetric)
+      verifyNoMoreInteractions(errorMetric)
     }
 
     "update the error metric" in {

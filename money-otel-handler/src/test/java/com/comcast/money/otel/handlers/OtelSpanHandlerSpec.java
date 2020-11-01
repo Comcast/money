@@ -80,7 +80,7 @@ public class OtelSpanHandlerSpec {
 
         underTest.handle(spanInfo);
 
-        PowerMockito.verifyZeroInteractions(spanExporter);
+        PowerMockito.verifyNoMoreInteractions(spanExporter);
         PowerMockito.verifyStatic(BatchSpanProcessor.class, never());
         BatchSpanProcessor.builder(spanExporter);
         PowerMockito.verifyStatic(SimpleSpanProcessor.class, never());

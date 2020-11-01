@@ -19,7 +19,7 @@ package com.comcast.money.core.formatters
 import com.comcast.money.api.SpanId
 import com.typesafe.config.ConfigFactory
 import org.mockito.Mockito
-import org.mockito.Mockito.{ verify, verifyZeroInteractions, when }
+import org.mockito.Mockito.{ verify, verifyNoMoreInteractions, when }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
@@ -101,7 +101,7 @@ class FormatterChainSpec extends AnyWordSpec with MockitoSugar with Matchers {
       result shouldBe Some(spanId)
 
       verify(formatter1).fromHttpHeaders(getter, log)
-      verifyZeroInteractions(formatter2)
+      verifyNoMoreInteractions(formatter2)
     }
 
     "returns the combined fields from each Formatter in the chain" in {

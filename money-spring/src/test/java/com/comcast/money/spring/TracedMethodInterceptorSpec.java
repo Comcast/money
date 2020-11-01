@@ -41,7 +41,7 @@ import static org.mockito.Mockito.anyString;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 @RunWith(SpringRunner.class)
@@ -165,7 +165,7 @@ public class TracedMethodInterceptorSpec {
     public void testTracingDoesNotTraceMethodsWithoutAnnotation() {
 
         sampleTraceBean.doSomethingNotTraced();
-        verifyZeroInteractions(springTracer);
+        verifyNoMoreInteractions(springTracer);
     }
 
     @Test(expected = IllegalArgumentException.class)

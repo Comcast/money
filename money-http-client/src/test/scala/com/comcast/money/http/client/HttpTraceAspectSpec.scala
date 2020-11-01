@@ -283,7 +283,7 @@ class HttpTraceAspectSpec
       verify(mockTracer).startTimer("http-call-with-body-duration")
 
       And("the money span header is never added")
-      verifyZeroInteractions(mockHttpRequest)
+      verifyNoMoreInteractions(mockHttpRequest)
     }
     scenario("the http request is null") {
       Given("A call to http client that takes an http response handler")
@@ -302,7 +302,7 @@ class HttpTraceAspectSpec
       verify(mockTracer).startTimer("http-call-with-body-duration")
 
       And("the money span header is never added")
-      verifyZeroInteractions(mockHttpRequest)
+      verifyNoMoreInteractions(mockHttpRequest)
     }
   }
   feature("advising a method that calls http client execute that returns an HttpResponse") {

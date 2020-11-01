@@ -165,7 +165,7 @@ class ReflectionsSpec extends AnyWordSpec with Matchers with MockitoSugar with O
     "record nothing when method is called with no arguments" in {
       val args: Array[AnyRef] = Array.empty
       testReflections.recordTracedParameters(methodWithoutArguments, args, mockTracer.record)
-      verifyZeroInteractions(mockTracer)
+      verifyNoMoreInteractions(mockTracer)
     }
     "record traced data parameters" in {
       val args: Array[AnyRef] = Array("str", Long.box(100L), Double.box(3.14), Boolean.box(true), Double.box(2.22))
