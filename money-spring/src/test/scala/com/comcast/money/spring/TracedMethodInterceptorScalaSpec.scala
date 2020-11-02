@@ -20,7 +20,7 @@ import java.lang.reflect.AccessibleObject
 
 import com.comcast.money.annotations.{ Traced, TracedData }
 import com.comcast.money.api.{ Note, Span }
-import com.sun.istack.internal.NotNull
+import com.comcast.money.core.CustomAnnotation
 import io.opentelemetry.context.{ Context, Scope }
 import org.aopalliance.intercept.MethodInvocation
 import org.junit.runner.RunWith
@@ -201,13 +201,13 @@ class SampleScalaBean {
 
   @Traced("SampleTrace")
   def doSomethingWithTracedParamsAndNonTracedParams(
-    @TracedData("STRING")@NotNull str: String,
-    @NotNull nn: String): Unit = ()
+    @TracedData("STRING")@CustomAnnotation str: String,
+    @CustomAnnotation nn: String): Unit = ()
 
   @Traced("SampleTrace")
   def doSomethingWithTracedParamsPropagated(
-    @TracedData(value = "STRING", propagate = true)@NotNull str: String,
-    @NotNull nn: String): Unit = ()
+    @TracedData(value = "STRING", propagate = true)@CustomAnnotation str: String,
+    @CustomAnnotation nn: String): Unit = ()
 
   @Traced("SampleTrace")
   def doSomethingWithIllegalTracedParams(@TracedData("WHAT") lst: List[Byte]): Unit = ()
