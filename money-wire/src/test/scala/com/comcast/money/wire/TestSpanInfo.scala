@@ -18,7 +18,7 @@ package com.comcast.money.wire
 
 import java.util.Collections
 
-import com.comcast.money.api.{ Event, InstrumentationLibrary, Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanId, SpanInfo }
 import com.comcast.money.core.Money
 import io.opentelemetry.api.trace.{ Span, StatusCode }
 
@@ -33,6 +33,5 @@ case class TestSpanInfo(
   status: StatusCode = StatusCode.UNSET,
   description: String = "",
   notes: java.util.Map[String, Note[_]] = Collections.emptyMap(),
-  events: java.util.List[Event] = Collections.emptyList(),
   appName: String = Money.Environment.applicationName,
   host: String = Money.Environment.hostName) extends SpanInfo

@@ -45,6 +45,7 @@ private[core] case class CoreSpan(
   id: SpanId,
   var name: String,
   kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL,
+  links: List[SpanInfo.Link] = Nil,
   startTimeNanos: Long = SystemClock.now,
   library: InstrumentationLibrary = Money.InstrumentationLibrary,
   clock: Clock = SystemClock,
@@ -57,7 +58,7 @@ private[core] case class CoreSpan(
   // use concurrent maps
   private val timers = new TrieMap[String, Long]()
   private val noted = new TrieMap[String, Note[_]]()
-  private val events = new ListBuffer[Event]()
+  private val events = new ListBuffer[SpanInfo.Event]()
   private var scopes: List[Scope] = Nil
 
   override def stop(): Unit = stop(clock.now, StatusCode.UNSET)
@@ -122,7 +123,8 @@ private[core] case class CoreSpan(
       status = status,
       description = description,
       notes = noted.toMap[String, Note[_]].asJava,
-      events = events.asJava)
+      events = events.asJava,
+      links = links.asJava)
 
   override def close(): Unit = stop()
 
@@ -137,7 +139,7 @@ private[core] case class CoreSpan(
   override def addEvent(eventName: String, eventAttributes: Attributes): Span = addEventInternal(createEvent(eventName, eventAttributes))
   override def addEvent(eventName: String, eventAttributes: Attributes, timestampNanos: scala.Long): Span = addEventInternal(createEvent(eventName, eventAttributes, timestampNanos))
 
-  private def addEventInternal(event: Event): Span = {
+  private def addEventInternal(event: SpanInfo.Event): Span = {
     events += event
     this
   }
@@ -146,7 +148,7 @@ private[core] case class CoreSpan(
     eventName: String,
     eventAttributes: Attributes = Attributes.empty,
     timestampNanos: Long = clock.now,
-    exception: Throwable = null): Event =
+    exception: Throwable = null): SpanInfo.Event =
     CoreEvent(eventName, eventAttributes, timestampNanos, exception)
 
   override def recordException(exception: Throwable): Span = recordException(exception, Attributes.empty())

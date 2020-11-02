@@ -17,9 +17,8 @@
 package com.comcast.money.otel.handlers
 
 import java.util
-import java.util.Collections
 
-import com.comcast.money.api.{ Event, InstrumentationLibrary, Note, SpanInfo }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanInfo }
 import io.opentelemetry.api.common.{ Attributes, ReadableAttributes }
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo
 import io.opentelemetry.sdk.resources.Resource
@@ -36,6 +35,7 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
   private lazy val libraryInfo = convertLibraryInfo(info.library)
   private lazy val attributes = convertAttributes(info.notes)
   private lazy val events = convertEvents(info.events)
+  private lazy val links = convertLinks(info.links)
 
   override def getSpanContext: SpanContext = spanContext
   override def getName: String = info.name
@@ -51,7 +51,7 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
   override def getResource: Resource = Resource.getDefault
   override def getKind: OtelSpan.Kind = info.kind
   override def getStartEpochNanos: Long = info.startTimeNanos
-  override def getLinks: util.List[SpanData.Link] = Collections.emptyList()
+  override def getLinks: util.List[SpanData.Link] = links
   override def getStatus: SpanData.Status = Status.create(info.status, info.description)
   override def getEndEpochNanos: Long = info.endTimeNanos
   override def getTotalRecordedEvents: Int = info.events.size
@@ -78,10 +78,17 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
       }
       .build()
 
-  private def convertEvents(events: util.List[Event]): util.List[SpanData.Event] =
+  private def convertEvents(events: util.List[SpanInfo.Event]): util.List[SpanData.Event] =
     events.asScala
       .map({
         event => MoneyEvent(event).asInstanceOf[SpanData.Event]
+      })
+      .asJava
+
+  private def convertLinks(links: util.List[SpanInfo.Link]): util.List[SpanData.Link] =
+    links.asScala
+      .map({
+        link => MoneyLink(link).asInstanceOf[SpanData.Link]
       })
       .asJava
 }

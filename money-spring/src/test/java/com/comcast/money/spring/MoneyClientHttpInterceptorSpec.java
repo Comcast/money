@@ -60,6 +60,7 @@ public class MoneyClientHttpInterceptorSpec {
                 "",
                 Collections.emptyMap(),
                 Collections.emptyList(),
+                Collections.emptyList(),
                 new InstrumentationLibrary("test", "0.0.1"),
                 "testAppName",
                 "testHost");

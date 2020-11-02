@@ -18,11 +18,11 @@ package com.comcast.money.otel.handlers
 
 import com.comcast.money.api.SpanInfo
 import io.opentelemetry.api.common.Attributes
+import io.opentelemetry.api.trace.SpanContext
 import io.opentelemetry.sdk.trace.data.SpanData
 
-private[otel] case class MoneyEvent(event: SpanInfo.Event) extends SpanData.Event {
-  override def getName: String = event.name
-  override def getAttributes: Attributes = event.attributes
-  override def getEpochNanos: Long = event.timestamp
-  override def getTotalAttributeCount: Int = event.attributes.size
+private[otel] case class MoneyLink(link: SpanInfo.Link) extends SpanData.Link {
+  override def getContext: SpanContext = link.spanContext
+  override def getAttributes: Attributes = link.attributes
+  override def getTotalAttributeCount: Int = link.attributes.size
 }

@@ -18,7 +18,7 @@ package com.comcast.money.core
 
 import java.io.{ PrintWriter, StringWriter }
 
-import com.comcast.money.api.Event
+import com.comcast.money.api.SpanInfo
 import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.attributes.SemanticAttributes
 
@@ -26,7 +26,7 @@ private[core] case class CoreEvent(
   name: String,
   eventAttributes: Attributes,
   timestamp: Long,
-  exception: Throwable) extends Event {
+  exception: Throwable) extends SpanInfo.Event {
 
   lazy val attributes: Attributes = initializeAttributes()
 

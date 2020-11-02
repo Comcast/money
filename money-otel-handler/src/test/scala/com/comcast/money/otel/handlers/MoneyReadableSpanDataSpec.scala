@@ -19,12 +19,11 @@ package com.comcast.money.otel.handlers
 import java.util
 import java.util.UUID
 
-import com.comcast.money.api.{ Event, InstrumentationLibrary, Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ IdGenerator, InstrumentationLibrary, Note, SpanId, SpanInfo }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.sdk.resources.Resource
-import io.opentelemetry.sdk.trace.data.ImmutableStatus
 import io.opentelemetry.sdk.trace.data.SpanData.Status
-import io.opentelemetry.api.trace.{ Span, StatusCode, TraceState }
+import io.opentelemetry.api.trace.{ Span, SpanContext, StatusCode, TraceFlags, TraceState }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -49,7 +48,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getStartEpochNanos shouldBe 1000000L
       underTest.getEndEpochNanos shouldBe 3000000L
       underTest.hasEnded shouldBe true
-      underTest.getLinks shouldBe empty
+      underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.getTotalRecordedLinks shouldBe 0
       underTest.getResource shouldBe Resource.getDefault
       underTest.hasRemoteParent shouldBe false
@@ -76,7 +75,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getStartEpochNanos shouldBe 1000000L
       underTest.getEndEpochNanos shouldBe 3000000L
       underTest.hasEnded shouldBe true
-      underTest.getLinks shouldBe empty
+      underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.getTotalRecordedLinks shouldBe 0
       underTest.getResource shouldBe Resource.getDefault
       underTest.hasRemoteParent shouldBe false
@@ -86,6 +85,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getAttributes shouldBe Attributes.of(AttributeKey.stringKey("foo"), "bar")
       underTest.getTotalRecordedEvents shouldBe 1
       underTest.getEvents.asScala should contain(MoneyEvent(event))
+      underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.toSpanData shouldBe underTest
     }
   }
@@ -102,13 +102,20 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
     override def description(): String = "description"
     override def durationNanos(): Long = 2000000L
     override def notes(): util.Map[String, Note[_]] = Map[String, Note[_]]("foo" -> Note.of("foo", "bar")).asJava
-    override def events(): util.List[Event] = List(event).asJava
+    override def events(): util.List[SpanInfo.Event] = List(event).asJava
+    override def links(): util.List[SpanInfo.Link] = List(link).asJava
   }
 
-  val event = new Event {
+  val event = new SpanInfo.Event {
     override def name(): String = "event"
     override def attributes(): Attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
     override def timestamp(): Long = 1234567890L
     override def exception(): Throwable = null
+  }
+
+  val linkedContext = SpanContext.create(IdGenerator.generateRandomTraceIdAsHex(), IdGenerator.generateRandomIdAsHex(), TraceFlags.getSampled, TraceState.getDefault)
+  val link = new SpanInfo.Link {
+    override def spanContext(): SpanContext = linkedContext
+    override def attributes(): Attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
   }
 }

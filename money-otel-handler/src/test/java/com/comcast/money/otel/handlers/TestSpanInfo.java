@@ -23,7 +23,6 @@ import java.util.Map;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.StatusCode;
 
-import com.comcast.money.api.Event;
 import com.comcast.money.api.InstrumentationLibrary;
 import com.comcast.money.api.Note;
 import com.comcast.money.api.SpanId;
@@ -42,7 +41,7 @@ public class TestSpanInfo implements SpanInfo {
     }
 
     @Override
-    public List<Event> events() {
+    public List<SpanInfo.Event> events() {
         return Collections.emptyList();
     }
 

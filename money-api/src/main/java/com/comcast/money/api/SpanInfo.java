@@ -16,10 +16,13 @@
 
 package com.comcast.money.api;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Span;
 
@@ -34,7 +37,16 @@ public interface SpanInfo {
     /**
      * @return a list of all of the events that were recorded on the span.
      */
-    List<Event> events();
+    default List<Event> events() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * @return a list of the spans linked to the span
+     */
+    default List<Link> links() {
+        return Collections.emptyList();
+    }
 
     /**
      * @return the time in milliseconds when this span was started
@@ -151,4 +163,46 @@ public interface SpanInfo {
      * @return the host name or ip
      */
     String host();
+
+    /**
+     * An event that was recorded on a {@link com.comcast.money.api.Span}.
+     */
+    interface Event {
+        /**
+         * @return the name of the event
+         */
+        String name();
+
+        /**
+         * @return the attributes recorded on the event
+         */
+        Attributes attributes();
+
+        /**
+         * @return the timestamp of when the event occurred in nanoseconds since the epoch
+         */
+        long timestamp();
+
+        /**
+         * @return an exception if one was recorded with the event; otherwise {@code null}
+         */
+        Throwable exception();
+    }
+
+    /**
+     * A reference to another {@link Span} by span context.
+     *
+     * Can be used to associate multiple traces as a part of a batch operation.
+     */
+    interface Link {
+        /**
+         * @return the context of the linked span
+         */
+        SpanContext spanContext();
+
+        /**
+         * @return the attributes associated with the link between the spans
+         */
+        Attributes attributes();
+    }
 }
