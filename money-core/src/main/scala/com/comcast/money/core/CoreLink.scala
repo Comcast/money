@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package com.comcast.money.otel.handlers
+package com.comcast.money.core
 
 import com.comcast.money.api.SpanInfo
 import io.opentelemetry.common.Attributes
-import io.opentelemetry.sdk.trace.data.SpanData
+import io.opentelemetry.trace.SpanContext
 
-private[otel] case class MoneyEvent(event: SpanInfo.Event) extends SpanData.Event {
-  override def getName: String = event.name
-  override def getAttributes: Attributes = event.attributes
-  override def getEpochNanos: Long = event.timestamp
-  override def getTotalAttributeCount: Int = event.attributes.size
-}
+private[core] final case class CoreLink(
+  spanContext: SpanContext,
+  attributes: Attributes = Attributes.empty()) extends SpanInfo.Link
