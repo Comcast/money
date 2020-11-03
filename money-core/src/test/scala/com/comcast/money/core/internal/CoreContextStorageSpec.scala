@@ -2,16 +2,21 @@ package com.comcast.money.core.internal
 
 import com.comcast.money.api.Span
 import io.opentelemetry.context.{Context, ContextStorage, Scope}
-import org.mockito.Mockito.{never, times, verify, when}
+import org.mockito.Mockito.{never, reset, times, verify, when}
+import org.scalatest.BeforeAndAfter
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 
-class CoreContextStorageSpec extends AnyWordSpec with Matchers with MockitoSugar {
+class CoreContextStorageSpec extends AnyWordSpec with Matchers with MockitoSugar with BeforeAndAfter {
 
   val spanContext: SpanContext = mock[SpanContext]
   val mdcSupport: MDCSupport = mock[MDCSupport]
   val contextStorage: ContextStorage = mock[ContextStorage]
+
+  before {
+    reset(spanContext, mdcSupport, contextStorage)
+  }
 
   "CoreContextStorageSpec" should {
     "current wraps ContextStorage.current" in {
