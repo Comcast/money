@@ -21,7 +21,7 @@ import io.opentelemetry.context.{ Context, Scope }
 import io.opentelemetry.api.trace.{ Span => OtelSpan }
 
 /**
- * Provides a thread local context for storing SpanIds.  Keeps a stack of trace ids so that we
+ * Provides a context for storing SpanIds.  Keeps a stack of trace ids so that we
  * an roll back to the parent once a span completes
  */
 object SpanLocal extends SpanContext {
@@ -35,10 +35,12 @@ object SpanLocal extends SpanContext {
     } else () => ()
 
   def fromContext(context: Context): Option[Span] =
-    Option(OtelSpan.fromContextOrNull(context)) match {
-      case Some(span: Span) => Some(span)
-      case _ => None
-    }
+    if (context != null) {
+      Option(OtelSpan.fromContextOrNull(context)) match {
+        case Some(span: Span) => Some(span)
+        case _ => None
+      }
+    } else None
 
   def clear(): Unit = Context.root.makeCurrent()
 }
