@@ -18,7 +18,7 @@ package com.comcast.money.otel.handlers.logging
 
 import com.comcast.money.otel.handlers.OtelSpanHandler
 import com.typesafe.config.Config
-import io.opentelemetry.exporters.logging.LoggingSpanExporter
+import io.opentelemetry.exporter.logging.LoggingSpanExporter
 import io.opentelemetry.sdk.trace.`export`.SpanExporter
 
 /**

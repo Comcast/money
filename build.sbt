@@ -264,7 +264,7 @@ lazy val moneyOtelInMemoryExporter =
           typesafeConfig,
           openTelemetryApi,
           openTelemetrySdk,
-          openTelemetryInMemoryExporter,
+          openTelemetrySdkTesting,
           junit,
           junitInterface,
           assertj,
@@ -338,8 +338,7 @@ def basicSettings =  Defaults.itSettings ++ Seq(
   crossScalaVersions := List("2.13.3", "2.12.12"),
   resolvers ++= Seq(
     ("spray repo" at "http://repo.spray.io/").withAllowInsecureProtocol(true),
-    "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/",
-    "JFrog Snapshots (OpenTelemetry)" at "https://oss.jfrog.org/artifactory/oss-snapshot-local"
+    "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/"
   ),
   scalacOptions ++= Seq(
     "-unchecked",

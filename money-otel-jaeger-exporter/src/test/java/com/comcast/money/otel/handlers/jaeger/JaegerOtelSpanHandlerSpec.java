@@ -20,7 +20,7 @@ import java.util.Collection;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import io.opentelemetry.exporters.jaeger.JaegerGrpcSpanExporter;
+import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import org.junit.Before;

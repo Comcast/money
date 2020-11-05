@@ -18,7 +18,7 @@ package com.comcast.money.otel.handlers.jaeger
 
 import com.comcast.money.otel.handlers.OtelSpanHandler
 import com.typesafe.config.Config
-import io.opentelemetry.exporters.jaeger.JaegerGrpcSpanExporter
+import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter
 import io.opentelemetry.sdk.trace.`export`.SpanExporter
 
 /**
