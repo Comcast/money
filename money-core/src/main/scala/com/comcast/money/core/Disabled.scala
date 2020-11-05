@@ -19,7 +19,7 @@ package com.comcast.money.core
 import com.comcast.money.api._
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.{ Context, Scope }
-import io.opentelemetry.api.trace.{ EndSpanOptions, SpanContext, StatusCode, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ SpanContext, StatusCode, Span => OtelSpan }
 
 import com.comcast.money.core.formatters.Formatter
 
@@ -67,7 +67,7 @@ object DisabledTracer extends Tracer {
 object DisabledFormatter extends Formatter {
   override def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit = ()
 
-  override def fromHttpHeaders(getHeader: String => String, log: String => Unit): Option[SpanId] = None
+  override def fromHttpHeaders(headers: Iterable[String], getHeader: String => String, log: String => Unit): Option[SpanId] = None
 
   override def fields: Seq[String] = Nil
 
@@ -169,7 +169,7 @@ object DisabledSpan extends Span {
 
   override def `end`(): Unit = ()
 
-  override def `end`(endOptions: EndSpanOptions): Unit = ()
+  override def `end`(endTimeStamp: Long): Unit = ()
 
   override def getSpanContext: SpanContext = SpanContext.getInvalid
 

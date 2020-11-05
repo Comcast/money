@@ -23,7 +23,7 @@ import com.comcast.money.api.SpanId
  */
 trait Formatter {
   def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit
-  def fromHttpHeaders(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId]
+  def fromHttpHeaders(headers: Iterable[String], getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId]
   def fields: Seq[String]
 
   def setResponseHeaders(getHeader: String => String, addHeader: (String, String) => Unit): Unit = {

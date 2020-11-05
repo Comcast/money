@@ -22,7 +22,7 @@ import com.comcast.money.api.SpanId
  */
 final class IngressFormatter(val formatter: Formatter) extends Formatter {
   override def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit = ()
-  override def fromHttpHeaders(getHeader: String => String, log: String => Unit): Option[SpanId] =
-    formatter.fromHttpHeaders(getHeader, log)
+  override def fromHttpHeaders(headers: Iterable[String], getHeader: String => String, log: String => Unit): Option[SpanId] =
+    formatter.fromHttpHeaders(headers, getHeader, log)
   override def fields: Seq[String] = formatter.fields
 }

@@ -18,7 +18,7 @@ package com.comcast.money.otel.formatters
 
 import com.comcast.money.core.formatters.OtelFormatter
 import com.comcast.money.otel.formatters.B3MultiHeaderFormatter.{ B3ParentSpanIdHeader, B3SampledHeader, B3SpanIdHeader, B3TraceIdHeader }
-import io.opentelemetry.extensions.trace.propagation.B3Propagator
+import io.opentelemetry.`extension`.trace.propagation.B3Propagator
 
 object B3MultiHeaderFormatter {
   private[formatters] val B3TraceIdHeader = "X-B3-TraceId"

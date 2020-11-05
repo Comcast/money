@@ -63,10 +63,11 @@ class OtelFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers {
       val spanId = SpanId.createNew()
       val span = CoreSpan(id = spanId, name = "test", handler = DisabledSpanHandler)
       val context = span.storeInContext(Context.root)
+      val headers = Seq("A", "B")
       val getter = mock[String => String]
 
       when(propagator.extract[Unit](argEq(Context.root), any[Unit], any[Getter[Unit]])).thenReturn(context)
-      val result = underTest.fromHttpHeaders(getter)
+      val result = underTest.fromHttpHeaders(headers, getter)
 
       result shouldBe Some(spanId)
 
@@ -82,7 +83,7 @@ class OtelFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers {
       val getter = mock[String => String]
 
       when(propagator.extract[Unit](argEq(Context.root), any[Unit], any[Getter[Unit]])).thenReturn(Context.root)
-      val result = underTest.fromHttpHeaders(getter)
+      val result = underTest.fromHttpHeaders(Seq(), getter)
 
       result shouldBe None
     }

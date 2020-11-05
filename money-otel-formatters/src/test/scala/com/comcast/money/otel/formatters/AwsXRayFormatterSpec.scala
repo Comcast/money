@@ -40,7 +40,7 @@ class AwsXRayFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers w
 
       underTest.toHttpHeaders(spanId, map.put)
 
-      val result = underTest.fromHttpHeaders(k => map.getOrElse(k, nullString))
+      val result = underTest.fromHttpHeaders(Seq(), k => map.getOrElse(k, nullString))
 
       result shouldBe Some(spanId)
     }

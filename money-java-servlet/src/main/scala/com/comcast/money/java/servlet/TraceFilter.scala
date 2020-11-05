@@ -16,11 +16,14 @@
 
 package com.comcast.money.java.servlet
 
+import java.util.Collections
+
 import com.comcast.money.core.Money
 import io.opentelemetry.context.{ Context, Scope }
 import javax.servlet._
 import javax.servlet.http.{ HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse }
 import org.slf4j.LoggerFactory
+import scala.collection.JavaConverters._
 
 /**
  * A Java Servlet 2.5 Filter.  Examines the inbound http request, and will set the
@@ -42,7 +45,8 @@ class TraceFilter extends Filter {
 
     val httpRequest = new HttpServletRequestWrapper(request.asInstanceOf[HttpServletRequest])
 
-    val scope: Scope = formatter.fromHttpHeaders(httpRequest.getHeader, logger.warn) match {
+    val headerNames: Iterable[String] = httpRequest.getHeaderNames.asScala.toIterable.asInstanceOf[Iterable[String]]
+    val scope: Scope = formatter.fromHttpHeaders(headerNames, httpRequest.getHeader, logger.warn) match {
       case Some(spanId) =>
         val span = tracer.spanFactory.newSpan(spanId, spanName)
         Context.root()

@@ -19,7 +19,7 @@ package com.comcast.money.core.formatters
 import com.comcast.money.api.{ IdGenerator, Span, SpanId }
 import io.opentelemetry.context.Context
 import io.opentelemetry.context.propagation.TextMapPropagator
-import io.opentelemetry.api.trace.{ Span => OtelSpan, TraceFlags, TraceState }
+import io.opentelemetry.api.trace.{ TraceFlags, TraceState, Span => OtelSpan }
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
 import org.mockito.Mockito.{ verify, when }
@@ -69,7 +69,7 @@ class FormatterPropagatorSpec extends AnyWordSpec with MockitoSugar with Matcher
       val selfId = IdGenerator.generateRandomId();
       val spanId = SpanId.createRemote(traceId, selfId, selfId, TraceFlags.getSampled, TraceState.getDefault)
 
-      when(formatter.fromHttpHeaders(any(), any())).thenReturn(Some(spanId))
+      when(formatter.fromHttpHeaders(any(), any(), any())).thenReturn(Some(spanId))
 
       val context = underTest.extract[Unit](Context.root, (), getter)
       val span = OtelSpan.fromContextOrNull(context)
@@ -91,7 +91,7 @@ class FormatterPropagatorSpec extends AnyWordSpec with MockitoSugar with Matcher
       val selfId = IdGenerator.generateRandomId();
       val spanId = SpanId.createRemote(traceId, selfId, selfId, TraceFlags.getSampled, TraceState.getDefault)
 
-      when(formatter.fromHttpHeaders(any(), any())).thenReturn(None)
+      when(formatter.fromHttpHeaders(any(), any(), any())).thenReturn(None)
 
       val context = underTest.extract[Unit](Context.root(), (), getter)
       val span = OtelSpan.fromContextOrNull(context)

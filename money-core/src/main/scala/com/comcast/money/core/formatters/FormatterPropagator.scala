@@ -37,7 +37,7 @@ final case class FormatterPropagator(formatter: Formatter) extends TextMapPropag
       }
 
   override def extract[C](context: Context, carrier: C, getter: TextMapPropagator.Getter[C]): Context =
-    formatter.fromHttpHeaders(key => getter.get(carrier, key))
+    formatter.fromHttpHeaders(getter.keys(carrier).asScala, key => getter.get(carrier, key))
       .filter { _.isValid }
       .map { _.toSpanContext() }
       .map { Span.wrap }

@@ -24,7 +24,7 @@ import com.comcast.money.core.handlers.TestData
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
 import io.opentelemetry.api.trace.attributes.SemanticAttributes
-import io.opentelemetry.api.trace.{ EndSpanOptions, StatusCode, TraceFlags, TraceState, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ StatusCode, TraceFlags, TraceState, Span => OtelSpan }
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
 import org.scalatest.matchers.should.Matchers
@@ -389,10 +389,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       val underTest = CoreSpan(SpanId.createNew(), "test", handler = handler, startTimeNanos = SystemClock.now)
 
       underTest.record(testLongNote)
-      underTest.end(EndSpanOptions
-        .builder()
-        .setEndTimestamp(TimeUnit.MILLISECONDS.toNanos(1L))
-        .build())
+      underTest.end(TimeUnit.MILLISECONDS.toNanos(1L))
 
       verify(handler).handle(handleCaptor.capture())
 

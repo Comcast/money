@@ -17,7 +17,7 @@
 package com.comcast.money.otel.formatters
 
 import com.comcast.money.core.formatters.OtelFormatter
-import io.opentelemetry.extensions.trace.propagation.JaegerPropagator
+import io.opentelemetry.`extension`.trace.propagation.JaegerPropagator
 
 object JaegerFormatter {
   private[formatters] val UberTraceIdHeader = "uber-trace-id"

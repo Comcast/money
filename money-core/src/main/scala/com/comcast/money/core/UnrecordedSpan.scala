@@ -21,7 +21,7 @@ import java.lang
 import com.comcast.money.api.{ Note, Span, SpanId, SpanInfo }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
-import io.opentelemetry.api.trace.{ EndSpanOptions, Span => OtelSpan, SpanContext, StatusCode }
+import io.opentelemetry.api.trace.{ SpanContext, StatusCode }
 
 private[core] final case class UnrecordedSpan(
   spanId: SpanId,
@@ -47,7 +47,7 @@ private[core] final case class UnrecordedSpan(
   override def stop(): Unit = close()
   override def stop(result: lang.Boolean): Unit = close()
   override def `end`(): Unit = close()
-  override def `end`(endOptions: EndSpanOptions): Unit = close()
+  override def `end`(endTimeStamp: Long): Unit = close()
 
   override def record(note: Note[_]): Span = this
   override def startTimer(timerKey: String): Scope = () => ()

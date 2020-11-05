@@ -32,7 +32,7 @@ final class MoneyTraceFormatter extends Formatter {
   override def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit =
     addHeader(MoneyTraceHeader, MoneyHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId))
 
-  override def fromHttpHeaders(getHeader: String => String, log: String => Unit): Option[SpanId] = {
+  override def fromHttpHeaders(headers: Iterable[String], getHeader: String => String, log: String => Unit): Option[SpanId] = {
     def spanIdFromMoneyHeader(httpHeader: String): Try[SpanId] = Try {
       val parts = httpHeader.split(';')
       val traceId = parts(0).split('=')(1)

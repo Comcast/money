@@ -25,7 +25,7 @@ import com.comcast.money.api._
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
-import io.opentelemetry.api.trace.{ EndSpanOptions, SpanContext, StatusCode, TraceFlags, TraceId, TraceState, Span => OtelSpan, SpanId => OtelSpanId }
+import io.opentelemetry.api.trace.{ SpanContext, StatusCode, TraceFlags, TraceId, TraceState, Span => OtelSpan, SpanId => OtelSpanId }
 import io.opentelemetry.api.common
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
@@ -169,7 +169,7 @@ private[core] case class CoreSpan(
   }
 
   override def end(): Unit = stop()
-  override def end(endSpanOptions: EndSpanOptions): Unit = stop(endSpanOptions.getEndTimestamp, StatusCode.UNSET)
+  override def `end`(endTimeStamp: Long): Unit = stop(endTimeStamp, StatusCode.UNSET)
 
   override def getSpanContext: SpanContext = id.toSpanContext
 

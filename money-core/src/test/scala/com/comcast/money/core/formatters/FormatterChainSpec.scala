@@ -73,34 +73,36 @@ class FormatterChainSpec extends AnyWordSpec with MockitoSugar with Matchers {
     }
 
     "attempts fromHttpHeaders on all Formatters" in {
+      val headers = Seq("A", "B")
       val getter = mock[String => String]
       val log = mock[String => Unit]
 
-      when(formatter1.fromHttpHeaders(getter, log)).thenReturn(None)
-      when(formatter2.fromHttpHeaders(getter, log)).thenReturn(None)
+      when(formatter1.fromHttpHeaders(headers, getter, log)).thenReturn(None)
+      when(formatter2.fromHttpHeaders(headers, getter, log)).thenReturn(None)
 
-      val result = underTest.fromHttpHeaders(getter, log)
+      val result = underTest.fromHttpHeaders(headers, getter, log)
 
       result shouldBe None
 
       val inOrder = Mockito.inOrder(formatter1, formatter2)
-      inOrder.verify(formatter1).fromHttpHeaders(getter, log)
-      inOrder.verify(formatter2).fromHttpHeaders(getter, log)
+      inOrder.verify(formatter1).fromHttpHeaders(headers, getter, log)
+      inOrder.verify(formatter2).fromHttpHeaders(headers, getter, log)
     }
 
     "returns the first SpanId in the chain" in {
       val spanId = SpanId.createNew()
+      val headers = Seq("A", "B")
       val getter = mock[String => String]
       val log = mock[String => Unit]
 
-      when(formatter1.fromHttpHeaders(getter, log)).thenReturn(Some(spanId))
-      when(formatter2.fromHttpHeaders(getter, log)).thenReturn(None)
+      when(formatter1.fromHttpHeaders(headers, getter, log)).thenReturn(Some(spanId))
+      when(formatter2.fromHttpHeaders(headers, getter, log)).thenReturn(None)
 
-      val result = underTest.fromHttpHeaders(getter, log)
+      val result = underTest.fromHttpHeaders(headers, getter, log)
 
       result shouldBe Some(spanId)
 
-      verify(formatter1).fromHttpHeaders(getter, log)
+      verify(formatter1).fromHttpHeaders(headers, getter, log)
       verifyNoMoreInteractions(formatter2)
     }
 
