@@ -21,10 +21,10 @@ import com.comcast.money.api.Span;
 import com.comcast.money.api.SpanId;
 import com.comcast.money.api.SpanInfo;
 import com.comcast.money.core.CoreSpanInfo;
-import com.comcast.money.core.internal.SpanLocal;
 
+import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
-import io.opentelemetry.trace.StatusCanonicalCode;
+import io.opentelemetry.api.trace.StatusCode;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -52,11 +52,11 @@ public class MoneyClientHttpInterceptorSpec {
         SpanInfo testSpanInfo = new CoreSpanInfo(
                 id,
                 "testName",
-                io.opentelemetry.trace.Span.Kind.INTERNAL,
+                io.opentelemetry.api.trace.Span.Kind.INTERNAL,
                 0L,
                 0L,
                 0L,
-                StatusCanonicalCode.OK,
+                StatusCode.OK,
                 "",
                 Collections.emptyMap(),
                 Collections.emptyList(),
@@ -66,7 +66,10 @@ public class MoneyClientHttpInterceptorSpec {
                 "testHost");
 
         when(span.info()).thenReturn(testSpanInfo);
-        spanScope = SpanLocal.push(span);
+        when(span.storeInContext(any())).thenCallRealMethod();
+
+        Context updatedContext = Context.root().with(span);
+        spanScope = updatedContext.makeCurrent();
     }
 
     @After
@@ -75,7 +78,7 @@ public class MoneyClientHttpInterceptorSpec {
     }
 
     @Test
-    public void testMoneyB3AndTraceParentHeadersAreSet() throws Exception {
+    public void testMoneyAndTraceParentHeadersAreSet() throws Exception {
         System.out.printf("Trace ID: %s%nSpan ID: %d%nParent ID: %d%n", traceId, spanId, parentSpanId);
 
         HttpRequest httpRequest = mock(HttpRequest.class);

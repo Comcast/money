@@ -264,7 +264,7 @@ lazy val moneyOtelInMemoryExporter =
           typesafeConfig,
           openTelemetryApi,
           openTelemetrySdk,
-          openTelemetryInMemoryExporter,
+          openTelemetrySdkTesting,
           junit,
           junitInterface,
           assertj,

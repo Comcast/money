@@ -17,8 +17,8 @@
 package com.comcast.money.otel.handlers
 
 import com.comcast.money.api.{ IdGenerator, SpanInfo }
-import io.opentelemetry.common.{ AttributeKey, Attributes }
-import io.opentelemetry.trace.{ SpanContext, TraceFlags, TraceState }
+import io.opentelemetry.api.common.{ AttributeKey, Attributes }
+import io.opentelemetry.api.trace.{ SpanContext, TraceFlags, TraceState }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 

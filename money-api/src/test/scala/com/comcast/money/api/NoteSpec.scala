@@ -16,7 +16,7 @@
 
 package com.comcast.money.api
 
-import io.opentelemetry.common.{ AttributeKey, AttributeType }
+import io.opentelemetry.api.common.{ AttributeKey, AttributeType }
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 

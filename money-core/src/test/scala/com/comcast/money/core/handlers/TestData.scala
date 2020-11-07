@@ -21,7 +21,7 @@ import java.util.Collections
 import com.comcast.money.api.{ Note, SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.{ Clock, CoreSpan, CoreSpanInfo, SystemClock }
 import com.typesafe.config.Config
-import io.opentelemetry.trace.{ StatusCanonicalCode, TraceFlags, TraceState, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ StatusCode, TraceFlags, TraceState, Span => OtelSpan }
 
 class ConfiguredHandler extends ConfigurableHandler {
 
@@ -51,7 +51,7 @@ trait TestData {
     startTimeNanos = clock.now,
     endTimeNanos = clock.now,
     durationNanos = 123456000L,
-    status = StatusCanonicalCode.OK,
+    status = StatusCode.OK,
     name = "test-span",
     appName = "test",
     host = "localhost",
@@ -69,7 +69,7 @@ trait TestData {
     startTimeNanos = 100000000L,
     endTimeNanos = 300000000L,
     durationNanos = 200000L,
-    status = StatusCanonicalCode.OK,
+    status = StatusCode.OK,
     name = "test-span",
     appName = "test",
     host = "localhost",

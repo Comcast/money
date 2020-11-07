@@ -20,7 +20,7 @@ import java.util.Collection;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import io.opentelemetry.exporters.zipkin.ZipkinSpanExporter;
+import io.opentelemetry.exporter.zipkin.ZipkinSpanExporter;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import org.junit.Before;
@@ -62,7 +62,7 @@ public class ZipkinOtelHandlerSpec {
         spanExporter = PowerMockito.mock(ZipkinSpanExporter.class);
         spanExporterBuilder = PowerMockito.mock(ZipkinSpanExporter.Builder.class);
 
-        PowerMockito.when(ZipkinSpanExporter.newBuilder()).thenReturn(spanExporterBuilder);
+        PowerMockito.when(ZipkinSpanExporter.builder()).thenReturn(spanExporterBuilder);
         PowerMockito.when(spanExporterBuilder.build()).thenReturn(spanExporter);
         PowerMockito.when(spanExporter.export(any())).thenReturn(CompletableResultCode.ofSuccess());
 
@@ -82,7 +82,7 @@ public class ZipkinOtelHandlerSpec {
         underTest.configure(config);
 
         PowerMockito.verifyStatic(ZipkinSpanExporter.class);
-        ZipkinSpanExporter.newBuilder();
+        ZipkinSpanExporter.builder();
         Mockito.verify(spanExporterBuilder).setServiceName("service-name");
         Mockito.verify(spanExporterBuilder).build();
 
@@ -117,7 +117,7 @@ public class ZipkinOtelHandlerSpec {
         underTest.configure(config);
 
         PowerMockito.verifyStatic(ZipkinSpanExporter.class);
-        ZipkinSpanExporter.newBuilder();
+        ZipkinSpanExporter.builder();
         Mockito.verify(spanExporterBuilder).setServiceName("service-name");
         Mockito.verify(spanExporterBuilder).setEndpoint("endpoint");
         Mockito.verify(spanExporterBuilder, never()).setEncoder(any());
@@ -138,7 +138,7 @@ public class ZipkinOtelHandlerSpec {
         underTest.configure(config);
 
         PowerMockito.verifyStatic(ZipkinSpanExporter.class);
-        ZipkinSpanExporter.newBuilder();
+        ZipkinSpanExporter.builder();
         Mockito.verify(spanExporterBuilder).setServiceName("service-name");
         Mockito.verify(spanExporterBuilder, never()).setEndpoint(anyString());
         Mockito.verify(spanExporterBuilder).setEncoder(SpanBytesEncoder.JSON_V1);
@@ -159,7 +159,7 @@ public class ZipkinOtelHandlerSpec {
         underTest.configure(config);
 
         PowerMockito.verifyStatic(ZipkinSpanExporter.class);
-        ZipkinSpanExporter.newBuilder();
+        ZipkinSpanExporter.builder();
         Mockito.verify(spanExporterBuilder).setServiceName("service-name");
         Mockito.verify(spanExporterBuilder, never()).setEndpoint(anyString());
         Mockito.verify(spanExporterBuilder).setEncoder(SpanBytesEncoder.JSON_V2);
@@ -180,7 +180,7 @@ public class ZipkinOtelHandlerSpec {
         underTest.configure(config);
 
         PowerMockito.verifyStatic(ZipkinSpanExporter.class);
-        ZipkinSpanExporter.newBuilder();
+        ZipkinSpanExporter.builder();
         Mockito.verify(spanExporterBuilder).setServiceName("service-name");
         Mockito.verify(spanExporterBuilder, never()).setEndpoint(anyString());
         Mockito.verify(spanExporterBuilder).setEncoder(SpanBytesEncoder.THRIFT);
@@ -201,7 +201,7 @@ public class ZipkinOtelHandlerSpec {
         underTest.configure(config);
 
         PowerMockito.verifyStatic(ZipkinSpanExporter.class);
-        ZipkinSpanExporter.newBuilder();
+        ZipkinSpanExporter.builder();
         Mockito.verify(spanExporterBuilder).setServiceName("service-name");
         Mockito.verify(spanExporterBuilder, never()).setEndpoint(anyString());
         Mockito.verify(spanExporterBuilder).setEncoder(SpanBytesEncoder.PROTO3);

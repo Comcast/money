@@ -19,8 +19,8 @@ package com.comcast.money.core
 import java.io.{ PrintWriter, StringWriter }
 
 import com.comcast.money.api.SpanInfo
-import io.opentelemetry.common.Attributes
-import io.opentelemetry.trace.attributes.SemanticAttributes
+import io.opentelemetry.api.common.Attributes
+import io.opentelemetry.api.trace.attributes.SemanticAttributes
 
 private[core] case class CoreEvent(
   name: String,
@@ -35,15 +35,15 @@ private[core] case class CoreEvent(
       val attributeBuilder = if (eventAttributes != null) {
         eventAttributes.toBuilder
       } else {
-        Attributes.newBuilder
+        Attributes.builder()
       }
-      attributeBuilder.setAttribute(SemanticAttributes.EXCEPTION_TYPE, exception.getClass.getCanonicalName)
+      attributeBuilder.put(SemanticAttributes.EXCEPTION_TYPE, exception.getClass.getCanonicalName)
       if (exception.getMessage != null) {
-        attributeBuilder.setAttribute(SemanticAttributes.EXCEPTION_MESSAGE, exception.getMessage)
+        attributeBuilder.put(SemanticAttributes.EXCEPTION_MESSAGE, exception.getMessage)
       }
       val writer = new StringWriter
       exception.printStackTrace(new PrintWriter(writer))
-      attributeBuilder.setAttribute(SemanticAttributes.EXCEPTION_STACKTRACE, writer.toString)
+      attributeBuilder.put(SemanticAttributes.EXCEPTION_STACKTRACE, writer.toString)
       attributeBuilder.build()
     } else if (eventAttributes != null) {
       eventAttributes

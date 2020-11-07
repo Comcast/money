@@ -18,11 +18,11 @@ package com.comcast.money.otel.handlers.inmemory
 
 import com.comcast.money.otel.handlers.OtelSpanHandler
 import com.typesafe.config.Config
-import io.opentelemetry.exporters.inmemory.InMemorySpanExporter
+import io.opentelemetry.sdk.testing.exporter.InMemorySpanExporter
 import io.opentelemetry.sdk.trace.`export`.SpanExporter
 
 /**
- * A Money [[com.comcast.money.api.SpanHandler]] that can exports spans into memory for debugging purposes.
+ * A Money [[com.comcast.money.api.SpanHandler]] that can exports spans into memory for testing and debugging purposes.
  *
  * Sample configuration:
  *

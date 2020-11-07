@@ -18,7 +18,7 @@ package com.comcast.money.otel.handlers.otlp
 
 import com.comcast.money.otel.handlers.OtelSpanHandler
 import com.typesafe.config.Config
-import io.opentelemetry.exporters.otlp.OtlpGrpcSpanExporter
+import io.opentelemetry.exporter.otlp.OtlpGrpcSpanExporter
 import io.opentelemetry.sdk.trace.`export`.SpanExporter
 
 /**
@@ -52,7 +52,7 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
  */
 class OtlpHandler extends OtelSpanHandler {
   override protected def createSpanExporter(config: Config): SpanExporter = {
-    val builder = OtlpGrpcSpanExporter.newBuilder()
+    val builder = OtlpGrpcSpanExporter.builder()
 
     val endpointKey = "endpoint"
     val deadlineMillisKey = "deadline-ms"

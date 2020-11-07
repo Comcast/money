@@ -20,8 +20,8 @@ import java.lang.reflect.AccessibleObject
 
 import com.comcast.money.annotations.{ Traced, TracedData }
 import com.comcast.money.api.{ Note, Span }
-import com.sun.istack.internal.NotNull
-import io.opentelemetry.context.Scope
+import com.comcast.money.core.CustomAnnotation
+import io.opentelemetry.context.{ Context, Scope }
 import org.aopalliance.intercept.MethodInvocation
 import org.junit.runner.RunWith
 import org.mockito.ArgumentCaptor
@@ -50,6 +50,7 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
 
   private var spanBuilder: Span.Builder = _
   private var span: Span = _
+  private var context: Context = _
   private var scope: Scope = _
 
   new TestContextManager(classOf[TracedMethodInterceptorScalaSpec]).prepareTestInstance(this)
@@ -58,11 +59,13 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
     spanBuilder = mock[Span.Builder]
     span = mock[Span]
     scope = mock[Scope]
+    context = mock[Context]
 
     when(springTracer.spanBuilder(any())).thenReturn(spanBuilder)
     when(spanBuilder.record(any())).thenReturn(spanBuilder)
     when(spanBuilder.startSpan()).thenReturn(span)
-    when(springTracer.withSpan(span)).thenReturn(scope)
+    when(span.storeInContext(any())).thenReturn(context)
+    when(context.makeCurrent()).thenReturn(scope)
   }
 
   override def afterEach: Unit = {
@@ -198,13 +201,13 @@ class SampleScalaBean {
 
   @Traced("SampleTrace")
   def doSomethingWithTracedParamsAndNonTracedParams(
-    @TracedData("STRING")@NotNull str: String,
-    @NotNull nn: String): Unit = ()
+    @TracedData("STRING")@CustomAnnotation str: String,
+    @CustomAnnotation nn: String): Unit = ()
 
   @Traced("SampleTrace")
   def doSomethingWithTracedParamsPropagated(
-    @TracedData(value = "STRING", propagate = true)@NotNull str: String,
-    @NotNull nn: String): Unit = ()
+    @TracedData(value = "STRING", propagate = true)@CustomAnnotation str: String,
+    @CustomAnnotation nn: String): Unit = ()
 
   @Traced("SampleTrace")
   def doSomethingWithIllegalTracedParams(@TracedData("WHAT") lst: List[Byte]): Unit = ()

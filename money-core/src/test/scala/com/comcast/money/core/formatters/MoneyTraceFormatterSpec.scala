@@ -21,7 +21,7 @@ import java.util.UUID
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.TraceGenerators
 import com.comcast.money.core.formatters.MoneyTraceFormatter.{ MoneyHeaderFormat, MoneyTraceHeader }
-import io.opentelemetry.trace.{ TraceFlags, TraceState }
+import io.opentelemetry.api.trace.{ TraceFlags, TraceState }
 import org.mockito.Mockito.{ verify, verifyNoMoreInteractions }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -37,6 +37,7 @@ class MoneyTraceFormatterSpec extends AnyWordSpec with MockitoSugar with Matcher
       forAll { (traceIdValue: UUID, parentSpanIdValue: Long, spanIdValue: Long) =>
         val expectedSpanId = SpanId.createRemote(traceIdValue.toString, parentSpanIdValue, spanIdValue, TraceFlags.getSampled, TraceState.getDefault)
         val spanId = underTest.fromHttpHeaders(
+          Seq(),
           getHeader = {
             case MoneyTraceHeader => MoneyHeaderFormat.format(expectedSpanId.traceId, expectedSpanId.parentId, expectedSpanId.selfId)
           })
@@ -47,6 +48,7 @@ class MoneyTraceFormatterSpec extends AnyWordSpec with MockitoSugar with Matcher
     "fail to read a badly formatted money http header" in {
       forAll { (traceIdValue: String, parentSpanIdValue: String, spanIdValue: String) =>
         val spanId = underTest.fromHttpHeaders(
+          Seq(),
           getHeader = {
             case MoneyTraceHeader => MoneyHeaderFormat.format(traceIdValue, parentSpanIdValue, spanIdValue)
           })

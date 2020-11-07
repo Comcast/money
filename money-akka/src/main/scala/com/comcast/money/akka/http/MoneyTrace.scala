@@ -202,11 +202,15 @@ object MoneyTrace {
    * @return Option[SpanId]
    */
 
-  private def maybeExtractHeaderSpanId(request: HttpRequest): Option[SpanId] =
-    request
-      .headers
-      .flatMap(header => formatter.fromHttpHeaders(_ => header.value))
-      .headOption
+  private def maybeExtractHeaderSpanId(request: HttpRequest): Option[SpanId] = {
+    val headerMap = request.headers.map {
+      header => header.name -> header.value
+    }
+      .toMap
+
+    formatter.fromHttpHeaders(headerMap.keys, key => headerMap.getOrElse(key, null))
+  }
+
 }
 
 case class TracedRequest(request: HttpRequest, traceContext: TraceContext)

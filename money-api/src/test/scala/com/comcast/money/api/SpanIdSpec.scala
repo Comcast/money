@@ -18,7 +18,7 @@ package com.comcast.money.api
 
 import java.util.UUID
 
-import io.opentelemetry.trace.{ SpanContext, TraceFlags, TraceState }
+import io.opentelemetry.api.trace.{ SpanContext, TraceFlags, TraceState }
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 

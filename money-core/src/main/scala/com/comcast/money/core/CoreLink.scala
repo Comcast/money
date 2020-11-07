@@ -17,8 +17,8 @@
 package com.comcast.money.core
 
 import com.comcast.money.api.SpanInfo
-import io.opentelemetry.common.Attributes
-import io.opentelemetry.trace.SpanContext
+import io.opentelemetry.api.common.Attributes
+import io.opentelemetry.api.trace.SpanContext
 
 private[core] final case class CoreLink(
   spanContext: SpanContext,

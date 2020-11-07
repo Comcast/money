@@ -17,10 +17,11 @@
 package com.comcast.money.core.internal
 
 import java.util
-import java.util.Map
 
 import com.comcast.money.api.{ Span, SpanId }
 import com.comcast.money.core.Money
+import io.opentelemetry.api.trace.{ Span => OtelSpan }
+import io.opentelemetry.context.Context
 import org.slf4j.MDC
 
 object MDCSupport {

@@ -21,7 +21,7 @@ import com.comcast.money.core.formatters.MoneyTraceFormatter
 import com.comcast.money.core.handlers.TestData
 import com.comcast.money.core.internal.SpanContext
 import com.comcast.money.core.samplers.{ AlwaysOffSampler, AlwaysOnSampler, RecordResult, Sampler, SamplerResult }
-import io.opentelemetry.trace.TraceFlags
+import io.opentelemetry.api.trace.TraceFlags
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar

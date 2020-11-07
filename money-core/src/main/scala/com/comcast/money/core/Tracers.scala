@@ -17,7 +17,7 @@
 package com.comcast.money.core
 
 import com.comcast.money.core.logging.TraceLogging
-import io.opentelemetry.trace.StatusCanonicalCode
+import io.opentelemetry.api.trace.StatusCode
 
 object Tracers extends TraceLogging {
 
@@ -34,12 +34,12 @@ object Tracers extends TraceLogging {
     val span = tracer.startSpan(name)
     try {
       val result: T = f
-      span.setStatus(StatusCanonicalCode.OK)
+      span.setStatus(StatusCode.OK)
       result
     } catch {
       case e: Throwable =>
         logException(e)
-        span.setStatus(StatusCanonicalCode.ERROR)
+        span.setStatus(StatusCode.ERROR)
         throw e
     } finally {
       span.close()

@@ -23,6 +23,6 @@ import com.comcast.money.api.SpanId
 final class EgressFormatter(val formatter: Formatter) extends Formatter {
   override def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit =
     formatter.toHttpHeaders(spanId, addHeader)
-  override def fromHttpHeaders(getHeader: String => String, log: String => Unit): Option[SpanId] = None
+  override def fromHttpHeaders(headers: Iterable[String], getHeader: String => String, log: String => Unit): Option[SpanId] = None
   override def fields: Seq[String] = Nil
 }

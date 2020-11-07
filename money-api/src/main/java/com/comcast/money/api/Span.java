@@ -16,11 +16,12 @@
 
 package com.comcast.money.api;
 
-import io.grpc.Context;
-import io.opentelemetry.common.AttributeKey;
-import io.opentelemetry.common.Attributes;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
-import io.opentelemetry.trace.SpanContext;
 import scala.Option;
 
 /**
@@ -29,7 +30,7 @@ import scala.Option;
  *
  * A Span is immutable, all changes to the span result in a new Span being created.
  */
-public interface Span extends io.opentelemetry.trace.Span, Scope {
+public interface Span extends io.opentelemetry.api.trace.Span, Scope {
 
     /**
      * Stops the span asserts a successful result
@@ -42,11 +43,56 @@ public interface Span extends io.opentelemetry.trace.Span, Scope {
      */
     void stop(Boolean result);
 
+    @Override
+    Span setAttribute(String key, String value);
+
+    @Override
+    Span setAttribute(String key, long value);
+
+    @Override
+    Span setAttribute(String key, double value);
+
+    @Override
+    Span setAttribute(String key, boolean value);
+
+    @Override
+    <T> Span setAttribute(AttributeKey<T> key, T value);
+
+    @Override
+    Span setAttribute(AttributeKey<Long> key, int value);
+
+    @Override
+    Span addEvent(String name);
+
+    @Override
+    Span addEvent(String name, long timestamp);
+
+    @Override
+    Span addEvent(String name, Attributes attributes);
+
+    @Override
+    Span addEvent(String name, Attributes attributes, long timestamp);
+
+    @Override
+    Span setStatus(StatusCode canonicalCode);
+
+    @Override
+    Span setStatus(StatusCode canonicalCode, String description);
+
+    @Override
+    Span recordException(Throwable exception);
+
+    @Override
+    Span recordException(Throwable exception, Attributes additionalAttributes);
+
+    @Override
+    Span updateName(String name);
+
     /**
      * Records a given note onto the span.  If the note was already present, it will be overwritten
      * @param note The note to be recorded
      */
-    void record(Note<?> note);
+    Span record(Note<?> note);
 
     /**
      * Starts a new timer on the span
@@ -73,7 +119,8 @@ public interface Span extends io.opentelemetry.trace.Span, Scope {
     /**
      * A builder used to construct {@link Span} instances.
      */
-    interface Builder extends io.opentelemetry.trace.Span.Builder {
+    interface Builder extends io.opentelemetry.api.trace.Span.Builder {
+
         /**
          * {@inheritDoc}
          */

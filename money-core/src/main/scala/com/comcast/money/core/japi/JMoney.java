@@ -16,7 +16,7 @@
 
 package com.comcast.money.core.japi;
 
-import io.opentelemetry.common.AttributeKey;
+import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.context.Scope;
 
 import com.comcast.money.api.Note;
@@ -251,16 +251,6 @@ public class JMoney {
     public static Span.Builder spanBuilder(String spanName) {
 
         return tracer().spanBuilder(spanName);
-    }
-
-    /**
-     * Enters a scope where the specified {@link Span} is in the current Context.
-     * @param span the span
-     * @return the scope of the span
-     */
-    public static Scope withSpan(Span span) {
-
-        return tracer().withSpan(span);
     }
 
     /**

@@ -20,7 +20,7 @@ import java.util.concurrent._
 
 import com.comcast.money.core.internal.{ MDCSupport, SpanLocal }
 import com.comcast.money.core.logging.TraceLogging
-import io.grpc.Context
+import io.opentelemetry.context.Context
 import org.slf4j.MDC
 
 object TraceFriendlyThreadPoolExecutor {
@@ -75,7 +75,7 @@ class TraceFriendlyThreadPoolExecutor(corePoolSize: Int, maximumPoolSize: Int, k
           mdcSupport.propagateMDC(submittingThreadsContext)
           inherited.foreach(SpanLocal.push)
           try {
-            currentContext.run(command)
+            currentContext.wrap(command).run()
           } catch {
             case t: Throwable =>
               logException(t)

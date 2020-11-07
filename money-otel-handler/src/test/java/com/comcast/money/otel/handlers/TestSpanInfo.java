@@ -20,8 +20,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import io.opentelemetry.trace.Span;
-import io.opentelemetry.trace.StatusCanonicalCode;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.StatusCode;
 
 import com.comcast.money.api.InstrumentationLibrary;
 import com.comcast.money.api.Note;
@@ -56,8 +56,8 @@ public class TestSpanInfo implements SpanInfo {
     }
 
     @Override
-    public StatusCanonicalCode status() {
-        return StatusCanonicalCode.OK;
+    public StatusCode status() {
+        return StatusCode.OK;
     }
 
     @Override

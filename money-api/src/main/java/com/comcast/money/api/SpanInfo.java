@@ -21,10 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import io.opentelemetry.common.Attributes;
-import io.opentelemetry.trace.Span;
-import io.opentelemetry.trace.SpanContext;
-import io.opentelemetry.trace.StatusCanonicalCode;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.Span;
 
 public interface SpanInfo {
 
@@ -90,13 +90,13 @@ public interface SpanInfo {
     /**
      * @return the status code set on the span.
      */
-    StatusCanonicalCode status();
+    StatusCode status();
 
     /**
      * @return the result of the span.  Will return null if the span was never stopped.
      */
     default Boolean success() {
-        StatusCanonicalCode status = status();
+        StatusCode status = status();
         if (status != null && endTimeNanos() > 0L) {
             switch (status) {
                 case OK:

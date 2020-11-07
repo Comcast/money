@@ -45,7 +45,7 @@ class TraceLoggingSpec extends AnyWordSpec with Matchers with MockitoSugar with 
       }
       val t = mock[Throwable]
       testTraceLogging.logException(t)
-      verifyZeroInteractions(mockLogger)
+      verifyNoMoreInteractions(mockLogger)
     }
   }
 }

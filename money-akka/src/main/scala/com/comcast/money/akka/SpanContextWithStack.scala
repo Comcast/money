@@ -18,8 +18,7 @@ package com.comcast.money.akka
 
 import com.comcast.money.api.Span
 import com.comcast.money.core.internal.SpanContext
-import io.grpc.Context
-import io.opentelemetry.context.Scope
+import io.opentelemetry.context.{ Context, Scope }
 import org.slf4j.{ Logger, LoggerFactory }
 
 /**

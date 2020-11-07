@@ -24,9 +24,9 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import io.opentelemetry.trace.SpanContext;
-import io.opentelemetry.trace.TraceFlags;
-import io.opentelemetry.trace.TraceState;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.TraceFlags;
+import io.opentelemetry.api.trace.TraceState;
 
 import static com.comcast.money.api.IdGenerator.INVALID_ID;
 import static com.comcast.money.api.IdGenerator.INVALID_TRACE_ID;

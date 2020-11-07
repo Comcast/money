@@ -18,7 +18,7 @@ package com.comcast.money.otel.handlers.jaeger
 
 import com.comcast.money.otel.handlers.OtelSpanHandler
 import com.typesafe.config.Config
-import io.opentelemetry.exporters.jaeger.JaegerGrpcSpanExporter
+import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter
 import io.opentelemetry.sdk.trace.`export`.SpanExporter
 
 /**
@@ -52,7 +52,7 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
  */
 class JaegerOtelSpanHandler extends OtelSpanHandler {
   override protected def createSpanExporter(config: Config): SpanExporter = {
-    val builder = JaegerGrpcSpanExporter.newBuilder()
+    val builder = JaegerGrpcSpanExporter.builder()
 
     val serviceNameKey = "service-name"
     val endpointKey = "endpoint"

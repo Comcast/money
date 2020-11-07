@@ -16,12 +16,13 @@
 
 package com.comcast.money.otel.handlers
 
+import io.opentelemetry.context.Context
 import io.opentelemetry.sdk.common.CompletableResultCode
 import io.opentelemetry.sdk.trace.{ ReadWriteSpan, ReadableSpan, SpanProcessor }
 
 // $COVERAGE-OFF$
 private[otel] object NoopSpanProcessor extends SpanProcessor {
-  override def onStart(span: ReadWriteSpan): Unit = ()
+  override def onStart(parentContext: Context, span: ReadWriteSpan): Unit = ()
   override def isStartRequired: Boolean = false
   override def onEnd(span: ReadableSpan): Unit = ()
   override def isEndRequired: Boolean = false

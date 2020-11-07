@@ -19,9 +19,9 @@ package com.comcast.money.core
 import java.lang
 
 import com.comcast.money.api.{ Note, Span, SpanId, SpanInfo }
-import io.opentelemetry.common.{ AttributeKey, Attributes }
+import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
-import io.opentelemetry.trace.{ EndSpanOptions, Span => OtelSpan, SpanContext, StatusCanonicalCode }
+import io.opentelemetry.api.trace.{ SpanContext, StatusCode }
 
 private[core] final case class UnrecordedSpan(
   spanId: SpanId,
@@ -30,7 +30,7 @@ private[core] final case class UnrecordedSpan(
   private var scopes: List[Scope] = Nil
 
   override def info(): SpanInfo = CoreSpanInfo(spanId, name)
-  override def getContext: SpanContext = spanId.toSpanContext
+  override def getSpanContext: SpanContext = spanId.toSpanContext
 
   override def attachScope(scope: Scope): Span = {
     scopes = scope :: scopes
@@ -47,24 +47,24 @@ private[core] final case class UnrecordedSpan(
   override def stop(): Unit = close()
   override def stop(result: lang.Boolean): Unit = close()
   override def `end`(): Unit = close()
-  override def `end`(endOptions: EndSpanOptions): Unit = close()
+  override def `end`(endTimeStamp: Long): Unit = close()
 
-  override def record(note: Note[_]): Unit = ()
+  override def record(note: Note[_]): Span = this
   override def startTimer(timerKey: String): Scope = () => ()
   override def stopTimer(timerKey: String): Unit = ()
-  override def setAttribute(key: String, value: String): Unit = ()
-  override def setAttribute(key: String, value: Long): Unit = ()
-  override def setAttribute(key: String, value: Double): Unit = ()
-  override def setAttribute(key: String, value: Boolean): Unit = ()
-  override def setAttribute[T](key: AttributeKey[T], value: T): Unit = ()
-  override def addEvent(name: String): Unit = ()
-  override def addEvent(name: String, timestamp: Long): Unit = ()
-  override def addEvent(name: String, attributes: Attributes): Unit = ()
-  override def addEvent(name: String, attributes: Attributes, timestamp: Long): Unit = ()
-  override def setStatus(canonicalCode: StatusCanonicalCode): Unit = ()
-  override def setStatus(canonicalCode: StatusCanonicalCode, description: String): Unit = ()
-  override def recordException(exception: Throwable): Unit = ()
-  override def recordException(exception: Throwable, additionalAttributes: Attributes): Unit = ()
-  override def updateName(name: String): Unit = ()
+  override def setAttribute(key: String, value: String): Span = this
+  override def setAttribute(key: String, value: Long): Span = this
+  override def setAttribute(key: String, value: Double): Span = this
+  override def setAttribute(key: String, value: Boolean): Span = this
+  override def setAttribute[T](key: AttributeKey[T], value: T): Span = this
+  override def addEvent(name: String): Span = this
+  override def addEvent(name: String, timestamp: Long): Span = this
+  override def addEvent(name: String, attributes: Attributes): Span = this
+  override def addEvent(name: String, attributes: Attributes, timestamp: Long): Span = this
+  override def setStatus(canonicalCode: StatusCode): Span = this
+  override def setStatus(canonicalCode: StatusCode, description: String): Span = this
+  override def recordException(exception: Throwable): Span = this
+  override def recordException(exception: Throwable, additionalAttributes: Attributes): Span = this
+  override def updateName(name: String): Span = this
   // $COVERAGE-ON$
 }

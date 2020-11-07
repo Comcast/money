@@ -27,8 +27,8 @@ import com.comcast.money.core.formatters.Formatter
 object Formatters extends Formatter {
   private[core] val formatter = Money.Environment.formatter
 
-  def fromHttpHeaders(getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId] =
-    formatter.fromHttpHeaders(getHeader, log)
+  def fromHttpHeaders(headers: Iterable[String], getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId] =
+    formatter.fromHttpHeaders(headers, getHeader, log)
 
   def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit =
     formatter.toHttpHeaders(spanId, addHeader)

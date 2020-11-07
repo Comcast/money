@@ -18,7 +18,7 @@ package com.comcast.money.wire
 
 import com.comcast.money.api.{ Note, SpanInfo }
 import com.comcast.money.core.formatters.FormatterUtils.randomRemoteSpanId
-import io.opentelemetry.trace.StatusCanonicalCode
+import io.opentelemetry.api.trace.StatusCode
 import org.scalatest.Inspectors
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -38,7 +38,7 @@ class AvroConversionSpec extends AnyWordSpec with Matchers with Inspectors {
         host = "host",
         startTimeNanos = 1000000L,
         endTimeNanos = 1035000L,
-        status = StatusCanonicalCode.OK,
+        status = StatusCode.OK,
         durationNanos = 35000L,
         notes = Map[String, Note[_]](
           "what" -> Note.of("what", 1L),

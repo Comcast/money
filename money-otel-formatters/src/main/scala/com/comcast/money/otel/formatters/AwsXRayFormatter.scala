@@ -17,7 +17,7 @@
 package com.comcast.money.otel.formatters
 
 import com.comcast.money.core.formatters.OtelFormatter
-import io.opentelemetry.extensions.trace.propagation.AwsXRayPropagator
+import io.opentelemetry.`extension`.trace.propagation.AwsXRayPropagator
 
 object AwsXRayFormatter {
   private[formatters] val AmznTraceIdHeader = "X-Amzn-Trace-Id"

@@ -19,7 +19,7 @@ package com.comcast.money.core.formatters
 import java.util.{ Locale, UUID }
 
 import com.comcast.money.api.{ IdGenerator, SpanId }
-import io.opentelemetry.trace.{ TraceFlags, TraceState }
+import io.opentelemetry.api.trace.{ TraceFlags, TraceState }
 
 object FormatterUtils {
   def isValidIds(traceId: UUID, spanId: Long): Boolean =

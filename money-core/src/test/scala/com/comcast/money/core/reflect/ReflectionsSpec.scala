@@ -19,7 +19,6 @@ package com.comcast.money.core.reflect
 import com.comcast.money.annotations.TracedData
 import com.comcast.money.api.Note
 import com.comcast.money.core._
-import com.sun.istack.internal.NotNull
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
 import org.scalatest.wordspec.AnyWordSpec
@@ -165,7 +164,7 @@ class ReflectionsSpec extends AnyWordSpec with Matchers with MockitoSugar with O
     "record nothing when method is called with no arguments" in {
       val args: Array[AnyRef] = Array.empty
       testReflections.recordTracedParameters(methodWithoutArguments, args, mockTracer.record)
-      verifyZeroInteractions(mockTracer)
+      verifyNoMoreInteractions(mockTracer)
     }
     "record traced data parameters" in {
       val args: Array[AnyRef] = Array("str", Long.box(100L), Double.box(3.14), Boolean.box(true), Double.box(2.22))
@@ -255,9 +254,9 @@ class ReflectionsSpec extends AnyWordSpec with Matchers with MockitoSugar with O
     def methodWithTracedData(@TracedData("STRING") str: String, @TracedData("LONG") lng: Long,
       @TracedData("DOUBLE") dbl: Double, @TracedData("BOOLEAN") bln: Boolean, nn: Double): Unit = {}
 
-    def methodWithMultipleAnnotations(@TracedData("STRING")@NotNull str: String): Unit = {}
+    def methodWithMultipleAnnotations(@TracedData("STRING")@CustomAnnotation str: String): Unit = {}
 
-    def methodWithNoTracedDataArguments(@NotNull str: String): Unit = {}
+    def methodWithNoTracedDataArguments(@CustomAnnotation str: String): Unit = {}
 
     def methodWithTracedDataPropagate(@TracedData(value = "STRING", propagate = true) str: String): Unit = {}
   }

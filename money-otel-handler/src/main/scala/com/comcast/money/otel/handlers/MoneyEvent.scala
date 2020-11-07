@@ -17,7 +17,7 @@
 package com.comcast.money.otel.handlers
 
 import com.comcast.money.api.SpanInfo
-import io.opentelemetry.common.Attributes
+import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.sdk.trace.data.SpanData
 
 private[otel] case class MoneyEvent(event: SpanInfo.Event) extends SpanData.Event {

@@ -18,9 +18,9 @@ package com.comcast.money.core
 
 import com.comcast.money.api.{ IdGenerator, InstrumentationLibrary, Note, Span, SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.samplers.{ Sampler, SamplerResult }
-import io.grpc.Context
-import io.opentelemetry.common.{ AttributeKey, Attributes }
-import io.opentelemetry.trace.{ SpanContext, TraceFlags, TraceState, TracingContextUtils, Span => OtelSpan }
+import io.opentelemetry.api.common.{ AttributeKey, Attributes }
+import io.opentelemetry.api.trace.{ SpanContext, TraceFlags, TraceState, Span => OtelSpan }
+import io.opentelemetry.context.Context
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{ any, eq => argEq }
 import org.mockito.Mockito.{ never, times, verify, when }
@@ -148,6 +148,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val result = underTest
         .setParent(Some(parentSpan))
         .startSpan()
+
       result shouldBe span
     }
 
@@ -172,7 +173,8 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
         }
       }
 
-      val context = TracingContextUtils.withSpan(parentSpan, Context.ROOT)
+      when(parentSpan.storeInContext(Context.root())).thenCallRealMethod()
+      val context = Context.root.`with`(parentSpan)
 
       val result = underTest
         .setParent(context)

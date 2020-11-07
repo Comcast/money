@@ -18,7 +18,7 @@ package com.comcast.money.core.samplers
 
 import com.comcast.money.api.{ IdGenerator, SpanId }
 import com.typesafe.config.ConfigFactory
-import io.opentelemetry.trace.{ TraceFlags, TraceState }
+import io.opentelemetry.api.trace.{ TraceFlags, TraceState }
 import org.mockito.ArgumentMatchers.{ any, anyString }
 import org.mockito.Mockito.{ never, verify, verifyNoMoreInteractions, when }
 import org.scalatest.matchers.should.Matchers

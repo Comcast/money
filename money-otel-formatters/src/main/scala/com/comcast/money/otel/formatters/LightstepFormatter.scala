@@ -17,7 +17,7 @@
 package com.comcast.money.otel.formatters
 
 import com.comcast.money.core.formatters.OtelFormatter
-import io.opentelemetry.extensions.trace.propagation.OtTracerPropagator
+import io.opentelemetry.`extension`.trace.propagation.OtTracerPropagator
 
 object LightstepFormatter {
   private[formatters] val TracerTraceIdHeader = "ot-tracer-traceid"

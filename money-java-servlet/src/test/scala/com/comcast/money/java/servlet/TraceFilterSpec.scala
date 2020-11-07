@@ -16,12 +16,15 @@
 
 package com.comcast.money.java.servlet
 
+import java.util.Collections
+
 import javax.servlet.http.{ HttpServletRequest, HttpServletResponse }
 import javax.servlet.{ FilterChain, FilterConfig, ServletRequest, ServletResponse }
 import com.comcast.money.api.{ Span, SpanId }
 import com.comcast.money.core.formatters.FormatterUtils.randomRemoteSpanId
 import com.comcast.money.core.internal.SpanLocal
 import org.mockito.Mockito._
+import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.OptionValues._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -46,6 +49,9 @@ class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest 
 
   before {
     capturedSpan = None
+    val empty: java.util.Enumeration[_] = Collections.emptyEnumeration()
+    // The raw type seems to confuse the Scala compiler so the cast is required to compile successfully
+    when(mockRequest.getHeaderNames).asInstanceOf[OngoingStubbing[java.util.Enumeration[_]]].thenReturn(empty)
   }
 
   "A TraceFilter" should {

@@ -18,10 +18,10 @@ package com.comcast.money.core.formatters
 
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.{ CoreSpan, DisabledSpanHandler }
-import io.grpc.Context
+import io.opentelemetry.context.Context
 import io.opentelemetry.context.propagation.TextMapPropagator
 import io.opentelemetry.context.propagation.TextMapPropagator.{ Getter, Setter }
-import io.opentelemetry.trace.TracingContextUtils
+import io.opentelemetry.api.trace.{ Span => OtelSpan }
 import org.mockito.{ ArgumentCaptor, Mockito }
 import org.mockito.ArgumentMatchers.{ any, eq => argEq }
 import org.mockito.Mockito.{ verify, when }
@@ -48,9 +48,9 @@ class OtelFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers {
       verify(propagator).inject[Unit](contextCaptor.capture(), any[Unit], setterCaptor.capture())
 
       val context = contextCaptor.getValue
-      val span = TracingContextUtils.getSpanWithoutDefault(context)
+      val span = OtelSpan.fromContextOrNull(context)
       span should not be null
-      val spanContext = span.getContext
+      val spanContext = span.getSpanContext
       spanContext.getTraceIdAsHexString shouldBe spanId.traceIdAsHex
       spanContext.getSpanIdAsHexString shouldBe spanId.selfIdAsHex
 
@@ -62,16 +62,17 @@ class OtelFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers {
     "wraps extract" in {
       val spanId = SpanId.createNew()
       val span = CoreSpan(id = spanId, name = "test", handler = DisabledSpanHandler)
-      val context = TracingContextUtils.withSpan(span, Context.ROOT)
+      val context = span.storeInContext(Context.root)
+      val headers = Seq("A", "B")
       val getter = mock[String => String]
 
-      when(propagator.extract[Unit](argEq(Context.ROOT), any[Unit], any[Getter[Unit]])).thenReturn(context)
-      val result = underTest.fromHttpHeaders(getter)
+      when(propagator.extract[Unit](argEq(Context.root), any[Unit], any[Getter[Unit]])).thenReturn(context)
+      val result = underTest.fromHttpHeaders(headers, getter)
 
       result shouldBe Some(spanId)
 
       val getterCaptor = ArgumentCaptor.forClass(classOf[Getter[Unit]])
-      verify(propagator).extract[Unit](argEq(Context.ROOT), any[Unit], getterCaptor.capture())
+      verify(propagator).extract[Unit](argEq(Context.root), any[Unit], getterCaptor.capture())
       val wrappedGetter = getterCaptor.getValue
 
       when(getter("foo")).thenReturn("bar")
@@ -81,8 +82,8 @@ class OtelFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers {
     "wraps extract without span" in {
       val getter = mock[String => String]
 
-      when(propagator.extract[Unit](argEq(Context.ROOT), any[Unit], any[Getter[Unit]])).thenReturn(Context.ROOT)
-      val result = underTest.fromHttpHeaders(getter)
+      when(propagator.extract[Unit](argEq(Context.root), any[Unit], any[Getter[Unit]])).thenReturn(Context.root)
+      val result = underTest.fromHttpHeaders(Seq(), getter)
 
       result shouldBe None
     }

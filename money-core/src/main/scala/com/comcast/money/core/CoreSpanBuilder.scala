@@ -18,9 +18,9 @@ package com.comcast.money.core
 
 import com.comcast.money.api.{ InstrumentationLibrary, Note, Span, SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.samplers.{ DropResult, RecordResult, Sampler }
-import io.grpc.Context
-import io.opentelemetry.common.{ AttributeKey, Attributes }
-import io.opentelemetry.trace.{ SpanContext, TraceFlags, TracingContextUtils, Span => OtelSpan }
+import io.opentelemetry.api.common.{ AttributeKey, Attributes }
+import io.opentelemetry.context.Context
+import io.opentelemetry.api.trace.{ SpanContext, TraceFlags, Span => OtelSpan }
 
 import scala.collection.JavaConverters._
 
@@ -41,7 +41,7 @@ private[core] class CoreSpanBuilder(
 
   override def setParent(context: Context): Span.Builder = {
     parentSpan = Option(context)
-      .map(TracingContextUtils.getSpanWithoutDefault)
+      .flatMap { ctx => Option(OtelSpan.fromContextOrNull(ctx)) }
       .flatMap {
         case span: Span => Some(span)
         case _ => None

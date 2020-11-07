@@ -16,7 +16,7 @@
 
 package com.comcast.money.core.formatters
 
-import io.opentelemetry.trace.propagation.HttpTraceContext
+import io.opentelemetry.api.trace.propagation.HttpTraceContext
 
 object TraceContextFormatter {
   private[core] val TraceParentHeader = "traceparent"

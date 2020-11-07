@@ -18,8 +18,8 @@ package com.comcast.money.api;
 
 import java.util.Objects;
 
-import io.opentelemetry.common.AttributeKey;
-import io.opentelemetry.common.AttributeType;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.AttributeType;
 
 /**
  * A note that has been recorded on a {@link Span}

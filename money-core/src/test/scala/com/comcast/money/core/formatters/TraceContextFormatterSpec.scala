@@ -21,7 +21,7 @@ import java.util.UUID
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.formatters.TraceContextFormatter.{ TraceParentHeader, TraceStateHeader }
 import com.comcast.money.core.TraceGenerators
-import io.opentelemetry.trace.{ TraceFlags, TraceState }
+import io.opentelemetry.api.trace.{ TraceFlags, TraceState }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
@@ -38,6 +38,7 @@ class TraceContextFormatterSpec extends AnyWordSpec with MockitoSugar with Match
         whenever(isValidIds(traceIdValue, spanIdValue)) {
 
           val spanId = underTest.fromHttpHeaders(
+            Seq(),
             getHeader = {
               case TraceParentHeader => s"00-${traceIdValue.hex128}-${spanIdValue.hex64}-${if (sampled) "01" else "00"}"
               case TraceStateHeader => "foo=bar"
@@ -52,7 +53,7 @@ class TraceContextFormatterSpec extends AnyWordSpec with MockitoSugar with Match
     }
 
     "fail to read traceparent headers correctly for invalid headers" in {
-      val spanId = underTest.fromHttpHeaders(_ => "garbage")
+      val spanId = underTest.fromHttpHeaders(Seq(), _ => "garbage")
       spanId shouldBe None
     }
 

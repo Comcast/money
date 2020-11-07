@@ -18,7 +18,7 @@ package com.comcast.money.otel.handlers.zipkin
 
 import com.comcast.money.otel.handlers.OtelSpanHandler
 import com.typesafe.config.Config
-import io.opentelemetry.exporters.zipkin.ZipkinSpanExporter
+import io.opentelemetry.exporter.zipkin.ZipkinSpanExporter
 import io.opentelemetry.sdk.trace.`export`.SpanExporter
 import zipkin2.codec.SpanBytesEncoder
 
@@ -53,7 +53,7 @@ import zipkin2.codec.SpanBytesEncoder
  */
 class ZipkinOtelSpanHandler extends OtelSpanHandler {
   override protected def createSpanExporter(config: Config): SpanExporter = {
-    val builder = ZipkinSpanExporter.newBuilder()
+    val builder = ZipkinSpanExporter.builder()
 
     val serviceNameKey = "service-name"
     val endpointKey = "endpoint"
