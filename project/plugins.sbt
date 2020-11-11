@@ -13,10 +13,10 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-site" % "1.3.2")
 
 addSbtPlugin("com.cavorite" % "sbt-avro-1-8" % "1.1.9")
 
-addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.0.0")
+addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.5.0")
 
 addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.8.3")
 
-addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.1.1")
-
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.10.0-RC1")
+
+addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.3")
