@@ -326,6 +326,7 @@ def projectSettings = basicSettings ++ Seq(
   startYear := Some(2012),
   licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
   organization := "com.comcast.money",
+  sonatypeProfileName := "com.comcast",
   homepage := Some(url("https://github.com/Comcast/money")),
   developers := List(
     Developer(
@@ -343,6 +344,7 @@ def aspectjProjectSettings = projectSettings ++ Seq(
 
 def basicSettings =  Defaults.itSettings ++ Seq(
   organization := "com.comcast.money",
+  sonatypeProfileName := "com.comcast",
   scalaVersion := "2.12.12",
   crossScalaVersions := List("2.13.3", "2.12.12"),
   resolvers ++= Seq(
