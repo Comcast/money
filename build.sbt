@@ -324,7 +324,17 @@ def projectSettings = basicSettings ++ Seq(
   ScoverageKeys.coverageFailOnMinimum := true,
   organizationName := "Comcast Cable Communications Management, LLC",
   startYear := Some(2012),
-  licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt"))
+  licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
+  organization := "com.comcast.money",
+  homepage := Some(url("https://github.com/Comcast/money")),
+  developers := List(
+    Developer(
+      "pauljamescleary",
+      "Paul James Cleary",
+      "pauljamescleary@gmail.com",
+      url("https://github.com/pauljamescleary")
+    )
+  )
 )
 
 def aspectjProjectSettings = projectSettings ++ Seq(
@@ -333,7 +343,6 @@ def aspectjProjectSettings = projectSettings ++ Seq(
 
 def basicSettings =  Defaults.itSettings ++ Seq(
   organization := "com.comcast.money",
-  version := "0.10.0-SNAPSHOT",
   scalaVersion := "2.12.12",
   crossScalaVersions := List("2.13.3", "2.12.12"),
   resolvers ++= Seq(
@@ -352,33 +361,6 @@ def basicSettings =  Defaults.itSettings ++ Seq(
   scalariformAutoformat := true,
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF", "-u", "target/scalatest-reports"),
   fork := true,
-  publishMavenStyle := true,
-  publishTo := {
-    val nexus = "https://oss.sonatype.org/"
-    if (isSnapshot.value)
-      Some("snapshots" at nexus + "content/repositories/snapshots")
-    else
-      Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-  },
-  pomIncludeRepository := { _ => false },
-  pomExtra := (
-    <url>https://github.com/Comcast/money</url>
-      <scm>
-        <url>git@github.com:Comcast/money.git</url>
-        <connection>scm:git:git@github.com:Comcast/money.git</connection>
-      </scm>
-      <developers>
-        <developer>
-          <id>paulcleary</id>
-          <name>Paul Clery</name>
-          <url>https://github.com/paulcleary</url>
-        </developer>
-        <developer>
-          <id>kristomasette</id>
-          <name>Kristofer Tomasette</name>
-          <url>https://github.com/kristomasette</url>
-        </developer>
-      </developers>),
   publishArtifact in Test := false,
   autoAPIMappings := true,
   apiMappings ++= {
