@@ -24,7 +24,6 @@ import com.comcast.money.core.japi.JMoney._
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.mockito.Mockito.doReturn
 import org.scalatest._
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers

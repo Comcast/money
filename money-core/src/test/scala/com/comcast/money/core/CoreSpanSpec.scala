@@ -131,7 +131,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "add an event with name and timestamp" in {
       val underTest = CoreSpan(SpanId.createNew(), "test")
 
-      underTest.addEvent("event", 100L)
+      underTest.addEvent("event", 100L, TimeUnit.NANOSECONDS)
 
       underTest.info.events should have size 1
       val event = underTest.info.events.get(0)
@@ -157,7 +157,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "add an event with name, attributes and timestamp" in {
       val underTest = CoreSpan(SpanId.createNew(), "test")
 
-      underTest.addEvent("event", Attributes.of(AttributeKey.stringKey("foo"), "bar"), 100L)
+      underTest.addEvent("event", Attributes.of(AttributeKey.stringKey("foo"), "bar"), 100L, TimeUnit.NANOSECONDS)
 
       underTest.info.events should have size 1
       val event = underTest.info.events.get(0)
@@ -389,7 +389,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       val underTest = CoreSpan(SpanId.createNew(), "test", handler = handler, startTimeNanos = SystemClock.now)
 
       underTest.record(testLongNote)
-      underTest.end(TimeUnit.MILLISECONDS.toNanos(1L))
+      underTest.end(1L, TimeUnit.MILLISECONDS)
 
       verify(handler).handle(handleCaptor.capture())
 

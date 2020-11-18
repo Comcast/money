@@ -19,7 +19,7 @@ package com.comcast.money.spring
 import java.lang.reflect.AccessibleObject
 
 import com.comcast.money.annotations.{ Traced, TracedData }
-import com.comcast.money.api.{ Note, Span }
+import com.comcast.money.api.{ Note, Span, SpanBuilder }
 import com.comcast.money.core.CustomAnnotation
 import io.opentelemetry.context.{ Context, Scope }
 import org.aopalliance.intercept.MethodInvocation
@@ -48,7 +48,7 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
   @MockBean
   private var springTracer: SpringTracer = _
 
-  private var spanBuilder: Span.Builder = _
+  private var spanBuilder: SpanBuilder = _
   private var span: Span = _
   private var context: Context = _
   private var scope: Scope = _
@@ -56,7 +56,7 @@ class TracedMethodInterceptorScalaSpec extends AnyWordSpec with Matchers with Mo
   new TestContextManager(classOf[TracedMethodInterceptorScalaSpec]).prepareTestInstance(this)
 
   override def beforeEach: Unit = {
-    spanBuilder = mock[Span.Builder]
+    spanBuilder = mock[SpanBuilder]
     span = mock[Span]
     scope = mock[Scope]
     context = mock[Context]

@@ -16,6 +16,8 @@
 
 package com.comcast.money.core
 
+import java.util.concurrent.TimeUnit
+
 import com.comcast.money.api.{ IdGenerator, InstrumentationLibrary, Note, Span, SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.samplers.{ Sampler, SamplerResult }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
@@ -381,7 +383,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library)
 
       val result = underTest
-        .setStartTimestamp(12345789L)
+        .setStartTimestamp(12345789L, TimeUnit.NANOSECONDS)
         .startSpan()
 
       result.info.startTimeNanos shouldBe 12345789L

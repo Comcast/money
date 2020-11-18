@@ -19,7 +19,7 @@ package com.comcast.money.core.logging
 import java.lang.reflect.Method
 
 import com.comcast.money.annotations.{ Timed, Traced, TracedData }
-import com.comcast.money.api.Span
+import com.comcast.money.api.{ Span, SpanBuilder }
 import com.comcast.money.core.Tracer
 import com.comcast.money.core.async.{ AsyncNotificationHandler, AsyncNotifier }
 import com.comcast.money.core.internal.{ MDCSupport, SpanContext }
@@ -36,7 +36,7 @@ import org.scalatest.OneInstancePerTest
 class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with OneInstancePerTest {
 
   val mockTracer: Tracer = mock[Tracer]
-  val mockSpanBuilder: Span.Builder = mock[Span.Builder]
+  val mockSpanBuilder: SpanBuilder = mock[SpanBuilder]
   val mockSpan: Span = mock[Span]
   val mockContext: Context = mock[Context]
   val mockScope: Scope = mock[Scope]
