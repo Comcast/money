@@ -105,7 +105,9 @@ private[core] class CoreSpanBuilder(
   }
 
   override def setStartTimestamp(startTimestamp: Instant): SpanBuilder = {
-    this.startTimeNanos = TimeUnit.SECONDS.toNanos(startTimestamp.getEpochSecond) + startTimestamp.getNano
+    this.startTimeNanos = if (startTimestamp != null)
+      TimeUnit.SECONDS.toNanos(startTimestamp.getEpochSecond) + startTimestamp.getNano
+    else 0L
     this
   }
 

@@ -31,6 +31,8 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 
+import InstantImplicits._
+
 class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoSugar {
 
   "CoreSpan" should {
@@ -141,6 +143,20 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       event.exception should be(null)
     }
 
+    "add an event with name and instant" in {
+      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val instant = Instant.now
+
+      underTest.addEvent("event", instant)
+
+      underTest.info.events should have size 1
+      val event = underTest.info.events.get(0)
+      event.name shouldBe "event"
+      event.attributes should have size 0
+      event.timestamp shouldBe instant.toEpochNano
+      event.exception should be(null)
+    }
+
     "add an event with name and attributes" in {
       val underTest = CoreSpan(SpanId.createNew(), "test")
 
@@ -165,6 +181,21 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       event.attributes should have size 1
       event.attributes.get(AttributeKey.stringKey("foo")) shouldBe "bar"
       event.timestamp shouldBe 100L
+      event.exception should be(null)
+    }
+
+    "add an event with name, attributes and instant" in {
+      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val instant = Instant.now
+
+      underTest.addEvent("event", Attributes.of(AttributeKey.stringKey("foo"), "bar"), instant)
+
+      underTest.info.events should have size 1
+      val event = underTest.info.events.get(0)
+      event.name shouldBe "event"
+      event.attributes should have size 1
+      event.attributes.get(AttributeKey.stringKey("foo")) shouldBe "bar"
+      event.timestamp shouldBe instant.toEpochNano
       event.exception should be(null)
     }
 
@@ -383,7 +414,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       handledInfo.notes should contain value testLongNote
     }
 
-    "invoke the span handler when ended with options" in {
+    "invoke the span handler when ended with timestamp" in {
       val handler = mock[SpanHandler]
       val handleCaptor = ArgumentCaptor.forClass(classOf[SpanInfo])
       val underTest = CoreSpan(SpanId.createNew(), "test", handler = handler, startTimeNanos = SystemClock.now)
@@ -400,6 +431,25 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       handledInfo.startTimeMillis.toInt should not be 0
       handledInfo.endTimeMicros.toInt shouldBe 1000
       handledInfo.endTimeMillis.toInt shouldBe 1
+      handledInfo.notes should contain value testLongNote
+    }
+
+    "invoke the span handler when ended with instant" in {
+      val handler = mock[SpanHandler]
+      val handleCaptor = ArgumentCaptor.forClass(classOf[SpanInfo])
+      val underTest = CoreSpan(SpanId.createNew(), "test", handler = handler, startTimeNanos = SystemClock.now)
+      val instant = Instant.now
+
+      underTest.record(testLongNote)
+      underTest.end(instant)
+
+      verify(handler).handle(handleCaptor.capture())
+
+      val handledInfo = handleCaptor.getValue
+
+      handledInfo.id shouldBe underTest.id
+      handledInfo.startTimeNanos should not be 0
+      handledInfo.endTimeNanos shouldBe instant.toEpochNano
       handledInfo.notes should contain value testLongNote
     }
   }
