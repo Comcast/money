@@ -135,9 +135,9 @@ private[core] case class CoreSpan(
   override def setAttribute[T](key: AttributeKey[T], value: T): Span = record(Note.of(key, value))
 
   override def addEvent(eventName: String): Span = addEventInternal(createEvent(eventName))
-  override def addEvent(eventName: String, timestampNanos: scala.Long): Span = addEventInternal(createEvent(eventName, Attributes.empty(), timestampNanos))
+  override def addEvent(eventName: String, timestamp: scala.Long, unit: TimeUnit): Span = addEventInternal(createEvent(eventName, Attributes.empty(), unit.toNanos(timestamp)))
   override def addEvent(eventName: String, eventAttributes: Attributes): Span = addEventInternal(createEvent(eventName, eventAttributes))
-  override def addEvent(eventName: String, eventAttributes: Attributes, timestampNanos: scala.Long): Span = addEventInternal(createEvent(eventName, eventAttributes, timestampNanos))
+  override def addEvent(eventName: String, eventAttributes: Attributes, timestamp: scala.Long, unit: TimeUnit): Span = addEventInternal(createEvent(eventName, eventAttributes, unit.toNanos(timestamp)))
 
   private def addEventInternal(event: SpanInfo.Event): Span = {
     events += event
@@ -169,7 +169,7 @@ private[core] case class CoreSpan(
   }
 
   override def end(): Unit = stop()
-  override def `end`(endTimeStamp: Long): Unit = stop(endTimeStamp, StatusCode.UNSET)
+  override def `end`(endTimeStamp: Long, unit: TimeUnit): Unit = stop(unit.toNanos(endTimeStamp), StatusCode.UNSET)
 
   override def getSpanContext: SpanContext = id.toSpanContext
 

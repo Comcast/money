@@ -349,7 +349,8 @@ def basicSettings =  Defaults.itSettings ++ Seq(
   crossScalaVersions := List("2.13.3", "2.12.12"),
   resolvers ++= Seq(
     ("spray repo" at "http://repo.spray.io/").withAllowInsecureProtocol(true),
-    "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/"
+    "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/",
+    "JFrog OSS Snapshots" at "https://oss.jfrog.org/artifactory/oss-snapshot-local"
   ),
   scalacOptions ++= Seq(
     "-unchecked",

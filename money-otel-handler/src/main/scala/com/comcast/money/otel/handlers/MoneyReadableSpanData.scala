@@ -19,7 +19,7 @@ package com.comcast.money.otel.handlers
 import java.util
 
 import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanInfo }
-import io.opentelemetry.api.common.{ Attributes, ReadableAttributes }
+import io.opentelemetry.api.common.{ Attributes, AttributesBuilder, ReadableAttributes }
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.ReadableSpan
@@ -68,7 +68,7 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
       InstrumentationLibraryInfo.getEmpty
     }
 
-  private def appendNoteToBuilder[T](builder: Attributes.Builder, note: Note[T]): Attributes.Builder =
+  private def appendNoteToBuilder[T](builder: AttributesBuilder, note: Note[T]): AttributesBuilder =
     builder.put(note.key, note.value)
 
   private def convertAttributes(notes: util.Map[String, Note[_]]): Attributes =

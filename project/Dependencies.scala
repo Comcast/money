@@ -9,7 +9,7 @@ object Dependencies {
   val jodaV = "2.9.9"
   val json4sV = "3.6.10"
   val typesafeConfigV = "1.3.3"
-  val openTelemetryV = "0.10.0"
+  val openTelemetryV = "0.11.0-SNAPSHOT"
 
   val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
   val akkaStream =      "com.typesafe.akka"         %% "akka-stream"                 % akkaV

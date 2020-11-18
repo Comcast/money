@@ -18,7 +18,7 @@ package com.comcast.money.api;
 
 public interface SpanFactory {
 
-    Span.Builder spanBuilder(String spanName);
+    SpanBuilder spanBuilder(String spanName);
 
     Span newSpan(String spanName);
 

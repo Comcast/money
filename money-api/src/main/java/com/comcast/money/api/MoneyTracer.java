@@ -16,6 +16,7 @@
 
 package com.comcast.money.api;
 
+import io.opentelemetry.api.trace.SpanBuilder;
 import io.opentelemetry.api.trace.Tracer;
 
 /**
@@ -27,5 +28,5 @@ public interface MoneyTracer extends Tracer {
      * {@inheritDoc}
      */
     @Override
-    Span.Builder spanBuilder(String spanName);
+    SpanBuilder spanBuilder(String spanName);
 }

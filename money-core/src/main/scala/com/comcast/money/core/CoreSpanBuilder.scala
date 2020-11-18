@@ -16,7 +16,10 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ InstrumentationLibrary, Note, Span, SpanHandler, SpanId, SpanInfo }
+import java.time.Instant
+import java.util.concurrent.TimeUnit
+
+import com.comcast.money.api.{ InstrumentationLibrary, Note, Span, SpanBuilder, SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.samplers.{ DropResult, RecordResult, Sampler }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Context
@@ -31,7 +34,7 @@ private[core] class CoreSpanBuilder(
   clock: Clock,
   handler: SpanHandler,
   sampler: Sampler,
-  library: InstrumentationLibrary) extends Span.Builder {
+  library: InstrumentationLibrary) extends SpanBuilder {
 
   var sticky: Boolean = true
   var spanKind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL
@@ -39,7 +42,7 @@ private[core] class CoreSpanBuilder(
   var notes: List[Note[_]] = List()
   var links: List[SpanInfo.Link] = List()
 
-  override def setParent(context: Context): Span.Builder = {
+  override def setParent(context: Context): SpanBuilder = {
     parentSpan = Option(context)
       .flatMap { ctx => Option(OtelSpan.fromContextOrNull(ctx)) }
       .flatMap {
@@ -49,55 +52,60 @@ private[core] class CoreSpanBuilder(
     this
   }
 
-  override def setParent(span: Span): Span.Builder = {
+  override def setParent(span: Span): SpanBuilder = {
     parentSpan = Option(span)
     this
   }
 
-  override def setParent(span: Option[Span]): Span.Builder = {
+  override def setParent(span: Option[Span]): SpanBuilder = {
     parentSpan = span
     this
   }
 
-  override def setSticky(sticky: Boolean): Span.Builder = {
+  override def setSticky(sticky: Boolean): SpanBuilder = {
     this.sticky = sticky
     this
   }
 
-  override def setNoParent(): Span.Builder = {
+  override def setNoParent(): SpanBuilder = {
     parentSpan = None
     this
   }
 
-  override def addLink(spanContext: SpanContext): Span.Builder = addLink(spanContext, Attributes.empty)
+  override def addLink(spanContext: SpanContext): SpanBuilder = addLink(spanContext, Attributes.empty)
 
-  override def addLink(spanContext: SpanContext, attributes: Attributes): Span.Builder = {
+  override def addLink(spanContext: SpanContext, attributes: Attributes): SpanBuilder = {
     links = CoreLink(spanContext, attributes) :: links
     this
   }
 
-  override def setAttribute(key: String, value: String): Span.Builder = setAttribute[String](AttributeKey.stringKey(key), value)
+  override def setAttribute(key: String, value: String): SpanBuilder = setAttribute[String](AttributeKey.stringKey(key), value)
 
-  override def setAttribute(key: String, value: Long): Span.Builder = setAttribute[java.lang.Long](AttributeKey.longKey(key), value)
+  override def setAttribute(key: String, value: Long): SpanBuilder = setAttribute[java.lang.Long](AttributeKey.longKey(key), value)
 
-  override def setAttribute(key: String, value: Double): Span.Builder = setAttribute[java.lang.Double](AttributeKey.doubleKey(key), value)
+  override def setAttribute(key: String, value: Double): SpanBuilder = setAttribute[java.lang.Double](AttributeKey.doubleKey(key), value)
 
-  override def setAttribute(key: String, value: Boolean): Span.Builder = setAttribute[java.lang.Boolean](AttributeKey.booleanKey(key), value)
+  override def setAttribute(key: String, value: Boolean): SpanBuilder = setAttribute[java.lang.Boolean](AttributeKey.booleanKey(key), value)
 
-  override def setAttribute[T](key: AttributeKey[T], value: T): Span.Builder = record(Note.of(key, value))
+  override def setAttribute[T](key: AttributeKey[T], value: T): SpanBuilder = record(Note.of(key, value))
 
-  override def record(note: Note[_]): Span.Builder = {
+  override def record(note: Note[_]): SpanBuilder = {
     notes = note :: notes
     this
   }
 
-  override def setSpanKind(spanKind: OtelSpan.Kind): Span.Builder = {
+  override def setSpanKind(spanKind: OtelSpan.Kind): SpanBuilder = {
     this.spanKind = spanKind
     this
   }
 
-  override def setStartTimestamp(startTimestamp: Long): Span.Builder = {
-    this.startTimeNanos = startTimestamp
+  override def setStartTimestamp(startTimestamp: Long, timeUnit: TimeUnit): SpanBuilder = {
+    this.startTimeNanos = timeUnit.toNanos(startTimestamp)
+    this
+  }
+
+  override def setStartTimestamp(startTimestamp: Instant): SpanBuilder = {
+    this.startTimeNanos = TimeUnit.SECONDS.toNanos(startTimestamp.getEpochSecond) + startTimestamp.getNano
     this
   }
 
@@ -128,7 +136,7 @@ private[core] class CoreSpanBuilder(
         val span = createSpan(
           id = spanId.withTraceFlags(traceFlags),
           name = spanName,
-          startTimeNanos = if (startTimeNanos > 0) startTimeNanos else clock.now,
+          startTimeNanos = if (startTimeNanos > 0L) startTimeNanos else clock.now,
           kind = spanKind)
 
         // propagate parent span notes
