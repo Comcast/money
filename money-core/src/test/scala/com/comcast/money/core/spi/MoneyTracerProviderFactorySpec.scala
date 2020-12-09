@@ -20,7 +20,7 @@ import java.util.ServiceLoader
 
 import com.comcast.money.core.{ MoneyTracerProvider, Tracer }
 import io.opentelemetry.api.OpenTelemetry
-import io.opentelemetry.api.trace.spi.TracerProviderFactory
+import io.opentelemetry.spi.trace.TracerProviderFactory
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar

@@ -134,26 +134,28 @@ private[core] case class CoreSpan(
   override def setAttribute(attributeName: String, value: Boolean): Span = record(Note.of(attributeName, value))
   override def setAttribute[T](key: AttributeKey[T], value: T): Span = record(Note.of(key, value))
 
-  override def addEvent(eventName: String): Span = addEventInternal(createEvent(eventName))
-  override def addEvent(eventName: String, timestampNanos: scala.Long): Span = addEventInternal(createEvent(eventName, Attributes.empty(), timestampNanos))
-  override def addEvent(eventName: String, eventAttributes: Attributes): Span = addEventInternal(createEvent(eventName, eventAttributes))
-  override def addEvent(eventName: String, eventAttributes: Attributes, timestampNanos: scala.Long): Span = addEventInternal(createEvent(eventName, eventAttributes, timestampNanos))
+  override def addEvent(eventName: String): Span = addEventInternal(eventName, Attributes.empty(), clock.now)
+  override def addEvent(eventName: String, timestamp: Instant): Span = addEventInternal(eventName, Attributes.empty(), timestamp)
+  override def addEvent(eventName: String, timestamp: scala.Long, unit: TimeUnit): Span = addEventInternal(eventName, Attributes.empty(), unit.toNanos(timestamp))
+  override def addEvent(eventName: String, eventAttributes: Attributes): Span = addEventInternal(eventName, eventAttributes, clock.now)
+  override def addEvent(eventName: String, eventAttributes: Attributes, timestamp: Instant): Span = addEventInternal(eventName, eventAttributes, timestamp)
+  override def addEvent(eventName: String, eventAttributes: Attributes, timestamp: scala.Long, unit: TimeUnit): Span = addEventInternal(eventName, eventAttributes, unit.toNanos(timestamp))
 
-  private def addEventInternal(event: SpanInfo.Event): Span = {
-    events += event
+  private def addEventInternal(eventName: String, eventAttributes: Attributes, timestamp: Instant): Span = {
+    val timestampNanos = if (timestamp != null)
+      TimeUnit.SECONDS.toNanos(timestamp.getEpochSecond) + timestamp.getNano
+    else clock.now
+    addEventInternal(eventName, eventAttributes, timestampNanos)
+  }
+
+  private def addEventInternal(eventName: String, eventAttributes: Attributes, timestampNanos: scala.Long, exception: Throwable = null): Span = {
+    events += CoreEvent(eventName, eventAttributes, timestampNanos, exception)
     this
   }
 
-  private def createEvent(
-    eventName: String,
-    eventAttributes: Attributes = Attributes.empty,
-    timestampNanos: Long = clock.now,
-    exception: Throwable = null): SpanInfo.Event =
-    CoreEvent(eventName, eventAttributes, timestampNanos, exception)
-
   override def recordException(exception: Throwable): Span = recordException(exception, Attributes.empty())
   override def recordException(exception: Throwable, eventAttributes: Attributes): Span =
-    addEventInternal(createEvent(SemanticAttributes.EXCEPTION_EVENT_NAME, eventAttributes, clock.now, exception))
+    addEventInternal(SemanticAttributes.EXCEPTION_EVENT_NAME, eventAttributes, clock.now, exception)
 
   override def setStatus(canonicalCode: StatusCode): Span = setStatus(canonicalCode, null)
 
@@ -169,7 +171,7 @@ private[core] case class CoreSpan(
   }
 
   override def end(): Unit = stop()
-  override def `end`(endTimeStamp: Long): Unit = stop(endTimeStamp, StatusCode.UNSET)
+  override def `end`(endTimeStamp: Long, unit: TimeUnit): Unit = stop(unit.toNanos(endTimeStamp), StatusCode.UNSET)
 
   override def getSpanContext: SpanContext = id.toSpanContext
 

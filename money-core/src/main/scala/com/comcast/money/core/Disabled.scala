@@ -16,11 +16,13 @@
 
 package com.comcast.money.core
 
+import java.time.Instant
+import java.util.concurrent.TimeUnit
+
 import com.comcast.money.api._
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.{ Context, Scope }
 import io.opentelemetry.api.trace.{ SpanContext, StatusCode, Span => OtelSpan }
-
 import com.comcast.money.core.formatters.Formatter
 
 // $COVERAGE-OFF$
@@ -76,7 +78,7 @@ object DisabledFormatter extends Formatter {
 
 object DisabledSpanFactory extends SpanFactory {
 
-  override def spanBuilder(spanName: String): Span.Builder = DisabledSpanBuilder
+  override def spanBuilder(spanName: String): SpanBuilder = DisabledSpanBuilder
 
   override def newSpan(spanName: String): Span = DisabledSpan
 
@@ -87,36 +89,38 @@ object DisabledSpanFactory extends SpanFactory {
   override def newSpan(spanId: SpanId, spanName: String): Span = DisabledSpan
 }
 
-object DisabledSpanBuilder extends Span.Builder {
-  override def setParent(context: Context): Span.Builder = this
+object DisabledSpanBuilder extends SpanBuilder {
+  override def setParent(context: Context): SpanBuilder = this
 
-  override def setParent(span: Span): Span.Builder = this
+  override def setParent(span: Span): SpanBuilder = this
 
-  override def setParent(span: Option[Span]): Span.Builder = this
+  override def setParent(span: Option[Span]): SpanBuilder = this
 
-  override def setSticky(sticky: Boolean): Span.Builder = this
+  override def setSticky(sticky: Boolean): SpanBuilder = this
 
-  override def setNoParent(): Span.Builder = this
+  override def setNoParent(): SpanBuilder = this
 
-  override def addLink(spanContext: SpanContext): Span.Builder = this
+  override def addLink(spanContext: SpanContext): SpanBuilder = this
 
-  override def addLink(spanContext: SpanContext, attributes: Attributes): Span.Builder = this
+  override def addLink(spanContext: SpanContext, attributes: Attributes): SpanBuilder = this
 
-  override def setAttribute(key: String, value: String): Span.Builder = this
+  override def setAttribute(key: String, value: String): SpanBuilder = this
 
-  override def setAttribute(key: String, value: Long): Span.Builder = this
+  override def setAttribute(key: String, value: Long): SpanBuilder = this
 
-  override def setAttribute(key: String, value: Double): Span.Builder = this
+  override def setAttribute(key: String, value: Double): SpanBuilder = this
 
-  override def setAttribute(key: String, value: Boolean): Span.Builder = this
+  override def setAttribute(key: String, value: Boolean): SpanBuilder = this
 
-  override def setAttribute[T](key: AttributeKey[T], value: T): Span.Builder = this
+  override def setAttribute[T](key: AttributeKey[T], value: T): SpanBuilder = this
 
-  override def record(note: Note[_]): Span.Builder = this
+  override def record(note: Note[_]): SpanBuilder = this
 
-  override def setSpanKind(spanKind: OtelSpan.Kind): Span.Builder = this
+  override def setSpanKind(spanKind: OtelSpan.Kind): SpanBuilder = this
 
-  override def setStartTimestamp(startTimestamp: Long): Span.Builder = this
+  override def setStartTimestamp(startTimestamp: Long, unit: TimeUnit): SpanBuilder = this
+
+  override def setStartTimestamp(startTimestamp: Instant): SpanBuilder = this
 
   override def startSpan(): Span = DisabledSpan
 }
@@ -151,11 +155,15 @@ object DisabledSpan extends Span {
 
   override def addEvent(name: String): Span = this
 
-  override def addEvent(name: String, timestamp: Long): Span = this
+  override def addEvent(name: String, timestamp: Long, unit: TimeUnit): Span = this
+
+  override def addEvent(name: String, timestamp: Instant): Span = this
 
   override def addEvent(name: String, attributes: Attributes): Span = this
 
-  override def addEvent(name: String, attributes: Attributes, timestamp: Long): Span = this
+  override def addEvent(name: String, attributes: Attributes, timestamp: Long, unit: TimeUnit): Span = this
+
+  override def addEvent(name: String, attributes: Attributes, timestamp: Instant): Span = this
 
   override def setStatus(canonicalCode: StatusCode): Span = this
 
@@ -169,7 +177,9 @@ object DisabledSpan extends Span {
 
   override def `end`(): Unit = ()
 
-  override def `end`(endTimeStamp: Long): Unit = ()
+  override def `end`(endTimeStamp: Long, unit: TimeUnit): Unit = ()
+
+  override def `end`(endTimeStamp: Instant): Unit = ()
 
   override def getSpanContext: SpanContext = SpanContext.getInvalid
 

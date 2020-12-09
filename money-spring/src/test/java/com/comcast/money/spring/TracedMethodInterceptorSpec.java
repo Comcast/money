@@ -34,6 +34,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import com.comcast.money.api.Note;
 import com.comcast.money.api.Span;
+import com.comcast.money.api.SpanBuilder;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -55,7 +56,7 @@ public class TracedMethodInterceptorSpec {
     private SampleTraceBean sampleTraceBean;
 
     @Mock
-    private Span.Builder spanBuilder;
+    private SpanBuilder spanBuilder;
 
     @Mock
     private Span span;

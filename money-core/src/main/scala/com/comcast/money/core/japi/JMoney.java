@@ -21,6 +21,7 @@ import io.opentelemetry.context.Scope;
 
 import com.comcast.money.api.Note;
 import com.comcast.money.api.Span;
+import com.comcast.money.api.SpanBuilder;
 import com.comcast.money.core.Money;
 import com.comcast.money.core.Tracer;
 
@@ -239,16 +240,16 @@ public class JMoney {
     }
 
     /**
-     * Creates a new {@link Span.Builder} for configuring and creating a new span with the given name.
+     * Creates a new {@link SpanBuilder} for configuring and creating a new span with the given name.
      *
      * If a span already exists, the new span will be a child span of the existing span.
      *
      * If no span exists, the new span will be a root span
      *
      * @param spanName The name of the span
-     * @return the {@link Span.Builder}
+     * @return the {@link SpanBuilder}
      */
-    public static Span.Builder spanBuilder(String spanName) {
+    public static SpanBuilder spanBuilder(String spanName) {
 
         return tracer().spanBuilder(spanName);
     }

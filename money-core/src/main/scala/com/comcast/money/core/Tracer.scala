@@ -18,7 +18,7 @@ package com.comcast.money.core
 
 import java.io.Closeable
 
-import com.comcast.money.api.{ MoneyTracer, Note, Span, SpanFactory }
+import com.comcast.money.api.{ MoneyTracer, Note, Span, SpanBuilder, SpanFactory }
 import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
 import io.opentelemetry.context.Scope
 import io.opentelemetry.api.trace.{ StatusCode, Span => OtelSpan }
@@ -32,7 +32,7 @@ trait Tracer extends MoneyTracer with Closeable {
 
   val spanContext: SpanContext = SpanLocal
 
-  override def spanBuilder(spanName: String): Span.Builder = spanFactory.spanBuilder(spanName)
+  override def spanBuilder(spanName: String): SpanBuilder = spanFactory.spanBuilder(spanName)
 
   /**
    * Creates a new span if one is not present; or creates a child span for the existing Span if one is present

@@ -18,7 +18,7 @@ package com.comcast.money.core.spi
 
 import com.comcast.money.core.{ Money, MoneyTracerProvider, Tracer }
 import io.opentelemetry.api.trace.TracerProvider
-import io.opentelemetry.api.trace.spi.TracerProviderFactory
+import io.opentelemetry.spi.trace.TracerProviderFactory
 
 class MoneyTracerProviderFactory(tracer: Tracer) extends TracerProviderFactory {
   def this() = this(Money.Environment.tracer)

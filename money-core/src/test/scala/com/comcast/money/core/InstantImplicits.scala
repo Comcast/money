@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package com.comcast.money.api;
+package com.comcast.money.core
 
-public interface SpanFactory {
+import java.time.Instant
+import java.util.concurrent.TimeUnit
 
-    SpanBuilder spanBuilder(String spanName);
+import scala.language.implicitConversions
 
-    Span newSpan(String spanName);
+object InstantImplicits {
+  implicit def foo(instant: Instant): InstantImplicits = InstantImplicits(instant)
+}
 
-    Span newSpan(SpanId spanId, String spanName);
-
-    Span childSpan(String childName, Span span);
-
-    Span childSpan(String childName, Span span, boolean sticky);
+final case class InstantImplicits(instant: Instant) {
+  def toEpochNano: Long = TimeUnit.SECONDS.toNanos(instant.getEpochSecond) + instant.getNano
 }

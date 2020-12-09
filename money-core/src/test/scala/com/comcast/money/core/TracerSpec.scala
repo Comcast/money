@@ -16,7 +16,7 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ Note, Span, SpanFactory, SpanId }
+import com.comcast.money.api.{ Note, Span, SpanBuilder, SpanFactory, SpanId }
 import com.comcast.money.core.handlers.TestData
 import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
 import io.opentelemetry.context.{ Context, Scope }
@@ -33,7 +33,7 @@ class TracerSpec extends AnyWordSpec
   with Matchers with MockitoSugar with TestData with BeforeAndAfterEach with OneInstancePerTest {
 
   val mockSpanFactory = mock[SpanFactory]
-  val mockSpanBuilder = mock[Span.Builder]
+  val mockSpanBuilder = mock[SpanBuilder]
   val mockSpan = mock[Span]
   val mockSpanContext = mock[SpanContext]
   val noteCaptor: ArgumentCaptor[Note[_]] = ArgumentCaptor.forClass(classOf[Note[_]])

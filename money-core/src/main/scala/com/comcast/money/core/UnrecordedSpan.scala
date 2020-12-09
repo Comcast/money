@@ -17,6 +17,8 @@
 package com.comcast.money.core
 
 import java.lang
+import java.time.Instant
+import java.util.concurrent.TimeUnit
 
 import com.comcast.money.api.{ Note, Span, SpanId, SpanInfo }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
@@ -47,7 +49,7 @@ private[core] final case class UnrecordedSpan(
   override def stop(): Unit = close()
   override def stop(result: lang.Boolean): Unit = close()
   override def `end`(): Unit = close()
-  override def `end`(endTimeStamp: Long): Unit = close()
+  override def `end`(endTimeStamp: Long, unit: TimeUnit): Unit = close()
 
   override def record(note: Note[_]): Span = this
   override def startTimer(timerKey: String): Scope = () => ()
@@ -58,9 +60,11 @@ private[core] final case class UnrecordedSpan(
   override def setAttribute(key: String, value: Boolean): Span = this
   override def setAttribute[T](key: AttributeKey[T], value: T): Span = this
   override def addEvent(name: String): Span = this
-  override def addEvent(name: String, timestamp: Long): Span = this
+  override def addEvent(name: String, timestamp: Long, unit: TimeUnit): Span = this
+  override def addEvent(name: String, timestamp: Instant): Span = this
   override def addEvent(name: String, attributes: Attributes): Span = this
-  override def addEvent(name: String, attributes: Attributes, timestamp: Long): Span = this
+  override def addEvent(name: String, attributes: Attributes, timestamp: Long, unit: TimeUnit): Span = this
+  override def addEvent(name: String, attributes: Attributes, timestamp: Instant): Span = this
   override def setStatus(canonicalCode: StatusCode): Span = this
   override def setStatus(canonicalCode: StatusCode, description: String): Span = this
   override def recordException(exception: Throwable): Span = this

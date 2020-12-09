@@ -16,7 +16,7 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ InstrumentationLibrary, Span, SpanFactory, SpanHandler, SpanId }
+import com.comcast.money.api.{ InstrumentationLibrary, Span, SpanBuilder, SpanFactory, SpanHandler, SpanId }
 import com.comcast.money.core.formatters.Formatter
 import com.comcast.money.core.internal.SpanContext
 import com.comcast.money.core.samplers.Sampler
@@ -29,7 +29,7 @@ private[core] final case class CoreSpanFactory(
   sampler: Sampler,
   library: InstrumentationLibrary) extends SpanFactory {
 
-  override def spanBuilder(spanName: String): Span.Builder =
+  override def spanBuilder(spanName: String): SpanBuilder =
     spanBuilder(spanName, None, spanContext.current)
 
   override def newSpan(spanName: String): Span =
@@ -45,7 +45,7 @@ private[core] final case class CoreSpanFactory(
       .setSticky(true)
       .startSpan()
 
-  private[core] def spanBuilder(spanName: String, spanId: Option[SpanId] = None, parentSpan: Option[Span] = spanContext.current): Span.Builder =
+  private[core] def spanBuilder(spanName: String, spanId: Option[SpanId] = None, parentSpan: Option[Span] = spanContext.current): SpanBuilder =
     new CoreSpanBuilder(
       spanId = spanId,
       parentSpan = parentSpan,

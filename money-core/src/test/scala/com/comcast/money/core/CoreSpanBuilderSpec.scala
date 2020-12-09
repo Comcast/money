@@ -16,6 +16,9 @@
 
 package com.comcast.money.core
 
+import java.time.Instant
+import java.util.concurrent.TimeUnit
+
 import com.comcast.money.api.{ IdGenerator, InstrumentationLibrary, Note, Span, SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.samplers.{ Sampler, SamplerResult }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
@@ -29,6 +32,7 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 
 import scala.collection.JavaConverters._
+import InstantImplicits._
 
 class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
   val clock = SystemClock
@@ -381,10 +385,25 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library)
 
       val result = underTest
-        .setStartTimestamp(12345789L)
+        .setStartTimestamp(12345789L, TimeUnit.NANOSECONDS)
         .startSpan()
 
       result.info.startTimeNanos shouldBe 12345789L
+    }
+
+    "create a span with an explicit start instant" in {
+      val handler = mock[SpanHandler]
+      val sampler = mock[Sampler]
+      when(sampler.shouldSample(any(), argEq(None), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
+
+      val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library)
+      val instant = Instant.now
+
+      val result = underTest
+        .setStartTimestamp(instant)
+        .startSpan()
+
+      result.info.startTimeNanos shouldBe instant.toEpochNano
     }
 
     "create a span with a link" in {
