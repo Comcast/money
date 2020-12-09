@@ -17,27 +17,28 @@
 package com.comcast.money.otel.handlers
 
 import java.util
-
-import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanInfo }
-import io.opentelemetry.api.common.{ Attributes, AttributesBuilder, ReadableAttributes }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanId, SpanInfo }
+import io.opentelemetry.api.common.{ Attributes, AttributesBuilder }
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.ReadableSpan
 import io.opentelemetry.sdk.trace.data.SpanData.Status
 import io.opentelemetry.sdk.trace.data.SpanData
-import io.opentelemetry.api.trace.{ SpanContext, SpanId, TraceState, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ SpanContext, TraceState, Span => OtelSpan }
 
 import scala.collection.JavaConverters._
 
 private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan with SpanData {
   private val id = info.id
   private lazy val spanContext = id.toSpanContext
+  private lazy val parentSpanContext = convertParentSpanContext(info.id)
   private lazy val libraryInfo = convertLibraryInfo(info.library)
   private lazy val attributes = convertAttributes(info.notes)
   private lazy val events = convertEvents(info.events)
   private lazy val links = convertLinks(info.links)
 
   override def getSpanContext: SpanContext = spanContext
+  override def getParentSpanContext: SpanContext = parentSpanContext
   override def getName: String = info.name
   override def toSpanData: SpanData = this
   override def getInstrumentationLibraryInfo: InstrumentationLibraryInfo = libraryInfo
@@ -47,7 +48,6 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
   override def getSpanId: String = id.selfIdAsHex
   override def isSampled: Boolean = true
   override def getTraceState: TraceState = TraceState.getDefault
-  override def getParentSpanId: String = if (id.isRoot) SpanId.getInvalid else id.parentIdAsHex
   override def getResource: Resource = Resource.getDefault
   override def getKind: OtelSpan.Kind = info.kind
   override def getStartEpochNanos: Long = info.startTimeNanos
@@ -57,9 +57,15 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
   override def getTotalRecordedEvents: Int = info.events.size
   override def getTotalRecordedLinks: Int = 0
   override def getTotalAttributeCount: Int = info.notes.size
-  override def getAttributes: ReadableAttributes = attributes
+  override def getAttributes: Attributes = attributes
   override def getEvents: util.List[SpanData.Event] = events
-  override def hasRemoteParent: Boolean = false
+
+  private def convertParentSpanContext(id: SpanId): SpanContext =
+    if (id.isRoot) {
+      SpanContext.getInvalid
+    } else {
+      id.parentSpanId().toSpanContext
+    }
 
   private def convertLibraryInfo(library: InstrumentationLibrary): InstrumentationLibraryInfo =
     if (library != null) {

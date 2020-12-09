@@ -32,6 +32,7 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
       spanId.selfId should not be 0
       spanId.isValid shouldBe true
       spanId.isRoot shouldBe true
+      spanId.parentSpanId shouldBe SpanId.getInvalid
       spanId.isRemote shouldBe false
       spanId.isSampled shouldBe true
       spanId.traceFlags shouldBe TraceFlags.getSampled
@@ -45,6 +46,7 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
       spanId.selfId should not be 0
       spanId.isValid shouldBe true
       spanId.isRoot shouldBe true
+      spanId.parentSpanId shouldBe SpanId.getInvalid
       spanId.isRemote shouldBe false
       spanId.isSampled shouldBe false
       spanId.traceFlags shouldBe TraceFlags.getDefault
@@ -58,6 +60,7 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
       childId.traceId shouldBe parentId.traceId
       childId.parentId shouldBe parentId.selfId
       childId.isRoot shouldBe false
+      childId.parentSpanId shouldBe parentId
       childId.isValid shouldBe true
       childId.isRemote shouldBe false
       childId.isSampled shouldBe parentId.isSampled
@@ -167,7 +170,7 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
     }
 
     "returns traceId as hex" in {
-      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L)
+      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L)
 
       spanId.traceIdAsHex shouldBe "01234567890abcdef01234567890abcd"
     }
@@ -180,20 +183,20 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
     }
 
     "returns span id as hex" in {
-      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L)
+      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L)
 
       spanId.selfIdAsHex shouldBe "0123456789abcdef"
     }
 
     "returns parent span id as hex" in {
-      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L)
+      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L)
 
       spanId.parentIdAsHex shouldBe "0123456789abcdef"
     }
 
     "returns SpanContext from span id" in {
       val traceState = TraceState.builder().set("foo", "bar").build();
-      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L, false, TraceFlags.getSampled, traceState)
+      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, false, TraceFlags.getSampled, traceState)
       val spanContext = spanId.toSpanContext
 
       spanContext.getTraceIdAsHexString shouldBe "01234567890abcdef01234567890abcd"
@@ -205,7 +208,7 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
 
     "returns SpanContext from remote span id" in {
       val traceState = TraceState.builder().set("foo", "bar").build();
-      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L, true, TraceFlags.getSampled, traceState)
+      val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, true, TraceFlags.getSampled, traceState)
       val spanContext = spanId.toSpanContext
 
       spanContext.getTraceIdAsHexString shouldBe "01234567890abcdef01234567890abcd"
@@ -218,19 +221,19 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
     "implements equality" in {
       val traceId = IdGenerator.generateRandomTraceId()
       val selfId = IdGenerator.generateRandomId()
-      val spanId1 = new SpanId(traceId, selfId, selfId)
-      val spanId2 = new SpanId(traceId, selfId, selfId)
+      val spanId1 = new SpanId(traceId, selfId)
+      val spanId2 = new SpanId(traceId, selfId)
 
       spanId1 shouldBe spanId2
       spanId1.hashCode() shouldBe spanId2.hashCode()
 
-      val spanId3 = new SpanId(IdGenerator.generateRandomTraceId(), selfId, selfId)
+      val spanId3 = new SpanId(IdGenerator.generateRandomTraceId(), selfId)
 
       spanId1 should not be spanId3
       spanId1.hashCode() should not be spanId3.hashCode()
 
       val otherId = IdGenerator.generateRandomId()
-      val spanId4 = new SpanId(traceId, otherId, otherId)
+      val spanId4 = new SpanId(traceId, otherId)
 
       spanId1 should not be spanId4
       spanId1.hashCode() should not be spanId4.hashCode()
