@@ -196,7 +196,7 @@ public final class SpanId {
      * @return the parent span ID
      */
     public SpanId parentSpanId() {
-        return parentSpanId;
+        return parentSpanId != null ? parentSpanId : INVALID_SPAN_ID;
     }
 
     /**
@@ -248,6 +248,9 @@ public final class SpanId {
         return !(parentSpanId != null && parentSpanId.isValid());
     }
 
+    /**
+     * @return {@code true} if the span ID is a child span; otherwise, {@code false}
+     */
     public boolean isChild() {
         return parentSpanId != null && parentSpanId.isValid();
     }
