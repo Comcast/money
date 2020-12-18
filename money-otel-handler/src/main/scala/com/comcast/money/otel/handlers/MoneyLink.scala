@@ -22,7 +22,7 @@ import io.opentelemetry.api.trace.SpanContext
 import io.opentelemetry.sdk.trace.data.SpanData
 
 private[otel] case class MoneyLink(link: SpanInfo.Link) extends SpanData.Link {
-  override def getContext: SpanContext = link.spanContext
+  override def getSpanContext: SpanContext = link.spanContext
   override def getAttributes: Attributes = link.attributes
   override def getTotalAttributeCount: Int = link.attributes.size
 }

@@ -21,6 +21,7 @@ import java.util.Collection;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter;
+import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporterBuilder;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import org.junit.Before;
@@ -45,12 +46,12 @@ import static org.mockito.Mockito.never;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
         JaegerGrpcSpanExporter.class,
-        JaegerGrpcSpanExporter.Builder.class
+        JaegerGrpcSpanExporterBuilder.class
 })
 public class JaegerOtelSpanHandlerSpec {
 
     private JaegerGrpcSpanExporter spanExporter;
-    private JaegerGrpcSpanExporter.Builder spanExporterBuilder;
+    private JaegerGrpcSpanExporterBuilder spanExporterBuilder;
 
     private JaegerOtelSpanHandler underTest;
 
@@ -59,7 +60,7 @@ public class JaegerOtelSpanHandlerSpec {
         PowerMockito.mockStatic(JaegerGrpcSpanExporter.class);
 
         spanExporter = PowerMockito.mock(JaegerGrpcSpanExporter.class);
-        spanExporterBuilder = PowerMockito.mock(JaegerGrpcSpanExporter.Builder.class);
+        spanExporterBuilder = PowerMockito.mock(JaegerGrpcSpanExporterBuilder.class);
 
         PowerMockito.when(JaegerGrpcSpanExporter.builder()).thenReturn(spanExporterBuilder);
         PowerMockito.when(spanExporterBuilder.build()).thenReturn(spanExporter);

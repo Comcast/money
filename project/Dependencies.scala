@@ -9,7 +9,8 @@ object Dependencies {
   val jodaV = "2.9.9"
   val json4sV = "3.6.10"
   val typesafeConfigV = "1.3.3"
-  val openTelemetryV = "0.12.0"
+  val openTelemetryV = "0.13.1"
+  val openTelemetryInstV = "0.13.0"
 
   val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
   val akkaStream =      "com.typesafe.akka"         %% "akka-stream"                 % akkaV
@@ -63,10 +64,10 @@ object Dependencies {
   val openTelemetryProp = "io.opentelemetry" % "opentelemetry-extension-trace-propagators" % openTelemetryV changing()
   val openTelemetrySdk = "io.opentelemetry" % "opentelemetry-sdk" % openTelemetryV changing()
   val openTelemetrySdkTesting = "io.opentelemetry" % "opentelemetry-sdk-testing" % openTelemetryV changing()
-  val openTelemetryLoggingExporter = "io.opentelemetry" % "opentelemetry-exporter-logging" % openTelemetryV changing()
-  val openTelemetryOtlpExporter = "io.opentelemetry" % "opentelemetry-exporter-otlp" % openTelemetryV changing()
-  val openTelemetryZipkinExporter = "io.opentelemetry" % "opentelemetry-exporter-zipkin" % openTelemetryV changing()
-  val openTelemetryJaegerExporter = "io.opentelemetry" % "opentelemetry-exporter-jaeger" % openTelemetryV changing()
+  val openTelemetryLoggingExporter = "io.opentelemetry" % "opentelemetry-exporter-logging" % openTelemetryInstV changing()
+  val openTelemetryOtlpExporter = "io.opentelemetry" % "opentelemetry-exporter-otlp" % openTelemetryInstV changing()
+  val openTelemetryZipkinExporter = "io.opentelemetry" % "opentelemetry-exporter-zipkin" % openTelemetryInstV changing()
+  val openTelemetryJaegerExporter = "io.opentelemetry" % "opentelemetry-exporter-jaeger" % openTelemetryInstV changing()
 
   // Spring
   val springWeb = ("org.springframework" % "spring-web" % "4.3.17.RELEASE")
