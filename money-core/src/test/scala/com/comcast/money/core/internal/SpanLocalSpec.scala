@@ -29,7 +29,6 @@ class SpanLocalSpec extends AnyWordSpec
 
   override def afterEach(): Unit = {
     SpanLocal.clear()
-    MDC.clear()
   }
 
   "SpanLocal" when {
@@ -68,40 +67,6 @@ class SpanLocalSpec extends AnyWordSpec
 
         scope.close()
         SpanLocal.current shouldEqual Some(testSpan)
-      }
-      "set the MDC value on push" in {
-        SpanLocal.push(testSpan)
-
-        MDC.get("moneyTrace") shouldEqual MDCSupport.format(testSpan.id)
-        MDC.get("spanName") shouldEqual testSpan.name
-      }
-      "remove the MDC value on close" in {
-        SpanLocal.push(testSpan).close()
-
-        MDC.get("moneyTrace") shouldBe null
-        MDC.get("spanName") shouldBe null
-      }
-      "reset the MDC value on close" in {
-        SpanLocal.push(testSpan)
-        val scope = SpanLocal.push(childSpan)
-
-        MDC.get("moneyTrace") shouldEqual MDCSupport.format(childSpan.id)
-        MDC.get("spanName") shouldEqual childSpan.name
-
-        scope.close()
-
-        MDC.get("moneyTrace") shouldEqual MDCSupport.format(testSpan.id)
-        MDC.get("spanName") shouldEqual testSpan.name
-      }
-      "remove the MDC value on clear" in {
-        SpanLocal.push(testSpan)
-
-        MDC.get("moneyTrace") shouldEqual MDCSupport.format(testSpan.id)
-        MDC.get("spanName") shouldEqual testSpan.name
-        SpanLocal.clear()
-
-        MDC.get("moneyTrace") shouldBe null
-        MDC.get("spanName") shouldBe null
       }
     }
   }

@@ -16,8 +16,8 @@
 
 package com.comcast.money.core.formatters
 
-import com.comcast.money.core.DisabledFormatter
 import com.typesafe.config.ConfigFactory
+import org.scalatest.Inside.inside
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -27,14 +27,14 @@ class FormatterFactorySpec extends AnyWordSpec with Matchers {
       val config = ConfigFactory.parseString("type = \"money-trace\"")
 
       val formatter = FormatterFactory.create(config)
-      formatter shouldBe a[MoneyTraceFormatter]
+      formatter shouldBe Some(MoneyTraceFormatter)
     }
 
     "return an instance of trace-context Formatter" in {
       val config = ConfigFactory.parseString("type = \"trace-context\"")
 
       val formatter = FormatterFactory.create(config)
-      formatter shouldBe a[TraceContextFormatter]
+      formatter shouldBe Some(TraceContextFormatter)
     }
 
     "return an instance of an ingress Formatter" in {
@@ -48,10 +48,11 @@ class FormatterFactorySpec extends AnyWordSpec with Matchers {
           |""".stripMargin)
 
       val formatter = FormatterFactory.create(config)
-      formatter shouldBe a[IngressFormatter]
-      val chain = formatter.asInstanceOf[IngressFormatter].formatter
-      chain should matchPattern {
-        case FormatterChain(Seq(_: MoneyTraceFormatter, _: TraceContextFormatter)) =>
+      inside(formatter) {
+        case Some(f: IngressFormatter) =>
+          f.formatter should matchPattern {
+            case FormatterChain(Seq(MoneyTraceFormatter, TraceContextFormatter)) =>
+          }
       }
     }
 
@@ -66,41 +67,44 @@ class FormatterFactorySpec extends AnyWordSpec with Matchers {
           |""".stripMargin)
 
       val formatter = FormatterFactory.create(config)
-      formatter shouldBe a[EgressFormatter]
-      val chain = formatter.asInstanceOf[EgressFormatter].formatter
-      chain should matchPattern {
-        case FormatterChain(Seq(_: MoneyTraceFormatter, _: TraceContextFormatter)) =>
+      inside(formatter) {
+        case Some(f: EgressFormatter) =>
+          f.formatter should matchPattern {
+            case FormatterChain(Seq(MoneyTraceFormatter, TraceContextFormatter)) =>
+          }
       }
     }
 
     "create an instance of a custom Formatter" in {
       val config = ConfigFactory.parseString(
         s"""
-           |type = "custom"
            |class = "${classOf[NonConfiguredFormatter].getCanonicalName}"
            |""".stripMargin)
 
       val formatter = FormatterFactory.create(config)
-      formatter shouldBe a[NonConfiguredFormatter]
+      inside(formatter) {
+        case Some(_: NonConfiguredFormatter) =>
+      }
     }
 
     "create an instance of a custom configurable Formatter" in {
       val config = ConfigFactory.parseString(
         s"""
-           |type = "custom"
            |class = "${classOf[ConfiguredFormatter].getCanonicalName}"
            |""".stripMargin)
 
       val formatter = FormatterFactory.create(config)
-      formatter shouldBe a[ConfiguredFormatter]
-      formatter.asInstanceOf[ConfiguredFormatter].calledConfigure shouldBe true
+      inside(formatter) {
+        case Some(f: ConfiguredFormatter) =>
+          f.config shouldBe config
+      }
     }
 
     "returns a disabled formatter on an unknown type" in {
       val config = ConfigFactory.parseString("type = \"unknown\"")
 
       val formatter = FormatterFactory.create(config)
-      formatter shouldBe DisabledFormatter
+      formatter shouldBe None
     }
   }
 }

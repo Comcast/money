@@ -23,11 +23,7 @@ import com.comcast.money.core.{ Clock, CoreSpan, CoreSpanInfo, SystemClock }
 import com.typesafe.config.Config
 import io.opentelemetry.api.trace.{ StatusCode, TraceFlags, TraceState, Span => OtelSpan }
 
-class ConfiguredHandler extends ConfigurableHandler {
-
-  var calledConfigure = false
-
-  def configure(config: Config): Unit = calledConfigure = true
+class ConfiguredHandler(val config: Config) extends SpanHandler {
   def handle(span: SpanInfo): Unit = ()
 }
 

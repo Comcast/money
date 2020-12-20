@@ -17,6 +17,7 @@
 package com.comcast.money.core.samplers
 
 import com.typesafe.config.ConfigFactory
+import org.scalatest.Inside.inside
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -26,14 +27,14 @@ class SamplerFactorySpec extends AnyWordSpec with Matchers {
       val config = ConfigFactory.parseString("""type = "always-on"""")
 
       val sampler = SamplerFactory.create(config)
-      sampler shouldBe AlwaysOnSampler
+      sampler shouldBe Some(AlwaysOnSampler)
     }
 
     "return AlwaysOffSampler" in {
       val config = ConfigFactory.parseString("""type = "always-off"""")
 
       val sampler = SamplerFactory.create(config)
-      sampler shouldBe AlwaysOffSampler
+      sampler shouldBe Some(AlwaysOffSampler)
     }
 
     "return a RatioBasedSampler" in {
@@ -44,8 +45,10 @@ class SamplerFactorySpec extends AnyWordSpec with Matchers {
           |""".stripMargin)
 
       val sampler = SamplerFactory.create(config)
-      sampler shouldBe a[RatioBasedSampler]
-      sampler.asInstanceOf[RatioBasedSampler].ratio shouldBe 0.5
+      inside(sampler) {
+        case Some(ratioBasedSampler: RatioBasedSampler) =>
+          ratioBasedSampler.ratio shouldBe 0.5
+      }
     }
 
     "return a ParentBasedSampler" in {
@@ -60,39 +63,41 @@ class SamplerFactorySpec extends AnyWordSpec with Matchers {
           |""".stripMargin)
 
       val sampler = SamplerFactory.create(config)
-      sampler shouldBe a[ParentBasedSampler]
-
-      val parentBasedSampler = sampler.asInstanceOf[ParentBasedSampler]
-      parentBasedSampler.root shouldBe AlwaysOffSampler
-      parentBasedSampler.localSampled shouldBe AlwaysOffSampler
-      parentBasedSampler.localNotSampled shouldBe AlwaysOnSampler
-      parentBasedSampler.remoteSampled shouldBe AlwaysOffSampler
-      parentBasedSampler.remoteNotSampled shouldBe AlwaysOnSampler
+      inside(sampler) {
+        case Some(parentBasedSampler: ParentBasedSampler) =>
+          parentBasedSampler.root shouldBe AlwaysOffSampler
+          parentBasedSampler.localSampled shouldBe AlwaysOffSampler
+          parentBasedSampler.localNotSampled shouldBe AlwaysOnSampler
+          parentBasedSampler.remoteSampled shouldBe AlwaysOffSampler
+          parentBasedSampler.remoteNotSampled shouldBe AlwaysOnSampler
+      }
     }
 
     "create a custom sampler by class name" in {
       val samplerClassName = classOf[TestSampler].getCanonicalName
       val config = ConfigFactory.parseString(
         s"""
-           |type = "custom"
            |class = "$samplerClassName"
            |""".stripMargin)
 
       val sampler = SamplerFactory.create(config)
-      sampler shouldBe a[TestSampler]
+      inside(sampler) {
+        case Some(_: TestSampler) =>
+      }
     }
 
     "create a custom configurable sampler by class name" in {
       val samplerClassName = classOf[TestConfigurableSampler].getCanonicalName
       val config = ConfigFactory.parseString(
         s"""
-           |type = "custom"
            |class = "$samplerClassName"
            |""".stripMargin)
 
       val sampler = SamplerFactory.create(config)
-      sampler shouldBe a[TestConfigurableSampler]
-      sampler.asInstanceOf[TestConfigurableSampler].calledConfigured shouldBe true
+      inside(sampler) {
+        case Some(s: TestConfigurableSampler) =>
+          s.config shouldBe config
+      }
     }
   }
 }
