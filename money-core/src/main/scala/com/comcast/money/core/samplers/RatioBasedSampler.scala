@@ -17,6 +17,12 @@
 package com.comcast.money.core.samplers
 
 import com.comcast.money.api.{ Note, SpanId }
+import com.typesafe.config.Config
+
+object RatioBasedSampler {
+  def apply(conf: Config): RatioBasedSampler =
+    new RatioBasedSampler(conf.getDouble("ratio"))
+}
 
 /**
  * A sampler that calculates that a ratio of spans should be recorded based on the lower 64-bits of the trace id.

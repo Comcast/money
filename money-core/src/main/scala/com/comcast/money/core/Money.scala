@@ -25,7 +25,6 @@ import com.comcast.money.core.internal.SpanLocal
 import com.comcast.money.core.samplers.{ AlwaysOnSampler, Sampler, SamplerFactory }
 import com.typesafe.config.{ Config, ConfigFactory }
 import io.opentelemetry.context.{ Context, ContextStorage, Scope }
-import org.slf4j.MDC
 
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit
@@ -96,6 +95,7 @@ object Money {
   private def configureSampler(conf: Config): Sampler =
     if (conf.hasPath("sampling")) {
       SamplerFactory.create(conf.getConfig("sampling"))
+        .getOrElse(AlwaysOnSampler)
     } else {
       AlwaysOnSampler
     }

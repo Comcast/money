@@ -18,16 +18,34 @@ package com.comcast.money.core.samplers
 import com.comcast.money.api.SpanId
 import com.typesafe.config.Config
 
+object ParentBasedSampler {
+  def apply(conf: Config): ParentBasedSampler = {
+    val root = findSampler(conf, "root", AlwaysOnSampler)
+    val remoteSampled = findSampler(conf, "remote-sampled", AlwaysOnSampler)
+    val remoteNotSampled = findSampler(conf, "remote-not-sampled", AlwaysOffSampler)
+    val localSampled = findSampler(conf, "local-sampled", AlwaysOnSampler)
+    val localNotSampled = findSampler(conf, "local-not-sampled", AlwaysOffSampler)
+
+    new ParentBasedSampler(root, remoteSampled, remoteNotSampled, localSampled, localNotSampled)
+  }
+
+  private def findSampler(conf: Config, name: String, default: Sampler): Sampler =
+    if (conf.hasPath(name)) {
+      SamplerFactory.create(conf.getConfig(name))
+        .getOrElse(default)
+    } else default
+}
+
 /**
  * A sampler that uses the parent span sampling decision if one exists, otherwise uses the root sampler
  * to determine the sampler result.
  */
-final class ParentBasedSampler extends ConfigurableSampler {
-  var root: Sampler = AlwaysOnSampler
-  var remoteSampled: Sampler = AlwaysOnSampler
-  var remoteNotSampled: Sampler = AlwaysOffSampler
-  var localSampled: Sampler = AlwaysOnSampler
-  var localNotSampled: Sampler = AlwaysOffSampler
+final class ParentBasedSampler(
+  val root: Sampler,
+  val remoteSampled: Sampler,
+  val remoteNotSampled: Sampler,
+  val localSampled: Sampler,
+  val localNotSampled: Sampler) extends Sampler {
 
   override def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], spanName: String): SamplerResult = {
     val sampler = parentSpanId match {
@@ -41,17 +59,4 @@ final class ParentBasedSampler extends ConfigurableSampler {
     }
     sampler.shouldSample(spanId, parentSpanId, spanName)
   }
-
-  override def configure(conf: Config): Unit = {
-    root = SamplerFactory.create(conf.getConfig("root"))
-    remoteSampled = findSampler(conf, "remote-sampled", remoteSampled)
-    remoteNotSampled = findSampler(conf, "remote-not-sampled", remoteNotSampled)
-    localSampled = findSampler(conf, "local-sampled", localSampled)
-    localNotSampled = findSampler(conf, "local-not-sampled", localNotSampled)
-  }
-
-  def findSampler(conf: Config, name: String, default: Sampler): Sampler =
-    if (conf.hasPath(name)) {
-      SamplerFactory.create(conf.getConfig(name))
-    } else default
 }
