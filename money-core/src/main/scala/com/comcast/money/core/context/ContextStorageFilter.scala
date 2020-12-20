@@ -14,17 +14,10 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core.internal
+package com.comcast.money.core.context
 
-import java.util
-import org.slf4j.MDC
-import org.slf4j.spi.MDCAdapter
+import io.opentelemetry.context.{ Context, ContextStorage, Scope }
 
-object MDCSupport {
-  def apply(mdc: MDCAdapter = MDC.getMDCAdapter): MDCSupport = new Slf4JMDCSupport(mdc)
-}
-
-trait MDCSupport {
-  def getCopyOfMDC: Option[util.Map[String, String]]
-  def propagateMDC(submittingThreadsContext: Option[util.Map[String, String]]): Unit
+trait ContextStorageFilter {
+  def attach(context: Context, storage: ContextStorage): Scope
 }

@@ -21,13 +21,9 @@ import io.opentelemetry.api.trace.{ TraceFlags, TraceState }
 
 import scala.util.{ Failure, Success, Try }
 
-object MoneyTraceFormatter {
+object MoneyTraceFormatter extends Formatter {
   private[core] val MoneyTraceHeader = "X-MoneyTrace"
   private[core] val MoneyHeaderFormat = "trace-id=%s;parent-id=%s;span-id=%s"
-}
-
-final class MoneyTraceFormatter extends Formatter {
-  import com.comcast.money.core.formatters.MoneyTraceFormatter.{ MoneyHeaderFormat, MoneyTraceHeader }
 
   override def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit =
     addHeader(MoneyTraceHeader, MoneyHeaderFormat.format(spanId.traceId, spanId.parentId, spanId.selfId))

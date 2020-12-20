@@ -14,23 +14,15 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core.internal
+package com.comcast.money.core.context
 
-import io.opentelemetry.context.{ Context, ContextStorage, Scope }
+import com.typesafe.config.Config
+import scala.collection.JavaConverters._
 
-private[internal] final class CoreContextStorage(
-  spanContext: SpanContext,
-  mdcSupport: MDCSupport,
-  storage: ContextStorage) extends ContextStorage {
-
-  override def attach(toAttach: Context): Scope = {
-    val scope = storage.attach(toAttach)
-    mdcSupport.setSpanMDC(spanContext.fromContext(current))
-    () => {
-      scope.close()
-      mdcSupport.setSpanMDC(spanContext.fromContext(current))
-    }
-  }
-
-  override def current: Context = storage.current
+object ContextStorageFilterChain {
+  def apply(conf: Config): Seq[ContextStorageFilter] =
+    conf.getConfigList("filters")
+      .asScala
+      .flatMap(ContextStorageFilterFactory.create)
+      .toSeq
 }

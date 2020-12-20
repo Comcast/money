@@ -18,10 +18,10 @@ package com.comcast.money.core
 
 import java.time.Instant
 import java.util.concurrent.TimeUnit
-
 import com.comcast.money.api._
+import com.comcast.money.core.context.ContextStorageFilter
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
-import io.opentelemetry.context.{ Context, Scope }
+import io.opentelemetry.context.{ Context, ContextStorage, Scope }
 import io.opentelemetry.api.trace.{ SpanContext, StatusCode, Span => OtelSpan }
 import com.comcast.money.core.formatters.Formatter
 
@@ -74,6 +74,11 @@ object DisabledFormatter extends Formatter {
   override def fields: Seq[String] = Nil
 
   override def setResponseHeaders(getHeader: String => String, addHeader: (String, String) => Unit): Unit = ()
+}
+
+object DisabledContextStorageFilter extends ContextStorageFilter {
+
+  override def attach(context: Context, storage: ContextStorage): Scope = storage.attach(context)
 }
 
 object DisabledSpanFactory extends SpanFactory {

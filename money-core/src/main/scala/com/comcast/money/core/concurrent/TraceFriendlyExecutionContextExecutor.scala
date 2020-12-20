@@ -16,7 +16,7 @@
 
 package com.comcast.money.core.concurrent
 
-import com.comcast.money.core.internal.{ MDCSupport, SpanLocal }
+import com.comcast.money.core.internal.MDCSupport
 import com.comcast.money.core.logging.TraceLogging
 import io.opentelemetry.context.Context
 import org.slf4j.MDC
@@ -26,7 +26,7 @@ import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 class TraceFriendlyExecutionContextExecutor(wrapped: ExecutionContext)
   extends ExecutionContextExecutor with TraceLogging {
 
-  lazy val mdcSupport = new MDCSupport()
+  lazy val mdcSupport: MDCSupport = MDCSupport()
 
   override def execute(task: Runnable): Unit = {
     val context = Context.current()

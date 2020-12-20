@@ -16,15 +16,17 @@
 
 package com.comcast.money.core.internal
 
-import java.util
-import org.slf4j.MDC
 import org.slf4j.spi.MDCAdapter
 
-object MDCSupport {
-  def apply(mdc: MDCAdapter = MDC.getMDCAdapter): MDCSupport = new Slf4JMDCSupport(mdc)
-}
+import java.util
 
-trait MDCSupport {
-  def getCopyOfMDC: Option[util.Map[String, String]]
-  def propagateMDC(submittingThreadsContext: Option[util.Map[String, String]]): Unit
+class Slf4JMDCSupport(mdc: MDCAdapter) extends MDCSupport {
+  override def getCopyOfMDC: Option[util.Map[String, String]] = Option(mdc.getCopyOfContextMap)
+
+  override def propagateMDC(submittingThreadsContext: Option[util.Map[String, String]]): Unit = {
+    submittingThreadsContext match {
+      case Some(context: util.Map[String, String]) => mdc.setContextMap(context)
+      case None => mdc.clear()
+    }
+  }
 }

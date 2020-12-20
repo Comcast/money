@@ -14,15 +14,24 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core.internal
+package com.comcast.money.core.handlers
 
-import io.opentelemetry.context.{ ContextStorage, ContextStorageProvider }
+import com.typesafe.config.Config
+import org.slf4j.Logger
 
-class CoreContextStorageProvider(
-  spanContext: SpanContext,
-  mdcSupport: MDCSupport,
-  storage: ContextStorage) extends ContextStorageProvider {
+private[core] object LogFunction {
+  val LOG_LEVEL_KEY: String = "log-level"
 
-  def this() = this(SpanLocal, new MDCSupport(), ContextStorage.defaultStorage)
-  override def get(): ContextStorage = new CoreContextStorage(spanContext, mdcSupport, storage)
+  def apply(logger: Logger, config: Config): String => Unit =
+    if (config.hasPath(LOG_LEVEL_KEY)) {
+      config.getString(LOG_LEVEL_KEY).toUpperCase match {
+        case "ERROR" => logger.error
+        case "WARN" => logger.warn
+        case "INFO" => logger.info
+        case "DEBUG" => logger.debug
+        case "TRACE" => logger.trace
+      }
+    } else {
+      logger.info
+    }
 }

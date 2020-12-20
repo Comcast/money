@@ -16,9 +16,20 @@
 
 package com.comcast.money.core.handlers
 
-import com.comcast.money.api.{ Note, SpanInfo }
+import com.comcast.money.api.{ SpanHandler, SpanInfo }
 import com.typesafe.config.Config
-import org.slf4j.{ Logger, LoggerFactory, MDC }
+import org.slf4j.spi.MDCAdapter
+import org.slf4j.{ LoggerFactory, MDC }
+
+object StructuredLogSpanHandler {
+  def apply(config: Config): StructuredLogSpanHandler = {
+    val logger = LoggerFactory.getLogger(classOf[StructuredLogSpanHandler])
+    val logFunction = LogFunction(logger, config)
+    val formatIdsAsHex = config.hasPath("formatting.format-ids-as-hex") &&
+      config.getBoolean("formatting.format-ids-as-hex")
+    new StructuredLogSpanHandler(logFunction, MDC.getMDCAdapter, formatIdsAsHex)
+  }
+}
 
 /**
  * Logs using sfl4j MDC (mapped disagnostic context).
@@ -35,36 +46,9 @@ import org.slf4j.{ Logger, LoggerFactory, MDC }
  *
  */
 class StructuredLogSpanHandler(
-  val logger: Logger = LoggerFactory.getLogger(classOf[StructuredLogSpanHandler]),
-  val mdcFunc: (String, String) => Unit = (x: String, y: String) => MDC.put(x, y))
-  extends ConfigurableHandler {
-
-  // Extra constructor because java spring programs have a problem with the default function in the constructor above.
-  def this() = this(LoggerFactory.getLogger(classOf[StructuredLogSpanHandler]), (k: String, v: String) => MDC.put(k, v))
-
-  import com.comcast.money.core.handlers.LoggingSpanHandler._
-
-  protected var logFunction: LogFunction = logger.info
-  protected var formatIdsAsHex: Boolean = false
-
-  def configure(config: Config): Unit = {
-
-    if (config.hasPath("log-level")) {
-      val level = config.getString("log-level").toUpperCase
-
-      // set the log level based on the configured value
-      level match {
-        case "ERROR" => logFunction = logger.error
-        case "WARN" => logFunction = logger.warn
-        case "INFO" => logFunction = logger.info
-        case "DEBUG" => logFunction = logger.debug
-        case "TRACE" => logFunction = logger.trace
-      }
-    }
-    if (config.hasPath("formatting.format-ids-as-hex")) {
-      formatIdsAsHex = config.getBoolean("formatting.format-ids-as-hex")
-    }
-  }
+  val logFunction: String => Unit,
+  val mdc: MDCAdapter,
+  val formatIdsAsHex: Boolean) extends SpanHandler {
 
   def handle(spanInfo: SpanInfo): Unit = {
     import scala.collection.JavaConverters._
@@ -83,7 +67,7 @@ class StructuredLogSpanHandler(
     val noteFields: Seq[(String, Any)] = spanInfo.notes.values.asScala.map(n => (n.name(), n.value())).toSeq
     val allFields = baseFields ++ noteFields
 
-    allFields.foreach(p => mdcFunc(p._1, p._2.toString))
+    allFields.foreach(p => mdc.put(p._1, p._2.toString))
 
     logFunction(allFields.map { case (k, v) => s"$k:$v" }.mkString("[", "][", "]"))
   }

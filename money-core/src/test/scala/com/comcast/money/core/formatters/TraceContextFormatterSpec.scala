@@ -30,7 +30,7 @@ import org.mockito.Mockito.{ verify, verifyNoMoreInteractions }
 import org.scalatestplus.mockito.MockitoSugar
 
 class TraceContextFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
-  val underTest = new TraceContextFormatter()
+  val underTest: Formatter = TraceContextFormatter
 
   "TraceContextFormatter" should {
     "read a traceparent http header" in {

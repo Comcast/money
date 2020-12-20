@@ -44,7 +44,7 @@ object HandlerChain {
   def apply(config: Config): SpanHandler = {
     val handlers = config.getConfigList("handlers")
       .asScala
-      .map(create)
+      .flatMap(create)
       .toSeq
 
     if (config.getBoolean("async")) {

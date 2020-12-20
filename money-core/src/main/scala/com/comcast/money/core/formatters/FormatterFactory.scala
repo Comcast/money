@@ -17,28 +17,19 @@
 package com.comcast.money.core.formatters
 
 import com.comcast.money.core.DisabledFormatter
+import com.comcast.money.core.internal.ConfigurableTypeFactory
 import com.typesafe.config.Config
-import org.slf4j.LoggerFactory
 
-object FormatterFactory {
-  private val logger = LoggerFactory.getLogger(getClass)
+import scala.reflect.ClassTag
 
-  def create(config: Config): Formatter =
-    config.getString("type") match {
-      case "trace-context" => new TraceContextFormatter()
-      case "money-trace" => new MoneyTraceFormatter()
-      case "ingress" => new IngressFormatter(FormatterChain(config))
-      case "egress" => new EgressFormatter(FormatterChain(config))
-      case "custom" =>
-        val className = config.getString("class")
-        Class.forName(className).newInstance() match {
-          case configurable: ConfigurableFormatter =>
-            configurable.configure(config)
-            configurable
-          case formatter: Formatter => formatter
-        }
-      case unknown =>
-        logger.warn("Unknown formatter type: '{}'", unknown)
-        DisabledFormatter
-    }
+object FormatterFactory extends ConfigurableTypeFactory[Formatter] {
+
+  override protected val tag: ClassTag[Formatter] = ClassTag(classOf[Formatter])
+  override protected val defaultValue: Option[Formatter] = Some(DisabledFormatter)
+  override protected val knownTypes: PartialFunction[String, Config => Formatter] = {
+    case "trace-context" => _ => TraceContextFormatter
+    case "money-trace" => _ => MoneyTraceFormatter
+    case "ingress" => config => new IngressFormatter(FormatterChain(config))
+    case "egress" => config => new EgressFormatter(FormatterChain(config))
+  }
 }

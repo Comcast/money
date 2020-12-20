@@ -14,10 +14,18 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core.formatters
+package com.comcast.money.core.context
 
+import com.comcast.money.core.DisabledContextStorageFilter
+import com.comcast.money.core.internal.ConfigurableTypeFactory
 import com.typesafe.config.Config
 
-trait ConfigurableFormatter extends Formatter {
-  def configure(conf: Config): Unit
+import scala.reflect.ClassTag
+
+object ContextStorageFilterFactory extends ConfigurableTypeFactory[ContextStorageFilter] {
+  override protected val tag: ClassTag[ContextStorageFilter] = ClassTag(classOf[ContextStorageFilter])
+  override protected val defaultValue: Option[ContextStorageFilter] = Some(DisabledContextStorageFilter)
+  override protected val knownTypes: PartialFunction[String, Config => ContextStorageFilter] = {
+    case "mdc" => config => MdcContextStorageFilter(config)
+  }
 }

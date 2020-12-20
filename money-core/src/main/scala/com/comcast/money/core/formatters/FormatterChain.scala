@@ -43,11 +43,11 @@ object FormatterChain {
   def apply(config: Config): FormatterChain = {
     val formatters = config.getConfigList("formatters")
       .asScala
-      .map(create)
+      .flatMap(create)
       .toSeq
 
     FormatterChain(formatters)
   }
 
-  def default: FormatterChain = FormatterChain(Seq(new MoneyTraceFormatter(), new TraceContextFormatter()))
+  def default: FormatterChain = FormatterChain(Seq(MoneyTraceFormatter, TraceContextFormatter))
 }
