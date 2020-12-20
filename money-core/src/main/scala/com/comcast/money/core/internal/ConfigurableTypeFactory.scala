@@ -41,6 +41,7 @@ trait ConfigurableTypeFactory[T <: AnyRef] {
       .map(_(config))
       .orElse(findConfigValue(config, CLASS_KEY)
         .flatMap(createInstance(_, config)))
+      .orElse(defaultValue)
 
   protected def findConfigValue(config: Config, key: String): Option[String] =
     if (config.hasPath(key)) {

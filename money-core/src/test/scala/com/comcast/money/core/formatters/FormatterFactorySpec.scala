@@ -16,6 +16,7 @@
 
 package com.comcast.money.core.formatters
 
+import com.comcast.money.core.DisabledFormatter
 import com.typesafe.config.ConfigFactory
 import org.scalatest.Inside.inside
 import org.scalatest.matchers.should.Matchers
@@ -104,7 +105,7 @@ class FormatterFactorySpec extends AnyWordSpec with Matchers {
       val config = ConfigFactory.parseString("type = \"unknown\"")
 
       val formatter = FormatterFactory.create(config)
-      formatter shouldBe None
+      formatter shouldBe Some(DisabledFormatter)
     }
   }
 }
