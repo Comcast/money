@@ -73,9 +73,7 @@ object Money {
     val filters = if (conf.hasPath("context")) {
       ContextStorageFilterChain(conf.getConfig("context"))
     } else {
-      val formatIdsAsHex = conf.hasPath("format-ids-as-hex") &&
-        conf.getBoolean("format-ids-as-hex")
-      Seq(new MdcContextStorageFilter(SpanLocal, MDC.getMDCAdapter, formatIdsAsHex))
+      Seq(MdcContextStorageFilter(conf))
     }
     for (filter <- filters) {
       ContextStorage.addWrapper({

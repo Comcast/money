@@ -32,7 +32,7 @@ import scala.util.{ Failure, Success, Try }
 trait MethodTracer extends Reflections with TraceLogging {
   val tracer: Tracer = Money.Environment.tracer
   val asyncNotifier: AsyncNotifier = Money.Environment.asyncNotifier
-  val mdcSupport: MDCSupport = MDCSupport()
+  val mdcSupport: MDCSupport = MDCSupport
   val spanContext: SpanContext = SpanLocal
 
   def traceMethod(method: Method, annotation: Traced, args: Array[AnyRef], proceed: () => AnyRef): AnyRef = {

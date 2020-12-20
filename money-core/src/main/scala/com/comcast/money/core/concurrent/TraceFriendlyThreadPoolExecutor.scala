@@ -54,7 +54,7 @@ class TraceFriendlyThreadPoolExecutor(corePoolSize: Int, maximumPoolSize: Int, k
   extends ThreadPoolExecutor(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue)
   with TraceLogging {
 
-  lazy val mdcSupport: MDCSupport = MDCSupport()
+  lazy val mdcSupport: MDCSupport = MDCSupport
 
   def this(corePoolSize: Int, maximumPoolSize: Int, keepAliveTime: Long, unit: TimeUnit,
     workQueue: BlockingQueue[Runnable], threadFactory: ThreadFactory,
@@ -65,7 +65,6 @@ class TraceFriendlyThreadPoolExecutor(corePoolSize: Int, maximumPoolSize: Int, k
   }
 
   override def execute(command: Runnable): Unit = {
-    val inherited = SpanLocal.current
     val submittingThreadsContext = mdcSupport.getCopyOfMDC
     val currentContext = Context.current()
 
@@ -73,7 +72,6 @@ class TraceFriendlyThreadPoolExecutor(corePoolSize: Int, maximumPoolSize: Int, k
       new Runnable {
         override def run: Unit = {
           mdcSupport.propagateMDC(submittingThreadsContext)
-          inherited.foreach(SpanLocal.push)
           try {
             currentContext.wrap(command).run()
           } catch {

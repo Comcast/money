@@ -26,7 +26,7 @@ import scala.concurrent.{ ExecutionContext, ExecutionContextExecutor }
 class TraceFriendlyExecutionContextExecutor(wrapped: ExecutionContext)
   extends ExecutionContextExecutor with TraceLogging {
 
-  lazy val mdcSupport: MDCSupport = MDCSupport()
+  lazy val mdcSupport: MDCSupport = MDCSupport
 
   override def execute(task: Runnable): Unit = {
     val context = Context.current()
