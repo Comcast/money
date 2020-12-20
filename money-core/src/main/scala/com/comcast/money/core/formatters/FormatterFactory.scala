@@ -16,8 +16,7 @@
 
 package com.comcast.money.core.formatters
 
-import com.comcast.money.core.DisabledFormatter
-import com.comcast.money.core.internal.ConfigurableTypeFactory
+import com.comcast.money.core.{ConfigurableTypeFactory, DisabledFormatter}
 import com.typesafe.config.Config
 
 import scala.reflect.ClassTag

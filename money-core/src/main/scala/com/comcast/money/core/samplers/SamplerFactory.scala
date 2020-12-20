@@ -16,7 +16,7 @@
 
 package com.comcast.money.core.samplers
 
-import com.comcast.money.core.internal.ConfigurableTypeFactory
+import com.comcast.money.core.ConfigurableTypeFactory
 import com.typesafe.config.Config
 
 import scala.reflect.ClassTag
