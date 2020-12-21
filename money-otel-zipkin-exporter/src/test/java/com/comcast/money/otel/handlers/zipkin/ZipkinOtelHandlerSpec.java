@@ -53,8 +53,6 @@ public class ZipkinOtelHandlerSpec {
     private ZipkinSpanExporter spanExporter;
     private ZipkinSpanExporter.Builder spanExporterBuilder;
 
-    private ZipkinOtelSpanHandler underTest;
-
     @Before
     public void beforeEach() throws Exception {
         PowerMockito.mockStatic(ZipkinSpanExporter.class);
@@ -65,8 +63,6 @@ public class ZipkinOtelHandlerSpec {
         PowerMockito.when(ZipkinSpanExporter.builder()).thenReturn(spanExporterBuilder);
         PowerMockito.when(spanExporterBuilder.build()).thenReturn(spanExporter);
         PowerMockito.when(spanExporter.export(any())).thenReturn(CompletableResultCode.ofSuccess());
-
-        underTest = new ZipkinOtelSpanHandler();
     }
 
     @Test
@@ -79,7 +75,7 @@ public class ZipkinOtelHandlerSpec {
                 "}"
         );
 
-        underTest.configure(config);
+        ZipkinOtelSpanHandler underTest = new ZipkinOtelSpanHandler(config);
 
         PowerMockito.verifyStatic(ZipkinSpanExporter.class);
         ZipkinSpanExporter.builder();
@@ -114,7 +110,7 @@ public class ZipkinOtelHandlerSpec {
                         "}"
         );
 
-        underTest.configure(config);
+        ZipkinOtelSpanHandler underTest = new ZipkinOtelSpanHandler(config);
 
         PowerMockito.verifyStatic(ZipkinSpanExporter.class);
         ZipkinSpanExporter.builder();
@@ -135,7 +131,7 @@ public class ZipkinOtelHandlerSpec {
                         "}"
         );
 
-        underTest.configure(config);
+        ZipkinOtelSpanHandler underTest = new ZipkinOtelSpanHandler(config);
 
         PowerMockito.verifyStatic(ZipkinSpanExporter.class);
         ZipkinSpanExporter.builder();
@@ -156,7 +152,7 @@ public class ZipkinOtelHandlerSpec {
                         "}"
         );
 
-        underTest.configure(config);
+        ZipkinOtelSpanHandler underTest = new ZipkinOtelSpanHandler(config);
 
         PowerMockito.verifyStatic(ZipkinSpanExporter.class);
         ZipkinSpanExporter.builder();
@@ -177,7 +173,7 @@ public class ZipkinOtelHandlerSpec {
                         "}"
         );
 
-        underTest.configure(config);
+        ZipkinOtelSpanHandler underTest = new ZipkinOtelSpanHandler(config);
 
         PowerMockito.verifyStatic(ZipkinSpanExporter.class);
         ZipkinSpanExporter.builder();
@@ -198,7 +194,7 @@ public class ZipkinOtelHandlerSpec {
                         "}"
         );
 
-        underTest.configure(config);
+        ZipkinOtelSpanHandler underTest = new ZipkinOtelSpanHandler(config);
 
         PowerMockito.verifyStatic(ZipkinSpanExporter.class);
         ZipkinSpanExporter.builder();
@@ -219,7 +215,7 @@ public class ZipkinOtelHandlerSpec {
                         "}"
         );
 
-        assertThatThrownBy(() -> underTest.configure(config))
+        assertThatThrownBy(() -> new ZipkinOtelSpanHandler(config))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Unknown encoder 'unknown'.");
     }

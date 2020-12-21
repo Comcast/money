@@ -16,7 +16,6 @@
 
 package com.comcast.money.otel.formatters
 
-import com.comcast.money.api.SpanId
 import com.comcast.money.core.TraceGenerators
 import com.comcast.money.core.formatters.FormatterUtils._
 import com.comcast.money.otel.formatters.AwsXRayFormatter.AmznTraceIdHeader
@@ -29,7 +28,7 @@ import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import scala.collection.mutable
 
 class AwsXRayFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
-  val underTest = new AwsXRayFormatter()
+  val underTest = AwsXRayFormatter
   val nullString = null.asInstanceOf[String]
 
   "AwsXRayFormatter" should {

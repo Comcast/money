@@ -51,7 +51,7 @@ import zipkin2.codec.SpanBytesEncoder
  * }}}
  *
  */
-class ZipkinOtelSpanHandler extends OtelSpanHandler {
+class ZipkinOtelSpanHandler(config: Config) extends OtelSpanHandler(config) {
   override protected def createSpanExporter(config: Config): SpanExporter = {
     val builder = ZipkinSpanExporter.builder()
 

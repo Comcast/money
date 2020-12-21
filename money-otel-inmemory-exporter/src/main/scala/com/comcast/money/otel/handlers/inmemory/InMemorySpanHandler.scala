@@ -40,6 +40,6 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
  * }}}
  *
  */
-class InMemorySpanHandler extends OtelSpanHandler {
+class InMemorySpanHandler(config: Config) extends OtelSpanHandler(config) {
   override protected def createSpanExporter(config: Config): SpanExporter = InMemorySpanExporter.create()
 }

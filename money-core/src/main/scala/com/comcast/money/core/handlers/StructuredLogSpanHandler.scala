@@ -16,10 +16,10 @@
 
 package com.comcast.money.core.handlers
 
-import com.comcast.money.api.{SpanHandler, SpanInfo}
+import com.comcast.money.api.{ SpanHandler, SpanInfo }
 import com.typesafe.config.Config
 import org.slf4j.spi.MDCAdapter
-import org.slf4j.{Logger, LoggerFactory, MDC}
+import org.slf4j.{ Logger, LoggerFactory, MDC }
 
 object StructuredLogSpanHandler {
   def apply(config: Config): StructuredLogSpanHandler =

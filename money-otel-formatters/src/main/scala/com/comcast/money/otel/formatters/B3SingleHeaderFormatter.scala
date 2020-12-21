@@ -20,10 +20,8 @@ import com.comcast.money.core.formatters.OtelFormatter
 import com.comcast.money.otel.formatters.B3SingleHeaderFormatter.B3Header
 import io.opentelemetry.`extension`.trace.propagation.B3Propagator
 
-object B3SingleHeaderFormatter {
+object B3SingleHeaderFormatter extends OtelFormatter(B3Propagator.getInstance) {
   private[formatters] val B3Header = "b3"
-}
 
-final class B3SingleHeaderFormatter extends OtelFormatter(B3Propagator.getInstance) {
   override def fields: Seq[String] = Seq(B3Header)
 }

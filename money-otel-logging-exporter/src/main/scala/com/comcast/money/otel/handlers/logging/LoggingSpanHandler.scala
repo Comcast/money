@@ -31,27 +31,19 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
  *     async = true
  *     handlers = [
  *       {
- *         class = "com.comcast.money.otel.handlers.jaeger.JaegerOtelSpanHandler"
+ *         class = "com.comcast.money.otel.handlers.logging.LoggingSpanHandler"
  *         batch = true
  *         export-only-sampled = true
  *         exporter-timeout-ms = 30000
  *         max-batch-size = 512
  *         max-queue-size = 2048
  *         schedule-delay-ms = 5000
- *         exporter {
- *           service-name = "myApp"
- *           endpoint = "localhost:14250"
- *           deadline-ms = 1000
- *         }
  *       }
  *     ]
  *   }
  * }}}
  *
  */
-class LoggingSpanHandler extends OtelSpanHandler {
-  override protected def createSpanExporter(config: Config): SpanExporter = {
-    val exporter = new LoggingSpanExporter()
-    exporter
-  }
+class LoggingSpanHandler(config: Config) extends OtelSpanHandler(config) {
+  override protected def createSpanExporter(config: Config): SpanExporter = new LoggingSpanExporter()
 }

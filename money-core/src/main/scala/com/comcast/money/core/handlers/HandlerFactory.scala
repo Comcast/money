@@ -17,7 +17,7 @@
 package com.comcast.money.core.handlers
 
 import com.comcast.money.api.SpanHandler
-import com.comcast.money.core.{ConfigurableTypeFactory, DisabledSpanHandler}
+import com.comcast.money.core.{ ConfigurableTypeFactory, DisabledSpanHandler }
 
 import scala.reflect.ClassTag
 

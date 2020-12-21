@@ -47,18 +47,14 @@ public class InMemorySpanHandlerSpec {
 
     private InMemorySpanExporter spanExporter;
 
-    private InMemorySpanHandler underTest;
-
     @Before
-    public void beforeEach() throws Exception {
+    public void beforeEach() {
         PowerMockito.mockStatic(InMemorySpanExporter.class);
 
         spanExporter = PowerMockito.mock(InMemorySpanExporter.class);
 
         PowerMockito.when(InMemorySpanExporter.create()).thenReturn(spanExporter);
         PowerMockito.when(spanExporter.export(any())).thenReturn(CompletableResultCode.ofSuccess());
-
-        underTest = new InMemorySpanHandler();
     }
 
     @Test
@@ -68,7 +64,7 @@ public class InMemorySpanHandlerSpec {
                 "export-only-sampled = true"
         );
 
-        underTest.configure(config);
+        InMemorySpanHandler underTest = new InMemorySpanHandler(config);
 
         PowerMockito.verifyStatic(InMemorySpanExporter.class);
         InMemorySpanExporter.create();

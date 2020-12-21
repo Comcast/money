@@ -1,6 +1,22 @@
+/*
+ * Copyright 2012 Comcast Cable Communications Management, LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.comcast.money.core
 
-import com.typesafe.config.{Config, ConfigFactory}
+import com.typesafe.config.{ Config, ConfigFactory }
 import org.scalatest.Inside.inside
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -18,7 +34,7 @@ class ConfigurableTypeFactorySpec extends AnyWordSpec with Matchers {
 
       val result = ServiceFactory.create(config)
 
-      inside (result) {
+      inside(result) {
         case Some(s: KnownService) =>
           s.config shouldBe config
       }
@@ -42,7 +58,7 @@ class ConfigurableTypeFactorySpec extends AnyWordSpec with Matchers {
            |""".stripMargin)
 
       val result = ServiceFactory.create(config)
-      inside (result) {
+      inside(result) {
         case Some(s: FactoryService) =>
           s.value shouldBe "value"
       }
@@ -55,7 +71,7 @@ class ConfigurableTypeFactorySpec extends AnyWordSpec with Matchers {
            |""".stripMargin)
 
       val result = ServiceFactory.create(config)
-      inside (result) {
+      inside(result) {
         case Some(s: ConfigConstructorService) =>
           s.config shouldBe config
       }
@@ -68,7 +84,7 @@ class ConfigurableTypeFactorySpec extends AnyWordSpec with Matchers {
            |""".stripMargin)
 
       val result = ServiceFactory.create(config)
-      inside (result) {
+      inside(result) {
         case Some(_: DefaultConstructorService) =>
       }
     }
@@ -103,15 +119,15 @@ object ServiceFactory extends ConfigurableTypeFactory[Service] {
   }
 }
 
-trait Service { }
+trait Service {}
 
 object FactoryService {
   def apply(config: Config): FactoryService = new FactoryService(config.getString("value"))
 }
-class FactoryService(val value: String) extends Service { }
+class FactoryService(val value: String) extends Service {}
 
-class ConfigConstructorService(val config: Config) extends Service { }
-class DefaultConstructorService extends Service { }
-class KnownService(val config: Config) extends Service { }
-object SingletonService extends Service { }
-object DefaultService extends Service { }
+class ConfigConstructorService(val config: Config) extends Service {}
+class DefaultConstructorService extends Service {}
+class KnownService(val config: Config) extends Service {}
+object SingletonService extends Service {}
+object DefaultService extends Service {}

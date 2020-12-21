@@ -20,13 +20,11 @@ import com.comcast.money.core.formatters.OtelFormatter
 import com.comcast.money.otel.formatters.B3MultiHeaderFormatter.{ B3ParentSpanIdHeader, B3SampledHeader, B3SpanIdHeader, B3TraceIdHeader }
 import io.opentelemetry.`extension`.trace.propagation.B3Propagator
 
-object B3MultiHeaderFormatter {
+object B3MultiHeaderFormatter extends OtelFormatter(B3Propagator.builder().injectMultipleHeaders().build()) {
   private[formatters] val B3TraceIdHeader = "X-B3-TraceId"
   private[formatters] val B3SpanIdHeader = "X-B3-SpanId"
   private[formatters] val B3ParentSpanIdHeader = "X-B3-ParentSpanId"
   private[formatters] val B3SampledHeader = "X-B3-Sampled"
-}
 
-final class B3MultiHeaderFormatter extends OtelFormatter(B3Propagator.builder().injectMultipleHeaders().build()) {
   override def fields: Seq[String] = Seq(B3TraceIdHeader, B3SpanIdHeader, B3ParentSpanIdHeader, B3SampledHeader)
 }

@@ -16,7 +16,7 @@
 
 package com.comcast.money.core.context
 
-import com.comcast.money.core.{ConfigurableTypeFactory, DisabledContextStorageFilter}
+import com.comcast.money.core.{ ConfigurableTypeFactory, DisabledContextStorageFilter }
 import com.typesafe.config.Config
 
 import scala.reflect.ClassTag

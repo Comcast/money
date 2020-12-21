@@ -48,8 +48,6 @@ public class LoggingSpanHandlerSpec {
 
     private LoggingSpanExporter spanExporter;
 
-    private LoggingSpanHandler underTest;
-
     @Before
     public void beforeEach() throws Exception {
         PowerMockito.mockStatic(LoggingSpanExporter.class);
@@ -58,8 +56,6 @@ public class LoggingSpanHandlerSpec {
 
         PowerMockito.whenNew(LoggingSpanExporter.class).withNoArguments().thenReturn(spanExporter);
         PowerMockito.when(spanExporter.export(any())).thenReturn(CompletableResultCode.ofSuccess());
-
-        underTest = new LoggingSpanHandler();
     }
 
     @Test
@@ -69,7 +65,7 @@ public class LoggingSpanHandlerSpec {
                 "export-only-sampled = true"
         );
 
-        underTest.configure(config);
+        LoggingSpanHandler underTest = new LoggingSpanHandler(config);
 
         PowerMockito.verifyNew(LoggingSpanExporter.class).withNoArguments();
 

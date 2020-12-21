@@ -61,8 +61,6 @@ public class OtlpHandlerSpec {
         PowerMockito.when(OtlpGrpcSpanExporter.builder()).thenReturn(spanExporterBuilder);
         PowerMockito.when(spanExporterBuilder.build()).thenReturn(spanExporter);
         PowerMockito.when(spanExporter.export(any())).thenReturn(CompletableResultCode.ofSuccess());
-
-        underTest = new OtlpHandler();
     }
 
     @Test
@@ -72,7 +70,7 @@ public class OtlpHandlerSpec {
                 "export-only-sampled = true"
         );
 
-        underTest.configure(config);
+        OtlpHandler underTest = new OtlpHandler(config);
 
         PowerMockito.verifyStatic(OtlpGrpcSpanExporter.class);
         OtlpGrpcSpanExporter.builder();
@@ -105,7 +103,7 @@ public class OtlpHandlerSpec {
                 "}"
         );
 
-        underTest.configure(config);
+        OtlpHandler underTest = new OtlpHandler(config);
 
         PowerMockito.verifyStatic(OtlpGrpcSpanExporter.class);
         OtlpGrpcSpanExporter.builder();
@@ -123,7 +121,7 @@ public class OtlpHandlerSpec {
                 "}"
         );
 
-        underTest.configure(config);
+        OtlpHandler underTest = new OtlpHandler(config);
 
         PowerMockito.verifyStatic(OtlpGrpcSpanExporter.class);
         OtlpGrpcSpanExporter.builder();
@@ -141,7 +139,7 @@ public class OtlpHandlerSpec {
                         "}"
         );
 
-        underTest.configure(config);
+        OtlpHandler underTest = new OtlpHandler(config);
 
         PowerMockito.verifyStatic(OtlpGrpcSpanExporter.class);
         OtlpGrpcSpanExporter.builder();
