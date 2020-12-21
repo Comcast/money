@@ -43,9 +43,10 @@ trait MockProducerMaker extends ProducerMaker {
 
 class TestKafkaSpanHandler(config: Config) extends KafkaSpanHandler(config) {
 
-  val mockProducer = mock(classOf[KafkaProducer[Array[Byte], Array[Byte]]])
+  var mockProducer: KafkaProducer[Array[Byte], Array[Byte]] = _
 
   override def createProducer(properties: ju.Properties): KafkaProducer[Array[Byte], Array[Byte]] = {
+    mockProducer = mock(classOf[KafkaProducer[Array[Byte], Array[Byte]]])
     mockProducer
   }
 }
