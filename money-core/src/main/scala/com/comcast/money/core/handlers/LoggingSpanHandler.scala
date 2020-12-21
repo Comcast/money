@@ -16,9 +16,9 @@
 
 package com.comcast.money.core.handlers
 
-import com.comcast.money.api.{ SpanHandler, SpanInfo }
+import com.comcast.money.api.{SpanHandler, SpanInfo}
 import com.typesafe.config.Config
-import org.slf4j.LoggerFactory
+import org.slf4j.{Logger, LoggerFactory}
 
 object LoggingSpanHandler {
 
@@ -29,8 +29,10 @@ object LoggingSpanHandler {
   val EQ = "="
   val NULL: String = "NULL"
 
-  def apply(config: Config): LoggingSpanHandler = {
-    val logger = LoggerFactory.getLogger(classOf[LoggingSpanHandler])
+  def apply(config: Config): LoggingSpanHandler =
+    apply(LoggerFactory.getLogger(classOf[LoggingSpanHandler]), config)
+
+  def apply(logger: Logger, config: Config): LoggingSpanHandler = {
     val logFunction = LogFunction(logger, config)
     val formatter = SpanLogFormatter(config)
     new LoggingSpanHandler(logFunction, formatter)

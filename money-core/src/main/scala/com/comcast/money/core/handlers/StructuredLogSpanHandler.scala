@@ -16,14 +16,16 @@
 
 package com.comcast.money.core.handlers
 
-import com.comcast.money.api.{ SpanHandler, SpanInfo }
+import com.comcast.money.api.{SpanHandler, SpanInfo}
 import com.typesafe.config.Config
 import org.slf4j.spi.MDCAdapter
-import org.slf4j.{ LoggerFactory, MDC }
+import org.slf4j.{Logger, LoggerFactory, MDC}
 
 object StructuredLogSpanHandler {
-  def apply(config: Config): StructuredLogSpanHandler = {
-    val logger = LoggerFactory.getLogger(classOf[StructuredLogSpanHandler])
+  def apply(config: Config): StructuredLogSpanHandler =
+    apply(LoggerFactory.getLogger(classOf[StructuredLogSpanHandler]), config)
+
+  def apply(logger: Logger, config: Config): StructuredLogSpanHandler = {
     val logFunction = LogFunction(logger, config)
     val formatIdsAsHex = config.hasPath("formatting.format-ids-as-hex") &&
       config.getBoolean("formatting.format-ids-as-hex")

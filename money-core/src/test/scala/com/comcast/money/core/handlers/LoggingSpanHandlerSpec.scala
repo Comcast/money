@@ -17,47 +17,36 @@
 package com.comcast.money.core.handlers
 
 import com.comcast.money.api.SpanInfo
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.ConfigFactory
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers._
 import org.mockito.Mockito._
-import org.slf4j.Logger
-import org.scalatest.wordspec.AnyWordSpec
-import org.scalatest.matchers.should.Matchers
-import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.OneInstancePerTest
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.wordspec.AnyWordSpec
+import org.scalatestplus.mockito.MockitoSugar
+import org.slf4j.Logger
 
 class LoggingSpanHandlerSpec extends AnyWordSpec
   with Matchers with MockitoSugar with OneInstancePerTest with TestData {
 
   val mockLogger = mock[Logger]
+  val mockLogFunction = mock[String => Unit]
   val mockFormatter = mock[SpanLogFormatter]
-  val mockMakeFormatter = mock[Config => SpanLogFormatter]
+  val mockMakeFormatter = mock[SpanLogFormatter]
   val sampleMessage = "sample formatted log message"
-  val sampleFormatterConfig = ConfigFactory.parseString("formatting { this=that }")
 
-  when(mockMakeFormatter.apply(any[Config])).thenReturn(mockFormatter)
   when(mockFormatter.buildMessage(any[SpanInfo])).thenReturn(sampleMessage)
 
   val logEntryCaptor = ArgumentCaptor.forClass(classOf[String])
-  val underTest = new LoggingSpanHandler(mockLogger, mockMakeFormatter)
+  val underTest = new LoggingSpanHandler(mockLogFunction, mockFormatter)
 
   "LoggingSpanHandler" should {
     "log span info" in {
-      underTest.configure(sampleFormatterConfig)
+      val underTest = new LoggingSpanHandler(mockLogFunction, mockFormatter)
       underTest.handle(testSpanInfo)
 
       verify(mockFormatter).buildMessage(testSpanInfo)
-    }
-
-    "be configurable" in {
-      underTest shouldBe a[ConfigurableHandler]
-    }
-
-    "create the formatter when configured" in {
-      underTest.configure(sampleFormatterConfig)
-
-      verify(mockMakeFormatter).apply(any[Config])
     }
 
     "be configured to use error" in {
@@ -69,7 +58,7 @@ class LoggingSpanHandlerSpec extends AnyWordSpec
           |}
         """.stripMargin)
 
-      underTest.configure(config)
+      val underTest = LoggingSpanHandler(mockLogger, config)
       underTest.handle(testSpanInfo)
 
       verify(mockLogger).error(logEntryCaptor.capture())
@@ -84,7 +73,7 @@ class LoggingSpanHandlerSpec extends AnyWordSpec
           |}
         """.stripMargin)
 
-      underTest.configure(config)
+      val underTest = LoggingSpanHandler(mockLogger, config)
       underTest.handle(testSpanInfo)
 
       verify(mockLogger).warn(logEntryCaptor.capture())
@@ -98,8 +87,7 @@ class LoggingSpanHandlerSpec extends AnyWordSpec
           | this=that
           |}
         """.stripMargin)
-
-      underTest.configure(config)
+      val underTest = LoggingSpanHandler(mockLogger, config)
       underTest.handle(testSpanInfo)
 
       verify(mockLogger).info(logEntryCaptor.capture())
@@ -113,8 +101,7 @@ class LoggingSpanHandlerSpec extends AnyWordSpec
           | this=that
           |}
         """.stripMargin)
-
-      underTest.configure(config)
+      val underTest = LoggingSpanHandler(mockLogger, config)
       underTest.handle(testSpanInfo)
 
       verify(mockLogger).debug(logEntryCaptor.capture())
@@ -128,8 +115,7 @@ class LoggingSpanHandlerSpec extends AnyWordSpec
           | this=that
           |}
         """.stripMargin)
-
-      underTest.configure(config)
+      val underTest = LoggingSpanHandler(mockLogger, config)
       underTest.handle(testSpanInfo)
 
       verify(mockLogger).trace(logEntryCaptor.capture())
@@ -142,8 +128,7 @@ class LoggingSpanHandlerSpec extends AnyWordSpec
           | this=that
           |}
         """.stripMargin)
-
-      underTest.configure(config)
+      val underTest = LoggingSpanHandler(mockLogger, config)
       underTest.handle(testSpanInfo)
 
       verify(mockLogger).info(logEntryCaptor.capture())
