@@ -29,6 +29,9 @@ object MdcContextStorageFilter {
   }
 }
 
+/**
+ * Context storage filter that updates MDC properties when the span changes for the current thread.
+ */
 class MdcContextStorageFilter(spanContext: SpanContext, mdc: MDCAdapter, hex: Boolean) extends ContextStorageFilter {
   private val LogFormat = "[ span-id=%s ][ trace-id=%s ][ parent-id=%s ]"
   private val MoneyTraceKey = "moneyTrace"

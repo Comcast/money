@@ -23,6 +23,12 @@ import java.lang.reflect.Modifier
 import scala.reflect.ClassTag
 import scala.util.Try
 
+/**
+ * Helper trait used to create plugin factories that can create instances of a plugin
+ * from a common configuration format.
+ *
+ * @tparam T the trait of the plugin
+ */
 trait ConfigurableTypeFactory[T <: AnyRef] {
   private val TYPE_KEY: String = "type"
   private val CLASS_KEY: String = "class"
