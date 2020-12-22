@@ -42,19 +42,20 @@ trait ConfigurableTypeFactory[T <: AnyRef] {
   protected val defaultValue: Option[T] = None
 
   def create(config: Config): Option[T] =
-    findConfigValue(config, TYPE_KEY)
-      .flatMap(findKnownType)
+    findKnownType(config)
+      .orElse(createInstance(config))
       .map(_(config))
-      .orElse(findConfigValue(config, CLASS_KEY)
-        .flatMap(createInstance(_, config)))
       .orElse(defaultValue)
 
   protected def findConfigValue(config: Config, key: String): Option[String] =
-    if (config.hasPath(key)) {
-      Option(config.getString(key))
-    } else {
-      None
-    }
+    Option(config)
+      .filter(_.hasPath(key))
+      .map(_.getString(key))
+      .filterNot(_.isEmpty)
+
+  protected def findKnownType(config: Config): Option[Config => T] =
+    findConfigValue(config, TYPE_KEY)
+      .flatMap(findKnownType)
 
   protected def findKnownType(typeName: String): Option[Config => T] =
     knownTypes.lift(typeName)
@@ -63,10 +64,9 @@ trait ConfigurableTypeFactory[T <: AnyRef] {
         None
       })
 
-  protected def createInstance(className: String, config: Config): Option[T] = for {
-    factory <- findConfigurableTypeFactory(className)
-    instance = factory(config)
-  } yield instance
+  protected def createInstance(config: Config): Option[Config => T] =
+    findConfigValue(config, CLASS_KEY)
+      .flatMap(findConfigurableTypeFactory)
 
   protected def findConfigurableTypeFactory(className: String): Option[Config => T] =
     findClass(className)
