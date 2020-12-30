@@ -27,6 +27,28 @@ import scala.util.Try
  * Helper trait used to create plugin factories that can create instances of a plugin
  * from a common configuration format.
  *
+ * Supports instantiating classes from the full canonical class name searching for public members
+ * with the following precedence:
+ *
+ * 1. By static factory method that accepts a [[Config]] parameter: {{{
+ *   object Service {
+ *     def apply(config: Config): Service = { ... }
+ *   }
+ * }}}
+ * 2. By a public constructor that accepts a [[Config]] parameter: {{{
+ *   class Service {
+ *     def this(config: Config) = { ... }
+ *   }
+ * }}}
+ * 3. By a public parameterless constructor: {{{
+ *   class Service {
+ *     def this() = { ... }
+ *   }
+ * }}}
+ * 4. By singleton instance by the specified name: {{{
+ *   object Service { ... }
+ * }}}
+ *
  * @tparam T the trait of the plugin
  */
 trait ConfigurableTypeFactory[T <: AnyRef] {
@@ -100,19 +122,22 @@ trait ConfigurableTypeFactory[T <: AnyRef] {
           method.getParameterTypes()(0) == classOf[Config] &&
           method.getReturnType == cls &&
           method.getName == APPLY_NAME
-    } map { method => config: Config => method.invoke(null, config).asInstanceOf[T] }
+    }
+    .map { method => config: Config => method.invoke(null, config).asInstanceOf[T] }
 
   private def findConfigConstructor(cls: Class[_]): Option[Config => T] =
     cls.getConstructors.find {
       constructor =>
         constructor.getParameterCount == 1 &&
           constructor.getParameterTypes()(0) == classOf[Config]
-    } map { constructor => config: Config => constructor.newInstance(config).asInstanceOf[T] }
+    }
+    .map { constructor => config: Config => constructor.newInstance(config).asInstanceOf[T] }
 
   private def findDefaultConstructor(cls: Class[_]): Option[Config => T] =
     cls.getConstructors.find {
       _.getParameterCount == 0
-    } map { constructor => _: Config => constructor.newInstance().asInstanceOf[T] }
+    }
+    .map { constructor => _: Config => constructor.newInstance().asInstanceOf[T] }
 
   private def findStaticInstance(cls: Class[_]): Option[Config => T] =
     cls.getFields.find {
@@ -120,5 +145,6 @@ trait ConfigurableTypeFactory[T <: AnyRef] {
         Modifier.isStatic(field.getModifiers) &&
           field.getType == cls &&
           field.getName == MODULE_FIELD_NAME
-    } map { field => _: Config => field.get(null).asInstanceOf[T] }
+    }
+    .map { field => _: Config => field.get(null).asInstanceOf[T] }
 }
