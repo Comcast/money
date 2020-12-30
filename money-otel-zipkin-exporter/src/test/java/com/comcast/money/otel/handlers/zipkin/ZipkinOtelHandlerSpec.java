@@ -21,6 +21,7 @@ import java.util.Collection;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.opentelemetry.exporter.zipkin.ZipkinSpanExporter;
+import io.opentelemetry.exporter.zipkin.ZipkinSpanExporterBuilder;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import org.junit.Before;
@@ -46,19 +47,19 @@ import static org.mockito.Mockito.never;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
         ZipkinSpanExporter.class,
-        ZipkinSpanExporter.Builder.class
+        ZipkinSpanExporterBuilder.class
 })
 public class ZipkinOtelHandlerSpec {
 
     private ZipkinSpanExporter spanExporter;
-    private ZipkinSpanExporter.Builder spanExporterBuilder;
+    private ZipkinSpanExporterBuilder spanExporterBuilder;
 
     @Before
     public void beforeEach() throws Exception {
         PowerMockito.mockStatic(ZipkinSpanExporter.class);
 
         spanExporter = PowerMockito.mock(ZipkinSpanExporter.class);
-        spanExporterBuilder = PowerMockito.mock(ZipkinSpanExporter.Builder.class);
+        spanExporterBuilder = PowerMockito.mock(ZipkinSpanExporterBuilder.class);
 
         PowerMockito.when(ZipkinSpanExporter.builder()).thenReturn(spanExporterBuilder);
         PowerMockito.when(spanExporterBuilder.build()).thenReturn(spanExporter);

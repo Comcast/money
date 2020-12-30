@@ -20,7 +20,9 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
+import io.opentelemetry.sdk.trace.export.BatchSpanProcessorBuilder;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
+import io.opentelemetry.sdk.trace.export.SimpleSpanProcessorBuilder;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import io.opentelemetry.api.trace.SpanContext;
 import org.junit.Before;
@@ -42,28 +44,28 @@ import static org.powermock.api.mockito.PowerMockito.mock;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
         BatchSpanProcessor.class,
-        BatchSpanProcessor.Builder.class,
+        BatchSpanProcessorBuilder.class,
         SimpleSpanProcessor.class,
-        SimpleSpanProcessor.Builder.class
+        SimpleSpanProcessorBuilder.class
 })
 public class OtelSpanHandlerSpec {
 
     private SpanExporter spanExporter;
     private BatchSpanProcessor batchSpanProcessor;
-    private BatchSpanProcessor.Builder batchSpanProcessorBuilder;
+    private BatchSpanProcessorBuilder batchSpanProcessorBuilder;
     private SimpleSpanProcessor simpleSpanProcessor;
-    private SimpleSpanProcessor.Builder simpleSpanProcessorBuilder;
+    private SimpleSpanProcessorBuilder simpleSpanProcessorBuilder;
 
     @Before
     public void beforeEach() {
         PowerMockito.mockStatic(BatchSpanProcessor.class);
         PowerMockito.mockStatic(SimpleSpanProcessor.class);
 
-        spanExporter = mock(SpanExporter.class);
-        batchSpanProcessor = mock(BatchSpanProcessor.class);
-        batchSpanProcessorBuilder = mock(BatchSpanProcessor.Builder.class);
-        simpleSpanProcessor = mock(SimpleSpanProcessor.class);
-        simpleSpanProcessorBuilder = mock(SimpleSpanProcessor.Builder.class);
+        spanExporter = PowerMockito.mock(SpanExporter.class);
+        batchSpanProcessor = PowerMockito.mock(BatchSpanProcessor.class);
+        batchSpanProcessorBuilder = PowerMockito.mock(BatchSpanProcessorBuilder.class);
+        simpleSpanProcessor = PowerMockito.mock(SimpleSpanProcessor.class);
+        simpleSpanProcessorBuilder = PowerMockito.mock(SimpleSpanProcessorBuilder.class);
 
         PowerMockito.when(BatchSpanProcessor.builder(spanExporter)).thenReturn(batchSpanProcessorBuilder);
         PowerMockito.when(SimpleSpanProcessor.builder(spanExporter)).thenReturn(simpleSpanProcessorBuilder);

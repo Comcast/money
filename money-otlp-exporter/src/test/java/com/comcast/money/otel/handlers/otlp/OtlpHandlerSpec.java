@@ -20,7 +20,8 @@ import java.util.Collection;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import io.opentelemetry.exporter.otlp.OtlpGrpcSpanExporter;
+import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
+import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporterBuilder;
 import io.opentelemetry.sdk.common.CompletableResultCode;
 import io.opentelemetry.sdk.trace.data.SpanData;
 import org.junit.Before;
@@ -42,12 +43,12 @@ import static org.mockito.ArgumentMatchers.any;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
         OtlpGrpcSpanExporter.class,
-        OtlpGrpcSpanExporter.Builder.class
+        OtlpGrpcSpanExporterBuilder.class
 })
 public class OtlpHandlerSpec {
 
     private OtlpGrpcSpanExporter spanExporter;
-    private OtlpGrpcSpanExporter.Builder spanExporterBuilder;
+    private OtlpGrpcSpanExporterBuilder spanExporterBuilder;
 
     private OtlpHandler underTest;
 
@@ -56,7 +57,7 @@ public class OtlpHandlerSpec {
         PowerMockito.mockStatic(OtlpGrpcSpanExporter.class);
 
         spanExporter = PowerMockito.mock(OtlpGrpcSpanExporter.class);
-        spanExporterBuilder = PowerMockito.mock(OtlpGrpcSpanExporter.Builder.class);
+        spanExporterBuilder = PowerMockito.mock(OtlpGrpcSpanExporterBuilder.class);
 
         PowerMockito.when(OtlpGrpcSpanExporter.builder()).thenReturn(spanExporterBuilder);
         PowerMockito.when(spanExporterBuilder.build()).thenReturn(spanExporter);
