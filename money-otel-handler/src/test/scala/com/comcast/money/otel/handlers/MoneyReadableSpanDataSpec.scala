@@ -51,7 +51,6 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.getTotalRecordedLinks shouldBe 0
       underTest.getResource shouldBe Resource.getDefault
-      underTest.hasRemoteParent shouldBe false
       underTest.getLatencyNanos shouldBe 2000000L
       underTest.getStatus shouldBe Status.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
@@ -78,7 +77,6 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.getTotalRecordedLinks shouldBe 0
       underTest.getResource shouldBe Resource.getDefault
-      underTest.hasRemoteParent shouldBe false
       underTest.getLatencyNanos shouldBe 2000000L
       underTest.getStatus shouldBe Status.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1

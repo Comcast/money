@@ -17,9 +17,8 @@
 package com.comcast.money.core.spi
 
 import java.util.ServiceLoader
-
 import com.comcast.money.core.{ MoneyTracerProvider, Tracer }
-import io.opentelemetry.api.OpenTelemetry
+import io.opentelemetry.api.GlobalOpenTelemetry
 import io.opentelemetry.spi.trace.TracerProviderFactory
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -48,7 +47,7 @@ class MoneyTracerProviderFactorySpec extends AnyWordSpec with MockitoSugar with 
     }
 
     "integrates with OpenTelemetry.getTracer" in {
-      val tracer = OpenTelemetry.getGlobalTracer("test")
+      val tracer = GlobalOpenTelemetry.get().getTracer("test")
       tracer shouldBe a[Tracer]
     }
   }
