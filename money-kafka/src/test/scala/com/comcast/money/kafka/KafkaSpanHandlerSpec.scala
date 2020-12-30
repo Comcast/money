@@ -41,13 +41,12 @@ trait MockProducerMaker extends ProducerMaker {
   def makeProducer(conf: Config): KafkaProducer[Array[Byte], Array[Byte]] = mockProducer
 }
 
-class TestKafkaSpanHandler extends KafkaSpanHandler {
+class TestKafkaSpanHandler(config: Config) extends KafkaSpanHandler(config) {
 
-  var producerWasMade = false
-  val mockProducer = mock(classOf[KafkaProducer[Array[Byte], Array[Byte]]])
+  var mockProducer: KafkaProducer[Array[Byte], Array[Byte]] = _
 
   override def createProducer(properties: ju.Properties): KafkaProducer[Array[Byte], Array[Byte]] = {
-    producerWasMade = true
+    mockProducer = mock(classOf[KafkaProducer[Array[Byte], Array[Byte]]])
     mockProducer
   }
 }
@@ -61,8 +60,7 @@ class KafkaSpanHandlerSpec extends AnyWordSpec
     val testConfig = mock[Config]
     when(testConfig.getString("topic")).thenReturn("test-topic")
 
-    val underTest = new TestKafkaSpanHandler()
-    underTest.configure(testConfig)
+    val underTest = new TestKafkaSpanHandler(testConfig)
 
     val testProducer = underTest.mockProducer
     val sampleData = TestSpanInfo(
@@ -78,7 +76,7 @@ class KafkaSpanHandlerSpec extends AnyWordSpec
 
   "A KafkaEmitter" should {
     "make a producer in configure" in new KafkaFixture {
-      underTest.producerWasMade shouldBe true
+      underTest.producer shouldBe underTest.mockProducer
     }
     "send a message to the producer for a span" in new KafkaFixture {
       underTest.handle(sampleData)
@@ -103,8 +101,7 @@ class KafkaSpanHandlerSpec extends AnyWordSpec
           | key.serializer = "org.apache.kafka.common.serialization.StringSerializer"
           | value.serializer = "org.apache.kafka.common.serialization.StringSerializer"
         """.stripMargin)
-      val testHandler = new KafkaSpanHandler()
-      testHandler.configure(config)
+      val testHandler = new KafkaSpanHandler(config)
 
       val producerConfig = testHandler.properties
 

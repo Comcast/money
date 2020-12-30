@@ -34,15 +34,13 @@ class MetricsHandlerSpec extends AnyWordSpec with Matchers with MockitoSugar wit
 
   "MetricsSpanHandler" should {
     "configure the metrics registry" in {
-      val underTest = new MetricsSpanHandler()
-      underTest.configure(conf)
+      val underTest = MetricsSpanHandler(conf)
 
       underTest.metricRegistry shouldBe a[MetricRegistry]
     }
 
     "save latency metric" in {
-      val underTest = new MetricsSpanHandler()
-      underTest.configure(conf)
+      val underTest = MetricsSpanHandler(conf)
 
       val latencyMetric = mock[Histogram]
       val errorMetric = mock[Meter]
@@ -56,8 +54,7 @@ class MetricsHandlerSpec extends AnyWordSpec with Matchers with MockitoSugar wit
     }
 
     "update the error metric" in {
-      val underTest = new MetricsSpanHandler()
-      underTest.configure(conf)
+      val underTest = MetricsSpanHandler(conf)
 
       val latencyMetric = mock[Histogram]
       val errorMetric = mock[Meter]

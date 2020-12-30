@@ -17,54 +17,20 @@
 package com.comcast.money.core.internal
 
 import java.util
-
-import com.comcast.money.api.{ Span, SpanId }
-import com.comcast.money.core.Money
-import io.opentelemetry.api.trace.{ Span => OtelSpan }
-import io.opentelemetry.context.Context
 import org.slf4j.MDC
+import org.slf4j.spi.MDCAdapter
 
-object MDCSupport {
-
-  val LogFormat = "[ span-id=%s ][ trace-id=%s ][ parent-id=%s ]"
-
-  def format(spanId: SpanId): String = format(spanId, formatIdsAsHex = false)
-
-  def format(spanId: SpanId, formatIdsAsHex: Boolean): String = if (formatIdsAsHex) {
-    LogFormat.format(spanId.selfIdAsHex, spanId.traceIdAsHex, spanId.parentIdAsHex)
-  } else {
-    LogFormat.format(spanId.selfId, spanId.traceId, spanId.parentId)
-  }
+object MDCSupport extends MDCSupport {
+  override protected val mdc: MDCAdapter = MDC.getMDCAdapter
 }
 
-/**
- * Adds the ability to store a span in MDC for a magical logging experience
- * @param enabled True if mdc is enabled, false if it is disabled
- */
-class MDCSupport(
-  enabled: Boolean = Money.Environment.enabled,
-  formatIdsAsHex: Boolean = Money.Environment.formatIdsAsHex) {
+trait MDCSupport {
+  protected val mdc: MDCAdapter
 
-  private val MoneyTraceKey = "moneyTrace"
-  private val SpanNameKey = "spanName"
-
-  def setSpanMDC(span: Option[Span]): Unit = if (enabled) {
-    span match {
-      case Some(s) =>
-        MDC.put(MoneyTraceKey, MDCSupport.format(s.info.id, formatIdsAsHex))
-        MDC.put(SpanNameKey, s.info.name)
-      case None =>
-        MDC.remove(MoneyTraceKey)
-        MDC.remove(SpanNameKey)
-    }
-  }
-
-  def getCopyOfMDC: Option[util.Map[String, String]] = Option(MDC.getCopyOfContextMap)
-
-  def propagateMDC(submittingThreadsContext: Option[util.Map[String, String]]): Unit = if (enabled) {
+  def getCopyOfMDC: Option[util.Map[String, String]] = Option(mdc.getCopyOfContextMap)
+  def propagateMDC(submittingThreadsContext: Option[util.Map[String, String]]): Unit =
     submittingThreadsContext match {
-      case Some(context: util.Map[String, String]) => MDC.setContextMap(context)
-      case None => MDC.clear()
+      case Some(context: util.Map[String, String]) => mdc.setContextMap(context)
+      case None => mdc.clear()
     }
-  }
 }

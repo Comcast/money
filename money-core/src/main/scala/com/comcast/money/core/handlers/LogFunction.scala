@@ -14,10 +14,24 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core.formatters
+package com.comcast.money.core.handlers
 
 import com.typesafe.config.Config
+import org.slf4j.Logger
 
-trait ConfigurableFormatter extends Formatter {
-  def configure(conf: Config): Unit
+private[core] object LogFunction {
+  val LOG_LEVEL_KEY: String = "log-level"
+
+  def apply(logger: Logger, config: Config): String => Unit =
+    if (config.hasPath(LOG_LEVEL_KEY)) {
+      config.getString(LOG_LEVEL_KEY).toUpperCase match {
+        case "ERROR" => logger.error
+        case "WARN" => logger.warn
+        case "INFO" => logger.info
+        case "DEBUG" => logger.debug
+        case "TRACE" => logger.trace
+      }
+    } else {
+      logger.info
+    }
 }

@@ -23,10 +23,6 @@ class TestSampler extends Sampler {
   override def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], spanName: String): SamplerResult = DropResult
 }
 
-class TestConfigurableSampler extends ConfigurableSampler {
-
-  var calledConfigured = false
-
-  override def configure(conf: Config): Unit = calledConfigured = true
+class TestConfigurableSampler(val config: Config) extends Sampler {
   override def shouldSample(spanId: SpanId, parentSpanId: Option[SpanId], spanName: String): SamplerResult = DropResult
 }

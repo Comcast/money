@@ -14,10 +14,15 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core.samplers
+package com.comcast.money.core.context
 
 import com.typesafe.config.Config
+import scala.collection.JavaConverters._
 
-trait ConfigurableSampler extends Sampler {
-  def configure(conf: Config): Unit
+object ContextStorageFilterChain {
+  def apply(conf: Config): Seq[ContextStorageFilter] =
+    conf.getConfigList("filters")
+      .asScala
+      .flatMap(ContextStorageFilterFactory.create)
+      .toSeq
 }

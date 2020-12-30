@@ -53,8 +53,6 @@ public class JaegerOtelSpanHandlerSpec {
     private JaegerGrpcSpanExporter spanExporter;
     private JaegerGrpcSpanExporterBuilder spanExporterBuilder;
 
-    private JaegerOtelSpanHandler underTest;
-
     @Before
     public void beforeEach() throws Exception {
         PowerMockito.mockStatic(JaegerGrpcSpanExporter.class);
@@ -65,8 +63,6 @@ public class JaegerOtelSpanHandlerSpec {
         PowerMockito.when(JaegerGrpcSpanExporter.builder()).thenReturn(spanExporterBuilder);
         PowerMockito.when(spanExporterBuilder.build()).thenReturn(spanExporter);
         PowerMockito.when(spanExporter.export(any())).thenReturn(CompletableResultCode.ofSuccess());
-
-        underTest = new JaegerOtelSpanHandler();
     }
 
     @Test
@@ -79,7 +75,7 @@ public class JaegerOtelSpanHandlerSpec {
                 "}"
         );
 
-        underTest.configure(config);
+        JaegerOtelSpanHandler underTest = new JaegerOtelSpanHandler(config);
 
         PowerMockito.verifyStatic(JaegerGrpcSpanExporter.class);
         JaegerGrpcSpanExporter.builder();
@@ -114,7 +110,7 @@ public class JaegerOtelSpanHandlerSpec {
                         "}"
         );
 
-        underTest.configure(config);
+        JaegerOtelSpanHandler underTest = new JaegerOtelSpanHandler(config);
 
         PowerMockito.verifyStatic(JaegerGrpcSpanExporter.class);
         JaegerGrpcSpanExporter.builder();
@@ -135,7 +131,7 @@ public class JaegerOtelSpanHandlerSpec {
                         "}"
         );
 
-        underTest.configure(config);
+        JaegerOtelSpanHandler underTest = new JaegerOtelSpanHandler(config);
 
         PowerMockito.verifyStatic(JaegerGrpcSpanExporter.class);
         JaegerGrpcSpanExporter.builder();

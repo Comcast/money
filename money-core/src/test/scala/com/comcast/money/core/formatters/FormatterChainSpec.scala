@@ -36,8 +36,8 @@ class FormatterChainSpec extends AnyWordSpec with MockitoSugar with Matchers {
 
       result.formatters should have size 2
       val Seq(formatter1, formatter2) = result.formatters
-      formatter1 shouldBe a[MoneyTraceFormatter]
-      formatter2 shouldBe a[TraceContextFormatter]
+      formatter1 shouldBe MoneyTraceFormatter
+      formatter2 shouldBe TraceContextFormatter
     }
 
     "return configured formatters" in {
@@ -45,11 +45,9 @@ class FormatterChainSpec extends AnyWordSpec with MockitoSugar with Matchers {
         """
           | formatters = [
           |   {
-          |     type = custom
           |     class = com.comcast.money.core.formatters.TraceContextFormatter
           |   },
           |   {
-          |     type = custom
           |     class = com.comcast.money.core.formatters.MoneyTraceFormatter
           |   }
           | ]
@@ -58,8 +56,8 @@ class FormatterChainSpec extends AnyWordSpec with MockitoSugar with Matchers {
       val result = FormatterChain(config)
 
       val Seq(formatter1, formatter2) = result.formatters
-      formatter1 shouldBe a[TraceContextFormatter]
-      formatter2 shouldBe a[MoneyTraceFormatter]
+      formatter1 shouldBe TraceContextFormatter
+      formatter2 shouldBe MoneyTraceFormatter
     }
 
     "calls toHttpHeaders on all Formatters" in {

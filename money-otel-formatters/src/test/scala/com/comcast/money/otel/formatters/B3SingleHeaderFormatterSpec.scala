@@ -28,7 +28,7 @@ import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import scala.collection.mutable
 
 class B3SingleHeaderFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
-  val underTest = new B3SingleHeaderFormatter()
+  val underTest = B3SingleHeaderFormatter
   val nullString = null.asInstanceOf[String]
 
   "B3SingleHeaderFormatter" should {

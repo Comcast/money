@@ -14,15 +14,10 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core.internal
+package com.comcast.money.core.context
 
-import io.opentelemetry.context.{ ContextStorage, ContextStorageProvider }
+import io.opentelemetry.context.{ Context, ContextStorage, Scope }
 
-class CoreContextStorageProvider(
-  spanContext: SpanContext,
-  mdcSupport: MDCSupport,
-  storage: ContextStorage) extends ContextStorageProvider {
-
-  def this() = this(SpanLocal, new MDCSupport(), ContextStorage.defaultStorage)
-  override def get(): ContextStorage = new CoreContextStorage(spanContext, mdcSupport, storage)
+trait ContextStorageFilter {
+  def attach(context: Context, storage: ContextStorage): Scope
 }

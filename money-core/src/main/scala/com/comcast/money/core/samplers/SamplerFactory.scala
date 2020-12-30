@@ -16,31 +16,19 @@
 
 package com.comcast.money.core.samplers
 
+import com.comcast.money.core.ConfigurableTypeFactory
 import com.typesafe.config.Config
-import org.slf4j.{ Logger, LoggerFactory }
 
-object SamplerFactory {
-  private val logger: Logger = LoggerFactory.getLogger(getClass)
+import scala.reflect.ClassTag
 
-  def create(conf: Config): Sampler =
-    conf.getString("type") match {
-      case "always-on" => AlwaysOnSampler
-      case "always-off" => AlwaysOffSampler
-      case "ratio-based" => new RatioBasedSampler(conf.getDouble("ratio"))
-      case "parent-based" =>
-        val sampler = new ParentBasedSampler
-        sampler.configure(conf)
-        sampler
-      case "custom" =>
-        val className = conf.getString("class")
-        val sampler = Class.forName(className).newInstance().asInstanceOf[Sampler]
-        sampler match {
-          case configurable: ConfigurableSampler => configurable.configure(conf)
-          case _ =>
-        }
-        sampler
-      case unknown =>
-        logger.warn("Unknown sampler type: '{}'", unknown)
-        AlwaysOnSampler
-    }
+object SamplerFactory extends ConfigurableTypeFactory[Sampler] {
+  override protected val tag: ClassTag[Sampler] = ClassTag(classOf[Sampler])
+  override protected val defaultValue: Option[Sampler] = Some(AlwaysOnSampler)
+
+  override protected val knownTypes: PartialFunction[String, Config => Sampler] = {
+    case "always-on" => _ => AlwaysOnSampler
+    case "always-off" => _ => AlwaysOffSampler
+    case "ratio-based" => config => RatioBasedSampler(config)
+    case "parent-based" => config => ParentBasedSampler(config)
+  }
 }

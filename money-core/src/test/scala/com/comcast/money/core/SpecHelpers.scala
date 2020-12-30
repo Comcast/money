@@ -16,8 +16,8 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ SpanId, SpanInfo }
-import com.comcast.money.core.handlers.LoggingSpanHandler
+import com.comcast.money.api.{ SpanHandler, SpanId, SpanInfo }
+import com.comcast.money.core.handlers.SpanLogFormatter
 import com.typesafe.config.Config
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.concurrent.Eventually
@@ -46,19 +46,15 @@ object LogRecord {
   def log(name: String): Set[String] = messages.getOrElse(name, mutable.Set.empty)
 }
 
-class LogRecorderSpanHandler extends LoggingSpanHandler {
+class LogRecorderSpanHandler(config: Config)
+  extends SpanHandler {
 
-  override def configure(config: Config): Unit = {
-    super.configure(config)
-    logFunction = record
-  }
+  private val formatter = SpanLogFormatter(config)
 
   override def handle(spanInfo: SpanInfo): Unit = {
     LogRecord.add(spanInfo)
-    super.handle(spanInfo)
+    LogRecord.add("log", formatter.buildMessage(spanInfo))
   }
-
-  def record(message: String): Unit = LogRecord.add("log", message)
 }
 
 trait SpecHelpers extends Eventually { this: Matchers =>

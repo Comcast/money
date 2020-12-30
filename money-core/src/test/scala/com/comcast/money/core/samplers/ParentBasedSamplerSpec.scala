@@ -28,7 +28,7 @@ import org.scalatestplus.mockito.MockitoSugar
 class ParentBasedSamplerSpec extends AnyWordSpec with MockitoSugar with Matchers {
   "ParentBasedSampler" should {
     "have sensible default samplers" in {
-      val underTest = new ParentBasedSampler()
+      val underTest = ParentBasedSampler(ConfigFactory.empty)
 
       underTest.root shouldBe AlwaysOnSampler
       underTest.localSampled shouldBe AlwaysOnSampler
@@ -47,8 +47,7 @@ class ParentBasedSamplerSpec extends AnyWordSpec with MockitoSugar with Matchers
           | remote-not-sampled = { type = "always-on" }
           |""".stripMargin)
 
-      val underTest = new ParentBasedSampler()
-      underTest.configure(config)
+      val underTest = ParentBasedSampler(config)
 
       underTest.root shouldBe AlwaysOffSampler
       underTest.localSampled shouldBe AlwaysOffSampler
@@ -59,12 +58,12 @@ class ParentBasedSamplerSpec extends AnyWordSpec with MockitoSugar with Matchers
 
     "uses root sampler for root spans" in {
 
-      val underTest = new ParentBasedSampler()
-      underTest.root = mock[Sampler]
-      underTest.remoteNotSampled = mock[Sampler]
-      underTest.remoteSampled = mock[Sampler]
-      underTest.localNotSampled = mock[Sampler]
-      underTest.localSampled = mock[Sampler]
+      val root = mock[Sampler]
+      val remoteNotSampled = mock[Sampler]
+      val remoteSampled = mock[Sampler]
+      val localNotSampled = mock[Sampler]
+      val localSampled = mock[Sampler]
+      val underTest = new ParentBasedSampler(root, remoteSampled, remoteNotSampled, localSampled, localNotSampled)
 
       val spanId = SpanId.createNew()
       val expected = RecordResult()
@@ -80,12 +79,12 @@ class ParentBasedSamplerSpec extends AnyWordSpec with MockitoSugar with Matchers
 
     "uses local sampled sampler for child spans" in {
 
-      val underTest = new ParentBasedSampler()
-      underTest.root = mock[Sampler]
-      underTest.remoteNotSampled = mock[Sampler]
-      underTest.remoteSampled = mock[Sampler]
-      underTest.localNotSampled = mock[Sampler]
-      underTest.localSampled = mock[Sampler]
+      val root = mock[Sampler]
+      val remoteNotSampled = mock[Sampler]
+      val remoteSampled = mock[Sampler]
+      val localNotSampled = mock[Sampler]
+      val localSampled = mock[Sampler]
+      val underTest = new ParentBasedSampler(root, remoteSampled, remoteNotSampled, localSampled, localNotSampled)
 
       val parentSpanId = SpanId.createNew()
       val childSpanId = parentSpanId.createChild()
@@ -102,12 +101,12 @@ class ParentBasedSamplerSpec extends AnyWordSpec with MockitoSugar with Matchers
 
     "uses local not sampled sampler for child spans" in {
 
-      val underTest = new ParentBasedSampler()
-      underTest.root = mock[Sampler]
-      underTest.remoteNotSampled = mock[Sampler]
-      underTest.remoteSampled = mock[Sampler]
-      underTest.localNotSampled = mock[Sampler]
-      underTest.localSampled = mock[Sampler]
+      val root = mock[Sampler]
+      val remoteNotSampled = mock[Sampler]
+      val remoteSampled = mock[Sampler]
+      val localNotSampled = mock[Sampler]
+      val localSampled = mock[Sampler]
+      val underTest = new ParentBasedSampler(root, remoteSampled, remoteNotSampled, localSampled, localNotSampled)
 
       val parentSpanId = SpanId.createNew(false)
       val childSpanId = parentSpanId.createChild()
@@ -124,12 +123,12 @@ class ParentBasedSamplerSpec extends AnyWordSpec with MockitoSugar with Matchers
 
     "uses remote sampled sampler for child spans" in {
 
-      val underTest = new ParentBasedSampler()
-      underTest.root = mock[Sampler]
-      underTest.remoteNotSampled = mock[Sampler]
-      underTest.remoteSampled = mock[Sampler]
-      underTest.localNotSampled = mock[Sampler]
-      underTest.localSampled = mock[Sampler]
+      val root = mock[Sampler]
+      val remoteNotSampled = mock[Sampler]
+      val remoteSampled = mock[Sampler]
+      val localNotSampled = mock[Sampler]
+      val localSampled = mock[Sampler]
+      val underTest = new ParentBasedSampler(root, remoteSampled, remoteNotSampled, localSampled, localNotSampled)
 
       val selfId = IdGenerator.generateRandomId()
       val parentSpanId = SpanId.createRemote(IdGenerator.generateRandomTraceId(), selfId, selfId, TraceFlags.getSampled, TraceState.getDefault)
@@ -147,12 +146,12 @@ class ParentBasedSamplerSpec extends AnyWordSpec with MockitoSugar with Matchers
 
     "uses remote not sampled sampler for child spans" in {
 
-      val underTest = new ParentBasedSampler()
-      underTest.root = mock[Sampler]
-      underTest.remoteNotSampled = mock[Sampler]
-      underTest.remoteSampled = mock[Sampler]
-      underTest.localNotSampled = mock[Sampler]
-      underTest.localSampled = mock[Sampler]
+      val root = mock[Sampler]
+      val remoteNotSampled = mock[Sampler]
+      val remoteSampled = mock[Sampler]
+      val localNotSampled = mock[Sampler]
+      val localSampled = mock[Sampler]
+      val underTest = new ParentBasedSampler(root, remoteSampled, remoteNotSampled, localSampled, localNotSampled)
 
       val selfId = IdGenerator.generateRandomId()
       val parentSpanId = SpanId.createRemote(IdGenerator.generateRandomTraceId(), selfId, selfId, TraceFlags.getDefault, TraceState.getDefault)

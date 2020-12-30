@@ -17,7 +17,7 @@
 package com.comcast.money.core.handlers
 
 import com.codahale.metrics.{ Histogram, Meter, MetricRegistry }
-import com.comcast.money.api.SpanInfo
+import com.comcast.money.api.{ SpanHandler, SpanInfo }
 import com.comcast.money.core.metrics.MetricRegistryFactory
 import com.typesafe.config.Config
 
@@ -33,16 +33,16 @@ case class SpanMetrics(latencyMetric: Histogram, errorMetric: Meter) {
   }
 }
 
-class MetricsSpanHandler extends ConfigurableHandler {
+object MetricsSpanHandler {
+  def apply(conf: Config): MetricsSpanHandler = {
+    val metricRegistry = MetricRegistryFactory.metricRegistry(conf)
+    new MetricsSpanHandler(metricRegistry)
+  }
+}
 
-  private[handlers] var metricRegistry: MetricRegistry = _
+class MetricsSpanHandler(val metricRegistry: MetricRegistry) extends SpanHandler {
 
   private[handlers] val spans = new TrieMap[String, SpanMetrics]()
-
-  def configure(config: Config): Unit = {
-
-    metricRegistry = MetricRegistryFactory.metricRegistry(config)
-  }
 
   def handle(span: SpanInfo): Unit =
     spans.getOrElseUpdate(span.name, spanMetrics(span.name)).record(span)

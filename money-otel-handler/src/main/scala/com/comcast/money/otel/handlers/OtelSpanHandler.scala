@@ -17,9 +17,7 @@
 package com.comcast.money.otel.handlers
 
 import com.comcast.money.api.{ SpanHandler, SpanInfo }
-import com.comcast.money.core.handlers.ConfigurableHandler
 import com.typesafe.config.{ Config, ConfigFactory }
-import io.opentelemetry.sdk.common.InstrumentationLibraryInfo
 import io.opentelemetry.sdk.trace.SpanProcessor
 import io.opentelemetry.sdk.trace.`export`.{ BatchSpanProcessor, SimpleSpanProcessor, SpanExporter }
 
@@ -27,9 +25,10 @@ import io.opentelemetry.sdk.trace.`export`.{ BatchSpanProcessor, SimpleSpanProce
  * An abstract `SpanHandler` that can wrap an OpenTelemetry `SpanExporter` implementation
  * and export spans to an OpenTelemetry-compatible exporter such as ZipKin or Jaeger.
  */
-abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
+abstract class OtelSpanHandler(config: Config) extends SpanHandler {
 
-  private[otel] var processor: SpanProcessor = NoopSpanProcessor
+  private[otel] val exporter: SpanExporter = createSpanExporter(getExporterConfig(config))
+  private[otel] val processor: SpanProcessor = createSpanProcessor(exporter, config)
 
   /**
    * Handles a span that has been stopped.
@@ -38,17 +37,6 @@ abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
    */
   override def handle(span: SpanInfo): Unit = {
     processor.onEnd(new MoneyReadableSpanData(span))
-  }
-
-  override def configure(config: Config): Unit = {
-    val exporterConfig = if (config.hasPath("exporter")) {
-      config.getConfig("exporter")
-    } else {
-      ConfigFactory.empty()
-    }
-
-    val spanExporter = createSpanExporter(exporterConfig)
-    processor = createSpanProcessor(spanExporter, config)
   }
 
   protected def createSpanProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
@@ -99,6 +87,11 @@ abstract class OtelSpanHandler extends SpanHandler with ConfigurableHandler {
 
     builder.build()
   }
+
+  protected def getExporterConfig(config: Config): Config =
+    if (config.hasPath("exporter")) {
+      config.getConfig("exporter")
+    } else ConfigFactory.empty
 
   protected def createSpanExporter(config: Config): SpanExporter
 }

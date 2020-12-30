@@ -29,7 +29,7 @@ import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import scala.collection.mutable
 
 class JaegerFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
-  val underTest = new JaegerFormatter()
+  val underTest = JaegerFormatter
   val nullString = null.asInstanceOf[String]
 
   "JaegerFormatter" should {

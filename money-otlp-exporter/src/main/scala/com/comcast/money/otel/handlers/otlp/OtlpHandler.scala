@@ -50,7 +50,7 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
  * }}}
  *
  */
-class OtlpHandler extends OtelSpanHandler {
+class OtlpHandler(config: Config) extends OtelSpanHandler(config) {
   override protected def createSpanExporter(config: Config): SpanExporter = {
     val builder = OtlpGrpcSpanExporter.builder()
 

@@ -16,9 +16,7 @@
 
 package com.comcast.money.kafka
 import java.util.Properties
-
-import com.comcast.money.api.SpanInfo
-import com.comcast.money.core.handlers.ConfigurableHandler
+import com.comcast.money.api.{ SpanHandler, SpanInfo }
 import com.comcast.money.wire.AvroConversions
 import com.typesafe.config.Config
 import org.apache.kafka.clients.producer.{ KafkaProducer, Producer, ProducerRecord }
@@ -49,19 +47,13 @@ trait ConfigDrivenProducerMaker extends ProducerMaker {
     new KafkaProducer[Array[Byte], Array[Byte]](properties)
 }
 
-class KafkaSpanHandler extends ConfigurableHandler with ConfigDrivenProducerMaker {
+class KafkaSpanHandler(config: Config) extends SpanHandler with ConfigDrivenProducerMaker {
 
   import AvroConversions._
 
-  private[kafka] var topic: String = _
-  private[kafka] var properties: Properties = _
-  private[kafka] var producer: Producer[Array[Byte], Array[Byte]] = _
-
-  def configure(config: Config): Unit = {
-    topic = config.getString("topic")
-    properties = convertConfigToProperties(config)
-    producer = createProducer(properties)
-  }
+  private[kafka] val topic: String = config.getString("topic")
+  private[kafka] val properties: Properties = convertConfigToProperties(config)
+  private[kafka] val producer: Producer[Array[Byte], Array[Byte]] = createProducer(properties)
 
   def handle(span: SpanInfo): Unit = {
     producer.send(new ProducerRecord[Array[Byte], Array[Byte]](topic, span.convertTo[Array[Byte]]))

@@ -18,9 +18,7 @@ package com.comcast.money.core.formatters
 
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator
 
-object TraceContextFormatter {
+object TraceContextFormatter extends OtelFormatter(W3CTraceContextPropagator.getInstance) {
   private[core] val TraceParentHeader = "traceparent"
   private[core] val TraceStateHeader = "tracestate"
 }
-
-final class TraceContextFormatter extends OtelFormatter(W3CTraceContextPropagator.getInstance)

@@ -14,12 +14,17 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core.handlers
+package com.comcast.money.core.context
 
-import com.comcast.money.api.SpanHandler
+import com.comcast.money.core.{ ConfigurableTypeFactory, DisabledContextStorageFilter }
 import com.typesafe.config.Config
 
-trait ConfigurableHandler extends SpanHandler {
+import scala.reflect.ClassTag
 
-  def configure(config: Config): Unit
+object ContextStorageFilterFactory extends ConfigurableTypeFactory[ContextStorageFilter] {
+  override protected val tag: ClassTag[ContextStorageFilter] = ClassTag(classOf[ContextStorageFilter])
+  override protected val defaultValue: Option[ContextStorageFilter] = Some(DisabledContextStorageFilter)
+  override protected val knownTypes: PartialFunction[String, Config => ContextStorageFilter] = {
+    case "mdc" => config => MdcContextStorageFilter(config)
+  }
 }

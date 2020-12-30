@@ -16,16 +16,18 @@
 
 package com.comcast.money.core
 
-import java.net.InetAddress
-import java.util.concurrent.TimeUnit
-
 import com.comcast.money.api.{ InstrumentationLibrary, SpanFactory, SpanHandler }
-import com.comcast.money.core.async.{ AsyncNotificationHandler, AsyncNotifier }
+import com.comcast.money.core.async.AsyncNotifier
+import com.comcast.money.core.context.{ ContextStorageFilterChain, MdcContextStorageFilter }
 import com.comcast.money.core.formatters.{ Formatter, FormatterChain }
 import com.comcast.money.core.handlers.HandlerChain
-import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
+import com.comcast.money.core.internal.SpanLocal
 import com.comcast.money.core.samplers.{ AlwaysOnSampler, Sampler, SamplerFactory }
 import com.typesafe.config.{ Config, ConfigFactory }
+import io.opentelemetry.context.{ Context, ContextStorage, Scope }
+
+import java.net.InetAddress
+import java.util.concurrent.TimeUnit
 
 case class Money(
   enabled: Boolean,
@@ -36,7 +38,6 @@ case class Money(
   tracer: Tracer,
   formatter: Formatter,
   logExceptions: Boolean = false,
-  formatIdsAsHex: Boolean = false,
   asyncNotifier: AsyncNotifier = new AsyncNotifier(Seq()))
 
 object Money {
@@ -52,6 +53,7 @@ object Money {
     if (enabled) {
       val handler = HandlerChain(conf.getConfig("handling"))
       val clock = new NanoClock(SystemClock, TimeUnit.MILLISECONDS.toNanos(50L))
+      configureContextFilters(conf)
       val formatter = configureFormatter(conf)
       val sampler = configureSampler(conf)
       val factory: SpanFactory = CoreSpanFactory(SpanLocal, clock, handler, formatter, sampler, Money.InstrumentationLibrary)
@@ -60,10 +62,26 @@ object Money {
       }
       val logExceptions = conf.getBoolean("log-exceptions")
       val asyncNotificationHandlerChain = AsyncNotifier(conf.getConfig("async-notifier"))
-      val formatIdsAsHex = conf.hasPath("format-ids-as-hex") && conf.getBoolean("format-ids-as-hex")
-      Money(enabled, handler, applicationName, hostName, factory, tracer, formatter, logExceptions, formatIdsAsHex, asyncNotificationHandlerChain)
+      Money(enabled, handler, applicationName, hostName, factory, tracer, formatter, logExceptions, asyncNotificationHandlerChain)
     } else {
       disabled(applicationName, hostName)
+    }
+  }
+
+  private def configureContextFilters(conf: Config): Unit = {
+    val filters = if (conf.hasPath("context")) {
+      ContextStorageFilterChain(conf.getConfig("context"))
+    } else {
+      Seq(MdcContextStorageFilter(conf))
+    }
+    for (filter <- filters) {
+      ContextStorage.addWrapper({
+        storage =>
+          new ContextStorage {
+            override def attach(toAttach: Context): Scope = filter.attach(toAttach, storage)
+            override def current: Context = storage.current
+          }
+      })
     }
   }
 
@@ -77,6 +95,7 @@ object Money {
   private def configureSampler(conf: Config): Sampler =
     if (conf.hasPath("sampling")) {
       SamplerFactory.create(conf.getConfig("sampling"))
+        .getOrElse(AlwaysOnSampler)
     } else {
       AlwaysOnSampler
     }

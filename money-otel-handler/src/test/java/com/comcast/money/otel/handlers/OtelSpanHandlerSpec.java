@@ -39,6 +39,7 @@ import com.comcast.money.api.SpanInfo;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.never;
+import static org.powermock.api.mockito.PowerMockito.mock;
 
 @RunWith(PowerMockRunner.class)
 @PrepareForTest({
@@ -55,10 +56,8 @@ public class OtelSpanHandlerSpec {
     private SimpleSpanProcessor simpleSpanProcessor;
     private SimpleSpanProcessorBuilder simpleSpanProcessorBuilder;
 
-    private OtelSpanHandler underTest;
-
     @Before
-    public void beforeEach() throws Exception {
+    public void beforeEach() {
         PowerMockito.mockStatic(BatchSpanProcessor.class);
         PowerMockito.mockStatic(SimpleSpanProcessor.class);
 
@@ -72,21 +71,6 @@ public class OtelSpanHandlerSpec {
         PowerMockito.when(SimpleSpanProcessor.builder(spanExporter)).thenReturn(simpleSpanProcessorBuilder);
         PowerMockito.when(batchSpanProcessorBuilder.build()).thenReturn(batchSpanProcessor);
         PowerMockito.when(simpleSpanProcessorBuilder.build()).thenReturn(simpleSpanProcessor);
-
-        underTest = new TestOtelSpanHandler(spanExporter);
-    }
-
-    @Test
-    public void doesNothingUntilConfigured() {
-        SpanInfo spanInfo = PowerMockito.mock(SpanInfo.class);
-
-        underTest.handle(spanInfo);
-
-        PowerMockito.verifyNoMoreInteractions(spanExporter);
-        PowerMockito.verifyStatic(BatchSpanProcessor.class, never());
-        BatchSpanProcessor.builder(spanExporter);
-        PowerMockito.verifyStatic(SimpleSpanProcessor.class, never());
-        SimpleSpanProcessor.builder(spanExporter);
     }
 
     @Test
@@ -97,7 +81,7 @@ public class OtelSpanHandlerSpec {
                 "export-only-sampled = true"
         );
 
-        underTest.configure(config);
+        OtelSpanHandler underTest = new TestOtelSpanHandler(config);
 
         PowerMockito.verifyStatic(SimpleSpanProcessor.class);
         SimpleSpanProcessor.builder(spanExporter);
@@ -132,7 +116,7 @@ public class OtelSpanHandlerSpec {
                 "schedule-delay-ms = 1000"
         );
 
-        underTest.configure(config);
+        OtelSpanHandler underTest = new TestOtelSpanHandler(config);
 
         PowerMockito.verifyStatic(BatchSpanProcessor.class);
         BatchSpanProcessor.builder(spanExporter);
@@ -160,11 +144,9 @@ public class OtelSpanHandlerSpec {
         assertThat(spanContext.getSpanIdAsHexString()).isEqualTo(spanId.selfIdAsHex());
     }
 
-    static class TestOtelSpanHandler extends OtelSpanHandler {
-        private final SpanExporter spanExporter;
-
-        public TestOtelSpanHandler(SpanExporter spanExporter) {
-            this.spanExporter = spanExporter;
+    class TestOtelSpanHandler extends OtelSpanHandler {
+        public TestOtelSpanHandler(Config config) {
+            super(config);
         }
 
         @Override

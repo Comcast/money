@@ -30,7 +30,7 @@ import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 
 class MoneyTraceFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers with ScalaCheckDrivenPropertyChecks with TraceGenerators {
 
-  val underTest = new MoneyTraceFormatter()
+  val underTest: Formatter = MoneyTraceFormatter
 
   "MoneyTraceFormatter" should {
     "read a money http header" in {

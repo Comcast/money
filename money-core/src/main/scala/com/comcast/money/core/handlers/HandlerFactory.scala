@@ -17,21 +17,11 @@
 package com.comcast.money.core.handlers
 
 import com.comcast.money.api.SpanHandler
-import com.typesafe.config.Config
+import com.comcast.money.core.{ ConfigurableTypeFactory, DisabledSpanHandler }
 
-object HandlerFactory {
+import scala.reflect.ClassTag
 
-  def create(config: Config): SpanHandler = {
-    val className = config.getString("class")
-
-    val handlerInstance = Class.forName(className).newInstance().asInstanceOf[SpanHandler]
-
-    handlerInstance match {
-      case configurable: ConfigurableHandler =>
-        configurable.configure(config)
-        configurable
-
-      case _ => handlerInstance
-    }
-  }
+object HandlerFactory extends ConfigurableTypeFactory[SpanHandler] {
+  override protected val tag: ClassTag[SpanHandler] = ClassTag(classOf[SpanHandler])
+  override protected val defaultValue: Option[SpanHandler] = Some(DisabledSpanHandler)
 }

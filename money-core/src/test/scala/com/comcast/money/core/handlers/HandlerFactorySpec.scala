@@ -17,6 +17,7 @@
 package com.comcast.money.core.handlers
 
 import com.typesafe.config.ConfigFactory
+import org.scalatest.Inside.inside
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -27,16 +28,19 @@ class HandlerFactorySpec extends AnyWordSpec with Matchers {
       val config = ConfigFactory.parseString(s"class=${classOf[NonConfiguredHandler].getCanonicalName}")
 
       val createdHandler = HandlerFactory.create(config)
-      createdHandler shouldBe a[NonConfiguredHandler]
+      inside(createdHandler) {
+        case Some(_: NonConfiguredHandler) =>
+      }
     }
 
     "create a configurable span handle and call configure on it" in {
       val config = ConfigFactory.parseString(s"class=${classOf[ConfiguredHandler].getCanonicalName}")
 
       val createdHandler = HandlerFactory.create(config)
-      createdHandler shouldBe a[ConfiguredHandler]
-
-      createdHandler.asInstanceOf[ConfiguredHandler].calledConfigure shouldBe true
+      inside(createdHandler) {
+        case Some(handler: ConfiguredHandler) =>
+          handler.config shouldBe config
+      }
     }
   }
 }
