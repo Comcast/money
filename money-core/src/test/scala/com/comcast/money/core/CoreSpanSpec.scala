@@ -18,20 +18,18 @@ package com.comcast.money.core
 
 import java.time.Instant
 import java.util.concurrent.TimeUnit
-
 import com.comcast.money.api.{ SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.handlers.TestData
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
-import io.opentelemetry.api.trace.attributes.SemanticAttributes
 import io.opentelemetry.api.trace.{ StatusCode, TraceFlags, TraceState, Span => OtelSpan }
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-
 import InstantImplicits._
+import com.comcast.money.core.CoreAttributes.{ EXCEPTION_EVENT_NAME, EXCEPTION_MESSAGE, EXCEPTION_STACKTRACE, EXCEPTION_TYPE }
 
 class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoSugar {
 
@@ -207,11 +205,11 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
 
       underTest.info.events should have size 1
       val event = underTest.info.events.get(0)
-      event.name shouldBe SemanticAttributes.EXCEPTION_EVENT_NAME
+      event.name shouldBe EXCEPTION_EVENT_NAME
       event.attributes should have size 3
-      event.attributes.get(SemanticAttributes.EXCEPTION_TYPE) shouldBe "java.lang.RuntimeException"
-      event.attributes.get(SemanticAttributes.EXCEPTION_MESSAGE) shouldBe "BOOM"
-      event.attributes.get(SemanticAttributes.EXCEPTION_STACKTRACE) should startWith("java.lang.RuntimeException: BOOM")
+      event.attributes.get(EXCEPTION_TYPE) shouldBe "java.lang.RuntimeException"
+      event.attributes.get(EXCEPTION_MESSAGE) shouldBe "BOOM"
+      event.attributes.get(EXCEPTION_STACKTRACE) should startWith("java.lang.RuntimeException: BOOM")
       event.timestamp should not be 0
       event.exception shouldBe exception
     }
@@ -224,11 +222,11 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
 
       underTest.info.events should have size 1
       val event = underTest.info.events.get(0)
-      event.name shouldBe SemanticAttributes.EXCEPTION_EVENT_NAME
+      event.name shouldBe EXCEPTION_EVENT_NAME
       event.attributes should have size 4
-      event.attributes.get(SemanticAttributes.EXCEPTION_TYPE) shouldBe "java.lang.RuntimeException"
-      event.attributes.get(SemanticAttributes.EXCEPTION_MESSAGE) shouldBe "BOOM"
-      event.attributes.get(SemanticAttributes.EXCEPTION_STACKTRACE) should startWith("java.lang.RuntimeException: BOOM")
+      event.attributes.get(EXCEPTION_TYPE) shouldBe "java.lang.RuntimeException"
+      event.attributes.get(EXCEPTION_MESSAGE) shouldBe "BOOM"
+      event.attributes.get(EXCEPTION_STACKTRACE) should startWith("java.lang.RuntimeException: BOOM")
       event.attributes.get(AttributeKey.stringKey("foo")) shouldBe "bar"
       event.timestamp should not be 0
       event.exception shouldBe exception
