@@ -61,6 +61,7 @@ object Dependencies {
   val commonsIo = "commons-io" % "commons-io" % "2.4"
 
   val openTelemetryApi = "io.opentelemetry" % "opentelemetry-api" % openTelemetryV changing()
+  val openTelemetrySemConv = "io.opentelemetry" % "opentelemetry-semconv" % openTelemetryV changing()
   val openTelemetryProp = "io.opentelemetry" % "opentelemetry-extension-trace-propagators" % openTelemetryV changing()
   val openTelemetrySdk = "io.opentelemetry" % "opentelemetry-sdk" % openTelemetryV changing()
   val openTelemetrySdkTesting = "io.opentelemetry" % "opentelemetry-sdk-testing" % openTelemetryV changing()

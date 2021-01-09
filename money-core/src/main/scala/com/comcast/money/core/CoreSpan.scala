@@ -18,7 +18,6 @@ package com.comcast.money.core
 
 import java.time.Instant
 import java.util.concurrent.TimeUnit
-
 import com.comcast.money.api._
 
 import scala.collection.JavaConverters._
@@ -26,6 +25,7 @@ import scala.collection.concurrent.TrieMap
 import io.opentelemetry.api.trace.{ SpanContext, StatusCode, Span => OtelSpan }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
+import io.opentelemetry.semconv.trace.attributes.SemanticAttributes
 
 import scala.collection.mutable.ListBuffer
 
@@ -150,7 +150,7 @@ private[core] case class CoreSpan(
 
   override def recordException(exception: Throwable): Span = recordException(exception, Attributes.empty())
   override def recordException(exception: Throwable, eventAttributes: Attributes): Span =
-    addEventInternal(CoreAttributes.EXCEPTION_EVENT_NAME, eventAttributes, clock.now, exception)
+    addEventInternal(SemanticAttributes.EXCEPTION_EVENT_NAME, eventAttributes, clock.now, exception)
 
   override def setStatus(canonicalCode: StatusCode): Span = setStatus(canonicalCode, null)
 
