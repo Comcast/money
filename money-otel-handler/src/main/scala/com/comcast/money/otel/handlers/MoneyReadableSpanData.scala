@@ -22,8 +22,7 @@ import io.opentelemetry.api.common.{ Attributes, AttributesBuilder }
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.ReadableSpan
-import io.opentelemetry.sdk.trace.data.SpanData.Status
-import io.opentelemetry.sdk.trace.data.SpanData
+import io.opentelemetry.sdk.trace.data.{ EventData, LinkData, SpanData, StatusData }
 import io.opentelemetry.api.trace.{ SpanContext, TraceState, Span => OtelSpan }
 
 import scala.collection.JavaConverters._
@@ -51,14 +50,14 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
   override def getResource: Resource = Resource.getDefault
   override def getKind: OtelSpan.Kind = info.kind
   override def getStartEpochNanos: Long = info.startTimeNanos
-  override def getLinks: util.List[SpanData.Link] = links
-  override def getStatus: SpanData.Status = Status.create(info.status, info.description)
+  override def getLinks: util.List[LinkData] = links
+  override def getStatus: StatusData = StatusData.create(info.status, info.description)
   override def getEndEpochNanos: Long = info.endTimeNanos
   override def getTotalRecordedEvents: Int = info.events.size
   override def getTotalRecordedLinks: Int = 0
   override def getTotalAttributeCount: Int = info.notes.size
   override def getAttributes: Attributes = attributes
-  override def getEvents: util.List[SpanData.Event] = events
+  override def getEvents: util.List[EventData] = events
 
   private def convertParentSpanContext(id: SpanId): SpanContext =
     if (id.isRoot) {
@@ -84,17 +83,17 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
       }
       .build()
 
-  private def convertEvents(events: util.List[SpanInfo.Event]): util.List[SpanData.Event] =
+  private def convertEvents(events: util.List[SpanInfo.Event]): util.List[EventData] =
     events.asScala
       .map({
-        event => MoneyEvent(event).asInstanceOf[SpanData.Event]
+        event => MoneyEvent(event).asInstanceOf[EventData]
       })
       .asJava
 
-  private def convertLinks(links: util.List[SpanInfo.Link]): util.List[SpanData.Link] =
+  private def convertLinks(links: util.List[SpanInfo.Link]): util.List[LinkData] =
     links.asScala
       .map({
-        link => MoneyLink(link).asInstanceOf[SpanData.Link]
+        link => MoneyLink(link).asInstanceOf[LinkData]
       })
       .asJava
 }
