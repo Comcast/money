@@ -16,21 +16,16 @@
 
 package com.comcast.money.core
 
-import java.io.{ PrintWriter, StringWriter }
 import java.time.Instant
-import java.util.Locale
 import java.util.concurrent.TimeUnit
-
 import com.comcast.money.api._
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
-import io.opentelemetry.api.trace.{ SpanContext, StatusCode, TraceFlags, TraceId, TraceState, Span => OtelSpan, SpanId => OtelSpanId }
-import io.opentelemetry.api.common
+import io.opentelemetry.api.trace.{ SpanContext, StatusCode, Span => OtelSpan }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
-import io.opentelemetry.api.trace
-import io.opentelemetry.api.trace.attributes.SemanticAttributes
+import io.opentelemetry.semconv.trace.attributes.SemanticAttributes
 
 import scala.collection.mutable.ListBuffer
 

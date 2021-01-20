@@ -34,7 +34,7 @@ class MoneyLinkSpec extends AnyWordSpec with Matchers {
     "should wrap a Money link" in {
       val underTest = MoneyLink(link)
 
-      underTest.getContext shouldBe link.spanContext
+      underTest.getSpanContext shouldBe link.spanContext
       underTest.getAttributes shouldBe link.attributes
       underTest.getTotalAttributeCount shouldBe 1
     }

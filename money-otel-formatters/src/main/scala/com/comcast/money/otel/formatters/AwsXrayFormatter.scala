@@ -14,16 +14,11 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core.spi
+package com.comcast.money.otel.formatters
 
-import com.comcast.money.core.{ Money, MoneyTracerProvider, Tracer }
-import io.opentelemetry.api.trace.TracerProvider
-import io.opentelemetry.spi.trace.TracerProviderFactory
+import com.comcast.money.core.formatters.OtelFormatter
+import io.opentelemetry.extension.trace.propagation.AwsXrayPropagator
 
-class MoneyTracerProviderFactory(tracer: Tracer) extends TracerProviderFactory {
-  def this() = this(Money.Environment.tracer)
-
-  override def create(): TracerProvider = {
-    MoneyTracerProvider(tracer)
-  }
+object AwsXrayFormatter extends OtelFormatter(AwsXrayPropagator.getInstance) {
+  private[formatters] val AmznTraceIdHeader = "X-Amzn-Trace-Id"
 }

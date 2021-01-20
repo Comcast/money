@@ -18,20 +18,18 @@ package com.comcast.money.core
 
 import java.time.Instant
 import java.util.concurrent.TimeUnit
-
 import com.comcast.money.api.{ SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.handlers.TestData
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
-import io.opentelemetry.api.trace.attributes.SemanticAttributes
-import io.opentelemetry.api.trace.{ StatusCode, TraceFlags, TraceState, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ StatusCode, TraceFlags, TraceState }
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
-
 import InstantImplicits._
+import io.opentelemetry.semconv.trace.attributes.SemanticAttributes
 
 class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoSugar {
 

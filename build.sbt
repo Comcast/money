@@ -59,6 +59,7 @@ lazy val moneyCore =
           log4jbinding,
           metricsCore,
           openTelemetryApi,
+          openTelemetrySemConv,
           typesafeConfig
         ) ++ commonTestDependencies
     ).dependsOn(moneyApi)

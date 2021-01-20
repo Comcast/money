@@ -17,10 +17,9 @@
 package com.comcast.money.core
 
 import java.io.{ PrintWriter, StringWriter }
-
 import com.comcast.money.api.SpanInfo
 import io.opentelemetry.api.common.Attributes
-import io.opentelemetry.api.trace.attributes.SemanticAttributes
+import io.opentelemetry.semconv.trace.attributes.SemanticAttributes
 
 private[core] case class CoreEvent(
   name: String,

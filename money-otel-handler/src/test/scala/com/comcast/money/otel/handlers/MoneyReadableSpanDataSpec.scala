@@ -18,12 +18,11 @@ package com.comcast.money.otel.handlers
 
 import java.util
 import java.util.UUID
-
 import com.comcast.money.api.{ IdGenerator, InstrumentationLibrary, Note, SpanId, SpanInfo }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.sdk.resources.Resource
-import io.opentelemetry.sdk.trace.data.SpanData.Status
 import io.opentelemetry.api.trace.{ Span, SpanContext, StatusCode, TraceFlags, TraceState }
+import io.opentelemetry.sdk.trace.data.StatusData
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -51,9 +50,8 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.getTotalRecordedLinks shouldBe 0
       underTest.getResource shouldBe Resource.getDefault
-      underTest.hasRemoteParent shouldBe false
       underTest.getLatencyNanos shouldBe 2000000L
-      underTest.getStatus shouldBe Status.create(StatusCode.OK, "description")
+      underTest.getStatus shouldBe StatusData.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
       underTest.getAttributes shouldBe Attributes.of(AttributeKey.stringKey("foo"), "bar")
       underTest.getTotalRecordedEvents shouldBe 1
@@ -78,9 +76,8 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.getTotalRecordedLinks shouldBe 0
       underTest.getResource shouldBe Resource.getDefault
-      underTest.hasRemoteParent shouldBe false
       underTest.getLatencyNanos shouldBe 2000000L
-      underTest.getStatus shouldBe Status.create(StatusCode.OK, "description")
+      underTest.getStatus shouldBe StatusData.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
       underTest.getAttributes shouldBe Attributes.of(AttributeKey.stringKey("foo"), "bar")
       underTest.getTotalRecordedEvents shouldBe 1

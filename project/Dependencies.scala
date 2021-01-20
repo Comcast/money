@@ -9,8 +9,8 @@ object Dependencies {
   val jodaV = "2.9.9"
   val json4sV = "3.6.10"
   val typesafeConfigV = "1.3.3"
-  val openTelemetryV = "0.13.1"
-  val openTelemetryInstV = "0.13.0"
+  val openTelemetryV = "0.14.1"
+  val openTelemetryInstV = "0.14.1"
 
   val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
   val akkaStream =      "com.typesafe.akka"         %% "akka-stream"                 % akkaV
@@ -61,6 +61,7 @@ object Dependencies {
   val commonsIo = "commons-io" % "commons-io" % "2.4"
 
   val openTelemetryApi = "io.opentelemetry" % "opentelemetry-api" % openTelemetryV changing()
+  val openTelemetrySemConv = "io.opentelemetry" % "opentelemetry-semconv" % openTelemetryV changing()
   val openTelemetryProp = "io.opentelemetry" % "opentelemetry-extension-trace-propagators" % openTelemetryV changing()
   val openTelemetrySdk = "io.opentelemetry" % "opentelemetry-sdk" % openTelemetryV changing()
   val openTelemetrySdkTesting = "io.opentelemetry" % "opentelemetry-sdk-testing" % openTelemetryV changing()

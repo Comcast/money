@@ -123,7 +123,7 @@ trait ConfigurableTypeFactory[T <: AnyRef] {
           method.getReturnType == cls &&
           method.getName == APPLY_NAME
     }
-    .map { method => config: Config => method.invoke(null, config).asInstanceOf[T] }
+      .map { method => config: Config => method.invoke(null, config).asInstanceOf[T] }
 
   private def findConfigConstructor(cls: Class[_]): Option[Config => T] =
     cls.getConstructors.find {
@@ -131,13 +131,13 @@ trait ConfigurableTypeFactory[T <: AnyRef] {
         constructor.getParameterCount == 1 &&
           constructor.getParameterTypes()(0) == classOf[Config]
     }
-    .map { constructor => config: Config => constructor.newInstance(config).asInstanceOf[T] }
+      .map { constructor => config: Config => constructor.newInstance(config).asInstanceOf[T] }
 
   private def findDefaultConstructor(cls: Class[_]): Option[Config => T] =
     cls.getConstructors.find {
       _.getParameterCount == 0
     }
-    .map { constructor => _: Config => constructor.newInstance().asInstanceOf[T] }
+      .map { constructor => _: Config => constructor.newInstance().asInstanceOf[T] }
 
   private def findStaticInstance(cls: Class[_]): Option[Config => T] =
     cls.getFields.find {
@@ -146,5 +146,5 @@ trait ConfigurableTypeFactory[T <: AnyRef] {
           field.getType == cls &&
           field.getName == MODULE_FIELD_NAME
     }
-    .map { field => _: Config => field.get(null).asInstanceOf[T] }
+      .map { field => _: Config => field.get(null).asInstanceOf[T] }
 }
