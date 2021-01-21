@@ -25,6 +25,7 @@ object ContextStorageFilterFactory extends ConfigurableTypeFactory[ContextStorag
   override protected val tag: ClassTag[ContextStorageFilter] = ClassTag(classOf[ContextStorageFilter])
   override protected val defaultValue: Option[ContextStorageFilter] = Some(DisabledContextStorageFilter)
   override protected val knownTypes: PartialFunction[String, Config => ContextStorageFilter] = {
-    case "mdc" => config => MdcContextStorageFilter(config)
+    case "mdc" => config => FormattedMdcContextStorageFilter(config)
+    case "structured-mdc" => config => StructuredMdcContextStorageFilter(config)
   }
 }

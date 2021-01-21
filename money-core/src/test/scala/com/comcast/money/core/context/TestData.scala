@@ -15,25 +15,13 @@
  */
 
 package com.comcast.money.core.context
-import com.comcast.money.api.SpanInfo
-import com.comcast.money.core.internal.SpanContext
+import com.typesafe.config.Config
 import io.opentelemetry.context.{ Context, ContextStorage, Scope }
 
-trait MdcContextStorageFilter extends ContextStorageFilter {
-  val spanContext: SpanContext
+class ConfiguredContextStorageFilter(val config: Config) extends ContextStorageFilter {
+  override def attach(context: Context, storage: ContextStorage): Scope = Scope.noop()
+}
 
-  override def attach(context: Context, storage: ContextStorage): Scope = {
-    val scope = storage.attach(context)
-    updateMdc(context)
-    () => {
-      scope.close()
-      updateMdc(storage.current)
-    }
-  }
-
-  def updateMdc(context: Context): Unit =
-    updateMdc(spanContext.fromContext(context)
-      .map(_.info))
-
-  def updateMdc(currentSpanInfo: Option[SpanInfo])
+class NonConfiguredContextStorageFilter extends ContextStorageFilter {
+  override def attach(context: Context, storage: ContextStorage): Scope = Scope.noop()
 }

@@ -18,7 +18,7 @@ package com.comcast.money.core
 
 import com.comcast.money.api.{ InstrumentationLibrary, SpanFactory, SpanHandler }
 import com.comcast.money.core.async.AsyncNotifier
-import com.comcast.money.core.context.{ ContextStorageFilterChain, MdcContextStorageFilter }
+import com.comcast.money.core.context.{ ContextStorageFilterChain, FormattedMdcContextStorageFilter }
 import com.comcast.money.core.formatters.{ Formatter, FormatterChain }
 import com.comcast.money.core.handlers.HandlerChain
 import com.comcast.money.core.internal.SpanLocal
@@ -72,7 +72,7 @@ object Money {
     val filters = if (conf.hasPath("context")) {
       ContextStorageFilterChain(conf.getConfig("context"))
     } else {
-      Seq(MdcContextStorageFilter(conf))
+      Seq(FormattedMdcContextStorageFilter(conf))
     }
     for (filter <- filters) {
       ContextStorage.addWrapper({
