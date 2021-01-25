@@ -17,46 +17,49 @@
 package com.comcast.money.core.context
 
 import com.comcast.money.api.SpanInfo
-import com.comcast.money.core.context.StructuredMdcContextStorageFilter.{ DefaultParentIdKey, DefaultSpanIdKey, DefaultSpanNameKey, DefaultTraceIdKey }
 import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
-import com.typesafe.config.Config
+import com.typesafe.config.{ Config, ConfigFactory }
 import org.slf4j.MDC
 import org.slf4j.spi.MDCAdapter
 
 object StructuredMdcContextStorageFilter {
-  private val DefaultTraceIdKey = "trace-id"
-  private val DefaultSpanIdKey = "span-id"
-  private val DefaultParentIdKey = "parent-id"
-  private val DefaultSpanNameKey = "span-name"
+  private val DefaultConfig = ConfigFactory.parseString(
+    """
+      | format-ids-as-hex = false
+      | trace-id = "trace-id"
+      | span-id = "span-id"
+      | parent-id = "parent-id"
+      | span-name = "span-name"
+      |""".stripMargin)
+
+  private val TraceIdKey = "trace-id"
+  private val SpanIdKey = "span-id"
+  private val ParentIdKey = "parent-id"
+  private val SpanNameKey = "span-name"
   private val FormatIdsAsHexKey = "format-ids-as-hex"
 
   def apply(conf: Config): StructuredMdcContextStorageFilter = apply(conf, SpanLocal, MDC.getMDCAdapter)
 
   def apply(conf: Config, spanContext: SpanContext, mdc: MDCAdapter): StructuredMdcContextStorageFilter = {
 
-    val traceIdKey = readConfString(conf, DefaultTraceIdKey, DefaultTraceIdKey)
-    val spanIdKey = readConfString(conf, DefaultSpanIdKey, DefaultSpanIdKey)
-    val parentIdKey = readConfString(conf, DefaultParentIdKey, DefaultParentIdKey)
-    val spanNameKey = readConfString(conf, DefaultSpanNameKey, DefaultSpanNameKey)
-    val formatIdsAsHex = conf.hasPath(FormatIdsAsHexKey) &&
-      conf.getBoolean(FormatIdsAsHexKey)
+    val effectiveConfig = conf.withFallback(DefaultConfig)
+    val traceIdKey = effectiveConfig.getString(TraceIdKey)
+    val spanIdKey = effectiveConfig.getString(SpanIdKey)
+    val parentIdKey = effectiveConfig.getString(ParentIdKey)
+    val spanNameKey = effectiveConfig.getString(SpanNameKey)
+    val formatIdsAsHex = effectiveConfig.getBoolean(FormatIdsAsHexKey)
 
     new StructuredMdcContextStorageFilter(spanContext, mdc, traceIdKey, spanIdKey, parentIdKey, spanNameKey, formatIdsAsHex)
   }
-
-  private def readConfString(conf: Config, key: String, defaultValue: String) =
-    if (conf.hasPath(key)) {
-      conf.getString(key)
-    } else defaultValue
 }
 
 class StructuredMdcContextStorageFilter(
   val spanContext: SpanContext,
   mdc: MDCAdapter,
-  traceIdKey: String = DefaultTraceIdKey,
-  spanIdKey: String = DefaultSpanIdKey,
-  parentSpanIdKey: String = DefaultParentIdKey,
-  spanNameKey: String = DefaultSpanNameKey,
+  traceIdKey: String,
+  spanIdKey: String,
+  parentSpanIdKey: String,
+  spanNameKey: String,
   formatIdsAsHex: Boolean) extends MdcContextStorageFilter {
 
   override def updateMdc(currentSpanInfo: Option[SpanInfo]): Unit = currentSpanInfo match {

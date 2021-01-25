@@ -16,33 +16,34 @@
 
 package com.comcast.money.core.context
 import com.comcast.money.api.SpanInfo
-import com.comcast.money.core.context.FormattedMdcContextStorageFilter.{ DefaultFormat, DefaultMdcKey }
 import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
-import com.typesafe.config.Config
+import com.typesafe.config.{ Config, ConfigFactory }
 import org.slf4j.MDC
 import org.slf4j.spi.MDCAdapter
 
 object FormattedMdcContextStorageFilter {
-  private val DefaultMdcKey = "moneyTrace"
-  private val DefaultFormat = "[ span-id=%2$s ][ trace-id=%1$s ][ parent-id=%3$s ][ span-name=%4$s ]"
+  private val DefaultConfig = ConfigFactory.parseString(
+    """
+      |format-ids-as-hex = false
+      |key = moneyTrace
+      |format = "[ span-id=%2$s ][ trace-id=%1$s ][ parent-id=%3$s ][ span-name=%4$s ]"
+      |""".stripMargin)
+
+  private val MdcKeyKey = "key"
+  private val FormatKey = "format"
   private val FormatIdsAsHexKey = "format-ids-as-hex"
 
   def apply(conf: Config): FormattedMdcContextStorageFilter = apply(conf, SpanLocal, MDC.getMDCAdapter)
 
   def apply(conf: Config, spanContext: SpanContext, mdc: MDCAdapter): FormattedMdcContextStorageFilter = {
 
-    val mdcKey = readConfString(conf, "key", DefaultMdcKey)
-    val format = readConfString(conf, "format", DefaultFormat)
-    val formatIdsAsHex = conf.hasPath(FormatIdsAsHexKey) &&
-      conf.getBoolean(FormatIdsAsHexKey)
+    val effectiveConfig = conf.withFallback(DefaultConfig)
+    val mdcKey = effectiveConfig.getString(MdcKeyKey)
+    val format = effectiveConfig.getString(FormatKey)
+    val formatIdsAsHex = effectiveConfig.getBoolean(FormatIdsAsHexKey)
 
     new FormattedMdcContextStorageFilter(spanContext, mdc, mdcKey, format, formatIdsAsHex)
   }
-
-  private def readConfString(conf: Config, key: String, defaultValue: String) =
-    if (conf.hasPath(key)) {
-      conf.getString(key)
-    } else defaultValue
 }
 
 /**
@@ -51,8 +52,8 @@ object FormattedMdcContextStorageFilter {
 class FormattedMdcContextStorageFilter(
   val spanContext: SpanContext,
   mdc: MDCAdapter,
-  mdcKey: String = DefaultMdcKey,
-  format: String = DefaultFormat,
+  mdcKey: String,
+  format: String,
   formatIdsAsHex: Boolean = false) extends MdcContextStorageFilter {
 
   override def updateMdc(currentSpanInfo: Option[SpanInfo]): Unit = currentSpanInfo match {
