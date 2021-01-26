@@ -24,6 +24,7 @@ import scala.reflect.ClassTag
 object ContextStorageFilterFactory extends ConfigurableTypeFactory[ContextStorageFilter] {
   override protected val tag: ClassTag[ContextStorageFilter] = ClassTag(classOf[ContextStorageFilter])
   override protected val knownTypes: PartialFunction[String, Config => ContextStorageFilter] = {
-    case "mdc" => config => MdcContextStorageFilter(config)
+    case "mdc" => config => FormattedMdcContextStorageFilter(config)
+    case "structured-mdc" => config => StructuredMdcContextStorageFilter(config)
   }
 }
