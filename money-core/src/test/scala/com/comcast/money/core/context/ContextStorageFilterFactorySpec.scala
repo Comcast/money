@@ -16,12 +16,14 @@
 
 package com.comcast.money.core.context
 
-import com.comcast.money.core.DisabledContextStorageFilter
+import com.comcast.money.core.FactoryException
 import com.typesafe.config.ConfigFactory
 import org.scalatest.Inside.inside
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
+
+import scala.util.{Failure, Success}
 
 class ContextStorageFilterFactorySpec extends AnyWordSpec with Matchers with MockitoSugar {
 
@@ -31,7 +33,7 @@ class ContextStorageFilterFactorySpec extends AnyWordSpec with Matchers with Moc
 
       val filter = ContextStorageFilterFactory.create(config)
       inside(filter) {
-        case Some(_: FormattedMdcContextStorageFilter) =>
+        case Success(_: FormattedMdcContextStorageFilter) =>
       }
     }
 
@@ -40,7 +42,7 @@ class ContextStorageFilterFactorySpec extends AnyWordSpec with Matchers with Moc
 
       val filter = ContextStorageFilterFactory.create(config)
       inside(filter) {
-        case Some(_: StructuredMdcContextStorageFilter) =>
+        case Success(_: StructuredMdcContextStorageFilter) =>
       }
     }
 
@@ -50,9 +52,9 @@ class ContextStorageFilterFactorySpec extends AnyWordSpec with Matchers with Moc
            |class = "${classOf[NonConfiguredContextStorageFilter].getCanonicalName}"
            |""".stripMargin)
 
-      val formatter = ContextStorageFilterFactory.create(config)
-      inside(formatter) {
-        case Some(_: NonConfiguredContextStorageFilter) =>
+      val filter = ContextStorageFilterFactory.create(config)
+      inside(filter) {
+        case Success(_: NonConfiguredContextStorageFilter) =>
       }
     }
 
@@ -62,9 +64,9 @@ class ContextStorageFilterFactorySpec extends AnyWordSpec with Matchers with Moc
            |class = "${classOf[ConfiguredContextStorageFilter].getCanonicalName}"
            |""".stripMargin)
 
-      val formatter = ContextStorageFilterFactory.create(config)
-      inside(formatter) {
-        case Some(f: ConfiguredContextStorageFilter) =>
+      val filter = ContextStorageFilterFactory.create(config)
+      inside(filter) {
+        case Success(f: ConfiguredContextStorageFilter) =>
           f.config shouldBe config
       }
     }
@@ -72,8 +74,11 @@ class ContextStorageFilterFactorySpec extends AnyWordSpec with Matchers with Moc
     "returns a disabled filter on an unknown type" in {
       val config = ConfigFactory.parseString("type = \"unknown\"")
 
-      val formatter = ContextStorageFilterFactory.create(config)
-      formatter shouldBe Some(DisabledContextStorageFilter)
+      val filter = ContextStorageFilterFactory.create(config)
+      inside (filter) {
+        case Failure(exception: FactoryException) =>
+          exception.getMessage shouldBe "Could not resolve known ContextStorageFilter type 'unknown'."
+      }
     }
   }
 }
