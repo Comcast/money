@@ -21,8 +21,5 @@ import scala.collection.JavaConverters._
 
 object ContextStorageFilterChain {
   def apply(conf: Config): Seq[ContextStorageFilter] =
-    conf.getConfigList("filters")
-      .asScala
-      .flatMap(ContextStorageFilterFactory.create)
-      .toSeq
+    ContextStorageFilterFactory.create(conf.getConfigList("filters").asScala).get
 }

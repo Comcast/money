@@ -22,6 +22,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
 import scala.reflect.ClassTag
+import scala.util.{ Failure, Success }
 
 class ConfigurableTypeFactorySpec extends AnyWordSpec with Matchers {
 
@@ -35,7 +36,7 @@ class ConfigurableTypeFactorySpec extends AnyWordSpec with Matchers {
       val result = ServiceFactory.create(config)
 
       inside(result) {
-        case Some(s: KnownService) =>
+        case Success(s: KnownService) =>
           s.config shouldBe config
       }
     }
@@ -47,7 +48,7 @@ class ConfigurableTypeFactorySpec extends AnyWordSpec with Matchers {
           |""".stripMargin)
 
       val result = ServiceFactory.create(config)
-      result shouldBe Some(SingletonService)
+      result shouldBe Success(SingletonService)
     }
 
     "creates a class with a factory method" in {
@@ -59,7 +60,7 @@ class ConfigurableTypeFactorySpec extends AnyWordSpec with Matchers {
 
       val result = ServiceFactory.create(config)
       inside(result) {
-        case Some(s: FactoryService) =>
+        case Success(s: FactoryService) =>
           s.value shouldBe "value"
       }
     }
@@ -72,7 +73,7 @@ class ConfigurableTypeFactorySpec extends AnyWordSpec with Matchers {
 
       val result = ServiceFactory.create(config)
       inside(result) {
-        case Some(s: ConfigConstructorService) =>
+        case Success(s: ConfigConstructorService) =>
           s.config shouldBe config
       }
     }
@@ -85,7 +86,7 @@ class ConfigurableTypeFactorySpec extends AnyWordSpec with Matchers {
 
       val result = ServiceFactory.create(config)
       inside(result) {
-        case Some(_: DefaultConstructorService) =>
+        case Success(_: DefaultConstructorService) =>
       }
     }
 
@@ -96,7 +97,10 @@ class ConfigurableTypeFactorySpec extends AnyWordSpec with Matchers {
            |""".stripMargin)
 
       val result = ServiceFactory.create(config)
-      result shouldBe Some(DefaultService)
+      inside(result) {
+        case Failure(exception: FactoryException) =>
+          exception.getMessage shouldBe "Could not resolve known Service type 'unknown'."
+      }
     }
 
     "returns the default value for an unknown class" in {
@@ -106,14 +110,16 @@ class ConfigurableTypeFactorySpec extends AnyWordSpec with Matchers {
            |""".stripMargin)
 
       val result = ServiceFactory.create(config)
-      result shouldBe Some(DefaultService)
+      inside(result) {
+        case Failure(exception: FactoryException) =>
+          exception.getMessage shouldBe "Could not create instance of Service class 'com.comcast.money.core.UnknownService'."
+      }
     }
   }
 }
 
 object ServiceFactory extends ConfigurableTypeFactory[Service] {
   override protected val tag: ClassTag[Service] = ClassTag(classOf[Service])
-  override protected val defaultValue: Option[Service] = Some(DefaultService)
   override protected val knownTypes: PartialFunction[String, Config => Service] = {
     case "known" => config => new KnownService(config)
   }
