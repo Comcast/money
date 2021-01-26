@@ -41,10 +41,7 @@ object FormatterChain {
   import FormatterFactory.create
 
   def apply(config: Config): FormatterChain = {
-    val formatters = config.getConfigList("formatters")
-      .asScala
-      .flatMap(create)
-      .toSeq
+    val formatters = create(config.getConfigList("formatters").asScala).get
 
     FormatterChain(formatters)
   }

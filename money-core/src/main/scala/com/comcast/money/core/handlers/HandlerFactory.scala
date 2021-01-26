@@ -17,11 +17,10 @@
 package com.comcast.money.core.handlers
 
 import com.comcast.money.api.SpanHandler
-import com.comcast.money.core.{ ConfigurableTypeFactory, DisabledSpanHandler }
+import com.comcast.money.core.ConfigurableTypeFactory
 
 import scala.reflect.ClassTag
 
 object HandlerFactory extends ConfigurableTypeFactory[SpanHandler] {
   override protected val tag: ClassTag[SpanHandler] = ClassTag(classOf[SpanHandler])
-  override protected val defaultValue: Option[SpanHandler] = Some(DisabledSpanHandler)
 }

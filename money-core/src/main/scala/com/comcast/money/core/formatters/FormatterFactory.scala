@@ -16,7 +16,7 @@
 
 package com.comcast.money.core.formatters
 
-import com.comcast.money.core.{ ConfigurableTypeFactory, DisabledFormatter }
+import com.comcast.money.core.ConfigurableTypeFactory
 import com.typesafe.config.Config
 
 import scala.reflect.ClassTag
@@ -24,7 +24,6 @@ import scala.reflect.ClassTag
 object FormatterFactory extends ConfigurableTypeFactory[Formatter] {
 
   override protected val tag: ClassTag[Formatter] = ClassTag(classOf[Formatter])
-  override protected val defaultValue: Option[Formatter] = Some(DisabledFormatter)
   override protected val knownTypes: PartialFunction[String, Config => Formatter] = {
     case "trace-context" => _ => TraceContextFormatter
     case "money-trace" => _ => MoneyTraceFormatter

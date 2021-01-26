@@ -16,14 +16,13 @@
 
 package com.comcast.money.core.context
 
-import com.comcast.money.core.{ ConfigurableTypeFactory, DisabledContextStorageFilter }
+import com.comcast.money.core.ConfigurableTypeFactory
 import com.typesafe.config.Config
 
 import scala.reflect.ClassTag
 
 object ContextStorageFilterFactory extends ConfigurableTypeFactory[ContextStorageFilter] {
   override protected val tag: ClassTag[ContextStorageFilter] = ClassTag(classOf[ContextStorageFilter])
-  override protected val defaultValue: Option[ContextStorageFilter] = Some(DisabledContextStorageFilter)
   override protected val knownTypes: PartialFunction[String, Config => ContextStorageFilter] = {
     case "mdc" => config => MdcContextStorageFilter(config)
   }
