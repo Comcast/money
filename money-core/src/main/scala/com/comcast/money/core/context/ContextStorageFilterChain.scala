@@ -17,9 +17,8 @@
 package com.comcast.money.core.context
 
 import com.typesafe.config.Config
-import scala.collection.JavaConverters._
 
 object ContextStorageFilterChain {
   def apply(conf: Config): Seq[ContextStorageFilter] =
-    ContextStorageFilterFactory.create(conf.getConfigList("filters").asScala).get
+    ContextStorageFilterFactory.create(conf.getConfigList("filters")).get
 }

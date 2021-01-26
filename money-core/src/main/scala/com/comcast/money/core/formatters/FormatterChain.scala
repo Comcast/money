@@ -17,7 +17,6 @@
 package com.comcast.money.core.formatters
 import com.comcast.money.api.SpanId
 import com.typesafe.config.Config
-import scala.collection.JavaConverters._
 
 final case class FormatterChain(formatters: Seq[Formatter]) extends Formatter {
   override def toHttpHeaders(spanId: SpanId, addHeader: (String, String) => Unit): Unit = formatters.foreach {
@@ -41,7 +40,7 @@ object FormatterChain {
   import FormatterFactory.create
 
   def apply(config: Config): FormatterChain = {
-    val formatters = create(config.getConfigList("formatters").asScala).get
+    val formatters = create(config.getConfigList("formatters")).get
 
     FormatterChain(formatters)
   }

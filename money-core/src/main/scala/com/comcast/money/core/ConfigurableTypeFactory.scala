@@ -19,6 +19,7 @@ package com.comcast.money.core
 import com.typesafe.config.{ Config, ConfigException }
 
 import java.lang.reflect.Modifier
+import scala.collection.JavaConverters._
 import scala.reflect.ClassTag
 import scala.util.{ Failure, Success, Try }
 
@@ -60,7 +61,10 @@ trait ConfigurableTypeFactory[T <: AnyRef] {
   protected val tag: ClassTag[T]
   protected val knownTypes: PartialFunction[String, Config => T] = Map.empty
 
-  def create(config: Seq[Config]): Try[Seq[T]] = {
+  def create(config: java.util.List[_ <: Config]): Try[Seq[T]] =
+    create(config.asScala.toSeq)
+
+  def create(config: Seq[_ <: Config]): Try[Seq[T]] = {
     val seq = config.map(create)
     if (seq.isEmpty) Success(Seq.empty)
     else Try(seq.map(_.get))
