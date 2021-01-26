@@ -21,20 +21,22 @@ import org.scalatest.Inside.inside
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
+import scala.util.Success
+
 class SamplerFactorySpec extends AnyWordSpec with Matchers {
   "SamplerFactory" should {
     "return AlwaysOnSampler" in {
       val config = ConfigFactory.parseString("""type = "always-on"""")
 
       val sampler = SamplerFactory.create(config)
-      sampler shouldBe Some(AlwaysOnSampler)
+      sampler shouldBe Success(AlwaysOnSampler)
     }
 
     "return AlwaysOffSampler" in {
       val config = ConfigFactory.parseString("""type = "always-off"""")
 
       val sampler = SamplerFactory.create(config)
-      sampler shouldBe Some(AlwaysOffSampler)
+      sampler shouldBe Success(AlwaysOffSampler)
     }
 
     "return a RatioBasedSampler" in {
@@ -46,7 +48,7 @@ class SamplerFactorySpec extends AnyWordSpec with Matchers {
 
       val sampler = SamplerFactory.create(config)
       inside(sampler) {
-        case Some(ratioBasedSampler: RatioBasedSampler) =>
+        case Success(ratioBasedSampler: RatioBasedSampler) =>
           ratioBasedSampler.ratio shouldBe 0.5
       }
     }
@@ -64,7 +66,7 @@ class SamplerFactorySpec extends AnyWordSpec with Matchers {
 
       val sampler = SamplerFactory.create(config)
       inside(sampler) {
-        case Some(parentBasedSampler: ParentBasedSampler) =>
+        case Success(parentBasedSampler: ParentBasedSampler) =>
           parentBasedSampler.root shouldBe AlwaysOffSampler
           parentBasedSampler.localSampled shouldBe AlwaysOffSampler
           parentBasedSampler.localNotSampled shouldBe AlwaysOnSampler
@@ -82,7 +84,7 @@ class SamplerFactorySpec extends AnyWordSpec with Matchers {
 
       val sampler = SamplerFactory.create(config)
       inside(sampler) {
-        case Some(_: TestSampler) =>
+        case Success(_: TestSampler) =>
       }
     }
 
@@ -95,7 +97,7 @@ class SamplerFactorySpec extends AnyWordSpec with Matchers {
 
       val sampler = SamplerFactory.create(config)
       inside(sampler) {
-        case Some(s: TestConfigurableSampler) =>
+        case Success(s: TestConfigurableSampler) =>
           s.config shouldBe config
       }
     }

@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 
-case class HandlerChain(handlers: Seq[SpanHandler]) extends SpanHandler {
+final case class HandlerChain(handlers: Seq[SpanHandler]) extends SpanHandler {
 
   private val logger = LoggerFactory.getLogger(classOf[HandlerChain])
 
@@ -42,10 +42,7 @@ object HandlerChain {
   import HandlerFactory.create
 
   def apply(config: Config): SpanHandler = {
-    val handlers = config.getConfigList("handlers")
-      .asScala
-      .flatMap(create)
-      .toSeq
+    val handlers = create(config.getConfigList("handlers").asScala).get
 
     if (config.getBoolean("async")) {
       new AsyncSpanHandler(scala.concurrent.ExecutionContext.global, HandlerChain(handlers))

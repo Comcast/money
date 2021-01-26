@@ -23,7 +23,6 @@ import scala.reflect.ClassTag
 
 object SamplerFactory extends ConfigurableTypeFactory[Sampler] {
   override protected val tag: ClassTag[Sampler] = ClassTag(classOf[Sampler])
-  override protected val defaultValue: Option[Sampler] = Some(AlwaysOnSampler)
 
   override protected val knownTypes: PartialFunction[String, Config => Sampler] = {
     case "always-on" => _ => AlwaysOnSampler

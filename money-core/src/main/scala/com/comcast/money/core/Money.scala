@@ -69,8 +69,9 @@ object Money {
   }
 
   private def configureContextFilters(conf: Config): Unit = {
-    val filters = if (conf.hasPath("context")) {
-      ContextStorageFilterChain(conf.getConfig("context"))
+    val ContextKey = "context"
+    val filters = if (conf.hasPath(ContextKey)) {
+      ContextStorageFilterChain(conf.getConfig(ContextKey))
     } else {
       Seq(FormattedMdcContextStorageFilter(conf))
     }
@@ -85,20 +86,24 @@ object Money {
     }
   }
 
-  private def configureFormatter(conf: Config): Formatter =
-    if (conf.hasPath("formatting")) {
-      FormatterChain(conf.getConfig("formatting"))
+  private def configureFormatter(conf: Config): Formatter = {
+    val FormattingKey = "formatting"
+    if (conf.hasPath(FormattingKey)) {
+      FormatterChain(conf.getConfig(FormattingKey))
     } else {
       FormatterChain.default
     }
+  }
 
-  private def configureSampler(conf: Config): Sampler =
-    if (conf.hasPath("sampling")) {
-      SamplerFactory.create(conf.getConfig("sampling"))
+  private def configureSampler(conf: Config): Sampler = {
+    val SamplingKey = "sampling"
+    if (conf.hasPath(SamplingKey)) {
+      SamplerFactory.create(conf.getConfig(SamplingKey))
         .getOrElse(AlwaysOnSampler)
     } else {
       AlwaysOnSampler
     }
+  }
 
   private def disabled(applicationName: String, hostName: String): Money =
     Money(enabled = false, DisabledSpanHandler, applicationName, hostName, DisabledSpanFactory, DisabledTracer, DisabledFormatter)

@@ -16,11 +16,13 @@
 
 package com.comcast.money.core.formatters
 
-import com.comcast.money.core.DisabledFormatter
+import com.comcast.money.core.{ DisabledFormatter, FactoryException }
 import com.typesafe.config.ConfigFactory
 import org.scalatest.Inside.inside
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
+
+import scala.util.{ Failure, Success }
 
 class FormatterFactorySpec extends AnyWordSpec with Matchers {
   "FormatterFactory" should {
@@ -28,14 +30,14 @@ class FormatterFactorySpec extends AnyWordSpec with Matchers {
       val config = ConfigFactory.parseString("type = \"money-trace\"")
 
       val formatter = FormatterFactory.create(config)
-      formatter shouldBe Some(MoneyTraceFormatter)
+      formatter shouldBe Success(MoneyTraceFormatter)
     }
 
     "return an instance of trace-context Formatter" in {
       val config = ConfigFactory.parseString("type = \"trace-context\"")
 
       val formatter = FormatterFactory.create(config)
-      formatter shouldBe Some(TraceContextFormatter)
+      formatter shouldBe Success(TraceContextFormatter)
     }
 
     "return an instance of an ingress Formatter" in {
@@ -50,7 +52,7 @@ class FormatterFactorySpec extends AnyWordSpec with Matchers {
 
       val formatter = FormatterFactory.create(config)
       inside(formatter) {
-        case Some(f: IngressFormatter) =>
+        case Success(f: IngressFormatter) =>
           f.formatter should matchPattern {
             case FormatterChain(Seq(MoneyTraceFormatter, TraceContextFormatter)) =>
           }
@@ -69,7 +71,7 @@ class FormatterFactorySpec extends AnyWordSpec with Matchers {
 
       val formatter = FormatterFactory.create(config)
       inside(formatter) {
-        case Some(f: EgressFormatter) =>
+        case Success(f: EgressFormatter) =>
           f.formatter should matchPattern {
             case FormatterChain(Seq(MoneyTraceFormatter, TraceContextFormatter)) =>
           }
@@ -84,7 +86,7 @@ class FormatterFactorySpec extends AnyWordSpec with Matchers {
 
       val formatter = FormatterFactory.create(config)
       inside(formatter) {
-        case Some(_: NonConfiguredFormatter) =>
+        case Success(_: NonConfiguredFormatter) =>
       }
     }
 
@@ -96,7 +98,7 @@ class FormatterFactorySpec extends AnyWordSpec with Matchers {
 
       val formatter = FormatterFactory.create(config)
       inside(formatter) {
-        case Some(f: ConfiguredFormatter) =>
+        case Success(f: ConfiguredFormatter) =>
           f.config shouldBe config
       }
     }
@@ -105,7 +107,10 @@ class FormatterFactorySpec extends AnyWordSpec with Matchers {
       val config = ConfigFactory.parseString("type = \"unknown\"")
 
       val formatter = FormatterFactory.create(config)
-      formatter shouldBe Some(DisabledFormatter)
+      inside(formatter) {
+        case Failure(exception: FactoryException) =>
+          exception.getMessage shouldBe "Could not resolve known Formatter type 'unknown'."
+      }
     }
   }
 }

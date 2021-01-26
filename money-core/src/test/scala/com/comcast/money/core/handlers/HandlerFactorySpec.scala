@@ -21,6 +21,8 @@ import org.scalatest.Inside.inside
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.matchers.should.Matchers
 
+import scala.util.Success
+
 class HandlerFactorySpec extends AnyWordSpec with Matchers {
 
   "HandlerFactory" should {
@@ -29,7 +31,7 @@ class HandlerFactorySpec extends AnyWordSpec with Matchers {
 
       val createdHandler = HandlerFactory.create(config)
       inside(createdHandler) {
-        case Some(_: NonConfiguredHandler) =>
+        case Success(_: NonConfiguredHandler) =>
       }
     }
 
@@ -38,7 +40,7 @@ class HandlerFactorySpec extends AnyWordSpec with Matchers {
 
       val createdHandler = HandlerFactory.create(config)
       inside(createdHandler) {
-        case Some(handler: ConfiguredHandler) =>
+        case Success(handler: ConfiguredHandler) =>
           handler.config shouldBe config
       }
     }
