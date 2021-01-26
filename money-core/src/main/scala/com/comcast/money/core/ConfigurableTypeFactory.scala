@@ -16,7 +16,7 @@
 
 package com.comcast.money.core
 
-import com.typesafe.config.Config
+import com.typesafe.config.{ Config, ConfigException }
 
 import java.lang.reflect.Modifier
 import scala.reflect.ClassTag
@@ -79,39 +79,29 @@ trait ConfigurableTypeFactory[T <: AnyRef] {
   protected def knownTypeFactory(typeName: String): Try[Config => Try[T]] =
     knownTypes.lift(typeName) match {
       case Some(mapping) => Success((conf: Config) => Try(mapping(conf)))
-      case None => Failure(new Exception(s"Could not resolve ${tag.runtimeClass.getSimpleName} known type '$typeName'."))
+      case None => Failure(new FactoryException(s"Could not resolve known ${tag.runtimeClass.getSimpleName} type '$typeName'."))
     }
 
   protected def classInstanceFactory(className: String): Try[Config => Try[T]] = {
     val factory = findClass(className) match {
       case Success(cls) =>
-        createInstanceFactory(cls)
-      case Failure(ex) =>
-        findModule(className).toOption.flatMap(findStaticInstance) match {
-          case Some(instance) => Success((_: Config) => Success(instance))
-          case None => Failure(ex)
+        val factory = findFactoryMethod(cls)
+          .orElse(findConfigConstructor(cls))
+          .orElse(findDefaultConstructor(cls))
+          .orElse(findModuleInstance(cls))
+
+        factory match {
+          case Some(mapping) => Success((conf: Config) => mapping(conf))
+          case None => Failure(new FactoryException(s"Could not find acceptable constructor or factory method for class ${cls.getCanonicalName}."))
         }
+      case Failure(ex) => Failure(ex)
     }
 
     factory match {
       case Success(mapping) => Success(mapping)
-      case Failure(cause) => Failure(new Exception(s"Could not create instance of ${tag.runtimeClass.getSimpleName} class '$className'.", cause))
+      case Failure(cause) => Failure(new FactoryException(s"Could not create instance of ${tag.runtimeClass.getSimpleName} class '$className'.", cause))
     }
   }
-
-  protected def createInstanceFactory(cls: Class[_]): Try[Config => Try[T]] =
-    if (tag.runtimeClass.isAssignableFrom(cls)) {
-      val factory = findFactoryMethod(cls)
-        .orElse(findConfigConstructor(cls))
-        .orElse(findDefaultConstructor(cls))
-
-      factory match {
-        case Some(mapping) => Success((conf: Config) => mapping(conf))
-        case None => Failure(new Exception(s"Could not find acceptable constructor or factory method for class ${cls.getCanonicalName}."))
-      }
-    } else {
-      Failure(new Exception(s"Class ${cls.getCanonicalName} is not derived from type ${tag.runtimeClass.getCanonicalName}."))
-    }
 
   private def findClass(className: String): Try[Class[_]] =
     Try(Class.forName(className))
@@ -120,36 +110,52 @@ trait ConfigurableTypeFactory[T <: AnyRef] {
     findClass(moduleName + MODULE_SUFFIX)
 
   private def findFactoryMethod(cls: Class[_]): Option[Config => Try[T]] =
-    cls.getMethods.find {
-      method =>
-        Modifier.isStatic(method.getModifiers) &&
-          method.getParameterCount == 1 &&
-          method.getParameterTypes()(0) == classOf[Config] &&
-          method.getReturnType == cls &&
-          method.getName == APPLY_NAME
-    }
-      .map { method => config: Config => Try(method.invoke(null, config).asInstanceOf[T]) }
+    cls.getMethods
+      .find({
+        method =>
+          Modifier.isStatic(method.getModifiers) &&
+            method.getParameterCount == 1 &&
+            method.getParameterTypes()(0) == classOf[Config] &&
+            tag.runtimeClass.isAssignableFrom(method.getReturnType) &&
+            method.getName == APPLY_NAME
+      })
+      .map({ method => config: Config => Try(method.invoke(null, config).asInstanceOf[T]) })
 
   private def findConfigConstructor(cls: Class[_]): Option[Config => Try[T]] =
-    cls.getConstructors.find {
-      constructor =>
-        constructor.getParameterCount == 1 &&
-          constructor.getParameterTypes()(0) == classOf[Config]
-    }
-      .map { constructor => config: Config => Try(constructor.newInstance(config).asInstanceOf[T]) }
+    if (tag.runtimeClass.isAssignableFrom(cls)) {
+      cls.getConstructors
+        .find({
+          constructor =>
+            constructor.getParameterCount == 1 &&
+              constructor.getParameterTypes()(0) == classOf[Config]
+        })
+        .map({ constructor => config: Config => Try(constructor.newInstance(config).asInstanceOf[T]) })
+    } else None
 
   private def findDefaultConstructor(cls: Class[_]): Option[Config => Try[T]] =
-    cls.getConstructors.find {
-      _.getParameterCount == 0
-    }
-      .map { constructor => _: Config => Try(constructor.newInstance().asInstanceOf[T]) }
+    if (tag.runtimeClass.isAssignableFrom(cls)) {
+      cls.getConstructors
+        .find({
+          constructor =>
+            constructor.getParameterCount == 0
+        })
+        .map({ constructor => _: Config => Try(constructor.newInstance().asInstanceOf[T]) })
+    } else None
 
-  private def findStaticInstance(cls: Class[_]): Option[T] =
-    cls.getFields.find {
-      field =>
-        Modifier.isStatic(field.getModifiers) &&
-          field.getType == cls &&
-          field.getName == MODULE_FIELD_NAME
-    }
-      .map { field => field.get(null).asInstanceOf[T] }
+  private def findModuleInstance(cls: Class[_]): Option[Config => Try[T]] =
+    findModule(cls.getCanonicalName)
+      .toOption
+      .flatMap(mod => mod.getFields
+        .find({
+          field =>
+            Modifier.isStatic(field.getModifiers) &&
+              Modifier.isPublic(field.getModifiers) &&
+              field.getType == mod &&
+              field.getName == MODULE_FIELD_NAME
+        }))
+      .map({ field => _: Config => Try(field.get(null).asInstanceOf[T]) })
+}
+
+private[core] class FactoryException(message: String, cause: Throwable) extends ConfigException(message, cause) {
+  def this(message: String) = this(message, null)
 }
