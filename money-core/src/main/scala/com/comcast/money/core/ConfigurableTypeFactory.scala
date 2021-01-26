@@ -63,7 +63,7 @@ trait ConfigurableTypeFactory[T <: AnyRef] {
   def create(config: Seq[Config]): Try[Seq[T]] = {
     val seq = config.map(create)
     if (seq.isEmpty) Success(Seq.empty)
-    else Try(seq.map { _.get })
+    else Try(seq.map(_.get))
   }
 
   def create(config: Config): Try[T] = {
@@ -111,49 +111,41 @@ trait ConfigurableTypeFactory[T <: AnyRef] {
 
   private def findFactoryMethod(cls: Class[_]): Option[Config => Try[T]] =
     cls.getMethods
-      .find({
-        method =>
-          Modifier.isStatic(method.getModifiers) &&
-            method.getParameterCount == 1 &&
-            method.getParameterTypes()(0) == classOf[Config] &&
-            tag.runtimeClass.isAssignableFrom(method.getReturnType) &&
-            method.getName == APPLY_NAME
-      })
-      .map({ method => config: Config => Try(method.invoke(null, config).asInstanceOf[T]) })
+      .find(method =>
+        Modifier.isStatic(method.getModifiers) &&
+          method.getParameterCount == 1 &&
+          method.getParameterTypes()(0) == classOf[Config] &&
+          tag.runtimeClass.isAssignableFrom(method.getReturnType) &&
+          method.getName == APPLY_NAME)
+      .map(method => (config: Config) => Try(method.invoke(null, config).asInstanceOf[T]))
 
   private def findConfigConstructor(cls: Class[_]): Option[Config => Try[T]] =
     if (tag.runtimeClass.isAssignableFrom(cls)) {
       cls.getConstructors
-        .find({
-          constructor =>
-            constructor.getParameterCount == 1 &&
-              constructor.getParameterTypes()(0) == classOf[Config]
-        })
-        .map({ constructor => config: Config => Try(constructor.newInstance(config).asInstanceOf[T]) })
+        .find(constructor =>
+          constructor.getParameterCount == 1 &&
+            constructor.getParameterTypes()(0) == classOf[Config])
+        .map(constructor => (config: Config) => Try(constructor.newInstance(config).asInstanceOf[T]))
     } else None
 
   private def findDefaultConstructor(cls: Class[_]): Option[Config => Try[T]] =
     if (tag.runtimeClass.isAssignableFrom(cls)) {
       cls.getConstructors
-        .find({
-          constructor =>
-            constructor.getParameterCount == 0
-        })
-        .map({ constructor => _: Config => Try(constructor.newInstance().asInstanceOf[T]) })
+        .find(constructor => constructor.getParameterCount == 0)
+        .map(constructor => (_: Config) => Try(constructor.newInstance().asInstanceOf[T]))
     } else None
 
   private def findModuleInstance(cls: Class[_]): Option[Config => Try[T]] =
     findModule(cls.getCanonicalName)
       .toOption
+      .filter(mod => tag.runtimeClass.isAssignableFrom(mod))
       .flatMap(mod => mod.getFields
-        .find({
-          field =>
-            Modifier.isStatic(field.getModifiers) &&
-              Modifier.isPublic(field.getModifiers) &&
-              field.getType == mod &&
-              field.getName == MODULE_FIELD_NAME
-        }))
-      .map({ field => _: Config => Try(field.get(null).asInstanceOf[T]) })
+        .find(field =>
+          Modifier.isStatic(field.getModifiers) &&
+            Modifier.isPublic(field.getModifiers) &&
+            field.getType == mod &&
+            field.getName == MODULE_FIELD_NAME))
+      .map(field => (_: Config) => Try(field.get(null).asInstanceOf[T]))
 }
 
 private[core] class FactoryException(message: String, cause: Throwable) extends ConfigException(message, cause) {
