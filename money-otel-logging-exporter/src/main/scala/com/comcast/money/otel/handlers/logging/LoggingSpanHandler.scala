@@ -33,7 +33,6 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
  *       {
  *         class = "com.comcast.money.otel.handlers.logging.LoggingSpanHandler"
  *         batch = true
- *         export-only-sampled = true
  *         exporter-timeout-ms = 30000
  *         max-batch-size = 512
  *         max-queue-size = 2048

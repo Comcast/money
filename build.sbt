@@ -43,9 +43,10 @@ lazy val moneyApi =
     .enablePlugins(AutomateHeaderPlugin)
     .settings(projectSettings: _*)
     .settings(
-      libraryDependencies ++= Seq(
+      libraryDependencies ++=
+        Seq(
           openTelemetryApi
-      ) ++ commonTestDependencies
+        ) ++ commonTestDependencies
     )
 
 lazy val moneyCore =
@@ -351,7 +352,7 @@ def basicSettings =  Defaults.itSettings ++ Seq(
   resolvers ++= Seq(
     ("spray repo" at "http://repo.spray.io/").withAllowInsecureProtocol(true),
     "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/",
-    "JFrog OSS Snapshots" at "https://oss.jfrog.org/artifactory/oss-snapshot-local"
+    "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
   ),
   scalacOptions ++= Seq(
     "-unchecked",

@@ -21,6 +21,8 @@ import com.typesafe.config.Config
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter
 import io.opentelemetry.sdk.trace.`export`.SpanExporter
 
+import java.time.Duration
+
 /**
  * A Money [[com.comcast.money.api.SpanHandler]] that can export spans to OTLP Collector
  * through the OpenTelemetry OTLP `SpanExporter`.
@@ -34,15 +36,13 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
  *       {
  *         class = "com.comcast.money.otel.handlers.otlp.OtlpHandler"
  *         batch = true
- *         export-only-sampled = true
  *         exporter-timeout-ms = 30000
  *         max-batch-size = 512
  *         max-queue-size = 2048
  *         schedule-delay-ms = 5000
  *         exporter {
- *           endpoint = "localhost:14250"
- *           deadline-ms = 1000
- *           use-tls = true
+ *           endpoint = "https://localhost:14250"
+ *           timeout-ms = 1000
  *         }
  *       }
  *     ]
@@ -55,17 +55,13 @@ class OtlpHandler(config: Config) extends OtelSpanHandler(config) {
     val builder = OtlpGrpcSpanExporter.builder()
 
     val endpointKey = "endpoint"
-    val deadlineMillisKey = "deadline-ms"
-    val useTlsKey = "use-tls"
+    val deadlineMillisKey = "timeout-ms"
 
     if (config.hasPath(endpointKey)) {
       builder.setEndpoint(config.getString(endpointKey))
     }
     if (config.hasPath(deadlineMillisKey)) {
-      builder.setDeadlineMs(config.getLong(deadlineMillisKey))
-    }
-    if (config.hasPath(useTlsKey)) {
-      builder.setUseTls(config.getBoolean(useTlsKey))
+      builder.setTimeout(Duration.ofMillis(config.getLong(deadlineMillisKey)))
     }
 
     builder.build()

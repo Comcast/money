@@ -9,8 +9,9 @@ object Dependencies {
   val jodaV = "2.9.9"
   val json4sV = "3.6.10"
   val typesafeConfigV = "1.3.3"
-  val openTelemetryV = "0.14.1"
-  val openTelemetryInstV = "0.14.1"
+  val openTelemetryV = "0.15.0"
+  val openTelemetryInstV = "0.15.0"
+  val openTelemetrySemConvV = "0.15.0-alpha"
 
   val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
   val akkaStream =      "com.typesafe.akka"         %% "akka-stream"                 % akkaV
@@ -61,14 +62,14 @@ object Dependencies {
   val commonsIo = "commons-io" % "commons-io" % "2.4"
 
   val openTelemetryApi = "io.opentelemetry" % "opentelemetry-api" % openTelemetryV changing()
-  val openTelemetrySemConv = "io.opentelemetry" % "opentelemetry-semconv" % openTelemetryV changing()
+  val openTelemetrySemConv = "io.opentelemetry" % "opentelemetry-semconv" % openTelemetrySemConvV changing()
   val openTelemetryProp = "io.opentelemetry" % "opentelemetry-extension-trace-propagators" % openTelemetryV changing()
   val openTelemetrySdk = "io.opentelemetry" % "opentelemetry-sdk" % openTelemetryV changing()
   val openTelemetrySdkTesting = "io.opentelemetry" % "opentelemetry-sdk-testing" % openTelemetryV changing()
   val openTelemetryLoggingExporter = "io.opentelemetry" % "opentelemetry-exporter-logging" % openTelemetryInstV changing()
-  val openTelemetryOtlpExporter = "io.opentelemetry" % "opentelemetry-exporter-otlp" % openTelemetryInstV changing()
+  val openTelemetryOtlpExporter = "io.opentelemetry" % "opentelemetry-exporter-otlp" % openTelemetryInstV changing() exclude("io.opentelemetry", "dependencyManagement")
   val openTelemetryZipkinExporter = "io.opentelemetry" % "opentelemetry-exporter-zipkin" % openTelemetryInstV changing()
-  val openTelemetryJaegerExporter = "io.opentelemetry" % "opentelemetry-exporter-jaeger" % openTelemetryInstV changing()
+  val openTelemetryJaegerExporter = "io.opentelemetry" % "opentelemetry-exporter-jaeger" % openTelemetryInstV changing() exclude("io.opentelemetry", "dependencyManagement")
 
   // Spring
   val springWeb = ("org.springframework" % "spring-web" % "4.3.17.RELEASE")

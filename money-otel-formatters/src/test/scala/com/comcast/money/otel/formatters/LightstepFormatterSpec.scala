@@ -20,6 +20,7 @@ import com.comcast.money.core.TraceGenerators
 import com.comcast.money.core.formatters.FormatterUtils.randomRemoteSpanId
 import com.comcast.money.otel.formatters.LightstepFormatter.{ TracerSampledHeader, TracerSpanIdHeader, TracerTraceIdHeader }
 import org.mockito.Mockito.{ verify, verifyNoMoreInteractions }
+import org.scalatest.Inside.inside
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
@@ -41,7 +42,14 @@ class LightstepFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers
 
       val result = underTest.fromHttpHeaders(Seq(), k => map.getOrElse(k, nullString))
 
-      result shouldBe Some(spanId)
+      inside(result) {
+        case Some(s) =>
+          s.selfId shouldBe spanId.selfId
+          // The Lightstep formatter only supports 64-bit trace IDs so
+          // the first 16 characters are zeroed out on round-trip
+          s.traceIdAsHex shouldBe ("0" * 16) + spanId.traceIdAsHex.substring(16, 32)
+          s.isSampled shouldBe spanId.isSampled
+      }
     }
 
     "lists the headers" in {

@@ -35,7 +35,6 @@ import zipkin2.codec.SpanBytesEncoder
  *       {
  *         class = "com.comcast.money.otel.handlers.zipkin.ZipkinOtelSpanHandler"
  *         batch = true
- *         export-only-sampled = true
  *         exporter-timeout-ms = 30000
  *         max-batch-size = 512
  *         max-queue-size = 2048
