@@ -21,6 +21,8 @@ import com.typesafe.config.Config
 import io.opentelemetry.exporter.jaeger.JaegerGrpcSpanExporter
 import io.opentelemetry.sdk.trace.`export`.SpanExporter
 
+import java.time.Duration
+
 /**
  * A Money [[com.comcast.money.api.SpanHandler]] that can export spans to Jaeger
  * through the OpenTelemetry [[JaegerGrpcSpanExporter]].
@@ -34,15 +36,13 @@ import io.opentelemetry.sdk.trace.`export`.SpanExporter
  *       {
  *         class = "com.comcast.money.otel.handlers.jaeger.JaegerOtelSpanHandler"
  *         batch = true
- *         export-only-sampled = true
  *         exporter-timeout-ms = 30000
  *         max-batch-size = 512
  *         max-queue-size = 2048
  *         schedule-delay-ms = 5000
  *         exporter {
- *           service-name = "myApp"
  *           endpoint = "localhost:14250"
- *           deadline-ms = 1000
+ *           timeout-ms = 1000
  *         }
  *       }
  *     ]
@@ -54,16 +54,14 @@ class JaegerOtelSpanHandler(config: Config) extends OtelSpanHandler(config) {
   override protected def createSpanExporter(config: Config): SpanExporter = {
     val builder = JaegerGrpcSpanExporter.builder()
 
-    val serviceNameKey = "service-name"
     val endpointKey = "endpoint"
-    val deadlineMillisKey = "deadline-ms"
+    val deadlineMillisKey = "timeout-ms"
 
-    builder.setServiceName(config.getString(serviceNameKey))
     if (config.hasPath(endpointKey)) {
       builder.setEndpoint(config.getString(endpointKey))
     }
     if (config.hasPath(deadlineMillisKey)) {
-      builder.setDeadlineMs(config.getLong(deadlineMillisKey))
+      builder.setTimeout(Duration.ofMillis(config.getLong(deadlineMillisKey)))
     }
 
     builder.build()

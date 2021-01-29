@@ -16,6 +16,7 @@
 
 package com.comcast.money.otel.handlers.otlp;
 
+import java.time.Duration;
 import java.util.Collection;
 
 import com.typesafe.config.Config;
@@ -66,10 +67,7 @@ public class OtlpHandlerSpec {
 
     @Test
     public void configuresOtlpExporter() {
-        Config config = ConfigFactory.parseString(
-                "batch = false\n" +
-                "export-only-sampled = true"
-        );
+        Config config = ConfigFactory.parseString("batch = false");
 
         OtlpHandler underTest = new OtlpHandler(config);
 
@@ -98,7 +96,6 @@ public class OtlpHandlerSpec {
     public void configuresOtlpExporterWithEndpoint() {
         Config config = ConfigFactory.parseString(
                 "batch = false\n" +
-                "export-only-sampled = true\n" +
                 "exporter {\n" +
                 "  endpoint = \"endpoint\"\n" +
                 "}"
@@ -116,9 +113,8 @@ public class OtlpHandlerSpec {
     public void configuresOtlpExporterWithDeadlineMillis() {
         Config config = ConfigFactory.parseString(
                 "batch = false\n" +
-                "export-only-sampled = true\n" +
                 "exporter {\n" +
-                "  deadline-ms = 500\n" +
+                "  timeout-ms = 500\n" +
                 "}"
         );
 
@@ -126,25 +122,7 @@ public class OtlpHandlerSpec {
 
         PowerMockito.verifyStatic(OtlpGrpcSpanExporter.class);
         OtlpGrpcSpanExporter.builder();
-        Mockito.verify(spanExporterBuilder).setDeadlineMs(500L);
-        Mockito.verify(spanExporterBuilder).build();
-    }
-
-    @Test
-    public void configuresOtlpExporterWithUseTLS() {
-        Config config = ConfigFactory.parseString(
-                "batch = false\n" +
-                        "export-only-sampled = true\n" +
-                        "exporter {\n" +
-                        "  use-tls = true\n" +
-                        "}"
-        );
-
-        OtlpHandler underTest = new OtlpHandler(config);
-
-        PowerMockito.verifyStatic(OtlpGrpcSpanExporter.class);
-        OtlpGrpcSpanExporter.builder();
-        Mockito.verify(spanExporterBuilder).setUseTls(true);
+        Mockito.verify(spanExporterBuilder).setTimeout(Duration.ofMillis(500L));
         Mockito.verify(spanExporterBuilder).build();
     }
 }

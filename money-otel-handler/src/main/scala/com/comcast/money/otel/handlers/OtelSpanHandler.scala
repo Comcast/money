@@ -21,6 +21,8 @@ import com.typesafe.config.{ Config, ConfigFactory }
 import io.opentelemetry.sdk.trace.SpanProcessor
 import io.opentelemetry.sdk.trace.`export`.{ BatchSpanProcessor, SimpleSpanProcessor, SpanExporter }
 
+import java.time.Duration
+
 /**
  * An abstract `SpanHandler` that can wrap an OpenTelemetry `SpanExporter` implementation
  * and export spans to an OpenTelemetry-compatible exporter such as ZipKin or Jaeger.
@@ -40,40 +42,25 @@ abstract class OtelSpanHandler(config: Config) extends SpanHandler {
   }
 
   protected def createSpanProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
-    val batch = config.hasPath("batch") && config.getBoolean("batch")
+    val batchKey = "batch"
+    val batch = config.hasPath(batchKey) && config.getBoolean(batchKey)
     if (batch) {
       configureBatchProcessor(spanExporter, config)
     } else {
-      configureSimpleProcessor(spanExporter, config)
+      SimpleSpanProcessor.create(spanExporter)
     }
-  }
-
-  private def configureSimpleProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
-    val builder = SimpleSpanProcessor.builder(spanExporter)
-
-    val exportOnlySampledKey = "export-only-sampled"
-
-    if (config.hasPath(exportOnlySampledKey)) {
-      builder.setExportOnlySampled(config.getBoolean(exportOnlySampledKey))
-    }
-
-    builder.build()
   }
 
   private def configureBatchProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
     val builder = BatchSpanProcessor.builder(spanExporter)
 
-    val exportOnlySampledKey = "export-only-sampled"
     val exporterTimeoutMillisKey = "exporter-timeout-ms"
     val maxExportBatchSizeKey = "max-batch-size"
     val maxQueueSizeKey = "max-queue-size"
     val scheduleDelayMillisKey = "schedule-delay-ms"
 
-    if (config.hasPath(exportOnlySampledKey)) {
-      builder.setExportOnlySampled(config.getBoolean(exportOnlySampledKey))
-    }
     if (config.hasPath(exporterTimeoutMillisKey)) {
-      builder.setExporterTimeoutMillis(config.getInt(exporterTimeoutMillisKey))
+      builder.setExporterTimeout(Duration.ofMillis(config.getInt(exporterTimeoutMillisKey)))
     }
     if (config.hasPath(maxExportBatchSizeKey)) {
       builder.setMaxExportBatchSize(config.getInt(maxExportBatchSizeKey))
@@ -82,7 +69,7 @@ abstract class OtelSpanHandler(config: Config) extends SpanHandler {
       builder.setMaxQueueSize(config.getInt(maxQueueSizeKey))
     }
     if (config.hasPath(scheduleDelayMillisKey)) {
-      builder.setScheduleDelayMillis(config.getLong(scheduleDelayMillisKey))
+      builder.setScheduleDelay(Duration.ofMillis(config.getLong(scheduleDelayMillisKey)))
     }
 
     builder.build()

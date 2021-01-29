@@ -23,7 +23,7 @@ import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatestplus.mockito.MockitoSugar
 
-import scala.util.{Failure, Success}
+import scala.util.{ Failure, Success }
 
 class ContextStorageFilterFactorySpec extends AnyWordSpec with Matchers with MockitoSugar {
 
@@ -75,7 +75,7 @@ class ContextStorageFilterFactorySpec extends AnyWordSpec with Matchers with Moc
       val config = ConfigFactory.parseString("type = \"unknown\"")
 
       val filter = ContextStorageFilterFactory.create(config)
-      inside (filter) {
+      inside(filter) {
         case Failure(exception: FactoryException) =>
           exception.getMessage shouldBe "Could not resolve known ContextStorageFilter type 'unknown'."
       }
