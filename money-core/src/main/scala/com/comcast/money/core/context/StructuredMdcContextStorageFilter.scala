@@ -54,13 +54,13 @@ object StructuredMdcContextStorageFilter {
 }
 
 class StructuredMdcContextStorageFilter(
-  val spanContext: SpanContext,
+  override val spanContext: SpanContext,
   mdc: MDCAdapter,
   traceIdKey: String,
   spanIdKey: String,
   parentSpanIdKey: String,
   spanNameKey: String,
-  formatIdsAsHex: Boolean) extends MdcContextStorageFilter {
+  formatIdsAsHex: Boolean) extends AbstractMdcContextStorageFilter {
 
   override def updateMdc(currentSpanInfo: Option[SpanInfo]): Unit = currentSpanInfo match {
     case Some(info) if (formatIdsAsHex) =>
