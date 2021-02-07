@@ -95,8 +95,8 @@ public class OtelSpanHandlerSpec {
         ReadableSpan span = captor.getValue();
 
         SpanContext spanContext = span.getSpanContext();
-        assertThat(spanContext.getTraceIdAsHexString()).isEqualTo(spanId.traceIdAsHex());
-        assertThat(spanContext.getSpanIdAsHexString()).isEqualTo(spanId.selfIdAsHex());
+        assertThat(spanContext.getTraceIdHex()).isEqualTo(spanId.traceIdAsHex());
+        assertThat(spanContext.getSpanIdHex()).isEqualTo(spanId.selfIdAsHex());
     }
 
     @Test
@@ -133,8 +133,8 @@ public class OtelSpanHandlerSpec {
         ReadableSpan span = captor.getValue();
 
         SpanContext spanContext = span.getSpanContext();
-        assertThat(spanContext.getTraceIdAsHexString()).isEqualTo(spanId.traceIdAsHex());
-        assertThat(spanContext.getSpanIdAsHexString()).isEqualTo(spanId.selfIdAsHex());
+        assertThat(spanContext.getTraceIdHex()).isEqualTo(spanId.traceIdAsHex());
+        assertThat(spanContext.getSpanIdHex()).isEqualTo(spanId.selfIdAsHex());
     }
 
     class TestOtelSpanHandler extends OtelSpanHandler {

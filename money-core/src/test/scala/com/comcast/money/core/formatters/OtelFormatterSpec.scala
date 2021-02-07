@@ -51,8 +51,8 @@ class OtelFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers {
       val span = OtelSpan.fromContextOrNull(context)
       span should not be null
       val spanContext = span.getSpanContext
-      spanContext.getTraceIdAsHexString shouldBe spanId.traceIdAsHex
-      spanContext.getSpanIdAsHexString shouldBe spanId.selfIdAsHex
+      spanContext.getTraceIdHex shouldBe spanId.traceIdAsHex
+      spanContext.getSpanIdHex shouldBe spanId.selfIdAsHex
 
       val wrappedSetter = setterCaptor.getValue
       wrappedSetter.set((), "foo", "bar")

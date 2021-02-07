@@ -22,7 +22,7 @@ import com.comcast.money.api._
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
-import io.opentelemetry.api.trace.{ SpanContext, StatusCode, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ SpanContext, SpanKind, StatusCode, Span => OtelSpan }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes
@@ -39,7 +39,7 @@ import scala.collection.mutable.ListBuffer
 private[core] case class CoreSpan(
   id: SpanId,
   var name: String,
-  kind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL,
+  kind: SpanKind = SpanKind.INTERNAL,
   links: List[SpanInfo.Link] = Nil,
   startTimeNanos: Long = SystemClock.now,
   library: InstrumentationLibrary = Money.InstrumentationLibrary,

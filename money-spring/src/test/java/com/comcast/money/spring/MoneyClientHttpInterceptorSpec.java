@@ -22,6 +22,7 @@ import com.comcast.money.api.SpanId;
 import com.comcast.money.api.SpanInfo;
 import com.comcast.money.core.CoreSpanInfo;
 
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.api.trace.StatusCode;
@@ -52,7 +53,7 @@ public class MoneyClientHttpInterceptorSpec {
         SpanInfo testSpanInfo = new CoreSpanInfo(
                 id,
                 "testName",
-                io.opentelemetry.api.trace.Span.Kind.INTERNAL,
+                SpanKind.INTERNAL,
                 0L,
                 0L,
                 0L,

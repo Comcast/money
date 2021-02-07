@@ -22,7 +22,7 @@ import com.comcast.money.api._
 import com.comcast.money.core.context.ContextStorageFilter
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.{ Context, ContextStorage, Scope }
-import io.opentelemetry.api.trace.{ SpanContext, StatusCode, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ SpanContext, SpanKind, StatusCode, Span => OtelSpan }
 import com.comcast.money.core.formatters.Formatter
 
 // $COVERAGE-OFF$
@@ -121,7 +121,7 @@ object DisabledSpanBuilder extends SpanBuilder {
 
   override def record(note: Note[_]): SpanBuilder = this
 
-  override def setSpanKind(spanKind: OtelSpan.Kind): SpanBuilder = this
+  override def setSpanKind(spanKind: SpanKind): SpanBuilder = this
 
   override def setStartTimestamp(startTimestamp: Long, unit: TimeUnit): SpanBuilder = this
 

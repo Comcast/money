@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Span;
 
@@ -118,7 +119,7 @@ public interface SpanInfo {
     /**
      * @return the kind of the span, e.g. if it wraps a server or client request.
      */
-    Span.Kind kind();
+    SpanKind kind();
 
     /**
      * @return the description of the status of the span.

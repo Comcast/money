@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 
 import com.comcast.money.api.InstrumentationLibrary;
@@ -61,8 +62,8 @@ public class TestSpanInfo implements SpanInfo {
     }
 
     @Override
-    public Span.Kind kind() {
-        return Span.Kind.INTERNAL;
+    public SpanKind kind() {
+        return SpanKind.INTERNAL;
     }
 
     @Override

@@ -20,7 +20,6 @@ import java.io.ByteArrayOutputStream
 import java.util
 import java.util.Collections
 import java.util.concurrent.TimeUnit
-
 import com.comcast.money.api
 import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanId, SpanInfo }
 import com.comcast.money.core._
@@ -28,7 +27,7 @@ import com.comcast.money.wire.avro
 import com.comcast.money.wire.avro.NoteType
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.{ DeserializationFeature, ObjectMapper }
-import io.opentelemetry.api.trace.{ Span, StatusCode, TraceFlags, TraceState }
+import io.opentelemetry.api.trace.{ Span, SpanKind, StatusCode, TraceFlags, TraceState }
 import org.apache.avro.Schema
 import org.apache.avro.io.{ DecoderFactory, EncoderFactory }
 import org.apache.avro.specific.{ SpecificDatumReader, SpecificDatumWriter }
@@ -144,7 +143,7 @@ trait SpanWireConverters {
       override def startTimeNanos(): Long = TimeUnit.MILLISECONDS.toNanos(from.getStartTime)
       override def endTimeNanos(): Long = startTimeNanos + durationNanos
       override def status(): StatusCode = if (from.getSuccess) StatusCode.OK else StatusCode.ERROR
-      override def kind(): Span.Kind = Span.Kind.INTERNAL
+      override def kind(): SpanKind = SpanKind.INTERNAL
       override def description(): String = ""
       override def id(): SpanId = implicitly[TypeConverter[avro.SpanId, api.SpanId]].convert(from.getId)
       override def name(): String = from.getName
