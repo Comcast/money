@@ -317,8 +317,8 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
 
       val context = underTest.getSpanContext
 
-      context.getTraceIdHex shouldBe "01234567890abcdef01234567890abcd"
-      context.getSpanIdHex shouldBe "0123456789abcdef"
+      context.getTraceId shouldBe "01234567890abcdef01234567890abcd"
+      context.getSpanId shouldBe "0123456789abcdef"
     }
 
     "set the endTimeMillis and endTimeMicros when stopped" in {
