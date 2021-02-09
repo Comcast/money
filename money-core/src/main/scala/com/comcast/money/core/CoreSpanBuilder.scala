@@ -18,12 +18,11 @@ package com.comcast.money.core
 
 import java.time.Instant
 import java.util.concurrent.TimeUnit
-
 import com.comcast.money.api.{ InstrumentationLibrary, Note, Span, SpanBuilder, SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.samplers.{ DropResult, RecordResult, Sampler }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Context
-import io.opentelemetry.api.trace.{ SpanContext, TraceFlags, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ SpanContext, SpanKind, TraceFlags, Span => OtelSpan }
 
 import scala.collection.JavaConverters._
 
@@ -37,7 +36,7 @@ private[core] class CoreSpanBuilder(
   library: InstrumentationLibrary) extends SpanBuilder {
 
   var sticky: Boolean = true
-  var spanKind: OtelSpan.Kind = OtelSpan.Kind.INTERNAL
+  var spanKind: SpanKind = SpanKind.INTERNAL
   var startTimeNanos: Long = 0L
   var notes: List[Note[_]] = List()
   var links: List[SpanInfo.Link] = List()
@@ -94,7 +93,7 @@ private[core] class CoreSpanBuilder(
     this
   }
 
-  override def setSpanKind(spanKind: OtelSpan.Kind): SpanBuilder = {
+  override def setSpanKind(spanKind: SpanKind): SpanBuilder = {
     this.spanKind = spanKind
     this
   }
@@ -111,7 +110,7 @@ private[core] class CoreSpanBuilder(
     this
   }
 
-  private[core] def createSpan(id: SpanId, name: String, kind: OtelSpan.Kind, startTimeNanos: Long): Span = CoreSpan(
+  private[core] def createSpan(id: SpanId, name: String, kind: SpanKind, startTimeNanos: Long): Span = CoreSpan(
     id = id,
     name = name,
     startTimeNanos = startTimeNanos,

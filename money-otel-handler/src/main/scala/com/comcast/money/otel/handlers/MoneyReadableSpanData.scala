@@ -23,7 +23,7 @@ import io.opentelemetry.sdk.common.InstrumentationLibraryInfo
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.ReadableSpan
 import io.opentelemetry.sdk.trace.data.{ EventData, LinkData, SpanData, StatusData }
-import io.opentelemetry.api.trace.{ SpanContext, TraceState, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ SpanContext, SpanKind, TraceState, Span => OtelSpan }
 
 import scala.collection.JavaConverters._
 
@@ -45,10 +45,8 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
   override def getLatencyNanos: Long = info.durationNanos
   override def getTraceId: String = id.traceIdAsHex
   override def getSpanId: String = id.selfIdAsHex
-  override def isSampled: Boolean = true
-  override def getTraceState: TraceState = TraceState.getDefault
   override def getResource: Resource = Resource.getDefault
-  override def getKind: OtelSpan.Kind = info.kind
+  override def getKind: SpanKind = info.kind
   override def getStartEpochNanos: Long = info.startTimeNanos
   override def getLinks: util.List[LinkData] = links
   override def getStatus: StatusData = StatusData.create(info.status, info.description)

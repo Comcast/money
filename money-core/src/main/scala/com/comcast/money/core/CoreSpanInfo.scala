@@ -17,14 +17,13 @@
 package com.comcast.money.core
 
 import java.util.Collections
-
 import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanId, SpanInfo }
-import io.opentelemetry.api.trace.{ Span, StatusCode }
+import io.opentelemetry.api.trace.{ Span, SpanKind, StatusCode }
 
 private[core] case class CoreSpanInfo(
   id: SpanId,
   name: String,
-  kind: Span.Kind = Span.Kind.INTERNAL,
+  kind: SpanKind = SpanKind.INTERNAL,
   startTimeNanos: Long = 0L,
   endTimeNanos: Long = 0L,
   durationNanos: Long = 0L,

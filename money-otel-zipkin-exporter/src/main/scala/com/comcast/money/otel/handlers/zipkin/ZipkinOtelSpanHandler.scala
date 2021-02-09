@@ -40,7 +40,6 @@ import zipkin2.codec.SpanBytesEncoder
  *         max-queue-size = 2048
  *         schedule-delay-ms = 5000
  *         exporter {
- *           service-name = "myApp"
  *           endpoint = "http://localhost:9411/api/v2/spans"
  *           encoder = "json-v2"
  *         }
@@ -54,11 +53,9 @@ class ZipkinOtelSpanHandler(config: Config) extends OtelSpanHandler(config) {
   override protected def createSpanExporter(config: Config): SpanExporter = {
     val builder = ZipkinSpanExporter.builder()
 
-    val serviceNameKey = "service-name"
     val endpointKey = "endpoint"
     val encoderKey = "encoder"
 
-    builder.setServiceName(config.getString(serviceNameKey))
     if (config.hasPath(endpointKey)) {
       builder.setEndpoint(config.getString(endpointKey))
     }

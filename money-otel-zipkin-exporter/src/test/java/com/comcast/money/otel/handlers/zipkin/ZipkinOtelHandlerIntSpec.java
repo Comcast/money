@@ -49,7 +49,6 @@ public class ZipkinOtelHandlerIntSpec {
                 "batch = false\n" +
                         "export-only-sampled = true\n" +
                         "exporter {\n" +
-                        "  service-name = \"myService\"\n" +
                         "  endpoint = \"" + zipkinEndpoint + "\"\n" +
                         "  encoder = \"json-v2\"\n" +
                         "}"

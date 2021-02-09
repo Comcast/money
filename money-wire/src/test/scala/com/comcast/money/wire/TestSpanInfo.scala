@@ -17,15 +17,14 @@
 package com.comcast.money.wire
 
 import java.util.Collections
-
 import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanId, SpanInfo }
 import com.comcast.money.core.Money
-import io.opentelemetry.api.trace.{ Span, StatusCode }
+import io.opentelemetry.api.trace.{ Span, SpanKind, StatusCode }
 
 case class TestSpanInfo(
   id: SpanId,
   name: String,
-  kind: Span.Kind = Span.Kind.INTERNAL,
+  kind: SpanKind = SpanKind.INTERNAL,
   library: InstrumentationLibrary = new InstrumentationLibrary("test", "0.0.1"),
   startTimeNanos: Long = 0L,
   endTimeNanos: Long = 0L,

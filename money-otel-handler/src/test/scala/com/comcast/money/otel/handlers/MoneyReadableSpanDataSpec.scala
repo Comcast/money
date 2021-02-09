@@ -21,7 +21,7 @@ import java.util.UUID
 import com.comcast.money.api.{ IdGenerator, InstrumentationLibrary, Note, SpanId, SpanInfo }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.sdk.resources.Resource
-import io.opentelemetry.api.trace.{ Span, SpanContext, StatusCode, TraceFlags, TraceState }
+import io.opentelemetry.api.trace.{ Span, SpanContext, SpanKind, StatusCode, TraceFlags, TraceState }
 import io.opentelemetry.sdk.trace.data.StatusData
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -41,9 +41,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getSpanId shouldBe "0123456789abcdef"
       underTest.getParentSpanId shouldBe "0000000000000000"
       underTest.getName shouldBe "name"
-      underTest.getKind shouldBe Span.Kind.INTERNAL
-      underTest.isSampled shouldBe true
-      underTest.getTraceState shouldBe TraceState.getDefault
+      underTest.getKind shouldBe SpanKind.INTERNAL
       underTest.getStartEpochNanos shouldBe 1000000L
       underTest.getEndEpochNanos shouldBe 3000000L
       underTest.hasEnded shouldBe true
@@ -67,9 +65,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getSpanId shouldBe "0123456789abcdef"
       underTest.getParentSpanId shouldBe "0fedcba987654321"
       underTest.getName shouldBe "name"
-      underTest.getKind shouldBe Span.Kind.INTERNAL
-      underTest.isSampled shouldBe true
-      underTest.getTraceState shouldBe TraceState.getDefault
+      underTest.getKind shouldBe SpanKind.INTERNAL
       underTest.getStartEpochNanos shouldBe 1000000L
       underTest.getEndEpochNanos shouldBe 3000000L
       underTest.hasEnded shouldBe true
@@ -92,7 +88,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
     override def host(): String = "host"
     override def library(): InstrumentationLibrary = new InstrumentationLibrary("test", "0.0.1")
     override def name(): String = "name"
-    override def kind(): Span.Kind = Span.Kind.INTERNAL
+    override def kind(): SpanKind = SpanKind.INTERNAL
     override def startTimeNanos(): Long = 1000000L
     override def endTimeNanos(): Long = 3000000L
     override def status(): StatusCode = StatusCode.OK

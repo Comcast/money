@@ -34,13 +34,12 @@ import static com.comcast.money.api.IdGenerator.INVALID_TRACE_ID;
 public final class SpanId {
 
     private static final SpanId INVALID_SPAN_ID = new SpanId(null, INVALID_TRACE_ID, INVALID_ID, false, TraceFlags.getDefault(), TraceState.getDefault());
-    private static final byte SAMPLED = TraceFlags.getSampled();
 
     private final SpanId parentSpanId;
     private final String traceId;
     private final long selfId;
     private final boolean remote;
-    private final byte flags;
+    private final TraceFlags flags;
     private final TraceState state;
 
     /**
@@ -60,7 +59,7 @@ public final class SpanId {
     /**
      * Creates a new root span ID
      */
-    public static SpanId createNew(byte flags) {
+    public static SpanId createNew(TraceFlags flags) {
         String traceId = IdGenerator.generateRandomTraceId();
         long selfId = IdGenerator.generateRandomId();
         return new SpanId(null, traceId, selfId, false, flags, TraceState.getDefault());
@@ -82,7 +81,7 @@ public final class SpanId {
     /**
      * @return a new remote span ID
      */
-    public static SpanId createRemote(String traceId, long parentId, long selfId, byte flags, TraceState state) {
+    public static SpanId createRemote(String traceId, long parentId, long selfId, TraceFlags flags, TraceState state) {
 
         Objects.requireNonNull(traceId);
         if (!IdGenerator.isValidTraceId(traceId)) {
@@ -107,7 +106,7 @@ public final class SpanId {
     /**
      * @return a new span from the specified parameters, should only be used for testing
      */
-    public static SpanId createFrom(UUID traceId, long parentId, long selfId, boolean remote, byte flags, TraceState state) {
+    public static SpanId createFrom(UUID traceId, long parentId, long selfId, boolean remote, TraceFlags flags, TraceState state) {
         String traceIdString = traceId.toString();
         SpanId parentSpanId;
         if (parentId != 0 && parentId != selfId) {
@@ -150,7 +149,7 @@ public final class SpanId {
         this(null, traceId, selfId, false, TraceFlags.getDefault(), TraceState.getDefault());
     }
 
-    SpanId(String traceId, long selfId, boolean remote, byte flags, TraceState traceState) {
+    SpanId(String traceId, long selfId, boolean remote, TraceFlags flags, TraceState traceState) {
         this(null, traceId, selfId, remote, flags, traceState);
     }
 
@@ -158,11 +157,11 @@ public final class SpanId {
         this(parentSpanId, selfId, false, TraceFlags.getDefault(), TraceState.getDefault());
     }
 
-    SpanId(SpanId parentSpanId, long selfId, boolean remote, byte flags, TraceState traceState) {
+    SpanId(SpanId parentSpanId, long selfId, boolean remote, TraceFlags flags, TraceState traceState) {
         this(parentSpanId, parentSpanId.traceId(), selfId, remote, flags, traceState);
     }
 
-    private SpanId(SpanId parentSpanId, String traceId, long selfId, boolean remote, byte flags, TraceState traceState) {
+    private SpanId(SpanId parentSpanId, String traceId, long selfId, boolean remote, TraceFlags flags, TraceState traceState) {
         this.parentSpanId = parentSpanId;
         this.traceId = traceId.toLowerCase(Locale.ROOT);
         this.selfId = selfId;
@@ -228,9 +227,9 @@ public final class SpanId {
     }
 
     /**
-     * @return the bitmask of flags for the span ID
+     * @return the flags for the span ID
      */
-    public byte traceFlags() {
+    public TraceFlags traceFlags() {
         return flags;
     }
 
@@ -277,7 +276,7 @@ public final class SpanId {
      * @return {@code true} if the span ID is sampled
      */
     public boolean isSampled() {
-        return (flags & SAMPLED) == SAMPLED;
+        return flags.isSampled();
     }
 
     /**
@@ -290,8 +289,8 @@ public final class SpanId {
     /**
      * Creates a copy of the span ID with the new trace flags
      */
-    public SpanId withTraceFlags(byte flags) {
-        if (flags != this.flags) {
+    public SpanId withTraceFlags(TraceFlags flags) {
+        if (!flags.equals(this.flags)) {
             return new SpanId(parentSpanId, traceId, selfId, remote, flags, state);
         }
         return this;
@@ -307,7 +306,7 @@ public final class SpanId {
     /**
      * @return the span ID as an OpenTelemetry {@link SpanContext} with the specified trace flags and trace state.
      */
-    public SpanContext toSpanContext(byte traceFlags, TraceState traceState) {
+    public SpanContext toSpanContext(TraceFlags traceFlags, TraceState traceState) {
         if (remote) {
             return SpanContext.createFromRemoteParent(traceIdAsHex(), selfIdAsHex(), traceFlags, traceState);
         } else {
@@ -325,7 +324,7 @@ public final class SpanId {
         if (parentId() != spanId.parentId()) return false;
         if (selfId != spanId.selfId) return false;
         if (remote != spanId.remote) return false;
-        if (flags != spanId.flags) return false;
+        if (!flags.equals(spanId.flags)) return false;
         if (!traceId.equals(spanId.traceId)) return false;
         return state.equals(spanId.state);
     }
@@ -337,7 +336,7 @@ public final class SpanId {
         result = 31 * result + (int) (parentId ^ (parentId >>> 32));
         result = 31 * result + (int) (selfId ^ (selfId >>> 32));
         result = 31 * result + (remote ? 1 : 0);
-        result = 31 * result + (int) flags;
+        result = 31 * result + flags.hashCode();
         result = 31 * result + state.hashCode();
         return result;
     }

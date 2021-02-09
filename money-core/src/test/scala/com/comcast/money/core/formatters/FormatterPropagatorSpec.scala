@@ -76,8 +76,8 @@ class FormatterPropagatorSpec extends AnyWordSpec with MockitoSugar with Matcher
 
       span should not be null
       val spanContext = span.getSpanContext
-      spanContext.getTraceIdAsHexString shouldBe spanId.traceIdAsHex
-      spanContext.getSpanIdAsHexString shouldBe spanId.selfIdAsHex
+      spanContext.getTraceId shouldBe spanId.traceIdAsHex
+      spanContext.getSpanId shouldBe spanId.selfIdAsHex
       spanContext.getTraceFlags shouldBe spanId.traceFlags
       spanContext.isRemote shouldBe true
     }

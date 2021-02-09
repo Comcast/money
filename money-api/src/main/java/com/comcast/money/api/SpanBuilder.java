@@ -22,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import scala.Option;
 
@@ -105,7 +106,7 @@ public interface SpanBuilder extends io.opentelemetry.api.trace.SpanBuilder {
      * {@inheritDoc}
      */
     @Override
-    SpanBuilder setSpanKind(io.opentelemetry.api.trace.Span.Kind spanKind);
+    SpanBuilder setSpanKind(SpanKind spanKind);
 
     /**
      * {@inheritDoc}

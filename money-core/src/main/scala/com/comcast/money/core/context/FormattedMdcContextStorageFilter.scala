@@ -50,11 +50,11 @@ object FormattedMdcContextStorageFilter {
  * Context storage filter that updates MDC properties when the span changes for the current thread.
  */
 class FormattedMdcContextStorageFilter(
-  val spanContext: SpanContext,
+  override val spanContext: SpanContext,
   mdc: MDCAdapter,
   mdcKey: String,
   format: String,
-  formatIdsAsHex: Boolean = false) extends MdcContextStorageFilter {
+  formatIdsAsHex: Boolean = false) extends AbstractMdcContextStorageFilter {
 
   override def updateMdc(currentSpanInfo: Option[SpanInfo]): Unit = currentSpanInfo match {
     case Some(info) =>

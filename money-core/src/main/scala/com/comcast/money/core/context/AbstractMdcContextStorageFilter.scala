@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-package com.comcast.money.otel.formatters
+package com.comcast.money.core.context
+import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
 
-import com.comcast.money.core.formatters.OtelFormatter
-import io.opentelemetry.extension.trace.propagation.AwsXrayPropagator
-
-object AwsXrayFormatter extends OtelFormatter(AwsXrayPropagator.getInstance) {
-  private[formatters] val AmznTraceIdHeader = "X-Amzn-Trace-Id"
+abstract class AbstractMdcContextStorageFilter extends MdcContextStorageFilter {
+  override val spanContext: SpanContext = SpanLocal
 }
