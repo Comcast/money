@@ -352,8 +352,8 @@ def projectSettings = basicSettings ++ Seq(
 def basicSettings =  Defaults.itSettings ++ Seq(
   organization := "com.comcast.money",
   sonatypeProfileName := "com.comcast",
-  scalaVersion := "2.12.12",
-  crossScalaVersions := List("2.13.3", "2.12.12"),
+  scalaVersion := "2.12.13",
+  crossScalaVersions := List("2.13.4", "2.12.13"),
   resolvers ++= Seq(
     ("spray repo" at "http://repo.spray.io/").withAllowInsecureProtocol(true),
     "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/",
@@ -372,20 +372,5 @@ def basicSettings =  Defaults.itSettings ++ Seq(
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF", "-u", "target/scalatest-reports"),
   fork := true,
   publishArtifact in Test := false,
-  autoAPIMappings := true,
-  apiMappings ++= {
-    def findManagedDependency(organization: String, name: String): Option[File] = {
-      (for {
-        entry <- (fullClasspath in Compile).value
-        module <- entry.get(moduleID.key) if module.organization == organization && module.name.startsWith(name)
-      } yield entry.data).headOption
-    }
-    val links: Seq[Option[(File, URL)]] = Seq(
-      findManagedDependency("org.scala-lang", "scala-library").map(d => d -> url(s"https://www.scala-lang.org/api/2.12.12/")),
-      findManagedDependency("com.typesafe", "config").map(d => d -> url("https://typesafehub.github.io/config/latest/api/"))
-    )
-    val x = links.collect { case Some(d) => d }.toMap
-    println("links: " + x)
-    x
-  }
+  autoAPIMappings := true
 )
