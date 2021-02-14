@@ -12,8 +12,6 @@ lazy val copyApiDocsTask = taskKey[Unit]("Copies the scala docs from each projec
 
 lazy val props = new SystemProperties()
 
-autoScalaLibrary := false
-
 lazy val money =
   Project("money", file("."))
     .settings(projectSettings: _*)
