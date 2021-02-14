@@ -25,6 +25,8 @@ import io.opentelemetry.context.{ Context, ContextStorage, Scope }
 import io.opentelemetry.api.trace.{ SpanContext, SpanKind, StatusCode, Span => OtelSpan }
 import com.comcast.money.core.formatters.Formatter
 
+import java.util.Optional
+
 // $COVERAGE-OFF$
 object DisabledSpanHandler extends SpanHandler {
 
@@ -99,7 +101,7 @@ object DisabledSpanBuilder extends SpanBuilder {
 
   override def setParent(span: Span): SpanBuilder = this
 
-  override def setParent(span: Option[Span]): SpanBuilder = this
+  override def setParent(span: Optional[Span]): SpanBuilder = this
 
   override def setSticky(sticky: Boolean): SpanBuilder = this
 

@@ -12,6 +12,8 @@ lazy val copyApiDocsTask = taskKey[Unit]("Copies the scala docs from each projec
 
 lazy val props = new SystemProperties()
 
+autoScalaLibrary := false
+
 lazy val money =
   Project("money", file("."))
     .settings(projectSettings: _*)
@@ -41,7 +43,7 @@ lazy val money =
 lazy val moneyApi =
   Project("money-api", file("./money-api"))
     .enablePlugins(AutomateHeaderPlugin)
-    .settings(projectSettings: _*)
+    .settings(javaOnlyProjectSettings: _*)
     .settings(
       libraryDependencies ++=
         Seq(
@@ -105,7 +107,7 @@ lazy val moneyAspectj =
     .settings(
       libraryDependencies ++=
         Seq(
-          typesafeConfig,
+          typesafeConfig
         ) ++ commonTestDependencies
     )
     .dependsOn(moneyCore % "test->test;compile->compile")
@@ -164,7 +166,7 @@ lazy val moneyKafka =
           chill,
           chillAvro,
           chillBijection,
-          commonsIo,
+          commonsIo
         ) ++ commonTestDependencies
     )
     .dependsOn(moneyCore, moneyWire % "test->test;compile->compile")
@@ -320,6 +322,15 @@ lazy val moneyOtlpExporter =
     )
     .dependsOn(moneyCore, moneyOtelHandler % "test->test;compile->compile")
 
+
+def aspectjProjectSettings = projectSettings ++ Seq(
+  javaOptions in Test ++= (aspectjWeaverOptions in Aspectj).value // adds javaagent:aspectjweaver to java options, including test
+)
+
+def javaOnlyProjectSettings = projectSettings ++ Seq(
+  autoScalaLibrary := false
+)
+
 def projectSettings = basicSettings ++ Seq(
   ScoverageKeys.coverageHighlighting := true,
   ScoverageKeys.coverageMinimum := 80,
@@ -338,10 +349,6 @@ def projectSettings = basicSettings ++ Seq(
       url("https://github.com/pauljamescleary")
     )
   )
-)
-
-def aspectjProjectSettings = projectSettings ++ Seq(
-  javaOptions in Test ++= (aspectjWeaverOptions in Aspectj).value // adds javaagent:aspectjweaver to java options, including test
 )
 
 def basicSettings =  Defaults.itSettings ++ Seq(

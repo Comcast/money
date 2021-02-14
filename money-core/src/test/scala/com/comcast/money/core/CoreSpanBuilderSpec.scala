@@ -33,6 +33,8 @@ import org.scalatestplus.mockito.MockitoSugar
 import scala.collection.JavaConverters._
 import InstantImplicits._
 
+import java.util.Optional
+
 class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
   val clock = SystemClock
   val library = InstrumentationLibrary.UNKNOWN
@@ -149,7 +151,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       }
 
       val result = underTest
-        .setParent(Some(parentSpan))
+        .setParent(Optional.of(parentSpan))
         .startSpan()
 
       result shouldBe span

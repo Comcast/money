@@ -17,6 +17,7 @@
 package com.comcast.money.api;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import io.opentelemetry.api.common.AttributeKey;
@@ -24,7 +25,6 @@ import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
-import scala.Option;
 
 public interface SpanBuilder extends io.opentelemetry.api.trace.SpanBuilder {
 
@@ -42,7 +42,7 @@ public interface SpanBuilder extends io.opentelemetry.api.trace.SpanBuilder {
     /**
      * Sets the parent span to the specified span
      */
-    SpanBuilder setParent(Option<Span> span);
+    SpanBuilder setParent(Optional<Span> span);
 
     /**
      * {@inheritDoc}
