@@ -16,9 +16,9 @@
 
 package com.comcast.money.core.formatters
 
-import com.comcast.money.api.{ IdGenerator, Span, SpanId }
+import com.comcast.money.api.{ IdGenerator, SpanId }
 import io.opentelemetry.context.Context
-import io.opentelemetry.context.propagation.TextMapPropagator
+import io.opentelemetry.context.propagation.{ TextMapGetter, TextMapSetter }
 import io.opentelemetry.api.trace.{ TraceFlags, TraceState, Span => OtelSpan }
 import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.any
@@ -43,7 +43,7 @@ class FormatterPropagatorSpec extends AnyWordSpec with MockitoSugar with Matcher
 
     "delegates Formatter.toHttpHeaders to TextMapPropagator.inject" in {
       val formatter = mock[Formatter]
-      val setter = mock[TextMapPropagator.Setter[Unit]]
+      val setter = mock[TextMapSetter[Unit]]
       val underTest = FormatterPropagator(formatter)
 
       val spanId = SpanId.createNew()
@@ -62,7 +62,7 @@ class FormatterPropagatorSpec extends AnyWordSpec with MockitoSugar with Matcher
 
     "delegates Formatter.fromHttpHeaders to TextMapPropagator.extract" in {
       val formatter = mock[Formatter]
-      val getter = mock[TextMapPropagator.Getter[Unit]]
+      val getter = mock[TextMapGetter[Unit]]
       val underTest = FormatterPropagator(formatter)
 
       val traceId = IdGenerator.generateRandomTraceId()
@@ -84,7 +84,7 @@ class FormatterPropagatorSpec extends AnyWordSpec with MockitoSugar with Matcher
 
     "delegates Formatter.fromHttpHeaders to TextMapPropagator.extract without span" in {
       val formatter = mock[Formatter]
-      val getter = mock[TextMapPropagator.Getter[Unit]]
+      val getter = mock[TextMapGetter[Unit]]
       val underTest = FormatterPropagator(formatter)
 
       val traceId = IdGenerator.generateRandomTraceId()

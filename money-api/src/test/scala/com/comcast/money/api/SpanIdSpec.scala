@@ -82,7 +82,7 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
       val traceId = IdGenerator.generateRandomTraceId()
       val selfId = IdGenerator.generateRandomId()
       val parentId = IdGenerator.generateRandomId()
-      val state = TraceState.builder().set("foo", "bar").build()
+      val state = TraceState.builder().put("foo", "bar").build()
       val remoteId = SpanId.createRemote(traceId, parentId, selfId, TraceFlags.getSampled, state)
 
       remoteId.traceId shouldBe traceId
@@ -108,7 +108,7 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
       val traceId = IdGenerator.generateRandomTraceId()
       val selfId = IdGenerator.generateRandomId()
       val parentId = IdGenerator.generateRandomId()
-      val state = TraceState.builder().set("foo", "bar").build()
+      val state = TraceState.builder().put("foo", "bar").build()
       val remoteId = SpanId.createRemote(traceId, parentId, selfId, TraceFlags.getSampled, state)
 
       val childId = remoteId.createChild()
@@ -195,7 +195,7 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
     }
 
     "returns SpanContext from span id" in {
-      val traceState = TraceState.builder().set("foo", "bar").build();
+      val traceState = TraceState.builder().put("foo", "bar").build();
       val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, false, TraceFlags.getSampled, traceState)
       val spanContext = spanId.toSpanContext
 
@@ -207,7 +207,7 @@ class SpanIdSpec extends AnyWordSpec with Matchers {
     }
 
     "returns SpanContext from remote span id" in {
-      val traceState = TraceState.builder().set("foo", "bar").build();
+      val traceState = TraceState.builder().put("foo", "bar").build();
       val spanId = new SpanId("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, true, TraceFlags.getSampled, traceState)
       val spanContext = spanId.toSpanContext
 

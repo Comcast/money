@@ -17,17 +17,16 @@
 package com.comcast.money.core.formatters
 
 import java.util
-
 import com.comcast.money.api.SpanId
 import io.opentelemetry.context.Context
-import io.opentelemetry.context.propagation.TextMapPropagator
+import io.opentelemetry.context.propagation.{ TextMapGetter, TextMapPropagator, TextMapSetter }
 import io.opentelemetry.api.trace.Span
 
 import scala.collection.JavaConverters._
 
 final case class FormatterPropagator(formatter: Formatter) extends TextMapPropagator {
 
-  override def inject[C](context: Context, carrier: C, setter: TextMapPropagator.Setter[C]): Unit =
+  override def inject[C](context: Context, carrier: C, setter: TextMapSetter[C]): Unit =
     Option(Span.fromContextOrNull(context))
       .map { _.getSpanContext }
       .map { SpanId.fromSpanContext }
@@ -36,7 +35,7 @@ final case class FormatterPropagator(formatter: Formatter) extends TextMapPropag
         spanId => formatter.toHttpHeaders(spanId, (key, value) => setter.set(carrier, key, value))
       }
 
-  override def extract[C](context: Context, carrier: C, getter: TextMapPropagator.Getter[C]): Context =
+  override def extract[C](context: Context, carrier: C, getter: TextMapGetter[C]): Context =
     formatter.fromHttpHeaders(getter.keys(carrier).asScala, key => getter.get(carrier, key))
       .filter { _.isValid }
       .map { _.toSpanContext() }

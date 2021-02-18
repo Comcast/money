@@ -19,10 +19,9 @@ package com.comcast.money.core.formatters
 import com.comcast.money.api.SpanId
 import com.comcast.money.core.{ CoreSpan, DisabledSpanHandler }
 import io.opentelemetry.context.Context
-import io.opentelemetry.context.propagation.TextMapPropagator
-import io.opentelemetry.context.propagation.TextMapPropagator.{ Getter, Setter }
+import io.opentelemetry.context.propagation.{ TextMapGetter, TextMapPropagator, TextMapSetter }
 import io.opentelemetry.api.trace.{ Span => OtelSpan }
-import org.mockito.{ ArgumentCaptor, Mockito }
+import org.mockito.ArgumentCaptor
 import org.mockito.ArgumentMatchers.{ any, eq => argEq }
 import org.mockito.Mockito.{ verify, when }
 import org.scalatest.matchers.should.Matchers
@@ -44,7 +43,7 @@ class OtelFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers {
       underTest.toHttpHeaders(spanId, setter)
 
       val contextCaptor = ArgumentCaptor.forClass(classOf[Context])
-      val setterCaptor = ArgumentCaptor.forClass(classOf[Setter[Unit]])
+      val setterCaptor = ArgumentCaptor.forClass(classOf[TextMapSetter[Unit]])
       verify(propagator).inject[Unit](contextCaptor.capture(), any[Unit], setterCaptor.capture())
 
       val context = contextCaptor.getValue
@@ -66,12 +65,12 @@ class OtelFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers {
       val headers = Seq("A", "B")
       val getter = mock[String => String]
 
-      when(propagator.extract[Unit](argEq(Context.root), any[Unit], any[Getter[Unit]])).thenReturn(context)
+      when(propagator.extract[Unit](argEq(Context.root), any[Unit], any[TextMapGetter[Unit]])).thenReturn(context)
       val result = underTest.fromHttpHeaders(headers, getter)
 
       result shouldBe Some(spanId)
 
-      val getterCaptor = ArgumentCaptor.forClass(classOf[Getter[Unit]])
+      val getterCaptor = ArgumentCaptor.forClass(classOf[TextMapGetter[Unit]])
       verify(propagator).extract[Unit](argEq(Context.root), any[Unit], getterCaptor.capture())
       val wrappedGetter = getterCaptor.getValue
 
@@ -82,7 +81,7 @@ class OtelFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers {
     "wraps extract without span" in {
       val getter = mock[String => String]
 
-      when(propagator.extract[Unit](argEq(Context.root), any[Unit], any[Getter[Unit]])).thenReturn(Context.root)
+      when(propagator.extract[Unit](argEq(Context.root), any[Unit], any[TextMapGetter[Unit]])).thenReturn(Context.root)
       val result = underTest.fromHttpHeaders(Seq(), getter)
 
       result shouldBe None

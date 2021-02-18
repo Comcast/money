@@ -68,7 +68,7 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
     if (library != null) {
       InstrumentationLibraryInfo.create(library.name, library.version)
     } else {
-      InstrumentationLibraryInfo.getEmpty
+      InstrumentationLibraryInfo.empty
     }
 
   private def appendNoteToBuilder[T](builder: AttributesBuilder, note: Note[T]): AttributesBuilder =
