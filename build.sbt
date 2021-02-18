@@ -41,7 +41,7 @@ lazy val money =
 lazy val moneyApi =
   Project("money-api", file("./money-api"))
     .enablePlugins(AutomateHeaderPlugin)
-    .settings(projectSettings: _*)
+    .settings(javaOnlyProjectSettings: _*)
     .settings(
       libraryDependencies ++=
         Seq(
@@ -105,7 +105,7 @@ lazy val moneyAspectj =
     .settings(
       libraryDependencies ++=
         Seq(
-          typesafeConfig,
+          typesafeConfig
         ) ++ commonTestDependencies
     )
     .dependsOn(moneyCore % "test->test;compile->compile")
@@ -164,7 +164,7 @@ lazy val moneyKafka =
           chill,
           chillAvro,
           chillBijection,
-          commonsIo,
+          commonsIo
         ) ++ commonTestDependencies
     )
     .dependsOn(moneyCore, moneyWire % "test->test;compile->compile")
@@ -320,6 +320,15 @@ lazy val moneyOtlpExporter =
     )
     .dependsOn(moneyCore, moneyOtelHandler % "test->test;compile->compile")
 
+
+def aspectjProjectSettings = projectSettings ++ Seq(
+  javaOptions in Test ++= (aspectjWeaverOptions in Aspectj).value // adds javaagent:aspectjweaver to java options, including test
+)
+
+def javaOnlyProjectSettings = projectSettings ++ Seq(
+  autoScalaLibrary := false
+)
+
 def projectSettings = basicSettings ++ Seq(
   ScoverageKeys.coverageHighlighting := true,
   ScoverageKeys.coverageMinimum := 80,
@@ -338,10 +347,6 @@ def projectSettings = basicSettings ++ Seq(
       url("https://github.com/pauljamescleary")
     )
   )
-)
-
-def aspectjProjectSettings = projectSettings ++ Seq(
-  javaOptions in Test ++= (aspectjWeaverOptions in Aspectj).value // adds javaagent:aspectjweaver to java options, including test
 )
 
 def basicSettings =  Defaults.itSettings ++ Seq(
@@ -367,20 +372,5 @@ def basicSettings =  Defaults.itSettings ++ Seq(
   testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF", "-u", "target/scalatest-reports"),
   fork := true,
   publishArtifact in Test := false,
-  autoAPIMappings := true,
-  apiMappings ++= {
-    def findManagedDependency(organization: String, name: String): Option[File] = {
-      (for {
-        entry <- (fullClasspath in Compile).value
-        module <- entry.get(moduleID.key) if module.organization == organization && module.name.startsWith(name)
-      } yield entry.data).headOption
-    }
-    val links: Seq[Option[(File, URL)]] = Seq(
-      findManagedDependency("org.scala-lang", "scala-library").map(d => d -> url(s"https://www.scala-lang.org/api/2.12.12/")),
-      findManagedDependency("com.typesafe", "config").map(d => d -> url("https://typesafehub.github.io/config/latest/api/"))
-    )
-    val x = links.collect { case Some(d) => d }.toMap
-    println("links: " + x)
-    x
-  }
+  autoAPIMappings := true
 )

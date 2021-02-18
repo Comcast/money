@@ -24,6 +24,7 @@ import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Context
 import io.opentelemetry.api.trace.{ SpanContext, SpanKind, TraceFlags, Span => OtelSpan }
 
+import java.util.Optional
 import scala.collection.JavaConverters._
 
 private[core] class CoreSpanBuilder(
@@ -56,8 +57,8 @@ private[core] class CoreSpanBuilder(
     this
   }
 
-  override def setParent(span: Option[Span]): SpanBuilder = {
-    parentSpan = span
+  override def setParent(span: Optional[Span]): SpanBuilder = {
+    parentSpan = if (span.isPresent) Some(span.get) else None
     this
   }
 
