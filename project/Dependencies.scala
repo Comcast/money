@@ -11,7 +11,7 @@ object Dependencies {
   val typesafeConfigV = "1.3.3"
   val openTelemetryV = "0.17.0"
   val openTelemetryInstV = "0.17.0"
-  val openTelemetrySemConvV = "0.16.0-alpha"
+  val openTelemetrySemConvV = "0.17.0-alpha"
 
   val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
   val akkaStream =      "com.typesafe.akka"         %% "akka-stream"                 % akkaV
