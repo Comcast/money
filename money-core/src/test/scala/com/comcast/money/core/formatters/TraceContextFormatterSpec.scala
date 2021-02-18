@@ -61,7 +61,7 @@ class TraceContextFormatterSpec extends AnyWordSpec with MockitoSugar with Match
       forAll { (traceIdValue: UUID, spanIdValue: Long, sampled: Boolean) =>
         whenever(isValidIds(traceIdValue, spanIdValue)) {
           val traceFlags = if (sampled) TraceFlags.getSampled else TraceFlags.getDefault
-          val traceState = TraceState.builder().set("foo", "bar").build()
+          val traceState = TraceState.builder().put("foo", "bar").build()
           val expectedSpanId = SpanId.createRemote(traceIdValue.toString, spanIdValue, spanIdValue, traceFlags, traceState)
 
           underTest.toHttpHeaders(expectedSpanId, (k, v) => k match {

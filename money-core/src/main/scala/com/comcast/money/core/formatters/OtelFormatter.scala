@@ -17,10 +17,9 @@
 package com.comcast.money.core.formatters
 
 import java.{ lang, util }
-
 import com.comcast.money.api.SpanId
 import io.opentelemetry.context.Context
-import io.opentelemetry.context.propagation.TextMapPropagator
+import io.opentelemetry.context.propagation.{ TextMapGetter, TextMapPropagator }
 import io.opentelemetry.api.trace._
 
 import scala.collection.JavaConverters._
@@ -32,7 +31,7 @@ class OtelFormatter(propagator: TextMapPropagator) extends Formatter {
   }
 
   def fromHttpHeaders(headers: Iterable[String], getHeader: String => String, log: String => Unit = _ => {}): Option[SpanId] = {
-    val getter = new TextMapPropagator.Getter[Unit] {
+    val getter = new TextMapGetter[Unit] {
       override def get(carrier: Unit, key: String): String = getHeader(key)
       override def keys(c: Unit): lang.Iterable[String] = headers.asJava
     }
