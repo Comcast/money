@@ -16,7 +16,6 @@
 
 package com.comcast.money.core
 
-import java.lang
 import java.time.Instant
 import java.util.concurrent.TimeUnit
 
@@ -46,8 +45,6 @@ private[core] final case class UnrecordedSpan(
   override def isRecording: Boolean = false
 
   // $COVERAGE-OFF$
-  override def stop(): Unit = close()
-  override def stop(result: lang.Boolean): Unit = close()
   override def `end`(): Unit = close()
   override def `end`(endTimeStamp: Long, unit: TimeUnit): Unit = close()
 

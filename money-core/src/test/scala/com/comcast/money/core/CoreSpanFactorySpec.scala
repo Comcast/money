@@ -19,7 +19,7 @@ package com.comcast.money.core
 import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanHandler, SpanId }
 import com.comcast.money.core.formatters.MoneyTraceFormatter
 import com.comcast.money.core.handlers.TestData
-import com.comcast.money.core.internal.SpanContext
+import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
 import com.comcast.money.core.samplers.{ AlwaysOffSampler, AlwaysOnSampler, RecordResult, Sampler, SamplerResult }
 import io.opentelemetry.api.trace.TraceFlags
 import org.scalatest.matchers.should.Matchers
@@ -28,7 +28,7 @@ import org.scalatestplus.mockito.MockitoSugar
 
 class CoreSpanFactorySpec extends AnyWordSpec with Matchers with MockitoSugar with TestData {
 
-  val context = mock[SpanContext]
+  val context = SpanLocal
   val handler = mock[SpanHandler]
   val formatter = MoneyTraceFormatter
   val sampler = AlwaysOnSampler

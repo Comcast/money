@@ -16,9 +16,7 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ InstrumentationLibrary, SpanFactory }
-import io.opentelemetry.api.trace
-import io.opentelemetry.api.trace.TracerProvider
+import com.comcast.money.api.{ InstrumentationLibrary, SpanFactory, Tracer => ApiTracer, TracerProvider }
 
 import scala.collection.concurrent.TrieMap
 
@@ -26,13 +24,11 @@ final case class MoneyTracerProvider(tracer: Tracer) extends TracerProvider {
 
   private val tracers = new TrieMap[InstrumentationLibrary, Tracer]()
 
-  override def get(instrumentationName: String): trace.Tracer = get(instrumentationName, null)
-  override def get(instrumentationName: String, instrumentationVersion: String): trace.Tracer = {
-    val library = new InstrumentationLibrary(instrumentationName, instrumentationVersion)
-    tracers.getOrElseUpdate(library, {
+  override def get(instrumentationLibrary: InstrumentationLibrary): ApiTracer = {
+    tracers.getOrElseUpdate(instrumentationLibrary, {
       tracer.spanFactory match {
         case csf: CoreSpanFactory => new Tracer {
-          override val spanFactory: SpanFactory = csf.copy(library = library)
+          override val spanFactory: SpanFactory = csf.copy(library = instrumentationLibrary)
         }
         case _ => tracer
       }

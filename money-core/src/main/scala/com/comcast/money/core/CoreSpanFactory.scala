@@ -20,6 +20,7 @@ import com.comcast.money.api.{ InstrumentationLibrary, Span, SpanBuilder, SpanFa
 import com.comcast.money.core.formatters.Formatter
 import com.comcast.money.core.internal.SpanContext
 import com.comcast.money.core.samplers.Sampler
+import io.opentelemetry.context.Context
 
 private[core] final case class CoreSpanFactory(
   spanContext: SpanContext,
@@ -45,13 +46,19 @@ private[core] final case class CoreSpanFactory(
       .setSticky(true)
       .startSpan()
 
-  private[core] def spanBuilder(spanName: String, spanId: Option[SpanId] = None, parentSpan: Option[Span] = spanContext.current): SpanBuilder =
+  private[core] def spanBuilder(spanName: String, spanId: Option[SpanId] = None, parentSpan: Option[Span] = spanContext.current): SpanBuilder = {
+    val parentContext = parentSpan match {
+      case Some(s) => Context.current().`with`(s)
+      case None => Context.root()
+    }
     new CoreSpanBuilder(
       spanId = spanId,
-      parentSpan = parentSpan,
+      parentContext = parentContext,
+      spanContext = spanContext,
       spanName = spanName,
       clock = clock,
       handler = handler,
       sampler = sampler,
       library = library)
+  }
 }

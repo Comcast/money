@@ -20,10 +20,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 
+import com.comcast.money.api.EventInfo;
 import com.comcast.money.api.InstrumentationLibrary;
 import com.comcast.money.api.Note;
 import com.comcast.money.api.SpanId;
@@ -42,7 +42,7 @@ public class TestSpanInfo implements SpanInfo {
     }
 
     @Override
-    public List<SpanInfo.Event> events() {
+    public List<EventInfo> events() {
         return Collections.emptyList();
     }
 
@@ -89,6 +89,16 @@ public class TestSpanInfo implements SpanInfo {
     @Override
     public long durationNanos() {
         return 0;
+    }
+
+    @Override
+    public boolean hasEnded() {
+        return true;
+    }
+
+    @Override
+    public boolean isRecording() {
+        return true;
     }
 
     @Override

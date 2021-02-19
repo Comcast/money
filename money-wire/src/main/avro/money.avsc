@@ -27,6 +27,11 @@
             "default": null
         },
         {
+            "name": "hasEnded",
+            "type": "boolean",
+            "default": false
+        },
+        {
             "name": "duration",
             "type": "long",
             "default": 0

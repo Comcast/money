@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package com.comcast.money.otel.handlers
+package com.comcast.money.api;
 
-import com.comcast.money.api.{ LinkInfo, SpanInfo }
-import io.opentelemetry.api.common.Attributes
-import io.opentelemetry.api.trace.SpanContext
-import io.opentelemetry.sdk.trace.data.LinkData
+/**
+ * OpenTelemetry compatible API to be used for tracing
+ */
+public interface Tracer extends io.opentelemetry.api.trace.Tracer {
 
-private[otel] case class MoneyLink(link: LinkInfo) extends LinkData {
-  override def getSpanContext: SpanContext = link.spanContext
-  override def getAttributes: Attributes = link.attributes
-  override def getTotalAttributeCount: Int = link.attributes.size
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    SpanBuilder spanBuilder(String spanName);
 }

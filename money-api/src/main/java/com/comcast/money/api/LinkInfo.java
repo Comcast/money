@@ -16,17 +16,23 @@
 
 package com.comcast.money.api;
 
-import io.opentelemetry.api.trace.SpanBuilder;
-import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
 
 /**
- * OpenTelemetry compatible API to be used for tracing
+ * A reference to another {@link Span} by span context.
+ * <p>
+ * Can be used to associate multiple traces as a part of a batch operation.
  */
-public interface MoneyTracer extends Tracer {
+public interface LinkInfo {
+    /**
+     * @return the context of the linked span
+     */
+    SpanContext spanContext();
 
     /**
-     * {@inheritDoc}
+     * @return the attributes associated with the link between the spans
      */
-    @Override
-    SpanBuilder spanBuilder(String spanName);
+    Attributes attributes();
 }

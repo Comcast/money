@@ -28,9 +28,11 @@ case class TestSpanInfo(
   library: InstrumentationLibrary = new InstrumentationLibrary("test", "0.0.1"),
   startTimeNanos: Long = 0L,
   endTimeNanos: Long = 0L,
+  hasEnded: Boolean = true,
+  isRecording: Boolean = true,
   durationNanos: Long = 0L,
   status: StatusCode = StatusCode.UNSET,
   description: String = "",
-  notes: java.util.Map[String, Note[_]] = Collections.emptyMap(),
+  override val notes: java.util.Map[String, Note[_]] = Collections.emptyMap(),
   appName: String = Money.Environment.applicationName,
   host: String = Money.Environment.hostName) extends SpanInfo

@@ -16,20 +16,21 @@
 
 package com.comcast.money.core
 
-import java.time.Instant
-import java.util.concurrent.TimeUnit
-import com.comcast.money.api.{ InstrumentationLibrary, Note, Span, SpanBuilder, SpanHandler, SpanId, SpanInfo }
+import com.comcast.money.api._
+import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
 import com.comcast.money.core.samplers.{ DropResult, RecordResult, Sampler }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
+import io.opentelemetry.api.trace.{ SpanKind, TraceFlags, SpanContext => OtelSpanContext }
 import io.opentelemetry.context.Context
-import io.opentelemetry.api.trace.{ SpanContext, SpanKind, TraceFlags, Span => OtelSpan }
 
-import java.util.Optional
+import java.time.Instant
+import java.util.concurrent.TimeUnit
 import scala.collection.JavaConverters._
 
 private[core] class CoreSpanBuilder(
   spanId: Option[SpanId],
-  var parentSpan: Option[Span],
+  var parentContext: Context = Context.current(),
+  spanContext: SpanContext = SpanLocal,
   spanName: String,
   clock: Clock,
   handler: SpanHandler,
@@ -40,25 +41,10 @@ private[core] class CoreSpanBuilder(
   var spanKind: SpanKind = SpanKind.INTERNAL
   var startTimeNanos: Long = 0L
   var notes: List[Note[_]] = List()
-  var links: List[SpanInfo.Link] = List()
+  var links: List[LinkInfo] = List()
 
   override def setParent(context: Context): SpanBuilder = {
-    parentSpan = Option(context)
-      .flatMap { ctx => Option(OtelSpan.fromContextOrNull(ctx)) }
-      .flatMap {
-        case span: Span => Some(span)
-        case _ => None
-      }
-    this
-  }
-
-  override def setParent(span: Span): SpanBuilder = {
-    parentSpan = Option(span)
-    this
-  }
-
-  override def setParent(span: Optional[Span]): SpanBuilder = {
-    parentSpan = if (span.isPresent) Some(span.get) else None
+    parentContext = context
     this
   }
 
@@ -68,13 +54,13 @@ private[core] class CoreSpanBuilder(
   }
 
   override def setNoParent(): SpanBuilder = {
-    parentSpan = None
+    parentContext = Context.root
     this
   }
 
-  override def addLink(spanContext: SpanContext): SpanBuilder = addLink(spanContext, Attributes.empty)
+  override def addLink(spanContext: OtelSpanContext): SpanBuilder = addLink(spanContext, Attributes.empty)
 
-  override def addLink(spanContext: SpanContext, attributes: Attributes): SpanBuilder = {
+  override def addLink(spanContext: OtelSpanContext, attributes: Attributes): SpanBuilder = {
     links = CoreLink(spanContext, attributes) :: links
     this
   }
@@ -122,6 +108,7 @@ private[core] class CoreSpanBuilder(
     handler = handler)
 
   override def startSpan(): Span = {
+    val parentSpan = spanContext.fromContext(parentContext)
     val parentSpanId = parentSpan.map { _.info.id }
 
     val spanId = (this.spanId, parentSpanId) match {

@@ -16,7 +16,7 @@
 
 package com.comcast.money.otel.handlers
 
-import com.comcast.money.api.{ IdGenerator, SpanInfo }
+import com.comcast.money.api.{ IdGenerator, LinkInfo, SpanInfo }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.api.trace.{ SpanContext, TraceFlags, TraceState }
 import org.scalatest.matchers.should.Matchers
@@ -25,7 +25,7 @@ import org.scalatest.wordspec.AnyWordSpec
 class MoneyLinkSpec extends AnyWordSpec with Matchers {
 
   val linkedContext = SpanContext.create(IdGenerator.generateRandomTraceIdAsHex(), IdGenerator.generateRandomIdAsHex(), TraceFlags.getSampled, TraceState.getDefault)
-  val link = new SpanInfo.Link {
+  val link = new LinkInfo {
     override def spanContext(): SpanContext = linkedContext
     override def attributes(): Attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
   }

@@ -32,43 +32,50 @@ import io.opentelemetry.context.Scope;
  */
 public interface Span extends io.opentelemetry.api.trace.Span, Scope {
 
-    /**
-     * Stops the span asserts a successful result
-     */
-    void stop();
-
-    /**
-     * Ends a span, moving it to a Stopped state
-     * @param result The result of the span (success or failure)
-     */
-    void stop(Boolean result);
+    @Override
+    default Span setAttribute(String key, String value) {
+        return record(Note.of(key, value));
+    }
 
     @Override
-    Span setAttribute(String key, String value);
+    default Span setAttribute(String key, long value) {
+        return record(Note.of(key, value));
+    }
 
     @Override
-    Span setAttribute(String key, long value);
+    default Span setAttribute(String key, double value) {
+        return record(Note.of(key, value));
+    }
 
     @Override
-    Span setAttribute(String key, double value);
+    default Span setAttribute(String key, boolean value) {
+        return record(Note.of(key, value));
+    }
 
     @Override
-    Span setAttribute(String key, boolean value);
+    default <T> Span setAttribute(AttributeKey<T> key, T value) {
+        return record(Note.of(key, value));
+    }
 
     @Override
-    <T> Span setAttribute(AttributeKey<T> key, T value);
+    default Span setAttribute(AttributeKey<Long> key, int value) {
+        return setAttribute(key, (long) value);
+    }
 
     @Override
-    Span setAttribute(AttributeKey<Long> key, int value);
+    default Span addEvent(String name) {
+        return addEvent(name, Attributes.empty());
+    }
 
     @Override
-    Span addEvent(String name);
+    default Span addEvent(String name, long timestamp, TimeUnit unit) {
+        return addEvent(name, Attributes.empty(), timestamp, unit);
+    }
 
     @Override
-    Span addEvent(String name, long timestamp, TimeUnit unit);
-
-    @Override
-    Span addEvent(String name, Instant timestamp);
+    default Span addEvent(String name, Instant timestamp) {
+        return addEvent(name, Attributes.empty(), timestamp);
+    }
 
     @Override
     Span addEvent(String name, Attributes attributes);
@@ -77,16 +84,26 @@ public interface Span extends io.opentelemetry.api.trace.Span, Scope {
     Span addEvent(String name, Attributes attributes, long timestamp, TimeUnit unit);
 
     @Override
-    Span addEvent(String name, Attributes attributes, Instant timestamp);
+    default Span addEvent(String name, Attributes attributes, Instant timestamp) {
+        if (timestamp != null) {
+            return addEvent(name, attributes, TimeUnit.SECONDS.toNanos(timestamp.getEpochSecond()) + timestamp.getNano(), TimeUnit.NANOSECONDS);
+        } else {
+            return addEvent(name, attributes);
+        }
+    }
 
     @Override
-    Span setStatus(StatusCode canonicalCode);
+    default Span setStatus(StatusCode canonicalCode) {
+        return setStatus(canonicalCode, null);
+    }
 
     @Override
     Span setStatus(StatusCode canonicalCode, String description);
 
     @Override
-    Span recordException(Throwable exception);
+    default Span recordException(Throwable exception) {
+        return recordException(exception, Attributes.empty());
+    }
 
     @Override
     Span recordException(Throwable exception, Attributes additionalAttributes);
@@ -118,7 +135,22 @@ public interface Span extends io.opentelemetry.api.trace.Span, Scope {
     Span attachScope(Scope scope);
 
     /**
+     * Ends the span
+     * @param result The result of the span (success or failure)
+     */
+    default void end(boolean result) {
+        setStatus(result ? StatusCode.OK : StatusCode.ERROR).end();
+    }
+
+    /**
      * @return The current state of the Span
      */
     SpanInfo info();
+
+    /**
+     * @return The {@link SpanId} of the Span
+     */
+    default SpanId id() {
+        return info().id();
+    }
 }

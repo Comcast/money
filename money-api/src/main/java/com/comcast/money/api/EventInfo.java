@@ -14,15 +14,31 @@
  * limitations under the License.
  */
 
-package com.comcast.money.otel.handlers
+package com.comcast.money.api;
 
-import com.comcast.money.api.{ LinkInfo, SpanInfo }
-import io.opentelemetry.api.common.Attributes
-import io.opentelemetry.api.trace.SpanContext
-import io.opentelemetry.sdk.trace.data.LinkData
+import io.opentelemetry.api.common.Attributes;
 
-private[otel] case class MoneyLink(link: LinkInfo) extends LinkData {
-  override def getSpanContext: SpanContext = link.spanContext
-  override def getAttributes: Attributes = link.attributes
-  override def getTotalAttributeCount: Int = link.attributes.size
+/**
+ * An event that was recorded on a {@link Span}.
+ */
+public interface EventInfo {
+    /**
+     * @return the name of the event
+     */
+    String name();
+
+    /**
+     * @return the attributes recorded on the event
+     */
+    Attributes attributes();
+
+    /**
+     * @return the timestamp of when the event occurred in nanoseconds since the epoch
+     */
+    long timestamp();
+
+    /**
+     * @return an exception if one was recorded with the event; otherwise {@code null}
+     */
+    Throwable exception();
 }
