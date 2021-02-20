@@ -21,14 +21,15 @@ import java.util.concurrent.TimeUnit;
 
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 
 /**
  * A Span is a container that represents a unit of work.  It could be a long running operation or sequence of
  * statements in process, or a remote system call.
- *
- * A Span is immutable, all changes to the span result in a new Span being created.
  */
 public interface Span extends io.opentelemetry.api.trace.Span, Scope {
 
@@ -150,7 +151,68 @@ public interface Span extends io.opentelemetry.api.trace.Span, Scope {
     /**
      * @return The {@link SpanId} of the Span
      */
-    default SpanId id() {
-        return info().id();
+    SpanId id();
+
+    /**
+     * Returns the {@link io.opentelemetry.api.trace.Span} from the current {@link Context}, falling back to a default, no-op
+     * {@link io.opentelemetry.api.trace.Span} if there is no span in the current context.
+     */
+    static Span current() {
+        return fromContext(Context.current());
+    }
+
+    /**
+     * Returns the {@link io.opentelemetry.api.trace.Span} from the specified {@link Context}, falling back to a default, no-op
+     * {@link io.opentelemetry.api.trace.Span} if there is no span in the context.
+     */
+    static Span fromContext(Context context) {
+        Span span = fromContextOrNull(context);
+        return span != null ? span : getInvalid();
+    }
+
+    /**
+     * Returns the {@link io.opentelemetry.api.trace.Span} from the specified {@link Context}, or {@code null} if there is no
+     * span in the context.
+     */
+    static Span fromContextOrNull(Context context) {
+        io.opentelemetry.api.trace.Span otelSpan = io.opentelemetry.api.trace.Span.fromContextOrNull(context);
+        if (otelSpan instanceof Span && otelSpan.getSpanContext().isValid()) {
+            return (Span) otelSpan;
+        }
+        return null;
+    }
+
+    /**
+     * Returns an invalid {@link io.opentelemetry.api.trace.Span}.
+     */
+    static Span getInvalid() {
+        return InvalidSpan.INSTANCE;
+    }
+
+    /**
+     * Returns a non-recording {@link Span} that holds the provided {@link SpanId} but has no
+     * functionality. It will not be exported and all tracing operations are no-op, but it can be used
+     * to propagate a valid {@link SpanId} downstream.
+     */
+    static Span wrap(SpanId id) {
+        return wrap(id, null, SpanKind.INTERNAL);
+    }
+
+    /**
+     * Returns a non-recording {@link Span} that holds the provided {@link SpanId} but has no
+     * functionality. It will not be exported and all tracing operations are no-op, but it can be used
+     * to propagate a valid {@link SpanId} downstream.
+     */
+    static Span wrap(SpanId id, String name) {
+        return wrap(id, name, SpanKind.INTERNAL);
+    }
+
+    /**
+     * Returns a non-recording {@link Span} that holds the provided {@link SpanId} but has no
+     * functionality. It will not be exported and all tracing operations are no-op, but it can be used
+     * to propagate a valid {@link SpanId} downstream.
+     */
+    static Span wrap(SpanId id, String name, SpanKind kind) {
+        return id != null && id.isValid() ? new PropagatedSpan(id, name, kind) : getInvalid();
     }
 }

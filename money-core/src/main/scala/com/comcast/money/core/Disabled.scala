@@ -135,6 +135,8 @@ object DisabledSpan extends Span {
 
   override def startTimer(timerKey: String): Scope = () => ()
 
+  override def id(): SpanId = SpanId.getInvalid
+
   override def info(): SpanInfo = null
 
   override def attachScope(scope: Scope): Span = this

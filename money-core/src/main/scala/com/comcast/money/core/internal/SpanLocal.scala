@@ -18,7 +18,6 @@ package com.comcast.money.core.internal
 
 import com.comcast.money.api.Span
 import io.opentelemetry.context.{ Context, Scope }
-import io.opentelemetry.api.trace.{ Span => OtelSpan }
 
 /**
  * Provides a context for storing SpanIds.  Keeps a stack of trace ids so that we
@@ -36,10 +35,7 @@ object SpanLocal extends SpanContext {
 
   def fromContext(context: Context): Option[Span] =
     if (context != null) {
-      Option(OtelSpan.fromContextOrNull(context)) match {
-        case Some(span: Span) => Some(span)
-        case _ => None
-      }
+      Option(Span.fromContextOrNull(context))
     } else None
 
   def clear(): Unit = Context.root.makeCurrent()

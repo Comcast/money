@@ -30,6 +30,7 @@ private[core] final case class UnrecordedSpan(
 
   private var scopes: List[Scope] = Nil
 
+  override def id(): SpanId = spanId
   override def info(): SpanInfo = CoreSpanInfo(spanId, name)
   override def getSpanContext: SpanContext = spanId.toSpanContext
 
