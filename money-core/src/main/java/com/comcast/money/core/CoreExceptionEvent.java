@@ -22,23 +22,22 @@ import java.io.StringWriter;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.common.AttributesBuilder;
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 
 import com.comcast.money.api.EventInfo;
 
+@EqualsAndHashCode(exclude = {"additionalAttributes", "lock"})
 final class CoreExceptionEvent implements EventInfo {
-    private final Throwable exception;
-    private final long timestampNanos;
+    @Getter private final Throwable exception;
+    @Getter private final long timestampNanos;
     private final Attributes additionalAttributes;
     private final Object lock = new Object();
     private transient Attributes attributes;
 
-    public CoreExceptionEvent(Throwable exception, long timestampNanos) {
-        this(exception, timestampNanos, Attributes.empty());
-    }
-
     public CoreExceptionEvent(Throwable exception, long timestampNanos, Attributes attributes) {
-        this.timestampNanos = timestampNanos;
         this.exception = exception;
+        this.timestampNanos = timestampNanos;
         this.additionalAttributes = attributes;
     }
 
@@ -56,47 +55,22 @@ final class CoreExceptionEvent implements EventInfo {
             if (attributes != null) {
                 return attributes;
             }
-            AttributesBuilder builder = additionalAttributes.toBuilder();
-            builder.put(SemanticAttributes.EXCEPTION_TYPE, exception.getClass().getCanonicalName());
-            String message = exception.getMessage();
-            if (message != null && !message.isEmpty()) {
-                builder.put(SemanticAttributes.EXCEPTION_MESSAGE, message);
-            }
-            StringWriter writer = new StringWriter();
-            exception.printStackTrace(new PrintWriter(writer));
-            builder.put(SemanticAttributes.EXCEPTION_STACKTRACE, writer.toString());
-            attributes = builder.build();
+
+            attributes = mergeExceptionAttributes(additionalAttributes, exception);
             return attributes;
         }
     }
 
-    @Override
-    public long timestamp() {
-        return timestampNanos;
-    }
-
-    @Override
-    public Throwable exception() {
-        return exception;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        CoreExceptionEvent that = (CoreExceptionEvent) o;
-
-        if (timestampNanos != that.timestampNanos) return false;
-        if (!exception.equals(that.exception)) return false;
-        return additionalAttributes.equals(that.additionalAttributes);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = exception.hashCode();
-        result = 31 * result + (int) (timestampNanos ^ (timestampNanos >>> 32));
-        result = 31 * result + additionalAttributes.hashCode();
-        return result;
+    private Attributes mergeExceptionAttributes(Attributes attributes, Throwable exception) {
+        AttributesBuilder builder = additionalAttributes != null ? attributes.toBuilder() : Attributes.builder();
+        builder.put(SemanticAttributes.EXCEPTION_TYPE, exception.getClass().getCanonicalName());
+        String message = exception.getMessage();
+        if (message != null && !message.isEmpty()) {
+            builder.put(SemanticAttributes.EXCEPTION_MESSAGE, message);
+        }
+        StringWriter writer = new StringWriter();
+        exception.printStackTrace(new PrintWriter(writer));
+        builder.put(SemanticAttributes.EXCEPTION_STACKTRACE, writer.toString());
+        return builder.build();
     }
 }

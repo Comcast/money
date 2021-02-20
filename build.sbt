@@ -58,6 +58,7 @@ lazy val moneyCore =
         Seq(
           slf4j,
           log4jbinding,
+          lombok,
           metricsCore,
           openTelemetryApi,
           openTelemetrySemConv,
@@ -330,6 +331,7 @@ def javaOnlyProjectSettings = projectSettings ++ Seq(
 )
 
 def projectSettings = basicSettings ++ Seq(
+  compileOrder := CompileOrder.JavaThenScala,
   ScoverageKeys.coverageHighlighting := true,
   ScoverageKeys.coverageMinimum := 80,
   ScoverageKeys.coverageFailOnMinimum := true,
@@ -366,6 +368,8 @@ def basicSettings =  Defaults.itSettings ++ Seq(
     "-language:existentials",
     "-language:postfixOps",
     "-language:reflectiveCalls"),
+  // temporary to enable Lombok config to work in submodules
+  javaHome := sys.env.get("JAVA_HOME").map(file),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
   javacOptions in doc := Seq("-source", "1.8"),
   scalariformAutoformat := true,

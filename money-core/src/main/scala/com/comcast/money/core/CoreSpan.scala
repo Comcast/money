@@ -78,20 +78,23 @@ private[core] case class CoreSpan(
   }
 
   override def info(): SpanInfo =
-    CoreSpanInfo(
-      id = id,
-      name = name,
-      kind = kind,
-      library = library,
-      startTimeNanos = startTimeNanos,
-      endTimeNanos = endTimeNanos,
-      hasEnded = ended.get(),
-      durationNanos = calculateDurationNanos,
-      status = status,
-      description = description,
-      notes = noted.toMap[String, Note[_]].asJava,
-      events = events.asJava,
-      links = links.asJava)
+    CoreSpanInfo.builder()
+      .appName(Money.Environment.applicationName)
+      .host(Money.Environment.hostName)
+      .library(library)
+      .id(id)
+      .name(name)
+      .kind(kind)
+      .links(links.asJava)
+      .startTimeNanos(startTimeNanos)
+      .endTimeNanos(endTimeNanos)
+      .hasEnded(ended.get())
+      .durationNanos(calculateDurationNanos)
+      .status(status)
+      .description(description)
+      .notes(noted.toMap[String, Note[_]].asJava)
+      .events(events.asJava)
+      .build()
 
   override def close(): Unit = end()
 

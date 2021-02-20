@@ -23,6 +23,6 @@ import io.opentelemetry.sdk.trace.data.EventData
 private[otel] case class MoneyEvent(event: EventInfo) extends EventData {
   override def getName: String = event.name
   override def getAttributes: Attributes = event.attributes
-  override def getEpochNanos: Long = event.timestamp
+  override def getEpochNanos: Long = event.timestampNanos
   override def getTotalAttributeCount: Int = event.attributes.size
 }

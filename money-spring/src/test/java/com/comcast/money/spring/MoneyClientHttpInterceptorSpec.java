@@ -50,23 +50,23 @@ public class MoneyClientHttpInterceptorSpec {
     @Before
     public void setUp() {
         Span span = mock(Span.class);
-        SpanInfo testSpanInfo = new CoreSpanInfo(
-                id,
-                "testName",
-                SpanKind.INTERNAL,
-                true,
-                0L,
-                0L,
-                true,
-                0L,
-                StatusCode.OK,
-                "",
-                Collections.emptyMap(),
-                Collections.emptyList(),
-                Collections.emptyList(),
-                new InstrumentationLibrary("test", "0.0.1"),
-                "testAppName",
-                "testHost");
+        SpanInfo testSpanInfo = CoreSpanInfo.builder()
+                .id(id)
+                .name("testName")
+                .kind(SpanKind.INTERNAL)
+                .startTimeNanos(0L)
+                .endTimeNanos(0L)
+                .hasEnded(true)
+                .durationNanos(0L)
+                .status(StatusCode.OK)
+                .description("")
+                .notes(Collections.emptyMap())
+                .links(Collections.emptyList())
+                .events(Collections.emptyList())
+                .library(new InstrumentationLibrary("test", "0.0.1"))
+                .appName("testAppName")
+                .host("testHost")
+                .build();
 
         when(span.info()).thenReturn(testSpanInfo);
         when(span.storeInContext(any())).thenCallRealMethod();

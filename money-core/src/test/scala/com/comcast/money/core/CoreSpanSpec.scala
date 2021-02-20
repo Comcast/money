@@ -124,7 +124,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       val event = underTest.info.events.get(0)
       event.name shouldBe "event"
       event.attributes should have size 0
-      event.timestamp should not be 0L
+      event.timestampNanos should not be 0L
       event.exception should be(null)
     }
 
@@ -137,7 +137,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       val event = underTest.info.events.get(0)
       event.name shouldBe "event"
       event.attributes should have size 0
-      event.timestamp shouldBe 100L
+      event.timestampNanos shouldBe 100L
       event.exception should be(null)
     }
 
@@ -151,7 +151,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       val event = underTest.info.events.get(0)
       event.name shouldBe "event"
       event.attributes should have size 0
-      event.timestamp shouldBe instant.toEpochNano
+      event.timestampNanos shouldBe instant.toEpochNano
       event.exception should be(null)
     }
 
@@ -178,7 +178,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       event.name shouldBe "event"
       event.attributes should have size 1
       event.attributes.get(AttributeKey.stringKey("foo")) shouldBe "bar"
-      event.timestamp shouldBe 100L
+      event.timestampNanos shouldBe 100L
       event.exception should be(null)
     }
 
@@ -193,7 +193,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       event.name shouldBe "event"
       event.attributes should have size 1
       event.attributes.get(AttributeKey.stringKey("foo")) shouldBe "bar"
-      event.timestamp shouldBe instant.toEpochNano
+      event.timestampNanos shouldBe instant.toEpochNano
       event.exception should be(null)
     }
 
@@ -210,7 +210,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       event.attributes.get(SemanticAttributes.EXCEPTION_TYPE) shouldBe "java.lang.RuntimeException"
       event.attributes.get(SemanticAttributes.EXCEPTION_MESSAGE) shouldBe "BOOM"
       event.attributes.get(SemanticAttributes.EXCEPTION_STACKTRACE) should startWith("java.lang.RuntimeException: BOOM")
-      event.timestamp should not be 0
+      event.timestampNanos should not be 0
       event.exception shouldBe exception
     }
 
@@ -228,7 +228,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       event.attributes.get(SemanticAttributes.EXCEPTION_MESSAGE) shouldBe "BOOM"
       event.attributes.get(SemanticAttributes.EXCEPTION_STACKTRACE) should startWith("java.lang.RuntimeException: BOOM")
       event.attributes.get(AttributeKey.stringKey("foo")) shouldBe "bar"
-      event.timestamp should not be 0
+      event.timestampNanos should not be 0
       event.exception shouldBe exception
     }
 

@@ -104,7 +104,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
   val event = new EventInfo {
     override def name(): String = "event"
     override def attributes(): Attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
-    override def timestamp(): Long = 1234567890L
+    override def timestampNanos(): Long = 1234567890L
     override def exception(): Throwable = null
   }
 

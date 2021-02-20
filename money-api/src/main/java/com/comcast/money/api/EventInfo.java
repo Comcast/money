@@ -16,6 +16,8 @@
 
 package com.comcast.money.api;
 
+import java.util.concurrent.TimeUnit;
+
 import io.opentelemetry.api.common.Attributes;
 
 /**
@@ -35,7 +37,21 @@ public interface EventInfo {
     /**
      * @return the timestamp of when the event occurred in nanoseconds since the epoch
      */
-    long timestamp();
+    long timestampNanos();
+
+    /**
+     * @return the timestamp of when the event occurred in microseconds since the epoch
+     */
+    default long timestampMicros() {
+        return TimeUnit.NANOSECONDS.toMicros(timestampNanos());
+    }
+
+    /**
+     * @return the timestamp of when the event occurred in milliseconds since the epoch
+     */
+    default long timestampMillis() {
+        return TimeUnit.NANOSECONDS.toMillis(timestampNanos());
+    }
 
     /**
      * @return an exception if one was recorded with the event; otherwise {@code null}

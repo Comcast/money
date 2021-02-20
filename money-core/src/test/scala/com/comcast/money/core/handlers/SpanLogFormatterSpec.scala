@@ -38,29 +38,31 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
   val spanLogFormatter = SpanLogFormatter(emitterConf)
 
   val spanId = SpanId.createNew()
-  val sampleData = CoreSpanInfo(
-    id = spanId,
-    startTimeNanos = 1000000L,
-    endTimeNanos = 26000000L,
-    durationNanos = 35000000L,
-    hasEnded = true,
-    name = "key",
-    appName = "unknown",
-    host = "host",
-    notes = Map[String, Note[_]]("bob" -> Note.of("bob", "craig"), "what" -> Note.of("what", 1L), "when" -> Note.of("when", 2L)).asJava,
-    status = StatusCode.OK)
+  val sampleData = CoreSpanInfo.builder()
+    .id(spanId)
+    .startTimeNanos(1000000L)
+    .endTimeNanos(26000000L)
+    .durationNanos(35000000L)
+    .hasEnded(true)
+    .name("key")
+    .appName("unknown")
+    .host("host")
+    .notes(Map[String, Note[_]]("bob" -> Note.of("bob", "craig"), "what" -> Note.of("what", 1L), "when" -> Note.of("when", 2L)).asJava)
+    .status(StatusCode.OK)
+    .build()
 
-  val withNull = CoreSpanInfo(
-    id = spanId,
-    startTimeNanos = 1000000L,
-    endTimeNanos = 26000000L,
-    durationNanos = 35000000L,
-    hasEnded = true,
-    name = "key",
-    appName = "unknown",
-    host = "host",
-    notes = Map[String, Note[_]]("empty" -> Note.of("empty", null)).asJava,
-    status = StatusCode.OK)
+  val withNull = CoreSpanInfo.builder()
+    .id(spanId)
+    .startTimeNanos(1000000L)
+    .endTimeNanos(26000000L)
+    .durationNanos(35000000L)
+    .hasEnded(true)
+    .name("key")
+    .appName("unknown")
+    .host("host")
+    .notes(Map[String, Note[_]]("empty" -> Note.of("empty", null)).asJava)
+    .status(StatusCode.OK)
+    .build()
 
   "A LogEmitter must" must {
     "have a correctly formatted message" in {

@@ -20,3 +20,5 @@ addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.8.3")
 addSbtPlugin("net.virtual-void" % "sbt-dependency-graph" % "0.10.0-RC1")
 
 addSbtPlugin("com.geirsson" % "sbt-ci-release" % "1.5.3")
+
+addSbtPlugin("com.thoughtworks.sbt" % "delombokjavadoc" % "1.0.0")

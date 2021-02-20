@@ -17,38 +17,15 @@
 package com.comcast.money.core;
 
 import io.opentelemetry.api.common.Attributes;
+import lombok.Value;
 
 import com.comcast.money.api.EventInfo;
 
+@Value
 class CoreEvent implements EventInfo {
-    private final String name;
-    private final long timestampNanos;
-    private final Attributes attributes;
-
-    public CoreEvent(String name, long timestampNanos) {
-        this(name, timestampNanos, Attributes.empty());
-    }
-
-    public CoreEvent(String name, long timestampNanos, Attributes attributes) {
-        this.name = name;
-        this.timestampNanos = timestampNanos;
-        this.attributes = attributes;
-    }
-
-    @Override
-    public String name() {
-        return name;
-    }
-
-    @Override
-    public Attributes attributes() {
-        return attributes;
-    }
-
-    @Override
-    public long timestamp() {
-        return timestampNanos;
-    }
+    String name;
+    long timestampNanos;
+    Attributes attributes;
 
     @Override
     public Throwable exception() {

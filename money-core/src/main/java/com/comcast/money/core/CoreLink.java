@@ -18,47 +18,12 @@ package com.comcast.money.core;
 
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanContext;
+import lombok.Value;
 
 import com.comcast.money.api.LinkInfo;
 
-final class CoreLink implements LinkInfo {
-    private final SpanContext spanContext;
-    private final Attributes attributes;
-
-    public CoreLink(SpanContext spanContext) {
-        this(spanContext, Attributes.empty());
-    }
-
-    public CoreLink(SpanContext spanContext, Attributes attributes) {
-        this.spanContext = spanContext;
-        this.attributes = attributes;
-    }
-
-    @Override
-    public SpanContext spanContext() {
-        return spanContext;
-    }
-
-    @Override
-    public Attributes attributes() {
-        return attributes;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        CoreLink coreLink = (CoreLink) o;
-
-        if (!spanContext.equals(coreLink.spanContext)) return false;
-        return attributes.equals(coreLink.attributes);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = spanContext.hashCode();
-        result = 31 * result + attributes.hashCode();
-        return result;
-    }
+@Value
+class CoreLink implements LinkInfo {
+    SpanContext spanContext;
+    Attributes attributes;
 }
