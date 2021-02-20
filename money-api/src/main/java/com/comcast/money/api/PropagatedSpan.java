@@ -40,6 +40,37 @@ final class PropagatedSpan implements Span, SpanInfo {
     }
 
     @Override
+    public SpanInfo info() {
+        return this;
+    }
+
+    @Override
+    public SpanId id() {
+        return id;
+    }
+
+    @Override
+    public SpanContext getSpanContext() {
+        return id.toSpanContext();
+    }
+
+    @Override
+    public Span attachScope(Scope scope) {
+        scopes.add(scope);
+        return this;
+    }
+
+    @Override
+    public void close() {
+        for (Iterator<Scope> iterator = scopes.iterator(); iterator.hasNext(); ) {
+            Scope scope = iterator.next();
+            iterator.remove();
+            scope.close();
+        }
+    }
+
+    // $COVERAGE-OFF$
+    @Override
     public Span addEvent(String name, Attributes attributes) {
         return this;
     }
@@ -76,22 +107,6 @@ final class PropagatedSpan implements Span, SpanInfo {
 
     @Override
     public void stopTimer(String timerKey) { }
-
-    @Override
-    public Span attachScope(Scope scope) {
-        scopes.add(scope);
-        return this;
-    }
-
-    @Override
-    public SpanInfo info() {
-        return this;
-    }
-
-    @Override
-    public SpanId id() {
-        return id;
-    }
 
     @Override
     public long startTimeNanos() {
@@ -155,21 +170,8 @@ final class PropagatedSpan implements Span, SpanInfo {
     public void end(long timestamp, TimeUnit unit) { }
 
     @Override
-    public SpanContext getSpanContext() {
-        return id.toSpanContext();
-    }
-
-    @Override
     public boolean isRecording() {
         return false;
     }
-
-    @Override
-    public void close() {
-        for (Iterator<Scope> iterator = scopes.iterator(); iterator.hasNext(); ) {
-            Scope scope = iterator.next();
-            iterator.remove();
-            scope.close();
-        }
-    }
+    // $COVERAGE-ON$
 }

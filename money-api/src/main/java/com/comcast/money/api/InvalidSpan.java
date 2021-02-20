@@ -27,6 +27,7 @@ import io.opentelemetry.context.Scope;
 enum InvalidSpan implements Span, SpanInfo {
     INSTANCE;
 
+    // $COVERAGE-OFF$
     @Override
     public Span addEvent(String name, Attributes attributes) {
         return this;
@@ -148,4 +149,5 @@ enum InvalidSpan implements Span, SpanInfo {
 
     @Override
     public void close() { }
+    // $COVERAGE-ON$
 }

@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core.context
+package com.comcast.money.core.context;
 
-import io.opentelemetry.context.{ Context, ContextStorage, Scope }
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.ContextStorage;
+import io.opentelemetry.context.Scope;
 
-trait ContextStorageFilter {
-  def attach(context: Context, storage: ContextStorage): Scope
+public interface ContextStorageFilter {
+    Scope attach(Context context, ContextStorage storage);
 }

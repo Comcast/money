@@ -19,11 +19,10 @@ package com.comcast.money.core
 import com.comcast.money.api._
 import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
 import com.comcast.money.core.samplers.{ DropResult, RecordResult, Sampler }
-import io.opentelemetry.api.common.{ AttributeKey, Attributes }
+import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.{ SpanKind, TraceFlags, SpanContext => OtelSpanContext }
 import io.opentelemetry.context.Context
 
-import java.time.Instant
 import java.util.concurrent.TimeUnit
 import scala.collection.JavaConverters._
 
@@ -58,22 +57,10 @@ private[core] class CoreSpanBuilder(
     this
   }
 
-  override def addLink(spanContext: OtelSpanContext): SpanBuilder = addLink(spanContext, Attributes.empty)
-
   override def addLink(spanContext: OtelSpanContext, attributes: Attributes): SpanBuilder = {
-    links = CoreLink(spanContext, attributes) :: links
+    links = new CoreLink(spanContext, attributes) :: links
     this
   }
-
-  override def setAttribute(key: String, value: String): SpanBuilder = setAttribute[String](AttributeKey.stringKey(key), value)
-
-  override def setAttribute(key: String, value: Long): SpanBuilder = setAttribute[java.lang.Long](AttributeKey.longKey(key), value)
-
-  override def setAttribute(key: String, value: Double): SpanBuilder = setAttribute[java.lang.Double](AttributeKey.doubleKey(key), value)
-
-  override def setAttribute(key: String, value: Boolean): SpanBuilder = setAttribute[java.lang.Boolean](AttributeKey.booleanKey(key), value)
-
-  override def setAttribute[T](key: AttributeKey[T], value: T): SpanBuilder = record(Note.of(key, value))
 
   override def record(note: Note[_]): SpanBuilder = {
     notes = note :: notes
@@ -87,13 +74,6 @@ private[core] class CoreSpanBuilder(
 
   override def setStartTimestamp(startTimestamp: Long, timeUnit: TimeUnit): SpanBuilder = {
     this.startTimeNanos = timeUnit.toNanos(startTimestamp)
-    this
-  }
-
-  override def setStartTimestamp(startTimestamp: Instant): SpanBuilder = {
-    this.startTimeNanos = if (startTimestamp != null)
-      TimeUnit.SECONDS.toNanos(startTimestamp.getEpochSecond) + startTimestamp.getNano
-    else 0L
     this
   }
 

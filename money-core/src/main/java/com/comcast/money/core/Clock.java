@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core
+package com.comcast.money.core;
 
-trait Clock {
-  def now: Long
-  def nanoTime: Long
+public interface Clock {
+    long now();
+    long nanoTime();
 }

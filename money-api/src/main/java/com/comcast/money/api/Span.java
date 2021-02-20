@@ -175,9 +175,14 @@ public interface Span extends io.opentelemetry.api.trace.Span, Scope {
      * span in the context.
      */
     static Span fromContextOrNull(Context context) {
-        io.opentelemetry.api.trace.Span otelSpan = io.opentelemetry.api.trace.Span.fromContextOrNull(context);
-        if (otelSpan instanceof Span && otelSpan.getSpanContext().isValid()) {
-            return (Span) otelSpan;
+        if (context != null) {
+            io.opentelemetry.api.trace.Span otelSpan = io.opentelemetry.api.trace.Span.fromContextOrNull(context);
+            if (otelSpan instanceof Span) {
+                Span span = (Span) otelSpan;
+                if (span.info().id().isValid()) {
+                    return (Span) otelSpan;
+                }
+            }
         }
         return null;
     }

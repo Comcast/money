@@ -20,7 +20,6 @@ import com.comcast.money.api._
 import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.{ SpanContext, SpanKind, StatusCode }
 import io.opentelemetry.context.Scope
-import io.opentelemetry.semconv.trace.attributes.SemanticAttributes
 
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
@@ -96,18 +95,16 @@ private[core] case class CoreSpan(
 
   override def close(): Unit = end()
 
-  override def addEvent(eventName: String): Span = addEventInternal(eventName, Attributes.empty(), clock.now)
-  override def addEvent(eventName: String, eventAttributes: Attributes): Span = addEventInternal(eventName, eventAttributes, clock.now)
-  override def addEvent(eventName: String, eventAttributes: Attributes, timestamp: scala.Long, unit: TimeUnit): Span = addEventInternal(eventName, eventAttributes, unit.toNanos(timestamp))
-
-  private def addEventInternal(eventName: String, eventAttributes: Attributes, timestampNanos: scala.Long, exception: Throwable = null): Span = {
-    events += CoreEvent(eventName, eventAttributes, timestampNanos, exception)
+  override def addEvent(eventName: String, eventAttributes: Attributes): Span = addEvent(eventName, eventAttributes, clock.now, TimeUnit.NANOSECONDS)
+  override def addEvent(eventName: String, eventAttributes: Attributes, timestamp: scala.Long, unit: TimeUnit): Span = {
+    events += new CoreEvent(eventName, unit.toNanos(timestamp), eventAttributes)
     this
   }
 
-  override def recordException(exception: Throwable): Span = recordException(exception, Attributes.empty())
-  override def recordException(exception: Throwable, eventAttributes: Attributes): Span =
-    addEventInternal(SemanticAttributes.EXCEPTION_EVENT_NAME, eventAttributes, clock.now, exception)
+  override def recordException(exception: Throwable, eventAttributes: Attributes): Span = {
+    events += new CoreExceptionEvent(exception, clock.now, eventAttributes)
+    this
+  }
 
   override def setStatus(canonicalCode: StatusCode): Span = setStatus(canonicalCode, null)
 
