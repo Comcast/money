@@ -13,7 +13,7 @@ object Dependencies {
   val openTelemetryInstV = "0.17.0"
   val openTelemetrySemConvV = "0.17.0-alpha"
 
-  val lombok = "org.projectlombok" % "lombok" % "1.18.16" % Provided
+  val lombok = "org.projectlombok" % "lombok" % "1.18.18" % Provided
 
   val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
   val akkaStream =      "com.typesafe.akka"         %% "akka-stream"                 % akkaV

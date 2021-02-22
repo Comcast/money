@@ -368,8 +368,6 @@ def basicSettings =  Defaults.itSettings ++ Seq(
     "-language:existentials",
     "-language:postfixOps",
     "-language:reflectiveCalls"),
-  // temporary to enable Lombok config to work in submodules
-  javaHome := sys.env.get("JAVA_HOME").map(file),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
   javacOptions in doc := Seq("-source", "1.8"),
   scalariformAutoformat := true,
