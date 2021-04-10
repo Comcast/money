@@ -21,7 +21,7 @@ import java.util
 import java.util.Collections
 import java.util.concurrent.TimeUnit
 import com.comcast.money.api
-import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanEvent, SpanId, SpanInfo }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, EventInfo, SpanId, SpanInfo }
 import com.comcast.money.core._
 import com.comcast.money.wire.avro
 import com.comcast.money.wire.avro.NoteType
@@ -139,7 +139,7 @@ trait SpanWireConverters {
 
     new SpanInfo {
       override def notes(): util.Map[String, Note[_]] = toNotesMap(from.getNotes)
-      override def events(): util.List[SpanEvent] = Collections.emptyList()
+      override def events(): util.List[EventInfo] = Collections.emptyList()
       override def startTimeNanos(): Long = TimeUnit.MILLISECONDS.toNanos(from.getStartTime)
       override def endTimeNanos(): Long = startTimeNanos + durationNanos
       override def status(): StatusCode = if (from.getSuccess) StatusCode.OK else StatusCode.ERROR

@@ -35,14 +35,14 @@ public interface SpanInfo {
     /**
      * @return a list of all of the events that were recorded on the span.
      */
-    default List<SpanEvent> events() {
+    default List<EventInfo> events() {
         return Collections.emptyList();
     }
 
     /**
      * @return a list of the spans linked to the span
      */
-    default List<SpanLink> links() {
+    default List<LinkInfo> links() {
         return Collections.emptyList();
     }
 

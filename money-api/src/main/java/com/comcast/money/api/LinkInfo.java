@@ -25,7 +25,7 @@ import io.opentelemetry.api.trace.SpanContext;
  * <p>
  * Can be used to associate multiple traces as a part of a batch operation.
  */
-public interface SpanLink {
+public interface LinkInfo {
     /**
      * @return the context of the linked span
      */

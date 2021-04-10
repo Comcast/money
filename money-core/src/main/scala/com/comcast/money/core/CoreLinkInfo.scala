@@ -14,31 +14,12 @@
  * limitations under the License.
  */
 
-package com.comcast.money.api;
+package com.comcast.money.core
 
-import io.opentelemetry.api.common.Attributes;
+import com.comcast.money.api.{ SpanInfo, LinkInfo }
+import io.opentelemetry.api.common.Attributes
+import io.opentelemetry.api.trace.SpanContext
 
-/**
- * An event that was recorded on a {@link Span}.
- */
-public interface SpanEvent {
-    /**
-     * @return the name of the event
-     */
-    String name();
-
-    /**
-     * @return the attributes recorded on the event
-     */
-    Attributes attributes();
-
-    /**
-     * @return the timestamp of when the event occurred in nanoseconds since the epoch
-     */
-    long timestamp();
-
-    /**
-     * @return an exception if one was recorded with the event; otherwise {@code null}
-     */
-    Throwable exception();
-}
+private[core] final case class CoreLinkInfo(
+  spanContext: SpanContext,
+  attributes: Attributes = Attributes.empty()) extends LinkInfo

@@ -18,7 +18,7 @@ package com.comcast.money.core
 
 import java.time.Instant
 import java.util.concurrent.TimeUnit
-import com.comcast.money.api.{ InstrumentationLibrary, Note, Span, SpanBuilder, SpanHandler, SpanId, SpanInfo, SpanLink }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, Span, SpanBuilder, SpanHandler, SpanId, SpanInfo, LinkInfo }
 import com.comcast.money.core.samplers.{ DropResult, RecordResult, Sampler }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Context
@@ -40,7 +40,7 @@ private[core] class CoreSpanBuilder(
   var spanKind: SpanKind = SpanKind.INTERNAL
   var startTimeNanos: Long = 0L
   var notes: List[Note[_]] = List()
-  var links: List[SpanLink] = List()
+  var links: List[LinkInfo] = List()
 
   override def setParent(context: Context): SpanBuilder = {
     parentSpan = Option(context)
@@ -75,7 +75,7 @@ private[core] class CoreSpanBuilder(
   override def addLink(spanContext: SpanContext): SpanBuilder = addLink(spanContext, Attributes.empty)
 
   override def addLink(spanContext: SpanContext, attributes: Attributes): SpanBuilder = {
-    links = CoreLink(spanContext, attributes) :: links
+    links = CoreLinkInfo(spanContext, attributes) :: links
     this
   }
 

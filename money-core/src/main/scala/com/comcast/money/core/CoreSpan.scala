@@ -40,7 +40,7 @@ private[core] case class CoreSpan(
   id: SpanId,
   var name: String,
   kind: SpanKind = SpanKind.INTERNAL,
-  links: List[SpanLink] = Nil,
+  links: List[LinkInfo] = Nil,
   startTimeNanos: Long = SystemClock.now,
   library: InstrumentationLibrary = Money.InstrumentationLibrary,
   clock: Clock = SystemClock,
@@ -53,7 +53,7 @@ private[core] case class CoreSpan(
   // use concurrent maps
   private val timers = new TrieMap[String, Long]()
   private val noted = new TrieMap[String, Note[_]]()
-  private val events = new ListBuffer[SpanEvent]()
+  private val events = new ListBuffer[EventInfo]()
   private var scopes: List[Scope] = Nil
 
   override def stop(): Unit = stop(clock.now, StatusCode.UNSET)
@@ -144,7 +144,7 @@ private[core] case class CoreSpan(
   }
 
   private def addEventInternal(eventName: String, eventAttributes: Attributes, timestampNanos: scala.Long, exception: Throwable = null): Span = {
-    events += CoreEvent(eventName, eventAttributes, timestampNanos, exception)
+    events += CoreEventInfo(eventName, eventAttributes, timestampNanos, exception)
     this
   }
 

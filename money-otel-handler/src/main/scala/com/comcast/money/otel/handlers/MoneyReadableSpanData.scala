@@ -17,7 +17,7 @@
 package com.comcast.money.otel.handlers
 
 import java.util
-import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanEvent, SpanId, SpanInfo, SpanLink }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, EventInfo, SpanId, SpanInfo, LinkInfo }
 import io.opentelemetry.api.common.{ Attributes, AttributesBuilder }
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo
 import io.opentelemetry.sdk.resources.Resource
@@ -92,14 +92,14 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
       }
       .build()
 
-  private def convertEvents(events: util.List[SpanEvent]): util.List[EventData] =
+  private def convertEvents(events: util.List[EventInfo]): util.List[EventData] =
     events.asScala
       .map({
         event => MoneyEvent(event).asInstanceOf[EventData]
       })
       .asJava
 
-  private def convertLinks(links: util.List[SpanLink]): util.List[LinkData] =
+  private def convertLinks(links: util.List[LinkInfo]): util.List[LinkData] =
     links.asScala
       .map({
         link => MoneyLink(link).asInstanceOf[LinkData]
