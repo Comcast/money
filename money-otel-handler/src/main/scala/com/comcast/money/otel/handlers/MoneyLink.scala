@@ -16,12 +16,12 @@
 
 package com.comcast.money.otel.handlers
 
-import com.comcast.money.api.SpanInfo
+import com.comcast.money.api.{ SpanInfo, SpanLink }
 import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.SpanContext
 import io.opentelemetry.sdk.trace.data.LinkData
 
-private[otel] case class MoneyLink(link: SpanInfo.Link) extends LinkData {
+private[otel] case class MoneyLink(link: SpanLink) extends LinkData {
   override def getSpanContext: SpanContext = link.spanContext
   override def getAttributes: Attributes = link.attributes
   override def getTotalAttributeCount: Int = link.attributes.size

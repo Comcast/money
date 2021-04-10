@@ -18,7 +18,7 @@ package com.comcast.money.otel.handlers
 
 import java.util
 import java.util.UUID
-import com.comcast.money.api.{ IdGenerator, InstrumentationLibrary, Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ IdGenerator, InstrumentationLibrary, Note, SpanEvent, SpanId, SpanInfo, SpanLink }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.api.trace.{ Span, SpanContext, SpanKind, StatusCode, TraceFlags, TraceState }
@@ -95,11 +95,11 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
     override def description(): String = "description"
     override def durationNanos(): Long = 2000000L
     override def notes(): util.Map[String, Note[_]] = Map[String, Note[_]]("foo" -> Note.of("foo", "bar")).asJava
-    override def events(): util.List[SpanInfo.Event] = List(event).asJava
-    override def links(): util.List[SpanInfo.Link] = List(link).asJava
+    override def events(): util.List[SpanEvent] = List(event).asJava
+    override def links(): util.List[SpanLink] = List(link).asJava
   }
 
-  val event = new SpanInfo.Event {
+  val event = new SpanEvent {
     override def name(): String = "event"
     override def attributes(): Attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
     override def timestamp(): Long = 1234567890L
@@ -107,7 +107,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
   }
 
   val linkedContext = SpanContext.create(IdGenerator.generateRandomTraceIdAsHex(), IdGenerator.generateRandomIdAsHex(), TraceFlags.getSampled, TraceState.getDefault)
-  val link = new SpanInfo.Link {
+  val link = new SpanLink {
     override def spanContext(): SpanContext = linkedContext
     override def attributes(): Attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
   }

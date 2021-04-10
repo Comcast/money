@@ -14,15 +14,25 @@
  * limitations under the License.
  */
 
-package com.comcast.money.otel.handlers
+package com.comcast.money.api;
 
-import com.comcast.money.api.{ SpanEvent, SpanInfo }
-import io.opentelemetry.api.common.Attributes
-import io.opentelemetry.sdk.trace.data.EventData
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
 
-private[otel] case class MoneyEvent(event: SpanEvent) extends EventData {
-  override def getName: String = event.name
-  override def getAttributes: Attributes = event.attributes
-  override def getEpochNanos: Long = event.timestamp
-  override def getTotalAttributeCount: Int = event.attributes.size
+/**
+ * A reference to another {@link Span} by span context.
+ * <p>
+ * Can be used to associate multiple traces as a part of a batch operation.
+ */
+public interface SpanLink {
+    /**
+     * @return the context of the linked span
+     */
+    SpanContext spanContext();
+
+    /**
+     * @return the attributes associated with the link between the spans
+     */
+    Attributes attributes();
 }

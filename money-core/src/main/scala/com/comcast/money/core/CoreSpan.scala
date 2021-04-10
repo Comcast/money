@@ -22,7 +22,7 @@ import com.comcast.money.api._
 
 import scala.collection.JavaConverters._
 import scala.collection.concurrent.TrieMap
-import io.opentelemetry.api.trace.{ SpanContext, SpanKind, StatusCode, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ SpanContext, SpanKind, StatusCode }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes
@@ -40,7 +40,7 @@ private[core] case class CoreSpan(
   id: SpanId,
   var name: String,
   kind: SpanKind = SpanKind.INTERNAL,
-  links: List[SpanInfo.Link] = Nil,
+  links: List[SpanLink] = Nil,
   startTimeNanos: Long = SystemClock.now,
   library: InstrumentationLibrary = Money.InstrumentationLibrary,
   clock: Clock = SystemClock,
@@ -53,7 +53,7 @@ private[core] case class CoreSpan(
   // use concurrent maps
   private val timers = new TrieMap[String, Long]()
   private val noted = new TrieMap[String, Note[_]]()
-  private val events = new ListBuffer[SpanInfo.Event]()
+  private val events = new ListBuffer[SpanEvent]()
   private var scopes: List[Scope] = Nil
 
   override def stop(): Unit = stop(clock.now, StatusCode.UNSET)

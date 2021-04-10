@@ -42,7 +42,7 @@ case class Money(
 
 object Money {
 
-  val InstrumentationLibrary = new InstrumentationLibrary("money-core", "0.10.0")
+  val InstrumentationLibrary = new InstrumentationLibrary("money-core", "0.18.0")
   lazy val Environment: Money = apply(ConfigFactory.load().getConfig("money"))
 
   def apply(conf: Config): Money = {
