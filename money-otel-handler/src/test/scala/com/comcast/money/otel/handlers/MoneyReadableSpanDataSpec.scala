@@ -23,6 +23,7 @@ import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.api.trace.{ Span, SpanContext, SpanKind, StatusCode, TraceFlags, TraceState }
 import io.opentelemetry.sdk.trace.data.StatusData
+import io.opentelemetry.semconv.resource.attributes.ResourceAttributes.{ HOST_NAME, SERVICE_NAME, TELEMETRY_SDK_LANGUAGE, TELEMETRY_SDK_NAME, TELEMETRY_SDK_VERSION }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -47,7 +48,6 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.hasEnded shouldBe true
       underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.getTotalRecordedLinks shouldBe 0
-      underTest.getResource shouldBe Resource.getDefault
       underTest.getLatencyNanos shouldBe 2000000L
       underTest.getStatus shouldBe StatusData.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
@@ -55,6 +55,12 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getTotalRecordedEvents shouldBe 1
       underTest.getEvents.asScala should contain(MoneyEvent(event))
       underTest.toSpanData shouldBe underTest
+      val resource = underTest.getResource
+      resource.getAttributes.get(TELEMETRY_SDK_NAME) shouldBe "money"
+      resource.getAttributes.get(TELEMETRY_SDK_LANGUAGE) shouldBe "java"
+      resource.getAttributes.get(TELEMETRY_SDK_VERSION) shouldBe "0.18.0"
+      resource.getAttributes.get(SERVICE_NAME) shouldBe "app"
+      resource.getAttributes.get(HOST_NAME) shouldBe "host"
     }
 
     "wrap child Money SpanInfo" in {
@@ -71,7 +77,6 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.hasEnded shouldBe true
       underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.getTotalRecordedLinks shouldBe 0
-      underTest.getResource shouldBe Resource.getDefault
       underTest.getLatencyNanos shouldBe 2000000L
       underTest.getStatus shouldBe StatusData.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
@@ -80,6 +85,12 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getEvents.asScala should contain(MoneyEvent(event))
       underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.toSpanData shouldBe underTest
+      val resource = underTest.getResource
+      resource.getAttributes.get(TELEMETRY_SDK_NAME) shouldBe "money"
+      resource.getAttributes.get(TELEMETRY_SDK_LANGUAGE) shouldBe "java"
+      resource.getAttributes.get(TELEMETRY_SDK_VERSION) shouldBe "0.18.0"
+      resource.getAttributes.get(SERVICE_NAME) shouldBe "app"
+      resource.getAttributes.get(HOST_NAME) shouldBe "host"
     }
   }
 
