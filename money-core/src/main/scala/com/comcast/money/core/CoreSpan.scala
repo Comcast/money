@@ -27,6 +27,7 @@ import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes
 
+import java.util.concurrent.atomic.AtomicBoolean
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -51,39 +52,38 @@ private[core] case class CoreSpan(
   private var description: String = _
 
   // use concurrent maps
+  private val ended = new AtomicBoolean(false)
   private val timers = new TrieMap[String, Long]()
   private val noted = new TrieMap[String, Note[_]]()
   private val events = new ListBuffer[EventInfo]()
   private var scopes: List[Scope] = Nil
 
-  override def stop(): Unit = stop(clock.now, StatusCode.UNSET)
+  override def end(): Unit = end(clock.now, StatusCode.UNSET)
+  override def end(endTimeStamp: Long, unit: TimeUnit): Unit = end(unit.toNanos(endTimeStamp), StatusCode.UNSET)
+  override def end(result: Boolean): Unit = end(clock.now, if (result) StatusCode.OK else StatusCode.ERROR)
 
-  override def stop(result: java.lang.Boolean): Unit =
-    if (result == null) {
-      stop(clock.now, StatusCode.UNSET)
-    } else {
-      stop(clock.now, if (result) StatusCode.OK else StatusCode.ERROR)
+  private def end(endTimeNanos: Long, status: StatusCode): Unit =
+    if (ended.compareAndSet(false, true)) {
+      this.endTimeNanos = endTimeNanos
+
+      // process any hanging timers
+      val openTimers = timers.keys
+      openTimers.foreach(stopTimer)
+
+      scopes.foreach {
+        _.close()
+      }
+      scopes = Nil
+
+      this.status = (this.status, status) match {
+        case (StatusCode.UNSET, StatusCode.UNSET) => StatusCode.OK
+        case (StatusCode.UNSET, other) => other
+        case (other, StatusCode.UNSET) => other
+        case (_, other) => other
+      }
+
+      handler.handle(info())
     }
-
-  private def stop(endTimeNanos: Long, status: StatusCode): Unit = {
-    this.endTimeNanos = endTimeNanos
-
-    // process any hanging timers
-    val openTimers = timers.keys
-    openTimers.foreach(stopTimer)
-
-    scopes.foreach { _.close() }
-    scopes = Nil
-
-    this.status = (this.status, status) match {
-      case (StatusCode.UNSET, StatusCode.UNSET) => StatusCode.OK
-      case (StatusCode.UNSET, other) => other
-      case (other, StatusCode.UNSET) => other
-      case (_, other) => other
-    }
-
-    handler.handle(info())
-  }
 
   override def stopTimer(timerKey: String): Unit =
     timers.remove(timerKey) foreach {
@@ -121,7 +121,7 @@ private[core] case class CoreSpan(
       events = events.asJava,
       links = links.asJava)
 
-  override def close(): Unit = stop()
+  override def close(): Unit = end()
 
   override def setAttribute(attributeName: String, value: String): Span = record(Note.of(attributeName, value))
   override def setAttribute(attributeName: String, value: scala.Long): Span = record(Note.of(attributeName, value))
@@ -164,9 +164,6 @@ private[core] case class CoreSpan(
     name = spanName
     this
   }
-
-  override def end(): Unit = stop()
-  override def `end`(endTimeStamp: Long, unit: TimeUnit): Unit = stop(unit.toNanos(endTimeStamp), StatusCode.UNSET)
 
   override def getSpanContext: SpanContext = id.toSpanContext
 

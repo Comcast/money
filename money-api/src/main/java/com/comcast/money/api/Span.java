@@ -33,15 +33,10 @@ import io.opentelemetry.context.Scope;
 public interface Span extends io.opentelemetry.api.trace.Span, Scope {
 
     /**
-     * Stops the span asserts a successful result
-     */
-    void stop();
-
-    /**
      * Ends a span, moving it to a Stopped state
      * @param result The result of the span (success or failure)
      */
-    void stop(Boolean result);
+    void end(boolean result);
 
     @Override
     Span setAttribute(String key, String value);

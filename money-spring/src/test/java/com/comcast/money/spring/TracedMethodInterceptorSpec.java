@@ -90,7 +90,7 @@ public class TracedMethodInterceptorSpec {
         verify(span).storeInContext(any());
         verify(context).makeCurrent();
         verify(springTracer).record("foo", "bar", false);
-        verify(span).stop(true);
+        verify(span).end();
         verify(scope).close();
     }
 
@@ -158,7 +158,7 @@ public class TracedMethodInterceptorSpec {
         verify(span).storeInContext(any());
         verify(context).makeCurrent();
         verify(springTracer).record("foo", "bar", false);
-        verify(span).stop(false);
+        verify(span).end(false);
         verify(scope).close();
     }
 
@@ -172,7 +172,7 @@ public class TracedMethodInterceptorSpec {
     @Test(expected = IllegalArgumentException.class)
     public void testTracingIgnoresException() {
         sampleTraceBean.doSomethingButIgnoreException();
-        verify(span).stop(true);
+        verify(span).end(true);
     }
 
     @Configuration
