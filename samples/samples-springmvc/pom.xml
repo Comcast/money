@@ -9,7 +9,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
     <properties>
-        <spring.version>4.3.18.RELEASE</spring.version>
+        <spring.version>4.3.21.RELEASE</spring.version>
         <jackson.version>2.10.0.pr1</jackson.version>
         <jetty.version>8.1.5.v20120716</jetty.version>
         <jetty.jsp.version>8.1.4.v20120524</jetty.jsp.version>
@@ -109,7 +109,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.6</version>
+            <version>4.5.13</version>
         </dependency>
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
@@ -171,7 +171,7 @@
         <dependency>
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
-            <version>1.0.13</version>
+            <version>1.2.0</version>
         </dependency>
 
     </dependencies>
