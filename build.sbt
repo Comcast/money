@@ -352,8 +352,8 @@ def projectSettings = basicSettings ++ Seq(
 def basicSettings =  Defaults.itSettings ++ Seq(
   organization := "com.comcast.money",
   sonatypeProfileName := "com.comcast",
-  scalaVersion := "2.12.12",
-  crossScalaVersions := List("2.13.3", "2.12.12"),
+  scalaVersion := "2.12.14",
+  crossScalaVersions := List("2.13.6", "2.12.14"),
   resolvers ++= Seq(
     ("spray repo" at "http://repo.spray.io/").withAllowInsecureProtocol(true),
     "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/",
