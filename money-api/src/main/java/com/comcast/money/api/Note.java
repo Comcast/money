@@ -26,7 +26,7 @@ import io.opentelemetry.api.common.AttributeType;
  *
  * @param <T> The type of Note.  This is currently limited to Long, String, Boolean and Double
  */
-public class Note<T> {
+public final class Note<T> {
 
     private final AttributeKey<T> key;
     private final T value;

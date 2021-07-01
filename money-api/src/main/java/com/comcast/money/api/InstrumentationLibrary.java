@@ -18,7 +18,7 @@ package com.comcast.money.api;
 
 import java.util.Objects;
 
-public class InstrumentationLibrary {
+public final class InstrumentationLibrary {
     public static final InstrumentationLibrary UNKNOWN = new InstrumentationLibrary("unknown");
 
     private final String name;

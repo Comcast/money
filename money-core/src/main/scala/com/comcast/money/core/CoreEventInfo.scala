@@ -17,15 +17,15 @@
 package com.comcast.money.core
 
 import java.io.{ PrintWriter, StringWriter }
-import com.comcast.money.api.SpanInfo
+import com.comcast.money.api.{ EventInfo, SpanInfo }
 import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes
 
-private[core] case class CoreEvent(
+private[core] case class CoreEventInfo(
   name: String,
   eventAttributes: Attributes,
   timestamp: Long,
-  exception: Throwable) extends SpanInfo.Event {
+  exception: Throwable) extends EventInfo {
 
   lazy val attributes: Attributes = initializeAttributes()
 

@@ -18,11 +18,12 @@ package com.comcast.money.otel.handlers
 
 import java.util
 import java.util.UUID
-import com.comcast.money.api.{ IdGenerator, InstrumentationLibrary, Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ IdGenerator, InstrumentationLibrary, Note, EventInfo, SpanId, SpanInfo, LinkInfo }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.api.trace.{ Span, SpanContext, SpanKind, StatusCode, TraceFlags, TraceState }
 import io.opentelemetry.sdk.trace.data.StatusData
+import io.opentelemetry.semconv.resource.attributes.ResourceAttributes.{ HOST_NAME, SERVICE_NAME, TELEMETRY_SDK_LANGUAGE, TELEMETRY_SDK_NAME, TELEMETRY_SDK_VERSION }
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -47,7 +48,6 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.hasEnded shouldBe true
       underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.getTotalRecordedLinks shouldBe 0
-      underTest.getResource shouldBe Resource.getDefault
       underTest.getLatencyNanos shouldBe 2000000L
       underTest.getStatus shouldBe StatusData.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
@@ -55,6 +55,12 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getTotalRecordedEvents shouldBe 1
       underTest.getEvents.asScala should contain(MoneyEvent(event))
       underTest.toSpanData shouldBe underTest
+      val resource = underTest.getResource
+      resource.getAttributes.get(TELEMETRY_SDK_NAME) shouldBe "money"
+      resource.getAttributes.get(TELEMETRY_SDK_LANGUAGE) shouldBe "java"
+      resource.getAttributes.get(TELEMETRY_SDK_VERSION) shouldBe "0.18.0"
+      resource.getAttributes.get(SERVICE_NAME) shouldBe "app"
+      resource.getAttributes.get(HOST_NAME) shouldBe "host"
     }
 
     "wrap child Money SpanInfo" in {
@@ -71,7 +77,6 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.hasEnded shouldBe true
       underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.getTotalRecordedLinks shouldBe 0
-      underTest.getResource shouldBe Resource.getDefault
       underTest.getLatencyNanos shouldBe 2000000L
       underTest.getStatus shouldBe StatusData.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
@@ -80,6 +85,12 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getEvents.asScala should contain(MoneyEvent(event))
       underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.toSpanData shouldBe underTest
+      val resource = underTest.getResource
+      resource.getAttributes.get(TELEMETRY_SDK_NAME) shouldBe "money"
+      resource.getAttributes.get(TELEMETRY_SDK_LANGUAGE) shouldBe "java"
+      resource.getAttributes.get(TELEMETRY_SDK_VERSION) shouldBe "0.18.0"
+      resource.getAttributes.get(SERVICE_NAME) shouldBe "app"
+      resource.getAttributes.get(HOST_NAME) shouldBe "host"
     }
   }
 
@@ -95,11 +106,11 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
     override def description(): String = "description"
     override def durationNanos(): Long = 2000000L
     override def notes(): util.Map[String, Note[_]] = Map[String, Note[_]]("foo" -> Note.of("foo", "bar")).asJava
-    override def events(): util.List[SpanInfo.Event] = List(event).asJava
-    override def links(): util.List[SpanInfo.Link] = List(link).asJava
+    override def events(): util.List[EventInfo] = List(event).asJava
+    override def links(): util.List[LinkInfo] = List(link).asJava
   }
 
-  val event = new SpanInfo.Event {
+  val event = new EventInfo {
     override def name(): String = "event"
     override def attributes(): Attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
     override def timestamp(): Long = 1234567890L
@@ -107,7 +118,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
   }
 
   val linkedContext = SpanContext.create(IdGenerator.generateRandomTraceIdAsHex(), IdGenerator.generateRandomIdAsHex(), TraceFlags.getSampled, TraceState.getDefault)
-  val link = new SpanInfo.Link {
+  val link = new LinkInfo {
     override def spanContext(): SpanContext = linkedContext
     override def attributes(): Attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
   }

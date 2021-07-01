@@ -134,9 +134,7 @@ object DisabledSpanBuilder extends SpanBuilder {
 
 object DisabledSpan extends Span {
 
-  override def stop(): Unit = ()
-
-  override def stop(result: java.lang.Boolean): Unit = ()
+  override def end(result: Boolean): Unit = ()
 
   override def stopTimer(timerKey: String): Unit = ()
 

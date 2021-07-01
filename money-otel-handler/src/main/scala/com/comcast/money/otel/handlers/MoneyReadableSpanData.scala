@@ -17,13 +17,14 @@
 package com.comcast.money.otel.handlers
 
 import java.util
-import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, EventInfo, SpanId, SpanInfo, LinkInfo }
 import io.opentelemetry.api.common.{ Attributes, AttributesBuilder }
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.ReadableSpan
 import io.opentelemetry.sdk.trace.data.{ EventData, LinkData, SpanData, StatusData }
-import io.opentelemetry.api.trace.{ SpanContext, SpanKind, TraceState, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ SpanContext, SpanKind }
+import io.opentelemetry.semconv.resource.attributes.ResourceAttributes.{ HOST_NAME, SERVICE_NAME, TELEMETRY_SDK_LANGUAGE, TELEMETRY_SDK_NAME, TELEMETRY_SDK_VERSION }
 
 import scala.collection.JavaConverters._
 
@@ -35,6 +36,7 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
   private lazy val attributes = convertAttributes(info.notes)
   private lazy val events = convertEvents(info.events)
   private lazy val links = convertLinks(info.links)
+  private lazy val resource = createResource(info)
 
   override def getSpanContext: SpanContext = spanContext
   override def getParentSpanContext: SpanContext = parentSpanContext
@@ -45,7 +47,7 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
   override def getLatencyNanos: Long = info.durationNanos
   override def getTraceId: String = id.traceIdAsHex
   override def getSpanId: String = id.selfIdAsHex
-  override def getResource: Resource = Resource.getDefault
+  override def getResource: Resource = resource
   override def getKind: SpanKind = info.kind
   override def getStartEpochNanos: Long = info.startTimeNanos
   override def getLinks: util.List[LinkData] = links
@@ -71,6 +73,15 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
       InstrumentationLibraryInfo.empty
     }
 
+  private def createResource(info: SpanInfo): Resource =
+    Resource.create(Attributes.builder()
+      .put(TELEMETRY_SDK_NAME, "money")
+      .put(TELEMETRY_SDK_LANGUAGE, "java")
+      .put(TELEMETRY_SDK_VERSION, "0.18.0")
+      .put(SERVICE_NAME, info.appName)
+      .put(HOST_NAME, info.host)
+      .build())
+
   private def appendNoteToBuilder[T](builder: AttributesBuilder, note: Note[T]): AttributesBuilder =
     builder.put(note.key, note.value)
 
@@ -81,14 +92,14 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
       }
       .build()
 
-  private def convertEvents(events: util.List[SpanInfo.Event]): util.List[EventData] =
+  private def convertEvents(events: util.List[EventInfo]): util.List[EventData] =
     events.asScala
       .map({
         event => MoneyEvent(event).asInstanceOf[EventData]
       })
       .asJava
 
-  private def convertLinks(links: util.List[SpanInfo.Link]): util.List[LinkData] =
+  private def convertLinks(links: util.List[LinkInfo]): util.List[LinkData] =
     links.asScala
       .map({
         link => MoneyLink(link).asInstanceOf[LinkData]

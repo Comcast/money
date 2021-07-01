@@ -14,15 +14,25 @@
  * limitations under the License.
  */
 
-package com.comcast.money.otel.handlers
+package com.comcast.money.api;
 
-import com.comcast.money.api.{ SpanInfo, LinkInfo }
-import io.opentelemetry.api.common.Attributes
-import io.opentelemetry.api.trace.SpanContext
-import io.opentelemetry.sdk.trace.data.LinkData
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
 
-private[otel] case class MoneyLink(link: LinkInfo) extends LinkData {
-  override def getSpanContext: SpanContext = link.spanContext
-  override def getAttributes: Attributes = link.attributes
-  override def getTotalAttributeCount: Int = link.attributes.size
+/**
+ * A reference to another {@link Span} by span context.
+ * <p>
+ * Can be used to associate multiple traces as a part of a batch operation.
+ */
+public interface LinkInfo {
+    /**
+     * @return the context of the linked span
+     */
+    SpanContext spanContext();
+
+    /**
+     * @return the attributes associated with the link between the spans
+     */
+    Attributes attributes();
 }

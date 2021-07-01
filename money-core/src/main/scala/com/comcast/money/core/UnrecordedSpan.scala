@@ -46,10 +46,9 @@ private[core] final case class UnrecordedSpan(
   override def isRecording: Boolean = false
 
   // $COVERAGE-OFF$
-  override def stop(): Unit = close()
-  override def stop(result: lang.Boolean): Unit = close()
-  override def `end`(): Unit = close()
-  override def `end`(endTimeStamp: Long, unit: TimeUnit): Unit = close()
+  override def end(result: Boolean): Unit = close()
+  override def end(): Unit = close()
+  override def end(endTimeStamp: Long, unit: TimeUnit): Unit = close()
 
   override def record(note: Note[_]): Span = this
   override def startTimer(timerKey: String): Scope = () => ()

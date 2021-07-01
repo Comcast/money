@@ -16,10 +16,10 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.SpanInfo
+import com.comcast.money.api.{ SpanInfo, LinkInfo }
 import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.SpanContext
 
-private[core] final case class CoreLink(
+private[core] final case class CoreLinkInfo(
   spanContext: SpanContext,
-  attributes: Attributes = Attributes.empty()) extends SpanInfo.Link
+  attributes: Attributes = Attributes.empty()) extends LinkInfo
