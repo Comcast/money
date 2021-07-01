@@ -58,6 +58,7 @@ lazy val moneyCore =
         Seq(
           slf4j,
           log4jbinding,
+          lombok,
           metricsCore,
           openTelemetryApi,
           openTelemetrySemConv,
@@ -330,6 +331,7 @@ def javaOnlyProjectSettings = projectSettings ++ Seq(
 )
 
 def projectSettings = basicSettings ++ Seq(
+  compileOrder := CompileOrder.JavaThenScala,
   ScoverageKeys.coverageHighlighting := true,
   ScoverageKeys.coverageMinimum := 80,
   ScoverageKeys.coverageFailOnMinimum := true,

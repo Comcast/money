@@ -21,11 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import io.opentelemetry.api.common.Attributes;
-import io.opentelemetry.api.trace.SpanContext;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
-import io.opentelemetry.api.trace.Span;
 
 public interface SpanInfo {
 
@@ -33,19 +30,21 @@ public interface SpanInfo {
      * @return a map of all of the notes that were recorded on the span.  Implementers should enforce
      * that the map returned is a copy of the notes
      */
-    Map<String, Note<?>> notes();
+    default Map<String, Note<?>> notes() {
+        return Collections.emptyMap();
+    }
 
     /**
      * @return a list of all of the events that were recorded on the span.
      */
-    default List<Event> events() {
+    default List<EventInfo> events() {
         return Collections.emptyList();
     }
 
     /**
      * @return a list of the spans linked to the span
      */
-    default List<Link> links() {
+    default List<LinkInfo> links() {
         return Collections.emptyList();
     }
 
@@ -84,7 +83,12 @@ public interface SpanInfo {
     }
 
     /**
-     * @return the time in nanoseconds when this span was stopped.
+     * @return {@code true} if the span has ended
+     */
+    boolean hasEnded();
+
+    /**
+     * @return the time in nanoseconds when this span ended.
      */
     long endTimeNanos();
 
@@ -94,27 +98,19 @@ public interface SpanInfo {
     StatusCode status();
 
     /**
-     * @return the result of the span.  Will return null if the span was never stopped.
+     * @return the result of the span.  Will return {@code null} if the span has not ended..
      */
     default Boolean success() {
-        StatusCode status = status();
-        if (status != null && endTimeNanos() > 0L) {
-            switch (status) {
-                case OK:
-                    return true;
-                case ERROR:
-                    return false;
-            }
+        if (hasEnded()) {
+            return status() != StatusCode.ERROR;
         }
         return null;
     }
 
     /**
-     * @return {@code true} if the span has been started but not yet stopped; otherwise, {@code false}.
+     * @return {@code true} if the span is recording notes or events
      */
-    default boolean isRecording() {
-        return startTimeNanos() > 0L && endTimeNanos() <= 0L;
-    }
+    boolean isRecording();
 
     /**
      * @return the kind of the span, e.g. if it wraps a server or client request.
@@ -165,45 +161,4 @@ public interface SpanInfo {
      */
     String host();
 
-    /**
-     * An event that was recorded on a {@link com.comcast.money.api.Span}.
-     */
-    interface Event {
-        /**
-         * @return the name of the event
-         */
-        String name();
-
-        /**
-         * @return the attributes recorded on the event
-         */
-        Attributes attributes();
-
-        /**
-         * @return the timestamp of when the event occurred in nanoseconds since the epoch
-         */
-        long timestamp();
-
-        /**
-         * @return an exception if one was recorded with the event; otherwise {@code null}
-         */
-        Throwable exception();
-    }
-
-    /**
-     * A reference to another {@link Span} by span context.
-     *
-     * Can be used to associate multiple traces as a part of a batch operation.
-     */
-    interface Link {
-        /**
-         * @return the context of the linked span
-         */
-        SpanContext spanContext();
-
-        /**
-         * @return the attributes associated with the link between the spans
-         */
-        Attributes attributes();
-    }
 }

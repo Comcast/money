@@ -14,19 +14,9 @@
  * limitations under the License.
  */
 
-package com.comcast.money.api;
+package com.comcast.money.core;
 
-import io.opentelemetry.api.trace.SpanBuilder;
-import io.opentelemetry.api.trace.Tracer;
-
-/**
- * OpenTelemetry compatible API to be used for tracing
- */
-public interface MoneyTracer extends Tracer {
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    SpanBuilder spanBuilder(String spanName);
+public interface Clock {
+    long now();
+    long nanoTime();
 }

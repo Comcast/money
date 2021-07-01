@@ -18,7 +18,7 @@ package com.comcast.money.otel.handlers
 
 import java.util
 import java.util.UUID
-import com.comcast.money.api.{ IdGenerator, InstrumentationLibrary, Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ EventInfo, IdGenerator, InstrumentationLibrary, LinkInfo, Note, SpanId, SpanInfo }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.api.trace.{ Span, SpanContext, SpanKind, StatusCode, TraceFlags, TraceState }
@@ -93,21 +93,23 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
     override def endTimeNanos(): Long = 3000000L
     override def status(): StatusCode = StatusCode.OK
     override def description(): String = "description"
+    override def hasEnded: Boolean = true
+    override def isRecording: Boolean = true
     override def durationNanos(): Long = 2000000L
     override def notes(): util.Map[String, Note[_]] = Map[String, Note[_]]("foo" -> Note.of("foo", "bar")).asJava
-    override def events(): util.List[SpanInfo.Event] = List(event).asJava
-    override def links(): util.List[SpanInfo.Link] = List(link).asJava
+    override def events(): util.List[EventInfo] = List(event).asJava
+    override def links(): util.List[LinkInfo] = List(link).asJava
   }
 
-  val event = new SpanInfo.Event {
+  val event = new EventInfo {
     override def name(): String = "event"
     override def attributes(): Attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
-    override def timestamp(): Long = 1234567890L
+    override def timestampNanos(): Long = 1234567890L
     override def exception(): Throwable = null
   }
 
   val linkedContext = SpanContext.create(IdGenerator.generateRandomTraceIdAsHex(), IdGenerator.generateRandomIdAsHex(), TraceFlags.getSampled, TraceState.getDefault)
-  val link = new SpanInfo.Link {
+  val link = new LinkInfo {
     override def spanContext(): SpanContext = linkedContext
     override def attributes(): Attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
   }

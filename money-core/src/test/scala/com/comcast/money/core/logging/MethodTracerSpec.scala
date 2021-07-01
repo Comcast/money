@@ -80,7 +80,7 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         verify(mockSpanBuilder).startSpan()
         verify(mockSpan).storeInContext(any())
         verify(mockContext).makeCurrent()
-        verify(mockSpan).stop(true)
+        verify(mockSpan).end(true)
         verify(mockScope).close()
 
         result shouldBe "result"
@@ -107,7 +107,7 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         verify(mockSpanBuilder).startSpan()
         verify(mockSpan).storeInContext(any())
         verify(mockContext).makeCurrent()
-        verify(mockSpan).stop(false)
+        verify(mockSpan).end(false)
         verify(mockScope).close()
       }
       "that throws an ignored exception" in {
@@ -131,7 +131,7 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         verify(mockSpanBuilder).startSpan()
         verify(mockSpan).storeInContext(any())
         verify(mockContext).makeCurrent()
-        verify(mockSpan).stop(true)
+        verify(mockSpan).end(true)
         verify(mockScope).close()
       }
     }
@@ -157,14 +157,14 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         verify(mockSpanBuilder).startSpan()
         verify(mockSpan).storeInContext(any())
         verify(mockContext).makeCurrent()
-        verify(mockSpan, never()).stop(any())
+        verify(mockSpan, never()).end(any())
         verify(mockScope).close()
 
         result shouldBe "result2"
 
         handler.callback(Success("result3"))
 
-        verify(mockSpan).stop(true)
+        verify(mockSpan).end(true)
       }
       "that complete exceptionally" in {
         val method = tracedAsyncMethod
@@ -187,14 +187,14 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         verify(mockSpanBuilder).startSpan()
         verify(mockSpan).storeInContext(any())
         verify(mockContext).makeCurrent()
-        verify(mockSpan, never()).stop(any())
+        verify(mockSpan, never()).end(any())
         verify(mockScope).close()
 
         result shouldBe "result2"
 
         handler.callback(Failure(new Exception))
 
-        verify(mockSpan).stop(false)
+        verify(mockSpan).end(false)
       }
       "that complete exceptionally with ignored exception" in {
         val method = tracedAsyncMethodWithIgnoredExceptions
@@ -217,14 +217,14 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         verify(mockSpanBuilder).startSpan()
         verify(mockSpan).storeInContext(any())
         verify(mockContext).makeCurrent()
-        verify(mockSpan, never()).stop(any())
+        verify(mockSpan, never()).end(any())
         verify(mockScope).close()
 
         result shouldBe "result2"
 
         handler.callback(Failure(new IllegalArgumentException()))
 
-        verify(mockSpan).stop(true)
+        verify(mockSpan).end(true)
       }
       "with unhandled return value" in {
         val method = tracedAsyncMethod
@@ -246,7 +246,7 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         verify(mockSpanBuilder).startSpan()
         verify(mockSpan).storeInContext(any())
         verify(mockContext).makeCurrent()
-        verify(mockSpan).stop(true)
+        verify(mockSpan).end(true)
         verify(mockScope).close()
 
         result shouldBe "result"
@@ -273,7 +273,7 @@ class MethodTracerSpec extends AnyWordSpec with Matchers with MockitoSugar with 
         verify(mockSpanBuilder).startSpan()
         verify(mockSpan).storeInContext(any())
         verify(mockContext).makeCurrent()
-        verify(mockSpan).stop(false)
+        verify(mockSpan).end(false)
         verify(mockScope).close()
       }
     }

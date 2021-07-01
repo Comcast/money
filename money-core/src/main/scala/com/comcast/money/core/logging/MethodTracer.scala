@@ -54,16 +54,16 @@ trait MethodTracer extends Reflections with TraceLogging {
             case Some(future) =>
               future
             case None =>
-              span.stop(true)
+              span.end(true)
               result
           }
         case Success(result) =>
-          span.stop(true)
+          span.end(true)
           result
         case Failure(exception) =>
           logException(exception)
           span.recordException(exception)
-          span.stop(exceptionMatches(exception, annotation.ignoredExceptions()))
+          span.end(exceptionMatches(exception, annotation.ignoredExceptions()))
           throw exception
       }
     } finally {
@@ -119,7 +119,7 @@ trait MethodTracer extends Reflections with TraceLogging {
         }
 
         // stop the captured span with the success/failure flag
-        span.stop(result)
+        span.end(result)
       } finally {
         // reset the current thread context
         scope.close()

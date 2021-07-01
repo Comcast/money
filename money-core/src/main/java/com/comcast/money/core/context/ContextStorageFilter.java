@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package com.comcast.money.otel.handlers
+package com.comcast.money.core.context;
 
-import com.comcast.money.api.{ LinkInfo, SpanInfo }
-import io.opentelemetry.api.common.Attributes
-import io.opentelemetry.api.trace.SpanContext
-import io.opentelemetry.sdk.trace.data.LinkData
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.ContextStorage;
+import io.opentelemetry.context.Scope;
 
-private[otel] case class MoneyLink(link: LinkInfo) extends LinkData {
-  override def getSpanContext: SpanContext = link.spanContext
-  override def getAttributes: Attributes = link.attributes
-  override def getTotalAttributeCount: Int = link.attributes.size
+public interface ContextStorageFilter {
+    Scope attach(Context context, ContextStorage storage);
 }

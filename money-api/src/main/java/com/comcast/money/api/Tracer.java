@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core.context
+package com.comcast.money.api;
 
-import io.opentelemetry.context.{ Context, ContextStorage, Scope }
+/**
+ * OpenTelemetry compatible API to be used for tracing
+ */
+public interface Tracer extends io.opentelemetry.api.trace.Tracer {
 
-trait ContextStorageFilter {
-  def attach(context: Context, storage: ContextStorage): Scope
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    SpanBuilder spanBuilder(String spanName);
 }

@@ -16,16 +16,15 @@
 
 package com.comcast.money.core
 
-import java.time.Instant
-import java.util.concurrent.TimeUnit
 import com.comcast.money.api._
 import com.comcast.money.core.context.ContextStorageFilter
-import io.opentelemetry.api.common.{ AttributeKey, Attributes }
-import io.opentelemetry.context.{ Context, ContextStorage, Scope }
-import io.opentelemetry.api.trace.{ SpanContext, SpanKind, StatusCode, Span => OtelSpan }
 import com.comcast.money.core.formatters.Formatter
+import io.opentelemetry.api.common.{ AttributeKey, Attributes }
+import io.opentelemetry.api.trace.{ SpanContext, SpanKind, StatusCode }
+import io.opentelemetry.context.{ Context, ContextStorage, Scope }
 
-import java.util.Optional
+import java.time.Instant
+import java.util.concurrent.TimeUnit
 
 // $COVERAGE-OFF$
 object DisabledSpanHandler extends SpanHandler {
@@ -99,10 +98,6 @@ object DisabledSpanFactory extends SpanFactory {
 object DisabledSpanBuilder extends SpanBuilder {
   override def setParent(context: Context): SpanBuilder = this
 
-  override def setParent(span: Span): SpanBuilder = this
-
-  override def setParent(span: Optional[Span]): SpanBuilder = this
-
   override def setSticky(sticky: Boolean): SpanBuilder = this
 
   override def setNoParent(): SpanBuilder = this
@@ -134,15 +129,13 @@ object DisabledSpanBuilder extends SpanBuilder {
 
 object DisabledSpan extends Span {
 
-  override def stop(): Unit = ()
-
-  override def stop(result: java.lang.Boolean): Unit = ()
-
   override def stopTimer(timerKey: String): Unit = ()
 
   override def record(note: Note[_]): Span = this
 
   override def startTimer(timerKey: String): Scope = () => ()
+
+  override def id(): SpanId = SpanId.getInvalid
 
   override def info(): SpanInfo = null
 

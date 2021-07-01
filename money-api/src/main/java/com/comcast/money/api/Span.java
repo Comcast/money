@@ -21,54 +21,62 @@ import java.util.concurrent.TimeUnit;
 
 import io.opentelemetry.api.common.AttributeKey;
 import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
 
 /**
  * A Span is a container that represents a unit of work.  It could be a long running operation or sequence of
  * statements in process, or a remote system call.
- *
- * A Span is immutable, all changes to the span result in a new Span being created.
  */
 public interface Span extends io.opentelemetry.api.trace.Span, Scope {
 
-    /**
-     * Stops the span asserts a successful result
-     */
-    void stop();
-
-    /**
-     * Ends a span, moving it to a Stopped state
-     * @param result The result of the span (success or failure)
-     */
-    void stop(Boolean result);
+    @Override
+    default Span setAttribute(String key, String value) {
+        return record(Note.of(key, value));
+    }
 
     @Override
-    Span setAttribute(String key, String value);
+    default Span setAttribute(String key, long value) {
+        return record(Note.of(key, value));
+    }
 
     @Override
-    Span setAttribute(String key, long value);
+    default Span setAttribute(String key, double value) {
+        return record(Note.of(key, value));
+    }
 
     @Override
-    Span setAttribute(String key, double value);
+    default Span setAttribute(String key, boolean value) {
+        return record(Note.of(key, value));
+    }
 
     @Override
-    Span setAttribute(String key, boolean value);
+    default <T> Span setAttribute(AttributeKey<T> key, T value) {
+        return record(Note.of(key, value));
+    }
 
     @Override
-    <T> Span setAttribute(AttributeKey<T> key, T value);
+    default Span setAttribute(AttributeKey<Long> key, int value) {
+        return setAttribute(key, (long) value);
+    }
 
     @Override
-    Span setAttribute(AttributeKey<Long> key, int value);
+    default Span addEvent(String name) {
+        return addEvent(name, Attributes.empty());
+    }
 
     @Override
-    Span addEvent(String name);
+    default Span addEvent(String name, long timestamp, TimeUnit unit) {
+        return addEvent(name, Attributes.empty(), timestamp, unit);
+    }
 
     @Override
-    Span addEvent(String name, long timestamp, TimeUnit unit);
-
-    @Override
-    Span addEvent(String name, Instant timestamp);
+    default Span addEvent(String name, Instant timestamp) {
+        return addEvent(name, Attributes.empty(), timestamp);
+    }
 
     @Override
     Span addEvent(String name, Attributes attributes);
@@ -77,16 +85,26 @@ public interface Span extends io.opentelemetry.api.trace.Span, Scope {
     Span addEvent(String name, Attributes attributes, long timestamp, TimeUnit unit);
 
     @Override
-    Span addEvent(String name, Attributes attributes, Instant timestamp);
+    default Span addEvent(String name, Attributes attributes, Instant timestamp) {
+        if (timestamp != null) {
+            return addEvent(name, attributes, TimeUnit.SECONDS.toNanos(timestamp.getEpochSecond()) + timestamp.getNano(), TimeUnit.NANOSECONDS);
+        } else {
+            return addEvent(name, attributes);
+        }
+    }
 
     @Override
-    Span setStatus(StatusCode canonicalCode);
+    default Span setStatus(StatusCode canonicalCode) {
+        return setStatus(canonicalCode, null);
+    }
 
     @Override
     Span setStatus(StatusCode canonicalCode, String description);
 
     @Override
-    Span recordException(Throwable exception);
+    default Span recordException(Throwable exception) {
+        return recordException(exception, Attributes.empty());
+    }
 
     @Override
     Span recordException(Throwable exception, Attributes additionalAttributes);
@@ -118,7 +136,88 @@ public interface Span extends io.opentelemetry.api.trace.Span, Scope {
     Span attachScope(Scope scope);
 
     /**
+     * Ends the span
+     * @param result The result of the span (success or failure)
+     */
+    default void end(boolean result) {
+        setStatus(result ? StatusCode.OK : StatusCode.ERROR).end();
+    }
+
+    /**
      * @return The current state of the Span
      */
     SpanInfo info();
+
+    /**
+     * @return The {@link SpanId} of the Span
+     */
+    SpanId id();
+
+    /**
+     * Returns the {@link io.opentelemetry.api.trace.Span} from the current {@link Context}, falling back to a default, no-op
+     * {@link io.opentelemetry.api.trace.Span} if there is no span in the current context.
+     */
+    static Span current() {
+        return fromContext(Context.current());
+    }
+
+    /**
+     * Returns the {@link io.opentelemetry.api.trace.Span} from the specified {@link Context}, falling back to a default, no-op
+     * {@link io.opentelemetry.api.trace.Span} if there is no span in the context.
+     */
+    static Span fromContext(Context context) {
+        Span span = fromContextOrNull(context);
+        return span != null ? span : getInvalid();
+    }
+
+    /**
+     * Returns the {@link io.opentelemetry.api.trace.Span} from the specified {@link Context}, or {@code null} if there is no
+     * span in the context.
+     */
+    static Span fromContextOrNull(Context context) {
+        if (context != null) {
+            io.opentelemetry.api.trace.Span otelSpan = io.opentelemetry.api.trace.Span.fromContextOrNull(context);
+            if (otelSpan instanceof Span) {
+                Span span = (Span) otelSpan;
+                if (span.info().id().isValid()) {
+                    return (Span) otelSpan;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Returns an invalid {@link io.opentelemetry.api.trace.Span}.
+     */
+    static Span getInvalid() {
+        return InvalidSpan.INSTANCE;
+    }
+
+    /**
+     * Returns a non-recording {@link Span} that holds the provided {@link SpanId} but has no
+     * functionality. It will not be exported and all tracing operations are no-op, but it can be used
+     * to propagate a valid {@link SpanId} downstream.
+     */
+    static Span wrap(SpanId id) {
+        return wrap(id, null, SpanKind.INTERNAL);
+    }
+
+    /**
+     * Returns a non-recording {@link Span} that holds the provided {@link SpanId} but has no
+     * functionality. It will not be exported and all tracing operations are no-op, but it can be used
+     * to propagate a valid {@link SpanId} downstream.
+     */
+    static Span wrap(SpanId id, String name) {
+        return wrap(id, name, SpanKind.INTERNAL);
+    }
+
+    /**
+     * Returns a non-recording {@link Span} that holds the provided {@link SpanId} but has no
+     * functionality. It will not be exported and all tracing operations are no-op, but it can be used
+     * to propagate a valid {@link SpanId} downstream.
+     */
+    static Span wrap(SpanId id, String name, SpanKind kind) {
+        return id != null && id.isValid() ? new PropagatedSpan(id, name, kind) : getInvalid();
+    }
 }

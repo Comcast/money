@@ -14,12 +14,21 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core
+package com.comcast.money.core;
 
-import com.comcast.money.api.SpanInfo
-import io.opentelemetry.api.common.Attributes
-import io.opentelemetry.api.trace.SpanContext
+import io.opentelemetry.api.common.Attributes;
+import lombok.Value;
 
-private[core] final case class CoreLink(
-  spanContext: SpanContext,
-  attributes: Attributes = Attributes.empty()) extends SpanInfo.Link
+import com.comcast.money.api.EventInfo;
+
+@Value
+class CoreEvent implements EventInfo {
+    String name;
+    long timestampNanos;
+    Attributes attributes;
+
+    @Override
+    public Throwable exception() {
+        return null;
+    }
+}

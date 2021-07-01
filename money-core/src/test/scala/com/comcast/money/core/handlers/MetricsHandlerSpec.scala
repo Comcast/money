@@ -17,6 +17,7 @@
 package com.comcast.money.core.handlers
 
 import com.codahale.metrics.{ Histogram, Meter, MetricRegistry }
+import com.comcast.money.core.CoreSpanInfo
 import com.typesafe.config.Config
 import io.opentelemetry.api.trace.StatusCode
 import org.mockito.Mockito._
@@ -61,7 +62,7 @@ class MetricsHandlerSpec extends AnyWordSpec with Matchers with MockitoSugar wit
       when(underTest.metricRegistry.histogram(anyString())).thenReturn(latencyMetric)
       when(underTest.metricRegistry.meter(anyString())).thenReturn(errorMetric)
 
-      underTest.handle(testSpanInfo.copy(status = StatusCode.ERROR))
+      underTest.handle(testSpanInfo.toBuilder.status(StatusCode.ERROR).build())
 
       verify(latencyMetric).update(testSpanInfo.durationMicros)
       verify(errorMetric).mark()

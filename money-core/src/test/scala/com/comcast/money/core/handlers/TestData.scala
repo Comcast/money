@@ -42,17 +42,19 @@ trait TestData {
 
   val clock: Clock = SystemClock
 
-  val testSpanInfo = CoreSpanInfo(
-    id = SpanId.createNew(),
-    startTimeNanos = clock.now,
-    endTimeNanos = clock.now,
-    durationNanos = 123456000L,
-    status = StatusCode.OK,
-    name = "test-span",
-    appName = "test",
-    host = "localhost",
-    notes = Map[String, Note[_]]("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote).asJava,
-    events = Collections.emptyList())
+  val testSpanInfo = CoreSpanInfo.builder()
+    .id(SpanId.createNew())
+    .startTimeNanos(clock.now)
+    .endTimeNanos(clock.now)
+    .durationNanos(123456000L)
+    .hasEnded(true)
+    .status(StatusCode.OK)
+    .name("test-span")
+    .appName("test")
+    .host("localhost")
+    .notes(Map[String, Note[_]]("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote).asJava)
+    .events(Collections.emptyList())
+    .build()
 
   val testSpanId = SpanId.createNew()
   val testSpan = CoreSpan(testSpanId, "test-span")
@@ -60,15 +62,17 @@ trait TestData {
   val childSpan = CoreSpan(childSpanId, "child-span")
 
   val fixedTestSpanId = SpanId.createRemote("5092ddfe-3701-4f84-b3d2-21f5501c0d28", 5176425846116696835L, 5176425846116696835L, TraceFlags.getSampled, TraceState.getDefault)
-  val fixedTestSpanInfo = CoreSpanInfo(
-    id = fixedTestSpanId,
-    startTimeNanos = 100000000L,
-    endTimeNanos = 300000000L,
-    durationNanos = 200000L,
-    status = StatusCode.OK,
-    name = "test-span",
-    appName = "test",
-    host = "localhost",
-    notes = Map[String, Note[_]]("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote).asJava,
-    events = Collections.emptyList())
+  val fixedTestSpanInfo = CoreSpanInfo.builder()
+    .id(fixedTestSpanId)
+    .startTimeNanos(100000000L)
+    .endTimeNanos(300000000L)
+    .durationNanos(200000L)
+    .hasEnded(true)
+    .status(StatusCode.OK)
+    .name("test-span")
+    .appName("test")
+    .host("localhost")
+    .notes(Map[String, Note[_]]("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote).asJava)
+    .events(Collections.emptyList())
+    .build()
 }

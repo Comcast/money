@@ -32,6 +32,7 @@ import org.scalatestplus.mockito.MockitoSugar
 
 import scala.collection.JavaConverters._
 import InstantImplicits._
+import com.comcast.money.core.internal.SpanLocal
 
 import java.util.Optional
 
@@ -46,7 +47,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val span = mock[Span]
       when(sampler.shouldSample(any(), argEq(None), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
 
-      val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library) {
+      val underTest = new CoreSpanBuilder(None, Context.root(), SpanLocal, "test", clock, handler, sampler, library) {
         override private[core] def createSpan(id: SpanId, name: String, kind: SpanKind, startTimeNanos: Long) = {
           name shouldBe "test"
           span
@@ -65,7 +66,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val span = mock[Span]
       when(sampler.shouldSample(argEq(spanId), argEq(None), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
 
-      val underTest = new CoreSpanBuilder(Some(spanId), None, "test", clock, handler, sampler, library) {
+      val underTest = new CoreSpanBuilder(Some(spanId), Context.root(), SpanLocal, "test", clock, handler, sampler, library) {
         override private[core] def createSpan(id: SpanId, name: String, kind: SpanKind, startTimeNanos: Long) = {
           id shouldBe spanId
           name shouldBe "test"
@@ -85,11 +86,13 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val parentSpanInfo = mock[SpanInfo]
       val parentSpan = mock[Span]
       val span = mock[Span]
+      when(parentSpan.storeInContext(any())).thenCallRealMethod()
       when(parentSpan.info).thenReturn(parentSpanInfo)
       when(parentSpanInfo.id).thenReturn(parentSpanId)
       when(sampler.shouldSample(any(), argEq(Some(parentSpanId)), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
 
-      val underTest = new CoreSpanBuilder(None, Some(parentSpan), "test", clock, handler, sampler, library) {
+      val parentContext = Context.root.`with`(parentSpan)
+      val underTest = new CoreSpanBuilder(None, parentContext, SpanLocal, "test", clock, handler, sampler, library) {
         override private[core] def createSpan(id: SpanId, name: String, kind: SpanKind, startTimeNanos: Long) = {
           id.traceId shouldBe parentSpanId.traceId
           id.parentId shouldBe parentSpanId.selfId
@@ -111,10 +114,11 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val parentSpan = mock[Span]
       val span = mock[Span]
       when(parentSpan.info).thenReturn(parentSpanInfo)
+      when(parentSpan.storeInContext(any())).thenCallRealMethod()
       when(parentSpanInfo.id).thenReturn(parentSpanId)
       when(sampler.shouldSample(any(), argEq(Some(parentSpanId)), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
 
-      val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library) {
+      val underTest = new CoreSpanBuilder(None, Context.root(), SpanLocal, "test", clock, handler, sampler, library) {
         override private[core] def createSpan(id: SpanId, name: String, kind: SpanKind, startTimeNanos: Long) = {
           id.traceId shouldBe parentSpanId.traceId
           id.parentId shouldBe parentSpanId.selfId
@@ -124,65 +128,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       }
 
       val result = underTest
-        .setParent(parentSpan)
-        .startSpan()
-      result shouldBe span
-    }
-
-    "create a child span with an explicit parent span wrapped in an Option" in {
-      val handler = mock[SpanHandler]
-      val sampler = mock[Sampler]
-
-      val parentSpanId = SpanId.createNew()
-      val parentSpanInfo = mock[SpanInfo]
-      val parentSpan = mock[Span]
-      val span = mock[Span]
-      when(parentSpan.info).thenReturn(parentSpanInfo)
-      when(parentSpanInfo.id).thenReturn(parentSpanId)
-      when(sampler.shouldSample(any(), argEq(Some(parentSpanId)), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
-
-      val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library) {
-        override private[core] def createSpan(id: SpanId, name: String, kind: SpanKind, startTimeNanos: Long) = {
-          id.traceId shouldBe parentSpanId.traceId
-          id.parentId shouldBe parentSpanId.selfId
-          name shouldBe "test"
-          span
-        }
-      }
-
-      val result = underTest
-        .setParent(Optional.of(parentSpan))
-        .startSpan()
-
-      result shouldBe span
-    }
-
-    "create a child span with an explicit parent span wrapped in an Context" in {
-      val handler = mock[SpanHandler]
-      val sampler = mock[Sampler]
-
-      val parentSpanId = SpanId.createNew()
-      val parentSpanInfo = mock[SpanInfo]
-      val parentSpan = mock[Span]
-      val span = mock[Span]
-      when(parentSpan.info).thenReturn(parentSpanInfo)
-      when(parentSpanInfo.id).thenReturn(parentSpanId)
-      when(sampler.shouldSample(any(), argEq(Some(parentSpanId)), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
-
-      val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library) {
-        override private[core] def createSpan(id: SpanId, name: String, kind: SpanKind, startTimeNanos: Long) = {
-          id.traceId shouldBe parentSpanId.traceId
-          id.parentId shouldBe parentSpanId.selfId
-          name shouldBe "test"
-          span
-        }
-      }
-
-      when(parentSpan.storeInContext(Context.root())).thenCallRealMethod()
-      val context = Context.root.`with`(parentSpan)
-
-      val result = underTest
-        .setParent(context)
+        .setParent(Context.root().`with`(parentSpan))
         .startSpan()
       result shouldBe span
     }
@@ -194,7 +140,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val parentSpan = mock[Span]
       when(sampler.shouldSample(any(), argEq(None), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
 
-      val underTest = new CoreSpanBuilder(None, Some(parentSpan), "test", clock, handler, sampler, library) {
+      val underTest = new CoreSpanBuilder(None, Context.root(), SpanLocal, "test", clock, handler, sampler, library) {
         override private[core] def createSpan(id: SpanId, name: String, kind: SpanKind, startTimeNanos: Long) = {
           name shouldBe "test"
           span
@@ -213,7 +159,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val span = mock[Span]
       when(sampler.shouldSample(any(), argEq(None), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
 
-      val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library) {
+      val underTest = new CoreSpanBuilder(None, Context.root(), SpanLocal, "test", clock, handler, sampler, library) {
         override private[core] def createSpan(id: SpanId, name: String, kind: SpanKind, startTimeNanos: Long) = span
       }
 
@@ -253,6 +199,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val parentSpan = mock[Span]
       val span = mock[Span]
       when(parentSpan.info).thenReturn(parentSpanInfo)
+      when(parentSpan.storeInContext(any())).thenCallRealMethod()
       when(parentSpanInfo.id).thenReturn(parentSpanId)
       val notes: Map[String, Note[_]] = Map(
         "test" -> Note.of("some", "note", true),
@@ -260,7 +207,8 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       when(parentSpanInfo.notes).thenReturn(notes.asJava)
       when(sampler.shouldSample(any(), argEq(Some(parentSpanId)), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
 
-      val underTest = new CoreSpanBuilder(None, Some(parentSpan), "test", clock, handler, sampler, library) {
+      val parentContext = Context.root.`with`(parentSpan)
+      val underTest = new CoreSpanBuilder(None, parentContext, SpanLocal, "test", clock, handler, sampler, library) {
         override private[core] def createSpan(id: SpanId, name: String, kind: SpanKind, startTimeNanos: Long) = span
       }
 
@@ -284,6 +232,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val parentSpanInfo = mock[SpanInfo]
       val parentSpan = mock[Span]
       val span = mock[Span]
+      when(parentSpan.storeInContext(any())).thenCallRealMethod()
       when(parentSpan.info).thenReturn(parentSpanInfo)
       when(parentSpanInfo.id).thenReturn(parentSpanId)
       val notes: Map[String, Note[_]] = Map(
@@ -292,7 +241,8 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       when(parentSpanInfo.notes).thenReturn(notes.asJava)
       when(sampler.shouldSample(any(), argEq(Some(parentSpanId)), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
 
-      val underTest = new CoreSpanBuilder(None, Some(parentSpan), "test", clock, handler, sampler, library) {
+      val parentContext = Context.root.`with`(parentSpan)
+      val underTest = new CoreSpanBuilder(None, parentContext, SpanLocal, "test", clock, handler, sampler, library) {
         override private[core] def createSpan(id: SpanId, name: String, kind: SpanKind, startTimeNanos: Long) = span
       }
 
@@ -309,7 +259,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val sampler = mock[Sampler]
       when(sampler.shouldSample(any(), argEq(None), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
 
-      val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library)
+      val underTest = new CoreSpanBuilder(None, Context.root(), SpanLocal, "test", clock, handler, sampler, library)
 
       val result = underTest
         .setSpanKind(SpanKind.SERVER)
@@ -323,7 +273,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val sampler = mock[Sampler]
       when(sampler.shouldSample(any(), argEq(None), argEq("test"))).thenReturn(SamplerResult.Drop)
 
-      val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library)
+      val underTest = new CoreSpanBuilder(None, Context.root(), SpanLocal, "test", clock, handler, sampler, library)
 
       val result = underTest
         .setSpanKind(SpanKind.SERVER)
@@ -337,7 +287,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val sampler = mock[Sampler]
       when(sampler.shouldSample(any(), argEq(None), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
 
-      val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library)
+      val underTest = new CoreSpanBuilder(None, Context.root(), SpanLocal, "test", clock, handler, sampler, library)
 
       val result = underTest.startSpan()
 
@@ -349,7 +299,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val sampler = mock[Sampler]
       when(sampler.shouldSample(any(), argEq(None), argEq("test"))).thenReturn(SamplerResult.Record)
 
-      val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library)
+      val underTest = new CoreSpanBuilder(None, Context.root(), SpanLocal, "test", clock, handler, sampler, library)
 
       val result = underTest.startSpan()
 
@@ -364,7 +314,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       when(sampler.shouldSample(any(), argEq(None), argEq("test")))
         .thenReturn(SamplerResult.RecordAndSample.withNote(Note.of("sampler", "note")))
 
-      val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library) {
+      val underTest = new CoreSpanBuilder(None, Context.root(), SpanLocal, "test", clock, handler, sampler, library) {
         override private[core] def createSpan(id: SpanId, name: String, kind: SpanKind, startTimeNanos: Long) = span
       }
 
@@ -383,7 +333,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val sampler = mock[Sampler]
       when(sampler.shouldSample(any(), argEq(None), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
 
-      val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library)
+      val underTest = new CoreSpanBuilder(None, Context.root(), SpanLocal, "test", clock, handler, sampler, library)
 
       val result = underTest
         .setStartTimestamp(12345789L, TimeUnit.NANOSECONDS)
@@ -397,7 +347,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
       val sampler = mock[Sampler]
       when(sampler.shouldSample(any(), argEq(None), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
 
-      val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library)
+      val underTest = new CoreSpanBuilder(None, Context.root(), SpanLocal, "test", clock, handler, sampler, library)
       val instant = Instant.now
 
       val result = underTest
@@ -413,7 +363,7 @@ class CoreSpanBuilderSpec extends AnyWordSpec with Matchers with MockitoSugar {
 
       when(sampler.shouldSample(any(), argEq(None), argEq("test"))).thenReturn(SamplerResult.RecordAndSample)
 
-      val underTest = new CoreSpanBuilder(None, None, "test", clock, handler, sampler, library)
+      val underTest = new CoreSpanBuilder(None, Context.root(), SpanLocal, "test", clock, handler, sampler, library)
 
       val linkedContext = SpanContext.create(IdGenerator.generateRandomTraceIdAsHex(), IdGenerator.generateRandomIdAsHex(), TraceFlags.getSampled, TraceState.getDefault)
       val attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")

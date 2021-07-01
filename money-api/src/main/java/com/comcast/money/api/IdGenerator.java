@@ -22,7 +22,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class IdGenerator {
+public final class IdGenerator {
     private IdGenerator() { }
 
     public static final String INVALID_TRACE_ID = "00000000-0000-0000-0000-000000000000";

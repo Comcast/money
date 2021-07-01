@@ -14,9 +14,25 @@
  * limitations under the License.
  */
 
-package com.comcast.money.core
+package com.comcast.money.api;
 
-trait Clock {
-  def now: Long
-  def nanoTime: Long
+import io.opentelemetry.api.common.Attributes;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanContext;
+
+/**
+ * A reference to another {@link Span} by span context.
+ * <p>
+ * Can be used to associate multiple traces as a part of a batch operation.
+ */
+public interface LinkInfo {
+    /**
+     * @return the context of the linked span
+     */
+    SpanContext spanContext();
+
+    /**
+     * @return the attributes associated with the link between the spans
+     */
+    Attributes attributes();
 }

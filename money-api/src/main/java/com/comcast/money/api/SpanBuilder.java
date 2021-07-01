@@ -35,16 +35,6 @@ public interface SpanBuilder extends io.opentelemetry.api.trace.SpanBuilder {
     SpanBuilder setParent(Context context);
 
     /**
-     * Sets the parent span to the specified span
-     */
-    SpanBuilder setParent(Span span);
-
-    /**
-     * Sets the parent span to the specified span
-     */
-    SpanBuilder setParent(Optional<Span> span);
-
-    /**
      * {@inheritDoc}
      */
     @Override
@@ -59,7 +49,9 @@ public interface SpanBuilder extends io.opentelemetry.api.trace.SpanBuilder {
      * {@inheritDoc}
      */
     @Override
-    SpanBuilder addLink(SpanContext spanContext);
+    default SpanBuilder addLink(SpanContext spanContext) {
+        return addLink(spanContext, Attributes.empty());
+    }
 
     /**
      * {@inheritDoc}
@@ -71,31 +63,41 @@ public interface SpanBuilder extends io.opentelemetry.api.trace.SpanBuilder {
      * {@inheritDoc}
      */
     @Override
-    SpanBuilder setAttribute(String key, String value);
+    default SpanBuilder setAttribute(String key, String value) {
+        return record(Note.of(key, value));
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    SpanBuilder setAttribute(String key, long value);
+    default SpanBuilder setAttribute(String key, long value) {
+        return record(Note.of(key, value));
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    SpanBuilder setAttribute(String key, double value);
+    default SpanBuilder setAttribute(String key, double value) {
+        return record(Note.of(key, value));
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    SpanBuilder setAttribute(String key, boolean value);
+    default SpanBuilder setAttribute(String key, boolean value) {
+        return record(Note.of(key, value));
+    }
 
     /**
      * {@inheritDoc}
      */
     @Override
-    <T> SpanBuilder setAttribute(AttributeKey<T> key, T value);
+    default <T> SpanBuilder setAttribute(AttributeKey<T> key, T value) {
+        return record(Note.of(key, value));
+    }
 
     /**
      * Records the note on the created span
@@ -118,7 +120,9 @@ public interface SpanBuilder extends io.opentelemetry.api.trace.SpanBuilder {
      * {@inheritDoc}
      */
     @Override
-    SpanBuilder setStartTimestamp(Instant startTimestamp);
+    default SpanBuilder setStartTimestamp(Instant startTimestamp) {
+        return setStartTimestamp(TimeUnit.SECONDS.toNanos(startTimestamp.getEpochSecond()) + startTimestamp.getNano(), TimeUnit.NANOSECONDS);
+    }
 
     /**
      * {@inheritDoc}
