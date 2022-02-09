@@ -333,7 +333,7 @@ def javaOnlyProjectSettings = projectSettings ++ Seq(
 
 def projectSettings = basicSettings ++ Seq(
   ScoverageKeys.coverageHighlighting := true,
-  ScoverageKeys.coverageMinimum := 80,
+  ScoverageKeys.coverageMinimumStmtTotal := 80,
   ScoverageKeys.coverageFailOnMinimum := true,
   organizationName := "Comcast Cable Communications Management, LLC",
   startYear := Some(2012),

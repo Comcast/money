@@ -30,7 +30,7 @@ public class IdGenerator {
     public static final long INVALID_ID = 0L;
     public static final String INVALID_ID_HEX = "0000000000000000";
 
-    private static final Pattern TRACE_ID_PATTERN = Pattern.compile("^([0-9a-f]{8})-?([0-9a-f]{4})-([0-9a-f]{4})-?([0-9a-f]{4})-?([0-9a-f]{12})$", Pattern.CASE_INSENSITIVE);
+    private static final Pattern TRACE_ID_PATTERN = Pattern.compile("^([0-9a-f]{8})-([0-9a-f]{4})-([0-9a-f]{4})-?([0-9a-f]{4})-?([0-9a-f]{12})$", Pattern.CASE_INSENSITIVE);
     private static final Pattern TRACE_ID_HEX_PATTERN = Pattern.compile("^(?:[0-9a-f]{16}){1,2}$", Pattern.CASE_INSENSITIVE);
     private static final Pattern ID_HEX_PATTERN = Pattern.compile("^[0-9a-f]{16}$", Pattern.CASE_INSENSITIVE);
 
