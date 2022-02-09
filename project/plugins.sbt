@@ -1,11 +1,11 @@
 // Comment to get more information during initialization
 logLevel := Level.Warn
-scalaVersion := "2.12.12"
+scalaVersion := "2.12.15"
 
 // The Typesafe repository
 resolvers += "Typesafe repository" at "https://repo.typesafe.com/typesafe/releases/"
 
-addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.6.1")
+addSbtPlugin("org.scoverage" % "sbt-scoverage" % "1.9.3")
 
 addSbtPlugin("com.lightbend.sbt" % "sbt-aspectj" % "0.11.0")
 
