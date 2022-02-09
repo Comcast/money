@@ -51,6 +51,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getLatencyNanos shouldBe 2000000L
       underTest.getStatus shouldBe StatusData.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
+      underTest.getAttribute(AttributeKey.stringKey("foo")) shouldBe "bar"
       underTest.getAttributes shouldBe Attributes.of(AttributeKey.stringKey("foo"), "bar")
       underTest.getTotalRecordedEvents shouldBe 1
       underTest.getEvents.asScala should contain(MoneyEvent(event))
@@ -75,6 +76,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.getLatencyNanos shouldBe 2000000L
       underTest.getStatus shouldBe StatusData.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
+      underTest.getAttribute(AttributeKey.stringKey("foo")) shouldBe "bar"
       underTest.getAttributes shouldBe Attributes.of(AttributeKey.stringKey("foo"), "bar")
       underTest.getTotalRecordedEvents shouldBe 1
       underTest.getEvents.asScala should contain(MoneyEvent(event))
