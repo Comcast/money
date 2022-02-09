@@ -115,6 +115,18 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       note.value shouldBe "bar"
     }
 
+    "set a attribute with a long attribute key and an int" in {
+      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val i: Int = 123
+
+      underTest.setAttribute(AttributeKey.longKey("foo"), i)
+
+      underTest.info.notes should contain key "foo"
+      val note = underTest.info.notes.get("foo")
+      note.name shouldBe "foo"
+      note.value shouldBe 123L
+    }
+
     "add an event with name" in {
       val underTest = CoreSpan(SpanId.createNew(), "test")
 

@@ -27,6 +27,7 @@ import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
 import io.opentelemetry.semconv.trace.attributes.SemanticAttributes
 
+import java.lang
 import scala.collection.mutable.ListBuffer
 
 /**
@@ -128,6 +129,7 @@ private[core] case class CoreSpan(
   override def setAttribute(attributeName: String, value: Double): Span = record(Note.of(attributeName, value))
   override def setAttribute(attributeName: String, value: Boolean): Span = record(Note.of(attributeName, value))
   override def setAttribute[T](key: AttributeKey[T], value: T): Span = record(Note.of(key, value))
+  override def setAttribute(key: AttributeKey[lang.Long], value: Int): Span = setAttribute[lang.Long](key, value.toLong)
 
   override def addEvent(eventName: String): Span = addEventInternal(eventName, Attributes.empty(), clock.now)
   override def addEvent(eventName: String, timestamp: Instant): Span = addEventInternal(eventName, Attributes.empty(), timestamp)
