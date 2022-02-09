@@ -3,15 +3,15 @@ object Dependencies {
   val metricsV = "3.2.6"
   val apacheHttpClientV = "4.5.6"
 
-  val akkaV = "2.5.30"
-  val akkaHttpV = "10.1.8"
+  val akkaV = "2.5.32"
+  val akkaHttpV = "10.1.15"
   val slf4jV = "1.7.25"
   val jodaV = "2.9.9"
   val json4sV = "3.6.10"
   val typesafeConfigV = "1.3.3"
-  val openTelemetryV = "0.17.0"
-  val openTelemetryInstV = "0.17.0"
-  val openTelemetrySemConvV = "0.17.0-alpha"
+  val openTelemetryV = "1.11.0"
+  val openTelemetryInstV = "1.11.0"
+  val openTelemetrySemConvV = "1.11.0-alpha"
 
   val akka =            "com.typesafe.akka"         %% "akka-actor"                  % akkaV
   val akkaStream =      "com.typesafe.akka"         %% "akka-stream"                 % akkaV
@@ -67,9 +67,10 @@ object Dependencies {
   val openTelemetrySdk = "io.opentelemetry" % "opentelemetry-sdk" % openTelemetryV changing()
   val openTelemetrySdkTesting = "io.opentelemetry" % "opentelemetry-sdk-testing" % openTelemetryV changing()
   val openTelemetryLoggingExporter = "io.opentelemetry" % "opentelemetry-exporter-logging" % openTelemetryInstV changing()
-  val openTelemetryOtlpExporter = "io.opentelemetry" % "opentelemetry-exporter-otlp" % openTelemetryInstV changing() exclude("io.opentelemetry", "dependencyManagement")
+  val openTelemetryOtlpExporter = "io.opentelemetry" % "opentelemetry-exporter-otlp" % openTelemetryInstV changing()
   val openTelemetryZipkinExporter = "io.opentelemetry" % "opentelemetry-exporter-zipkin" % openTelemetryInstV changing()
-  val openTelemetryJaegerExporter = "io.opentelemetry" % "opentelemetry-exporter-jaeger" % openTelemetryInstV changing() exclude("io.opentelemetry", "dependencyManagement")
+  val openTelemetryJaegerExporter = "io.opentelemetry" % "opentelemetry-exporter-jaeger" % openTelemetryInstV changing()
+  val grpc = "io.grpc" % "grpc-all" % "1.44.0"
 
   // Spring
   val springWeb = ("org.springframework" % "spring-web" % "4.3.17.RELEASE")
@@ -80,23 +81,23 @@ object Dependencies {
 
   // Test
 
-  val scalaTest = "org.scalatest" %% "scalatest" % "3.2.2" % Test
-  val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.14.3" % Test
-  val scalaTestWordSpec = "org.scalatest" %% "scalatest-wordspec" % "3.2.2" % Test
-  val scalaTestPlus = "org.scalatestplus" %% "mockito-3-4" % "3.2.2.0" % Test
+  val scalaTest = "org.scalatest" %% "scalatest" % "3.2.9" % Test
+  val scalaCheck = "org.scalacheck" %% "scalacheck" % "1.15.4" % Test
+  val scalaTestWordSpec = "org.scalatest" %% "scalatest-wordspec" % "3.2.9" % Test
+  val scalaTestPlus = "org.scalatestplus" %% "mockito-3-4" % "3.2.9.0" % Test
   val scalaTestCheck = "org.scalatestplus" %% "scalacheck-1-14" % "3.2.2.0" % Test
 
   val junit = "junit" % "junit" % "4.12" % Test
   val junitInterface = "com.novocode" % "junit-interface" % "0.11" % Test exclude("junit", "junit-dep")
-  val powerMock = "org.powermock" % "powermock-module-junit4" % "2.0.7" % Test
-  val powerMockApi = "org.powermock" % "powermock-api-mockito2" % "2.0.7" % Test
+  val powerMock = "org.powermock" % "powermock-module-junit4" % "2.0.9" % Test
+  val powerMockApi = "org.powermock" % "powermock-api-mockito2" % "2.0.9" % Test
   val springTest = ("org.springframework" % "spring-test" % "4.3.17.RELEASE")
     .exclude("commons-logging", "commons-logging")
-  val springBootTest = "org.springframework.boot" % "spring-boot-starter-test" % "1.5.11.RELEASE" % Test
-  val aspectJ = "org.aspectj" % "aspectjweaver" % "1.8.9" % Test
-  val assertj = "org.assertj" % "assertj-core" % "3.17.2" % Test
-  val awaitility = "org.awaitility" % "awaitility" % "4.0.3" % Test
-  val zipkinJunit = "io.zipkin.zipkin2" % "zipkin-junit" % "2.18.3" % Test
+  val springBootTest = "org.springframework.boot" % "spring-boot-starter-test" % "2.6.3" % Test
+  val aspectJ = "org.aspectj" % "aspectjweaver" % "1.9.7" % Test
+  val assertj = "org.assertj" % "assertj-core" % "3.22.0" % Test
+  val awaitility = "org.awaitility" % "awaitility" % "4.1.1" % Test
+  val zipkinJunit = "io.zipkin.zipkin2" % "zipkin-junit" % "2.23.16" % Test
 
   val commonTestDependencies = Seq(
     scalaTest,

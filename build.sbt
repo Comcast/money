@@ -145,10 +145,10 @@ lazy val moneyWire =
           json4sJackson
         ) ++ commonTestDependencies,
       fork := false,
-      javacOptions in doc := Seq("-source", "1.6"),
+      doc / javacOptions := Seq("-source", "1.6"),
       // Configure the desired Avro version.  sbt-avro automatically injects a libraryDependency.
-      (version in AvroConfig) := "1.7.6",
-      (stringType in AvroConfig) := "String"
+      AvroConfig / version := "1.7.6",
+      AvroConfig / stringType := "String"
     ).dependsOn(moneyCore % "test->test;compile->compile")
 
 lazy val moneyKafka =
@@ -246,6 +246,7 @@ lazy val moneyOtelJaegerExporter =
           openTelemetryApi,
           openTelemetrySdk,
           openTelemetryJaegerExporter,
+          grpc,
           junit,
           junitInterface,
           assertj,
@@ -310,6 +311,7 @@ lazy val moneyOtlpExporter =
           openTelemetryApi,
           openTelemetrySdk,
           openTelemetryOtlpExporter,
+          grpc,
           junit,
           junitInterface,
           assertj,
@@ -322,7 +324,7 @@ lazy val moneyOtlpExporter =
 
 
 def aspectjProjectSettings = projectSettings ++ Seq(
-  javaOptions in Test ++= (aspectjWeaverOptions in Aspectj).value // adds javaagent:aspectjweaver to java options, including test
+  Test / javaOptions ++= (Aspectj / aspectjWeaverOptions).value // adds javaagent:aspectjweaver to java options, including test
 )
 
 def javaOnlyProjectSettings = projectSettings ++ Seq(
@@ -352,8 +354,8 @@ def projectSettings = basicSettings ++ Seq(
 def basicSettings =  Defaults.itSettings ++ Seq(
   organization := "com.comcast.money",
   sonatypeProfileName := "com.comcast",
-  scalaVersion := "2.12.12",
-  crossScalaVersions := List("2.13.3", "2.12.12"),
+  scalaVersion := "2.12.15",
+  crossScalaVersions := List("2.13.8", "2.12.15"),
   resolvers ++= Seq(
     ("spray repo" at "http://repo.spray.io/").withAllowInsecureProtocol(true),
     "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/",
@@ -367,10 +369,10 @@ def basicSettings =  Defaults.itSettings ++ Seq(
     "-language:postfixOps",
     "-language:reflectiveCalls"),
   javacOptions ++= Seq("-source", "1.8", "-target", "1.8"),
-  javacOptions in doc := Seq("-source", "1.8"),
+  doc / javacOptions := Seq("-source", "1.8"),
   scalariformAutoformat := true,
-  testOptions in Test += Tests.Argument(TestFrameworks.ScalaTest, "-oDF", "-u", "target/scalatest-reports"),
+  Test / testOptions += Tests.Argument(TestFrameworks.ScalaTest, "-oDF", "-u", "target/scalatest-reports"),
   fork := true,
-  publishArtifact in Test := false,
+  Test / publishArtifact := false,
   autoAPIMappings := true
 )

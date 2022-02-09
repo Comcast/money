@@ -18,7 +18,7 @@ package com.comcast.money.otel.handlers
 
 import java.util
 import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanId, SpanInfo }
-import io.opentelemetry.api.common.{ Attributes, AttributesBuilder }
+import io.opentelemetry.api.common.{ AttributeKey, Attributes, AttributesBuilder }
 import io.opentelemetry.sdk.common.InstrumentationLibraryInfo
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.sdk.trace.ReadableSpan
@@ -55,6 +55,7 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
   override def getTotalRecordedLinks: Int = 0
   override def getTotalAttributeCount: Int = info.notes.size
   override def getAttributes: Attributes = attributes
+  override def getAttribute[T](key: AttributeKey[T]): T = attributes.get(key)
   override def getEvents: util.List[EventData] = events
 
   private def convertParentSpanContext(id: SpanId): SpanContext =
