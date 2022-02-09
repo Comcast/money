@@ -22,9 +22,10 @@ import com.comcast.money.api._
 import com.comcast.money.core.context.ContextStorageFilter
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.{ Context, ContextStorage, Scope }
-import io.opentelemetry.api.trace.{ SpanContext, SpanKind, StatusCode, Span => OtelSpan }
+import io.opentelemetry.api.trace.{ SpanContext, SpanKind, StatusCode }
 import com.comcast.money.core.formatters.Formatter
 
+import java.lang
 import java.util.Optional
 
 // $COVERAGE-OFF$
@@ -159,6 +160,8 @@ object DisabledSpan extends Span {
   override def setAttribute(key: String, value: Boolean): Span = this
 
   override def setAttribute[T](key: AttributeKey[T], value: T): Span = this
+
+  override def setAttribute(key: AttributeKey[lang.Long], value: Int): Span = this
 
   override def addEvent(name: String): Span = this
 

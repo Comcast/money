@@ -59,6 +59,7 @@ private[core] final case class UnrecordedSpan(
   override def setAttribute(key: String, value: Double): Span = this
   override def setAttribute(key: String, value: Boolean): Span = this
   override def setAttribute[T](key: AttributeKey[T], value: T): Span = this
+  override def setAttribute(key: AttributeKey[lang.Long], value: Int): Span = this
   override def addEvent(name: String): Span = this
   override def addEvent(name: String, timestamp: Long, unit: TimeUnit): Span = this
   override def addEvent(name: String, timestamp: Instant): Span = this
