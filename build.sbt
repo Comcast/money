@@ -58,8 +58,6 @@ lazy val moneyCore =
         Seq(
           slf4j,
           log4jbinding,
-          metricsCore,
-          metricsJmx,
           openTelemetryApi,
           openTelemetrySemConv,
           typesafeConfig
@@ -75,8 +73,6 @@ lazy val moneyOtelFormatters =
         Seq(
           slf4j,
           log4jbinding,
-          metricsCore,
-          metricsJmx,
           openTelemetryApi,
           openTelemetryProp,
           typesafeConfig
