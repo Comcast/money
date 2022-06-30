@@ -1,6 +1,6 @@
 import sbt._
 object Dependencies {
-  val metricsV = "3.2.6"
+  val metricsV = "4.2.10"
   val apacheHttpClientV = "4.5.6"
 
   val akkaV = "2.5.32"
