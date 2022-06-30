@@ -36,6 +36,7 @@ object Dependencies {
 
   // Codahale metrics
   val metricsCore = "io.dropwizard.metrics" % "metrics-core" % metricsV
+  val metricsJmx = "io.dropwizard.metrics" % "metrics-jmx" % metricsV
 
   // Apache http client
   val apacheHttpClient = "org.apache.httpcomponents" % "httpclient" % apacheHttpClientV

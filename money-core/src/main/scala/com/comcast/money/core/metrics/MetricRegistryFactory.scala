@@ -16,7 +16,8 @@
 
 package com.comcast.money.core.metrics
 
-import com.codahale.metrics.{ JmxReporter, MetricRegistry }
+import com.codahale.metrics.MetricRegistry
+import com.codahale.metrics.jmx.JmxReporter
 import com.typesafe.config.Config
 import org.slf4j.LoggerFactory
 
