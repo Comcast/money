@@ -32,6 +32,7 @@ lazy val money =
       moneyOtelFormatters,
       moneyOtelHandler,
       moneyOtlpExporter,
+      moneyOtlpHttpExporter,
       moneyOtelInMemoryExporter,
       moneyOtelLoggingExporter,
       moneyOtelZipkinExporter,
@@ -299,7 +300,6 @@ lazy val moneyOtelLoggingExporter =
     )
     .dependsOn(moneyCore, moneyOtelHandler % "test->test;compile->compile")
 
-
 lazy val moneyOtlpExporter =
   Project("money-otlp-exporter", file("./money-otlp-exporter"))
     .enablePlugins(AutomateHeaderPlugin)
@@ -322,6 +322,27 @@ lazy val moneyOtlpExporter =
     )
     .dependsOn(moneyCore, moneyOtelHandler % "test->test;compile->compile")
 
+lazy val moneyOtlpHttpExporter =
+  Project("money-otlp-http-exporter", file("./money-otlp-http-exporter"))
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          typesafeConfig,
+          openTelemetryApi,
+          openTelemetrySdk,
+          openTelemetryOtlpHttpExporter,
+          grpc,
+          junit,
+          junitInterface,
+          assertj,
+          powerMock,
+          powerMockApi
+        ) ++ commonTestDependencies,
+         testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
+    )
+    .dependsOn(moneyCore, moneyOtelHandler % "test->test;compile->compile")
 
 def aspectjProjectSettings = projectSettings ++ Seq(
   Test / javaOptions ++= (Aspectj / aspectjWeaverOptions).value // adds javaagent:aspectjweaver to java options, including test
@@ -355,7 +376,7 @@ def basicSettings =  Defaults.itSettings ++ Seq(
   organization := "com.comcast.money",
   sonatypeProfileName := "com.comcast",
   scalaVersion := "2.12.15",
-  crossScalaVersions := List("2.13.8", "2.12.15"),
+  crossScalaVersions := List("2.13.11", "2.12.18"),
   resolvers ++= Seq(
     ("spray repo" at "http://repo.spray.io/").withAllowInsecureProtocol(true),
     "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/",
