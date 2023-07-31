@@ -68,6 +68,7 @@ object Dependencies {
   val openTelemetrySdkTesting = "io.opentelemetry" % "opentelemetry-sdk-testing" % openTelemetryV changing()
   val openTelemetryLoggingExporter = "io.opentelemetry" % "opentelemetry-exporter-logging" % openTelemetryInstV changing()
   val openTelemetryOtlpExporter = "io.opentelemetry" % "opentelemetry-exporter-otlp" % openTelemetryInstV changing()
+  val openTelemetryOtlpHttpExporter = "io.opentelemetry" % "opentelemetry-exporter-otlp-http-trace" % openTelemetryInstV changing()
   val openTelemetryZipkinExporter = "io.opentelemetry" % "opentelemetry-exporter-zipkin" % openTelemetryInstV changing()
   val openTelemetryJaegerExporter = "io.opentelemetry" % "opentelemetry-exporter-jaeger" % openTelemetryInstV changing()
   val grpc = "io.grpc" % "grpc-all" % "1.44.0"
