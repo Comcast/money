@@ -60,7 +60,7 @@ object Money {
       configureContextFilters(conf)
       val formatter = configureFormatter(conf)
       val sampler = configureSampler(conf)
-      val resource = configureResource(applicationName, conf)
+      val resource = configureResource(applicationName, hostName, conf)
       val factory: SpanFactory = CoreSpanFactory(SpanLocal, clock, handler, formatter, sampler, Money.InstrumentationLibrary, resource)
       val tracer = new Tracer {
         override val spanFactory: SpanFactory = factory
@@ -110,12 +110,13 @@ object Money {
     }
   }
 
-  private def configureResource(applicationName: String, conf: Config): Attributes = {
+  private def configureResource(applicationName: String, hostName: String, conf: Config): Attributes = {
     val attributesBuilder = Attributes.builder()
       .put(ResourceAttributes.SERVICE_NAME, applicationName)
       .put(ResourceAttributes.TELEMETRY_SDK_NAME, "money")
       .put(ResourceAttributes.TELEMETRY_SDK_LANGUAGE, "scala")
       .put(ResourceAttributes.TELEMETRY_SDK_VERSION, MoneyVersion)
+      .put(ResourceAttributes.HOST_NAME, hostName)
     val ResourceKey = "resource"
     if (conf.hasPath(ResourceKey)) {
       val resourceConf = conf.getConfig(ResourceKey)
