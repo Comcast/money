@@ -21,6 +21,7 @@ import com.comcast.money.core.formatters.MoneyTraceFormatter
 import com.comcast.money.core.handlers.TestData
 import com.comcast.money.core.internal.SpanContext
 import com.comcast.money.core.samplers.{ AlwaysOffSampler, AlwaysOnSampler, RecordResult, Sampler, SamplerResult }
+import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.api.trace.TraceFlags
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
@@ -33,13 +34,15 @@ class CoreSpanFactorySpec extends AnyWordSpec with Matchers with MockitoSugar wi
   val formatter = MoneyTraceFormatter
   val sampler = AlwaysOnSampler
   val instrumentationLibrary = new InstrumentationLibrary("test", "0.0.1")
-  val underTest = CoreSpanFactory(context, clock, handler, formatter, sampler, instrumentationLibrary)
+  val resource = Attributes.of(AttributeKey.stringKey("foo"), "bar")
+  val underTest = CoreSpanFactory(context, clock, handler, formatter, sampler, instrumentationLibrary, resource)
 
   "CoreSpanFactory" should {
     "create a new span" in {
       val result = underTest.newSpan("foo").asInstanceOf[CoreSpan]
 
       result.info.name shouldBe "foo"
+      result.info.resource shouldBe Attributes.of(AttributeKey.stringKey("foo"), "bar")
       result.handler shouldBe handler
     }
 

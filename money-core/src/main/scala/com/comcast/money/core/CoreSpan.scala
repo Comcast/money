@@ -45,7 +45,8 @@ private[core] case class CoreSpan(
   startTimeNanos: Long = SystemClock.now,
   library: InstrumentationLibrary = Money.InstrumentationLibrary,
   clock: Clock = SystemClock,
-  handler: SpanHandler = DisabledSpanHandler) extends Span {
+  handler: SpanHandler = DisabledSpanHandler,
+  resource: Attributes = Attributes.empty()) extends Span {
 
   private var endTimeNanos: Long = 0
   private var status: StatusCode = StatusCode.UNSET
@@ -120,7 +121,8 @@ private[core] case class CoreSpan(
       description = description,
       notes = noted.toMap[String, Note[_]].asJava,
       events = events.asJava,
-      links = links.asJava)
+      links = links.asJava,
+      resource = resource)
 
   override def close(): Unit = stop()
 

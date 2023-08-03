@@ -34,7 +34,8 @@ private[core] class CoreSpanBuilder(
   clock: Clock,
   handler: SpanHandler,
   sampler: Sampler,
-  library: InstrumentationLibrary) extends SpanBuilder {
+  library: InstrumentationLibrary,
+  resource: Attributes) extends SpanBuilder {
 
   var sticky: Boolean = true
   var spanKind: SpanKind = SpanKind.INTERNAL
@@ -119,7 +120,8 @@ private[core] class CoreSpanBuilder(
     links = links,
     library = library,
     clock = clock,
-    handler = handler)
+    handler = handler,
+    resource = resource)
 
   override def startSpan(): Span = {
     val parentSpanId = parentSpan.map { _.info.id }
