@@ -22,6 +22,7 @@ import com.comcast.money.api.SpanId;
 import com.comcast.money.api.SpanInfo;
 import com.comcast.money.core.CoreSpanInfo;
 
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
@@ -64,7 +65,8 @@ public class MoneyClientHttpInterceptorSpec {
                 Collections.emptyList(),
                 new InstrumentationLibrary("test", "0.0.1"),
                 "testAppName",
-                "testHost");
+                "testHost",
+                Attributes.empty());
 
         when(span.info()).thenReturn(testSpanInfo);
         when(span.storeInContext(any())).thenCallRealMethod();
