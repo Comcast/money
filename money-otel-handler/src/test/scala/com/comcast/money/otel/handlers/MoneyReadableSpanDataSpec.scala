@@ -23,6 +23,7 @@ import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.sdk.resources.Resource
 import io.opentelemetry.api.trace.{ Span, SpanContext, SpanKind, StatusCode, TraceFlags, TraceState }
 import io.opentelemetry.sdk.trace.data.StatusData
+import io.opentelemetry.semconv.resource.attributes.ResourceAttributes
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -31,10 +32,11 @@ import scala.collection.JavaConverters._
 class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
   val spanId = SpanId.createFrom(UUID.fromString("01234567-890A-BCDE-F012-34567890ABCD"), 81985529216486895L, 81985529216486895L)
   val childSpanId = SpanId.createFrom(UUID.fromString("01234567-890A-BCDE-F012-34567890ABCD"), 1147797409030816545L, 81985529216486895L)
+  val resourceAttributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
 
   "MoneyReadableSpanDataSpec" should {
     "wrap Money SpanInfo" in {
-      val underTest = new MoneyReadableSpanData(TestSpanInfo(spanId))
+      val underTest = new MoneyReadableSpanData(TestSpanInfo(spanId), resourceAttributes)
 
       underTest.getInstrumentationLibraryInfo.getName shouldBe "test"
       underTest.getTraceId shouldBe "01234567890abcdef01234567890abcd"
@@ -47,7 +49,13 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.hasEnded shouldBe true
       underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.getTotalRecordedLinks shouldBe 0
-      underTest.getResource shouldBe Resource.getDefault
+      underTest.getResource.getAttributes shouldBe Attributes.of(
+        ResourceAttributes.TELEMETRY_SDK_NAME, "test",
+        ResourceAttributes.TELEMETRY_SDK_VERSION, "0.0.1",
+        ResourceAttributes.TELEMETRY_SDK_LANGUAGE, "scala",
+        ResourceAttributes.SERVICE_NAME, "app",
+        ResourceAttributes.HOST_NAME, "host",
+        AttributeKey.stringKey("foo"), "bar")
       underTest.getLatencyNanos shouldBe 2000000L
       underTest.getStatus shouldBe StatusData.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
@@ -59,7 +67,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
     }
 
     "wrap child Money SpanInfo" in {
-      val underTest = new MoneyReadableSpanData(TestSpanInfo(childSpanId))
+      val underTest = new MoneyReadableSpanData(TestSpanInfo(childSpanId), resourceAttributes)
 
       underTest.getInstrumentationLibraryInfo.getName shouldBe "test"
       underTest.getTraceId shouldBe "01234567890abcdef01234567890abcd"
@@ -72,7 +80,13 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.hasEnded shouldBe true
       underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.getTotalRecordedLinks shouldBe 0
-      underTest.getResource shouldBe Resource.getDefault
+      underTest.getResource.getAttributes shouldBe Attributes.of(
+        ResourceAttributes.TELEMETRY_SDK_NAME, "test",
+        ResourceAttributes.TELEMETRY_SDK_VERSION, "0.0.1",
+        ResourceAttributes.TELEMETRY_SDK_LANGUAGE, "scala",
+        ResourceAttributes.SERVICE_NAME, "app",
+        ResourceAttributes.HOST_NAME, "host",
+        AttributeKey.stringKey("foo"), "bar")
       underTest.getLatencyNanos shouldBe 2000000L
       underTest.getStatus shouldBe StatusData.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1

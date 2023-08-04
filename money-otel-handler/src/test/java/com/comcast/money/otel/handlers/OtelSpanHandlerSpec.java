@@ -20,12 +20,15 @@ import java.time.Duration;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.sdk.trace.ReadableSpan;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessorBuilder;
 import io.opentelemetry.sdk.trace.export.SimpleSpanProcessor;
 import io.opentelemetry.sdk.trace.export.SpanExporter;
 import io.opentelemetry.api.trace.SpanContext;
+import io.opentelemetry.semconv.resource.attributes.ResourceAttributes;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -135,6 +138,23 @@ public class OtelSpanHandlerSpec {
         SpanContext spanContext = span.getSpanContext();
         assertThat(spanContext.getTraceId()).isEqualTo(spanId.traceIdAsHex());
         assertThat(spanContext.getSpanId()).isEqualTo(spanId.selfIdAsHex());
+    }
+
+    @Test
+    public void configuresResourceAttributes() {
+
+        Config config = ConfigFactory.parseString(
+                "resource = {\n" +
+                "  foo = \"bar\"\n" +
+                "  container.name = \"money-core-autoconf\"\n" +
+                "}"
+        );
+
+        OtelSpanHandler underTest = new TestOtelSpanHandler(config);
+        assertThat(underTest.resourceAttributes()).isEqualTo(Attributes.of(
+                AttributeKey.stringKey("foo"), "bar",
+                ResourceAttributes.CONTAINER_NAME, "money-core-autoconf"
+        ));
     }
 
     class TestOtelSpanHandler extends OtelSpanHandler {
