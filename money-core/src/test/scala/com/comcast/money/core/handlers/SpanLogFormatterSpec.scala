@@ -17,7 +17,7 @@
 package com.comcast.money.core.handlers
 
 import com.comcast.money.api.{ Note, SpanId }
-import com.comcast.money.core.CoreSpanInfo
+import com.comcast.money.core.{ CoreResource, CoreSpanInfo }
 import com.typesafe.config.ConfigFactory
 import io.opentelemetry.api.trace.StatusCode
 
@@ -36,27 +36,24 @@ class SpanLogFormatterSpec extends AnyWordSpec with Matchers {
           }
     """)
   val spanLogFormatter = SpanLogFormatter(emitterConf)
-
   val spanId = SpanId.createNew()
   val sampleData = CoreSpanInfo(
+    resource = CoreResource("unknown", "host"),
     id = spanId,
     startTimeNanos = 1000000L,
     endTimeNanos = 26000000L,
     durationNanos = 35000000L,
     name = "key",
-    appName = "unknown",
-    host = "host",
     notes = Map[String, Note[_]]("bob" -> Note.of("bob", "craig"), "what" -> Note.of("what", 1L), "when" -> Note.of("when", 2L)).asJava,
     status = StatusCode.OK)
 
   val withNull = CoreSpanInfo(
+    resource = CoreResource("unknown", "host"),
     id = spanId,
     startTimeNanos = 1000000L,
     endTimeNanos = 26000000L,
     durationNanos = 35000000L,
     name = "key",
-    appName = "unknown",
-    host = "host",
     notes = Map[String, Note[_]]("empty" -> Note.of("empty", null)).asJava,
     status = StatusCode.OK)
 

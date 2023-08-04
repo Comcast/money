@@ -16,11 +16,10 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.{ InstrumentationLibrary, Span, SpanBuilder, SpanFactory, SpanHandler, SpanId }
+import com.comcast.money.api.{ InstrumentationLibrary, Resource, Span, SpanBuilder, SpanFactory, SpanHandler, SpanId }
 import com.comcast.money.core.formatters.Formatter
 import com.comcast.money.core.internal.SpanContext
 import com.comcast.money.core.samplers.Sampler
-import io.opentelemetry.api.common.Attributes
 
 private[core] final case class CoreSpanFactory(
   spanContext: SpanContext,
@@ -28,8 +27,7 @@ private[core] final case class CoreSpanFactory(
   handler: SpanHandler,
   formatter: Formatter,
   sampler: Sampler,
-  library: InstrumentationLibrary,
-  resource: Attributes) extends SpanFactory {
+  resource: Resource) extends SpanFactory {
 
   override def spanBuilder(spanName: String): SpanBuilder =
     spanBuilder(spanName, None, spanContext.current)
@@ -55,6 +53,5 @@ private[core] final case class CoreSpanFactory(
       clock = clock,
       handler = handler,
       sampler = sampler,
-      library = library,
       resource = resource)
 }

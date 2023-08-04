@@ -52,14 +52,14 @@ class SpanLocalSpec extends AnyWordSpec
         SpanLocal.current shouldEqual Some(testSpan)
       }
       "add to the existing call stack" in {
-        val nested = testSpan.copy(SpanId.createNew())
+        val nested = testSpan.copy(id = SpanId.createNew())
 
         SpanLocal.push(testSpan)
         SpanLocal.push(nested)
         SpanLocal.current shouldEqual Some(nested)
       }
       "close the last added item from the call stack" in {
-        val nested = testSpan.copy(SpanId.createNew())
+        val nested = testSpan.copy(id = SpanId.createNew())
         SpanLocal.push(testSpan)
         val scope = SpanLocal.push(nested)
 

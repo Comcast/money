@@ -16,17 +16,18 @@
 
 package com.comcast.money.core
 
-import java.io.Closeable
+import com.comcast.money.api
 
-import com.comcast.money.api.{ MoneyTracer, Note, Span, SpanBuilder, SpanFactory }
+import java.io.Closeable
+import com.comcast.money.api.{ Note, Span, SpanBuilder, SpanFactory }
 import com.comcast.money.core.internal.{ SpanContext, SpanLocal }
 import io.opentelemetry.context.Scope
-import io.opentelemetry.api.trace.{ StatusCode, Span => OtelSpan }
+import io.opentelemetry.api.trace.StatusCode
 
 /**
  * Primary API to be used for tracing
  */
-trait Tracer extends MoneyTracer with Closeable {
+trait Tracer extends api.Tracer with Closeable {
 
   val spanFactory: SpanFactory
 

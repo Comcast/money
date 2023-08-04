@@ -17,9 +17,8 @@
 package com.comcast.money.core.handlers
 
 import java.util.Collections
-
-import com.comcast.money.api.{ Note, SpanHandler, SpanId, SpanInfo }
-import com.comcast.money.core.{ Clock, CoreSpan, CoreSpanInfo, SystemClock }
+import com.comcast.money.api.{ Note, Resource, SpanHandler, SpanId, SpanInfo }
+import com.comcast.money.core.{ Clock, CoreResource, CoreSpan, CoreSpanInfo, SystemClock }
 import com.typesafe.config.Config
 import io.opentelemetry.api.trace.{ StatusCode, TraceFlags, TraceState, Span => OtelSpan }
 
@@ -42,33 +41,35 @@ trait TestData {
 
   val clock: Clock = SystemClock
 
+  val resource: Resource = CoreResource(
+    applicationName = "test",
+    hostName = "localhost")
+
   val testSpanInfo = CoreSpanInfo(
+    resource = resource,
     id = SpanId.createNew(),
     startTimeNanos = clock.now,
     endTimeNanos = clock.now,
     durationNanos = 123456000L,
     status = StatusCode.OK,
     name = "test-span",
-    appName = "test",
-    host = "localhost",
     notes = Map[String, Note[_]]("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote).asJava,
     events = Collections.emptyList())
 
   val testSpanId = SpanId.createNew()
-  val testSpan = CoreSpan(testSpanId, "test-span")
+  val testSpan = CoreSpan(resource, testSpanId, "test-span")
   val childSpanId = testSpanId.createChild()
-  val childSpan = CoreSpan(childSpanId, "child-span")
+  val childSpan = CoreSpan(resource, childSpanId, "child-span")
 
   val fixedTestSpanId = SpanId.createRemote("5092ddfe-3701-4f84-b3d2-21f5501c0d28", 5176425846116696835L, 5176425846116696835L, TraceFlags.getSampled, TraceState.getDefault)
   val fixedTestSpanInfo = CoreSpanInfo(
+    resource = resource,
     id = fixedTestSpanId,
     startTimeNanos = 100000000L,
     endTimeNanos = 300000000L,
     durationNanos = 200000L,
     status = StatusCode.OK,
     name = "test-span",
-    appName = "test",
-    host = "localhost",
     notes = Map[String, Note[_]]("str" -> testStringNote, "lng" -> testLongNote, "dbl" -> testDoubleNote, "bool" -> testBooleanNote).asJava,
     events = Collections.emptyList())
 }

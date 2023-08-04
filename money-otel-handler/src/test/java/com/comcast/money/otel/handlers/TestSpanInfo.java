@@ -20,17 +20,20 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 
 import com.comcast.money.api.InstrumentationLibrary;
 import com.comcast.money.api.Note;
+import com.comcast.money.api.Resource;
 import com.comcast.money.api.SpanId;
 import com.comcast.money.api.SpanInfo;
 
 public class TestSpanInfo implements SpanInfo {
     private final SpanId spanId;
+    private final InstrumentationLibrary instrumentationLibrary = new InstrumentationLibrary("test", "0.0.1");
 
     public TestSpanInfo(SpanId spanId) {
         this.spanId = spanId;
@@ -68,7 +71,7 @@ public class TestSpanInfo implements SpanInfo {
 
     @Override
     public InstrumentationLibrary library() {
-        return new InstrumentationLibrary("test", "0.0.1");
+        return instrumentationLibrary;
     }
 
     @Override
@@ -99,5 +102,30 @@ public class TestSpanInfo implements SpanInfo {
     @Override
     public String host() {
         return "host";
+    }
+
+    @Override
+    public Resource resource() {
+        return new Resource() {
+            @Override
+            public String applicationName() {
+                return "appName";
+            }
+
+            @Override
+            public String hostName() {
+                return "host";
+            }
+
+            @Override
+            public InstrumentationLibrary library() {
+                return instrumentationLibrary;
+            }
+
+            @Override
+            public Attributes attributes() {
+                return Attributes.empty();
+            }
+        };
     }
 }

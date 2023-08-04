@@ -18,7 +18,7 @@ package com.comcast.money.core
 
 import java.time.Instant
 import java.util.concurrent.TimeUnit
-import com.comcast.money.api.{ InstrumentationLibrary, Note, Span, SpanBuilder, SpanHandler, SpanId, SpanInfo }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, Resource, Span, SpanBuilder, SpanHandler, SpanId, SpanInfo }
 import com.comcast.money.core.samplers.{ DropResult, RecordResult, Sampler }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Context
@@ -28,14 +28,13 @@ import java.util.Optional
 import scala.collection.JavaConverters._
 
 private[core] class CoreSpanBuilder(
+  resource: Resource,
   spanId: Option[SpanId],
   var parentSpan: Option[Span],
   spanName: String,
   clock: Clock,
   handler: SpanHandler,
-  sampler: Sampler,
-  library: InstrumentationLibrary,
-  resource: Attributes) extends SpanBuilder {
+  sampler: Sampler) extends SpanBuilder {
 
   var sticky: Boolean = true
   var spanKind: SpanKind = SpanKind.INTERNAL
@@ -113,15 +112,14 @@ private[core] class CoreSpanBuilder(
   }
 
   private[core] def createSpan(id: SpanId, name: String, kind: SpanKind, startTimeNanos: Long): Span = CoreSpan(
+    resource = resource,
     id = id,
     name = name,
     startTimeNanos = startTimeNanos,
     kind = kind,
     links = links,
-    library = library,
     clock = clock,
-    handler = handler,
-    resource = resource)
+    handler = handler)
 
   override def startSpan(): Span = {
     val parentSpanId = parentSpan.map { _.info.id }
@@ -133,7 +131,7 @@ private[core] class CoreSpanBuilder(
     }
 
     sampler.shouldSample(spanId, parentSpanId, spanName) match {
-      case DropResult => UnrecordedSpan(spanId, spanName)
+      case DropResult => UnrecordedSpan(spanId, spanName, resource)
       case RecordResult(sample, notes) =>
         val traceFlags = if (sample) TraceFlags.getSampled else TraceFlags.getDefault
 

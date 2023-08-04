@@ -21,12 +21,13 @@ import java.util
 import java.util.Collections
 import java.util.concurrent.TimeUnit
 import com.comcast.money.api
-import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, Resource, SpanId, SpanInfo }
 import com.comcast.money.core._
 import com.comcast.money.wire.avro
 import com.comcast.money.wire.avro.NoteType
 import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.databind.{ DeserializationFeature, ObjectMapper }
+import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.{ Span, SpanKind, StatusCode, TraceFlags, TraceState }
 import org.apache.avro.Schema
 import org.apache.avro.io.{ DecoderFactory, EncoderFactory }
@@ -151,6 +152,12 @@ trait SpanWireConverters {
       override def library(): InstrumentationLibrary = toInstrumentationLibrary(from)
       override def appName(): String = from.getAppName
       override def host(): String = from.getHost
+      override def resource(): Resource = new Resource {
+        override def applicationName(): String = from.getAppName
+        override def hostName(): String = from.getHost
+        override def library(): InstrumentationLibrary = toInstrumentationLibrary(from)
+        override def attributes(): Attributes = Attributes.empty()
+      }
     }
   }
 }

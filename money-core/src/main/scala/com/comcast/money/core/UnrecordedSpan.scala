@@ -19,19 +19,23 @@ package com.comcast.money.core
 import java.lang
 import java.time.Instant
 import java.util.concurrent.TimeUnit
-
-import com.comcast.money.api.{ Note, Span, SpanId, SpanInfo }
+import com.comcast.money.api.{ Note, Resource, Span, SpanId, SpanInfo }
 import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.Scope
 import io.opentelemetry.api.trace.{ SpanContext, StatusCode }
 
 private[core] final case class UnrecordedSpan(
   spanId: SpanId,
-  var name: String) extends Span {
+  var name: String,
+  resource: Resource) extends Span {
 
   private var scopes: List[Scope] = Nil
 
-  override def info(): SpanInfo = CoreSpanInfo(spanId, name)
+  override def info(): SpanInfo = CoreSpanInfo(
+    id = spanId,
+    name = name,
+    resource = resource)
+
   override def getSpanContext: SpanContext = spanId.toSpanContext
 
   override def attachScope(scope: Scope): Span = {

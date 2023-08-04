@@ -24,11 +24,8 @@ import com.comcast.money.core.handlers.HandlerChain
 import com.comcast.money.core.internal.SpanLocal
 import com.comcast.money.core.samplers.{ AlwaysOnSampler, Sampler, SamplerFactory }
 import com.typesafe.config.{ Config, ConfigFactory }
-import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.context.{ Context, ContextStorage, Scope }
-import io.opentelemetry.semconv.resource.attributes.ResourceAttributes
 
-import scala.collection.JavaConverters._
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 
@@ -44,8 +41,7 @@ case class Money(
   asyncNotifier: AsyncNotifier = new AsyncNotifier(Seq()))
 
 object Money {
-  lazy private val MoneyVersion: String = getClass.getPackage.getImplementationVersion
-
+  private lazy val MoneyVersion: String = getClass.getPackage.getImplementationVersion
   lazy val InstrumentationLibrary = new InstrumentationLibrary("money-core", MoneyVersion)
   lazy val Environment: Money = apply(ConfigFactory.load().getConfig("money"))
 
@@ -60,8 +56,8 @@ object Money {
       configureContextFilters(conf)
       val formatter = configureFormatter(conf)
       val sampler = configureSampler(conf)
-      val resource = configureResource(applicationName, hostName, conf)
-      val factory: SpanFactory = CoreSpanFactory(SpanLocal, clock, handler, formatter, sampler, Money.InstrumentationLibrary, resource)
+      val resource = ResourceFactory.create(applicationName, hostName, InstrumentationLibrary, conf)
+      val factory: SpanFactory = CoreSpanFactory(SpanLocal, clock, handler, formatter, sampler, resource)
       val tracer = new Tracer {
         override val spanFactory: SpanFactory = factory
       }
@@ -108,25 +104,6 @@ object Money {
     } else {
       AlwaysOnSampler
     }
-  }
-
-  private def configureResource(applicationName: String, hostName: String, conf: Config): Attributes = {
-    val attributesBuilder = Attributes.builder()
-      .put(ResourceAttributes.SERVICE_NAME, applicationName)
-      .put(ResourceAttributes.TELEMETRY_SDK_NAME, "money")
-      .put(ResourceAttributes.TELEMETRY_SDK_LANGUAGE, "scala")
-      .put(ResourceAttributes.TELEMETRY_SDK_VERSION, MoneyVersion)
-      .put(ResourceAttributes.HOST_NAME, hostName)
-    val ResourceKey = "resource"
-    if (conf.hasPath(ResourceKey)) {
-      val resourceConf = conf.getConfig(ResourceKey)
-      for (entry <- resourceConf.entrySet().asScala) {
-        val key = entry.getKey
-        val value = resourceConf.getString(key)
-        attributesBuilder.put(AttributeKey.stringKey(key), value)
-      }
-    }
-    attributesBuilder.build()
   }
 
   private def disabled(applicationName: String, hostName: String): Money =

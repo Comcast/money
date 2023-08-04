@@ -17,7 +17,7 @@
 package com.comcast.money.core
 
 import java.util.Collections
-import com.comcast.money.api.{ InstrumentationLibrary, Note, SpanId, SpanInfo }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, Resource, SpanId, SpanInfo }
 import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.{ Span, SpanKind, StatusCode }
 
@@ -33,7 +33,9 @@ private[core] case class CoreSpanInfo(
   notes: java.util.Map[String, Note[_]] = Collections.emptyMap(),
   override val events: java.util.List[SpanInfo.Event] = Collections.emptyList(),
   override val links: java.util.List[SpanInfo.Link] = Collections.emptyList(),
-  library: InstrumentationLibrary = Money.InstrumentationLibrary,
-  appName: String = Money.Environment.applicationName,
-  host: String = Money.Environment.hostName,
-  override val resource: Attributes = Attributes.empty()) extends SpanInfo
+  override val resource: Resource) extends SpanInfo {
+
+  override def library(): InstrumentationLibrary = resource.library()
+  override def appName(): String = resource.applicationName()
+  override def host(): String = resource.hostName()
+}

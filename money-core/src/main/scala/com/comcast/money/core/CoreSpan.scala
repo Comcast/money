@@ -38,15 +38,14 @@ import scala.collection.mutable.ListBuffer
  * @param handler The [[SpanHandler]] responsible for processing the span once it is stopped
  */
 private[core] case class CoreSpan(
+  resource: Resource,
   id: SpanId,
   var name: String,
   kind: SpanKind = SpanKind.INTERNAL,
   links: List[SpanInfo.Link] = Nil,
   startTimeNanos: Long = SystemClock.now,
-  library: InstrumentationLibrary = Money.InstrumentationLibrary,
   clock: Clock = SystemClock,
-  handler: SpanHandler = DisabledSpanHandler,
-  resource: Attributes = Attributes.empty()) extends Span {
+  handler: SpanHandler = DisabledSpanHandler) extends Span {
 
   private var endTimeNanos: Long = 0
   private var status: StatusCode = StatusCode.UNSET
@@ -110,10 +109,10 @@ private[core] case class CoreSpan(
 
   override def info(): SpanInfo =
     CoreSpanInfo(
+      resource = resource,
       id = id,
       name = name,
       kind = kind,
-      library = library,
       startTimeNanos = startTimeNanos,
       endTimeNanos = endTimeNanos,
       durationNanos = calculateDurationNanos,
@@ -121,8 +120,7 @@ private[core] case class CoreSpan(
       description = description,
       notes = noted.toMap[String, Note[_]].asJava,
       events = events.asJava,
-      links = links.asJava,
-      resource = resource)
+      links = links.asJava)
 
   override def close(): Unit = stop()
 

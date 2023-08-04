@@ -16,8 +16,9 @@
 
 package com.comcast.money.wire
 
-import com.comcast.money.api.{ Note, SpanInfo }
+import com.comcast.money.api.{ InstrumentationLibrary, Note, Resource, SpanInfo }
 import com.comcast.money.core.formatters.FormatterUtils.randomRemoteSpanId
+import io.opentelemetry.api.common.Attributes
 import io.opentelemetry.api.trace.StatusCode
 import org.scalatest.Inspectors
 import org.scalatest.matchers.should.Matchers
@@ -32,6 +33,12 @@ class AvroConversionSpec extends AnyWordSpec with Matchers with Inspectors {
   "Avro Conversion" should {
     "roundtrip" in {
       val orig = TestSpanInfo(
+        resource = new Resource {
+          override def applicationName(): String = "app"
+          override def hostName(): String = "host"
+          override def library(): InstrumentationLibrary = InstrumentationLibrary.UNKNOWN
+          override def attributes(): Attributes = Attributes.empty()
+        },
         id = randomRemoteSpanId(),
         name = "key",
         appName = "app",

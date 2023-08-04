@@ -35,7 +35,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
 
   "CoreSpan" should {
     "contain the start time stamp" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test", startTimeNanos = 1000000000)
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test", startTimeNanos = 1000000000)
 
       val info = underTest.info
       info.startTimeNanos shouldBe 1000000000
@@ -44,7 +44,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "record a timer" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.startTimer("foo")
       underTest.stopTimer("foo")
@@ -53,7 +53,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "record a note" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.record(testLongNote)
 
@@ -61,7 +61,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set a String attribute" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.setAttribute("foo", "bar")
 
@@ -72,7 +72,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set a long attribute" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.setAttribute("foo", 200L)
 
@@ -83,7 +83,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set a double attribute" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.setAttribute("foo", 2.2)
 
@@ -94,7 +94,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set a boolean attribute" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.setAttribute("foo", true)
 
@@ -105,7 +105,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set a attribute with an attribute key" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.setAttribute(AttributeKey.stringKey("foo"), "bar")
 
@@ -116,7 +116,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set a attribute with a long attribute key and an int" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
       val i: Int = 123
 
       underTest.setAttribute(AttributeKey.longKey("foo"), i)
@@ -128,7 +128,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "add an event with name" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.addEvent("event")
 
@@ -141,7 +141,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "add an event with name and timestamp" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.addEvent("event", 100L, TimeUnit.NANOSECONDS)
 
@@ -154,7 +154,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "add an event with name and instant" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
       val instant = Instant.now
 
       underTest.addEvent("event", instant)
@@ -168,7 +168,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "add an event with name and attributes" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.addEvent("event", Attributes.of(AttributeKey.stringKey("foo"), "bar"))
 
@@ -181,7 +181,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "add an event with name, attributes and timestamp" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.addEvent("event", Attributes.of(AttributeKey.stringKey("foo"), "bar"), 100L, TimeUnit.NANOSECONDS)
 
@@ -195,7 +195,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "add an event with name, attributes and instant" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
       val instant = Instant.now
 
       underTest.addEvent("event", Attributes.of(AttributeKey.stringKey("foo"), "bar"), instant)
@@ -210,7 +210,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "record an exception" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       val exception = new RuntimeException("BOOM")
       underTest.recordException(exception)
@@ -227,7 +227,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "record an exception with attributes" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       val exception = new RuntimeException("BOOM")
       underTest.recordException(exception, Attributes.of(AttributeKey.stringKey("foo"), "bar"))
@@ -245,7 +245,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set the status to OK" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.setStatus(StatusCode.OK)
 
@@ -257,7 +257,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set the status to ERROR" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.setStatus(StatusCode.ERROR)
 
@@ -269,7 +269,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set the status to OK and stop with false result" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.setStatus(StatusCode.OK)
 
@@ -281,7 +281,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set the status to ERROR and stop with true result" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.setStatus(StatusCode.ERROR)
 
@@ -293,7 +293,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "set the status with description" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.setStatus(StatusCode.OK, "description")
 
@@ -301,7 +301,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "update the span name" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.name shouldBe "test"
       underTest.info.name shouldBe "test"
@@ -314,7 +314,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     }
 
     "gets isRecording" in {
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.isRecording shouldBe true
 
@@ -325,7 +325,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
 
     "gets SpanContext" in {
       val spanId = SpanId.createRemote("01234567-890A-BCDE-F012-34567890ABCD", 81985529216486895L, 81985529216486895L, TraceFlags.getSampled, TraceState.getDefault)
-      val underTest = CoreSpan(spanId, "test")
+      val underTest = CoreSpan(resource, spanId, "test")
 
       val context = underTest.getSpanContext
 
@@ -336,7 +336,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "set the endTimeMillis and endTimeMicros when stopped" in {
       val clock = mock[Clock]
       when(clock.now).thenReturn(3000000000L)
-      val underTest = CoreSpan(SpanId.createNew(), "test", startTimeNanos = 1000000000, clock = clock)
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test", startTimeNanos = 1000000000, clock = clock)
 
       underTest.stop(true)
 
@@ -352,7 +352,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "invoke the span handler when stopped" in {
       val handler = mock[SpanHandler]
       val handleCaptor = ArgumentCaptor.forClass(classOf[SpanInfo])
-      val underTest = CoreSpan(SpanId.createNew(), "test", handler = handler, startTimeNanos = SystemClock.now)
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test", handler = handler, startTimeNanos = SystemClock.now)
 
       underTest.record(testLongNote)
       underTest.stop(true)
@@ -372,7 +372,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "invoke the span handler when closed" in {
       val handler = mock[SpanHandler]
       val handleCaptor = ArgumentCaptor.forClass(classOf[SpanInfo])
-      val underTest = CoreSpan(SpanId.createNew(), "test", handler = handler, startTimeNanos = SystemClock.now)
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test", handler = handler, startTimeNanos = SystemClock.now)
 
       underTest.record(testLongNote)
       underTest.close()
@@ -393,7 +393,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
       val scope1 = mock[Scope]
       val scope2 = mock[Scope]
 
-      val underTest = CoreSpan(SpanId.createNew(), "test")
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test")
 
       underTest.attachScope(scope1)
       underTest.attachScope(scope2)
@@ -407,7 +407,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "invoke the span handler when ended" in {
       val handler = mock[SpanHandler]
       val handleCaptor = ArgumentCaptor.forClass(classOf[SpanInfo])
-      val underTest = CoreSpan(SpanId.createNew(), "test", handler = handler, startTimeNanos = SystemClock.now)
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test", handler = handler, startTimeNanos = SystemClock.now)
 
       underTest.record(testLongNote)
       underTest.end()
@@ -427,7 +427,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "invoke the span handler when ended with timestamp" in {
       val handler = mock[SpanHandler]
       val handleCaptor = ArgumentCaptor.forClass(classOf[SpanInfo])
-      val underTest = CoreSpan(SpanId.createNew(), "test", handler = handler, startTimeNanos = SystemClock.now)
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test", handler = handler, startTimeNanos = SystemClock.now)
 
       underTest.record(testLongNote)
       underTest.end(1L, TimeUnit.MILLISECONDS)
@@ -447,7 +447,7 @@ class CoreSpanSpec extends AnyWordSpec with Matchers with TestData with MockitoS
     "invoke the span handler when ended with instant" in {
       val handler = mock[SpanHandler]
       val handleCaptor = ArgumentCaptor.forClass(classOf[SpanInfo])
-      val underTest = CoreSpan(SpanId.createNew(), "test", handler = handler, startTimeNanos = SystemClock.now)
+      val underTest = CoreSpan(resource, SpanId.createNew(), "test", handler = handler, startTimeNanos = SystemClock.now)
       val instant = Instant.now
 
       underTest.record(testLongNote)

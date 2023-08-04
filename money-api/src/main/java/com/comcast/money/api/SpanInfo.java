@@ -50,11 +50,9 @@ public interface SpanInfo {
     }
 
     /**
-     * @return the attributes representing the instrumentation emitting the traces
+     * @return the resource for this span
      */
-    default Attributes resource() {
-        return Attributes.empty();
-    }
+    Resource resource();
 
     /**
      * @return the time in milliseconds when this span was started
