@@ -38,12 +38,12 @@ import scala.collection.mutable.ListBuffer
  * @param handler The [[SpanHandler]] responsible for processing the span once it is stopped
  */
 private[core] case class CoreSpan(
+  resource: Resource,
   id: SpanId,
   var name: String,
   kind: SpanKind = SpanKind.INTERNAL,
   links: List[SpanInfo.Link] = Nil,
   startTimeNanos: Long = SystemClock.now,
-  library: InstrumentationLibrary = Money.InstrumentationLibrary,
   clock: Clock = SystemClock,
   handler: SpanHandler = DisabledSpanHandler) extends Span {
 
@@ -109,10 +109,10 @@ private[core] case class CoreSpan(
 
   override def info(): SpanInfo =
     CoreSpanInfo(
+      resource = resource,
       id = id,
       name = name,
       kind = kind,
-      library = library,
       startTimeNanos = startTimeNanos,
       endTimeNanos = endTimeNanos,
       durationNanos = calculateDurationNanos,

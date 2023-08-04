@@ -47,7 +47,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.hasEnded shouldBe true
       underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.getTotalRecordedLinks shouldBe 0
-      underTest.getResource shouldBe Resource.getDefault
+      underTest.getResource shouldBe Resource.create(Attributes.of(AttributeKey.stringKey("foo"), "bar"))
       underTest.getLatencyNanos shouldBe 2000000L
       underTest.getStatus shouldBe StatusData.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
@@ -72,7 +72,7 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
       underTest.hasEnded shouldBe true
       underTest.getLinks.asScala should contain(MoneyLink(link))
       underTest.getTotalRecordedLinks shouldBe 0
-      underTest.getResource shouldBe Resource.getDefault
+      underTest.getResource shouldBe Resource.create(Attributes.of(AttributeKey.stringKey("foo"), "bar"))
       underTest.getLatencyNanos shouldBe 2000000L
       underTest.getStatus shouldBe StatusData.create(StatusCode.OK, "description")
       underTest.getTotalAttributeCount shouldBe 1
@@ -99,6 +99,12 @@ class MoneyReadableSpanDataSpec extends AnyWordSpec with Matchers {
     override def notes(): util.Map[String, Note[_]] = Map[String, Note[_]]("foo" -> Note.of("foo", "bar")).asJava
     override def events(): util.List[SpanInfo.Event] = List(event).asJava
     override def links(): util.List[SpanInfo.Link] = List(link).asJava
+    override def resource(): com.comcast.money.api.Resource = new com.comcast.money.api.Resource {
+      override def applicationName(): String = "app"
+      override def hostName(): String = "host"
+      override def library(): InstrumentationLibrary = new InstrumentationLibrary("test", "0.0.1")
+      override def attributes(): Attributes = Attributes.of(AttributeKey.stringKey("foo"), "bar")
+    }
   }
 
   val event = new SpanInfo.Event {

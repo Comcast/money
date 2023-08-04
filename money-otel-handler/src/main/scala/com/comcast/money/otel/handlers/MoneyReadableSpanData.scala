@@ -35,6 +35,7 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
   private lazy val attributes = convertAttributes(info.notes)
   private lazy val events = convertEvents(info.events)
   private lazy val links = convertLinks(info.links)
+  private lazy val resource = convertResource(info.resource())
 
   override def getSpanContext: SpanContext = spanContext
   override def getParentSpanContext: SpanContext = parentSpanContext
@@ -45,7 +46,7 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
   override def getLatencyNanos: Long = info.durationNanos
   override def getTraceId: String = id.traceIdAsHex
   override def getSpanId: String = id.selfIdAsHex
-  override def getResource: Resource = Resource.getDefault
+  override def getResource: Resource = resource
   override def getKind: SpanKind = info.kind
   override def getStartEpochNanos: Long = info.startTimeNanos
   override def getLinks: util.List[LinkData] = links
@@ -64,6 +65,9 @@ private[otel] class MoneyReadableSpanData(info: SpanInfo) extends ReadableSpan w
     } else {
       id.parentSpanId().toSpanContext
     }
+
+  private def convertResource(resource: com.comcast.money.api.Resource): Resource =
+    Resource.create(resource.attributes())
 
   private def convertLibraryInfo(library: InstrumentationLibrary): InstrumentationLibraryInfo =
     if (library != null) {

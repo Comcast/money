@@ -41,8 +41,8 @@ case class Money(
   asyncNotifier: AsyncNotifier = new AsyncNotifier(Seq()))
 
 object Money {
-
-  val InstrumentationLibrary = new InstrumentationLibrary("money-core", "0.10.0")
+  private lazy val MoneyVersion: String = getClass.getPackage.getImplementationVersion
+  lazy val InstrumentationLibrary = new InstrumentationLibrary("money-core", MoneyVersion)
   lazy val Environment: Money = apply(ConfigFactory.load().getConfig("money"))
 
   def apply(conf: Config): Money = {
@@ -56,7 +56,8 @@ object Money {
       configureContextFilters(conf)
       val formatter = configureFormatter(conf)
       val sampler = configureSampler(conf)
-      val factory: SpanFactory = CoreSpanFactory(SpanLocal, clock, handler, formatter, sampler, Money.InstrumentationLibrary)
+      val resource = ResourceFactory.create(applicationName, hostName, InstrumentationLibrary, conf)
+      val factory: SpanFactory = CoreSpanFactory(SpanLocal, clock, handler, formatter, sampler, resource)
       val tracer = new Tracer {
         override val spanFactory: SpanFactory = factory
       }

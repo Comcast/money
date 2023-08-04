@@ -17,11 +17,13 @@
 package com.comcast.money.spring;
 
 import com.comcast.money.api.InstrumentationLibrary;
+import com.comcast.money.api.Resource;
 import com.comcast.money.api.Span;
 import com.comcast.money.api.SpanId;
 import com.comcast.money.api.SpanInfo;
 import com.comcast.money.core.CoreSpanInfo;
 
+import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
@@ -50,6 +52,28 @@ public class MoneyClientHttpInterceptorSpec {
     @Before
     public void setUp() {
         Span span = mock(Span.class);
+        InstrumentationLibrary library = new InstrumentationLibrary("test", "0.0.1");
+        Resource testResource = new Resource() {
+            @Override
+            public String applicationName() {
+                return "testAppName";
+            }
+
+            @Override
+            public String hostName() {
+                return "testHost";
+            }
+
+            @Override
+            public InstrumentationLibrary library() {
+                return library;
+            }
+
+            @Override
+            public Attributes attributes() {
+                return Attributes.empty();
+            }
+        };
         SpanInfo testSpanInfo = new CoreSpanInfo(
                 id,
                 "testName",
@@ -62,9 +86,7 @@ public class MoneyClientHttpInterceptorSpec {
                 Collections.emptyMap(),
                 Collections.emptyList(),
                 Collections.emptyList(),
-                new InstrumentationLibrary("test", "0.0.1"),
-                "testAppName",
-                "testHost");
+                testResource);
 
         when(span.info()).thenReturn(testSpanInfo);
         when(span.storeInContext(any())).thenCallRealMethod();

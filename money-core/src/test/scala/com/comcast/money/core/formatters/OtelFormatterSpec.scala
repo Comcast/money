@@ -16,7 +16,7 @@
 
 package com.comcast.money.core.formatters
 
-import com.comcast.money.api.SpanId
+import com.comcast.money.api.{ Resource, SpanId }
 import com.comcast.money.core.{ CoreSpan, DisabledSpanHandler }
 import io.opentelemetry.context.Context
 import io.opentelemetry.context.propagation.{ TextMapGetter, TextMapPropagator, TextMapSetter }
@@ -59,8 +59,9 @@ class OtelFormatterSpec extends AnyWordSpec with MockitoSugar with Matchers {
     }
 
     "wraps extract" in {
+      val resource = mock[Resource]
       val spanId = SpanId.createNew()
-      val span = CoreSpan(id = spanId, name = "test", handler = DisabledSpanHandler)
+      val span = CoreSpan(resource = resource, id = spanId, name = "test", handler = DisabledSpanHandler)
       val context = span.storeInContext(Context.root)
       val headers = Seq("A", "B")
       val getter = mock[String => String]

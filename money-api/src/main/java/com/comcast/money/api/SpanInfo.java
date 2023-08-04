@@ -30,7 +30,7 @@ import io.opentelemetry.api.trace.Span;
 public interface SpanInfo {
 
     /**
-     * @return a map of all of the notes that were recorded on the span.  Implementers should enforce
+     * @return a map of all the notes that were recorded on the span.  Implementers should enforce
      * that the map returned is a copy of the notes
      */
     Map<String, Note<?>> notes();
@@ -48,6 +48,11 @@ public interface SpanInfo {
     default List<Link> links() {
         return Collections.emptyList();
     }
+
+    /**
+     * @return the resource for this span
+     */
+    Resource resource();
 
     /**
      * @return the time in milliseconds when this span was started

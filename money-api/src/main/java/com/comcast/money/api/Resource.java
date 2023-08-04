@@ -16,17 +16,30 @@
 
 package com.comcast.money.api;
 
-import io.opentelemetry.api.trace.SpanBuilder;
-import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.api.common.Attributes;
 
 /**
- * OpenTelemetry compatible API to be used for tracing
+ * Represents a resource, which capture identifying information about the entities
+ * for which traces are reported.
  */
-public interface MoneyTracer extends Tracer {
+public interface Resource {
+    /**
+     * @return the current application name
+     */
+    String applicationName();
 
     /**
-     * {@inheritDoc}
+     * @return the host name or ip
      */
-    @Override
-    SpanBuilder spanBuilder(String spanName);
+    String hostName();
+
+    /**
+     * @return the tracing library
+     */
+    InstrumentationLibrary library();
+
+    /**
+     * @return a map of attributes that describe the resource
+     */
+    Attributes attributes();
 }

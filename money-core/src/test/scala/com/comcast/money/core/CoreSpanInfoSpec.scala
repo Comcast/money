@@ -16,7 +16,8 @@
 
 package com.comcast.money.core
 
-import com.comcast.money.api.SpanId
+import com.comcast.money.api.{ InstrumentationLibrary, SpanId }
+import io.opentelemetry.api.common.Attributes
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 
@@ -25,13 +26,15 @@ class CoreSpanInfoSpec extends AnyWordSpec with Matchers {
   "CoreSpanInfo" should {
     "have acceptable default values" in {
       val spanId = SpanId.createNew()
-      val underTest = CoreSpanInfo(spanId, "test")
+      val library = new InstrumentationLibrary("test", "0.0.1")
+      val resource = CoreResource("appName", "hostName", library, Attributes.empty())
+      val underTest = CoreSpanInfo(spanId, "test", resource = resource)
 
       underTest.id shouldBe spanId
       underTest.name shouldBe "test"
-      underTest.appName shouldBe Money.Environment.applicationName
-      underTest.host shouldBe Money.Environment.hostName
-      underTest.library shouldBe Money.InstrumentationLibrary
+      underTest.appName shouldBe "appName"
+      underTest.host shouldBe "hostName"
+      underTest.library shouldBe library
       underTest.notes shouldBe empty
       underTest.success shouldBe null
       underTest.durationMicros shouldBe 0L
