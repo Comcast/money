@@ -18,9 +18,11 @@ package com.comcast.money.otel.handlers
 
 import com.comcast.money.api.{ SpanHandler, SpanInfo }
 import com.typesafe.config.{ Config, ConfigFactory }
+import io.opentelemetry.api.common.{ AttributeKey, Attributes }
 import io.opentelemetry.sdk.trace.SpanProcessor
 import io.opentelemetry.sdk.trace.`export`.{ BatchSpanProcessor, SimpleSpanProcessor, SpanExporter }
 
+import scala.collection.JavaConverters._
 import java.time.Duration
 
 /**
@@ -29,6 +31,7 @@ import java.time.Duration
  */
 abstract class OtelSpanHandler(config: Config) extends SpanHandler {
 
+  private[otel] val resourceAttributes: Attributes = createResourceAttributes(config)
   private[otel] val exporter: SpanExporter = createSpanExporter(getExporterConfig(config))
   private[otel] val processor: SpanProcessor = createSpanProcessor(exporter, config)
 
@@ -38,7 +41,24 @@ abstract class OtelSpanHandler(config: Config) extends SpanHandler {
    * @param span `SpanInfo` that contains the information for the completed span
    */
   override def handle(span: SpanInfo): Unit = {
-    processor.onEnd(new MoneyReadableSpanData(span))
+    processor.onEnd(new MoneyReadableSpanData(span, resourceAttributes))
+  }
+
+  protected def createResourceAttributes(config: Config): Attributes = {
+
+    val resourceKey = "resource"
+    if (config.hasPath(resourceKey)) {
+      val attributes = Attributes.builder()
+      val resourceConfig = config.getConfig(resourceKey)
+      for (entry <- resourceConfig.entrySet().asScala) {
+        val key = entry.getKey
+        val value = resourceConfig.getString(key)
+        attributes.put(AttributeKey.stringKey(key), value)
+      }
+      attributes.build()
+    } else {
+      Attributes.empty()
+    }
   }
 
   protected def createSpanProcessor(spanExporter: SpanExporter, config: Config): SpanProcessor = {
