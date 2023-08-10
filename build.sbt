@@ -375,7 +375,7 @@ def projectSettings = basicSettings ++ Seq(
 def basicSettings =  Defaults.itSettings ++ Seq(
   organization := "com.comcast.money",
   sonatypeProfileName := "com.comcast",
-  scalaVersion := "2.12.15",
+  scalaVersion := "2.12.18",
   crossScalaVersions := List("2.13.11", "2.12.18"),
   resolvers ++= Seq(
     ("spray repo" at "http://repo.spray.io/").withAllowInsecureProtocol(true),
