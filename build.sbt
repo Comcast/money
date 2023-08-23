@@ -27,6 +27,8 @@ ThisBuild / developers := List(
 ThisBuild / licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt"))
 ThisBuild / tlSonatypeUseLegacyHost := true
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("8"))
+ThisBuild / scalaVersion := "2.12.15"
+ThisBuild / crossScalaVersions := List("2.13.11", "2.12.18")
 
 lazy val money =
   Project("money", file("."))
@@ -378,8 +380,6 @@ def projectSettings = basicSettings ++ Seq(
 
 def basicSettings =  Defaults.itSettings ++ Seq(
   sonatypeProfileName := "com.comcast",
-  scalaVersion := "2.12.15",
-  crossScalaVersions := List("2.13.11", "2.12.18"),
   resolvers ++= Seq(
     ("spray repo" at "http://repo.spray.io/").withAllowInsecureProtocol(true),
     "Sonatype OSS Releases" at "https://oss.sonatype.org/content/repositories/releases/",
