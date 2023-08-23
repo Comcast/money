@@ -12,6 +12,22 @@ lazy val copyApiDocsTask = taskKey[Unit]("Copies the scala docs from each projec
 
 lazy val props = new SystemProperties()
 
+ThisBuild / organization := "com.comcast.money"
+ThisBuild / organizationName := "Comcast Cable Communications Management, LLC"
+ThisBuild / startYear := Some(2012)
+ThisBuild / tlBaseVersion := "0.15"
+ThisBuild / developers := List(
+  Developer(
+    "pauljamescleary",
+    "Paul James Cleary",
+    "pauljamescleary@gmail.com",
+    url("https://github.com/pauljamescleary")
+  )
+)
+ThisBuild / licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt"))
+ThisBuild / tlSonatypeUseLegacyHost := true
+ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("8"))
+
 lazy val money =
   Project("money", file("."))
     .settings(projectSettings: _*)
@@ -356,24 +372,11 @@ def projectSettings = basicSettings ++ Seq(
   ScoverageKeys.coverageHighlighting := true,
   ScoverageKeys.coverageMinimumStmtTotal := 80,
   ScoverageKeys.coverageFailOnMinimum := true,
-  organizationName := "Comcast Cable Communications Management, LLC",
-  startYear := Some(2012),
-  licenses += ("Apache-2.0", new URL("https://www.apache.org/licenses/LICENSE-2.0.txt")),
-  organization := "com.comcast.money",
   sonatypeProfileName := "com.comcast",
   homepage := Some(url("https://github.com/Comcast/money")),
-  developers := List(
-    Developer(
-      "pauljamescleary",
-      "Paul James Cleary",
-      "pauljamescleary@gmail.com",
-      url("https://github.com/pauljamescleary")
-    )
-  )
 )
 
 def basicSettings =  Defaults.itSettings ++ Seq(
-  organization := "com.comcast.money",
   sonatypeProfileName := "com.comcast",
   scalaVersion := "2.12.15",
   crossScalaVersions := List("2.13.11", "2.12.18"),
