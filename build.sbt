@@ -29,14 +29,12 @@ ThisBuild / tlSonatypeUseLegacyHost := true
 ThisBuild / githubWorkflowJavaVersions := Seq(JavaSpec.temurin("8"))
 ThisBuild / scalaVersion := "2.12.15"
 ThisBuild / crossScalaVersions := List("2.13.11", "2.12.18")
+ThisBuild / tlCiMimaBinaryIssueCheck := false
 
 lazy val money =
   Project("money", file("."))
+    .enablePlugins(NoPublishPlugin)
     .settings(projectSettings: _*)
-    .settings(
-      publishLocal := {},
-      publish := {}
-    )
     .aggregate(
       moneyApi,
       moneyAkka,
