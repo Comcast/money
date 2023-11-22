@@ -1,6 +1,6 @@
 import sbt._
 object Dependencies {
-  val metricsV = "3.2.6"
+  val metricsV = "4.2.10"
   val apacheHttpClientV = "4.5.6"
 
   val akkaV = "2.5.32"
@@ -33,9 +33,6 @@ object Dependencies {
 
   // Typseafe config
   def typesafeConfig = "com.typesafe" % "config" % typesafeConfigV
-
-  // Codahale metrics
-  val metricsCore = "io.dropwizard.metrics" % "metrics-core" % metricsV
 
   // Apache http client
   val apacheHttpClient = "org.apache.httpcomponents" % "httpclient" % apacheHttpClientV
