@@ -9,7 +9,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>war</packaging>
     <properties>
-        <spring.version>4.3.21.RELEASE</spring.version>
+        <spring.version>5.2.22.RELEASE</spring.version>
         <jackson.version>2.10.0.pr1</jackson.version>
         <jetty.version>8.1.5.v20120716</jetty.version>
         <jetty.jsp.version>8.1.4.v20120524</jetty.jsp.version>
