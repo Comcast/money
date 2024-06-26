@@ -151,6 +151,18 @@ lazy val moneyJavaServlet =
     )
     .dependsOn(moneyCore % "test->test;compile->compile")
 
+lazy val moneyJakartaServlet =
+  Project("money-jakarta-servlet", file("./money-jakarta-servlet"))
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          jakartaServlet
+        ) ++ commonTestDependencies
+    )
+    .dependsOn(moneyCore % "test->test;compile->compile")
+
 lazy val moneyWire =
   Project("money-wire", file("./money-wire"))
     .enablePlugins(AutomateHeaderPlugin)
