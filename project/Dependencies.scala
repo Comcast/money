@@ -43,6 +43,8 @@ object Dependencies {
   // Javax servlet - note: the group id and artfacit id have changed in 3.0
   val javaxServlet = "javax.servlet" % "servlet-api" % "2.5"
 
+  val jakartaServlet = "jakarta.servlet" % "jakarta.servlet-api" % "5.0.0"
+
   // Kafka, exclude dependencies that we will not need, should work for 2.10 and 2.11
   val kafka = ("org.apache.kafka" %% "kafka" % "2.4.0")
     .exclude("javax.jms", "jms")

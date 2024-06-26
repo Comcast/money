@@ -42,6 +42,7 @@ lazy val money =
       moneyAspectj,
       moneyHttpClient,
       moneyJavaServlet,
+      moneyJakartaServlet,
       moneyWire,
       moneyKafka,
       moneySpring,
@@ -147,6 +148,18 @@ lazy val moneyJavaServlet =
       libraryDependencies ++=
         Seq(
           javaxServlet
+        ) ++ commonTestDependencies
+    )
+    .dependsOn(moneyCore % "test->test;compile->compile")
+
+lazy val moneyJakartaServlet =
+  Project("money-jakarta-servlet", file("./money-jakarta-servlet"))
+    .enablePlugins(AutomateHeaderPlugin)
+    .settings(projectSettings: _*)
+    .settings(
+      libraryDependencies ++=
+        Seq(
+          jakartaServlet
         ) ++ commonTestDependencies
     )
     .dependsOn(moneyCore % "test->test;compile->compile")
