@@ -42,6 +42,7 @@ lazy val money =
       moneyAspectj,
       moneyHttpClient,
       moneyJavaServlet,
+      moneyJakartaServlet,
       moneyWire,
       moneyKafka,
       moneySpring,

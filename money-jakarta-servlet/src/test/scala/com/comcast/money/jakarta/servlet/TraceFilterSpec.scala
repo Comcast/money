@@ -16,7 +16,7 @@
 
 package com.comcast.money.jakarta.servlet
 
-import com.comcast.money.api.{Span, SpanId}
+import com.comcast.money.api.{ Span, SpanId }
 import com.comcast.money.core.formatters.FormatterUtils.randomRemoteSpanId
 import com.comcast.money.core.internal.SpanLocal
 import org.mockito.Mockito._
@@ -24,12 +24,12 @@ import org.mockito.stubbing.OngoingStubbing
 import org.scalatest.OptionValues._
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
-import org.scalatest.{BeforeAndAfter, OneInstancePerTest}
+import org.scalatest.{ BeforeAndAfter, OneInstancePerTest }
 import org.scalatestplus.mockito.MockitoSugar
 
 import java.util.Collections
-import jakarta.servlet.http.{HttpServletRequest, HttpServletResponse}
-import jakarta.servlet.{FilterChain, FilterConfig, ServletRequest, ServletResponse}
+import jakarta.servlet.http.{ HttpServletRequest, HttpServletResponse }
+import jakarta.servlet.{ FilterChain, FilterConfig, ServletRequest, ServletResponse }
 
 class TraceFilterSpec extends AnyWordSpec with Matchers with OneInstancePerTest with BeforeAndAfter with MockitoSugar {
 

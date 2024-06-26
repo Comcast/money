@@ -17,11 +17,11 @@
 package com.comcast.money.jakarta.servlet
 
 import com.comcast.money.core.Money
-import io.opentelemetry.context.{Context, Scope}
+import io.opentelemetry.context.{ Context, Scope }
 import org.slf4j.LoggerFactory
 
 import jakarta.servlet._
-import jakarta.servlet.http.{HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse}
+import jakarta.servlet.http.{ HttpServletRequest, HttpServletRequestWrapper, HttpServletResponse }
 import scala.collection.JavaConverters._
 
 /**
