@@ -34,6 +34,7 @@ ThisBuild / tlCiMimaBinaryIssueCheck := false
 lazy val money =
   Project("money", file("."))
     .enablePlugins(NoPublishPlugin)
+    .disablePlugins(SbtAvro)
     .settings(projectSettings: _*)
     .aggregate(
       moneyApi,
@@ -59,6 +60,7 @@ lazy val money =
 lazy val moneyApi =
   Project("money-api", file("./money-api"))
     .enablePlugins(AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(javaOnlyProjectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -70,6 +72,7 @@ lazy val moneyApi =
 lazy val moneyCore =
   Project("money-core", file("./money-core"))
     .enablePlugins(AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(projectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -86,6 +89,7 @@ lazy val moneyCore =
 lazy val moneyOtelFormatters =
   Project("money-otel-formatters", file("./money-otel-formatters"))
     .enablePlugins(AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(projectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -102,6 +106,7 @@ lazy val moneyOtelFormatters =
 lazy val moneyAkka =
   Project("money-akka", file("./money-akka"))
     .enablePlugins(AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(projectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -119,6 +124,7 @@ lazy val moneyAkka =
 lazy val moneyAspectj =
   Project("money-aspectj", file("./money-aspectj"))
     .enablePlugins(SbtAspectj, AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(aspectjProjectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -131,6 +137,7 @@ lazy val moneyAspectj =
 lazy val moneyHttpClient =
   Project("money-http-client", file("./money-http-client"))
     .enablePlugins(SbtAspectj, AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(aspectjProjectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -143,6 +150,7 @@ lazy val moneyHttpClient =
 lazy val moneyJavaServlet =
   Project("money-java-servlet", file("./money-java-servlet"))
     .enablePlugins(AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(projectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -155,6 +163,7 @@ lazy val moneyJavaServlet =
 lazy val moneyJakartaServlet =
   Project("money-jakarta-servlet", file("./money-jakarta-servlet"))
     .enablePlugins(AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(projectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -184,6 +193,7 @@ lazy val moneyWire =
 lazy val moneyKafka =
   Project("money-kafka", file("./money-kafka"))
     .enablePlugins(AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(projectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -203,6 +213,7 @@ lazy val moneySpring =
   Project("money-spring", file("./money-spring"))
     .enablePlugins(AutomateHeaderPlugin)
     .enablePlugins(SbtAspectj)
+    .disablePlugins(SbtAvro)
     .settings(aspectjProjectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -225,6 +236,7 @@ lazy val moneySpring =
 lazy val moneyOtelHandler =
   Project("money-otel-handler", file("./money-otel-handler"))
     .enablePlugins(AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(projectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -245,6 +257,7 @@ lazy val moneyOtelHandler =
 lazy val moneyOtelZipkinExporter =
   Project("money-otel-zipkin-exporter", file("./money-otel-zipkin-exporter"))
     .enablePlugins(AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(projectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -268,6 +281,7 @@ lazy val moneyOtelZipkinExporter =
 lazy val moneyOtelJaegerExporter =
   Project("money-otel-jaeger-exporter", file("./money-otel-jaeger-exporter"))
     .enablePlugins(AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(projectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -290,6 +304,7 @@ lazy val moneyOtelJaegerExporter =
 lazy val moneyOtelInMemoryExporter =
   Project("money-otel-inmemory-exporter", file("./money-otel-inmemory-exporter"))
     .enablePlugins(AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(projectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -311,6 +326,7 @@ lazy val moneyOtelInMemoryExporter =
 lazy val moneyOtelLoggingExporter =
   Project("money-otel-logging-exporter", file("./money-otel-logging-exporter"))
     .enablePlugins(AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(projectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -332,6 +348,7 @@ lazy val moneyOtelLoggingExporter =
 lazy val moneyOtlpExporter =
   Project("money-otlp-exporter", file("./money-otlp-exporter"))
     .enablePlugins(AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(projectSettings: _*)
     .settings(
       libraryDependencies ++=
@@ -354,6 +371,7 @@ lazy val moneyOtlpExporter =
 lazy val moneyOtlpHttpExporter =
   Project("money-otlp-http-exporter", file("./money-otlp-http-exporter"))
     .enablePlugins(AutomateHeaderPlugin)
+    .disablePlugins(SbtAvro)
     .settings(projectSettings: _*)
     .settings(
       libraryDependencies ++=
