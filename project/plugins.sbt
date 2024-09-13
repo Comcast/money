@@ -11,8 +11,6 @@ addSbtPlugin("com.lightbend.sbt" % "sbt-aspectj" % "0.11.0")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-site" % "1.3.2")
 
-addSbtPlugin("com.cavorite" % "sbt-avro-1-8" % "1.1.9")
-
 addSbtPlugin("de.heikoseeberger" % "sbt-header" % "5.5.0")
 
 addSbtPlugin("org.scalariform" % "sbt-scalariform" % "1.8.3")

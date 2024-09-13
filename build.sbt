@@ -2,7 +2,6 @@ import Dependencies._
 import com.typesafe.sbt.SbtScalariform
 import sbt.Keys._
 import sbt._
-import sbtavro.SbtAvro._
 import scoverage.ScoverageKeys
 import scoverage.ScoverageSbtPlugin._
 
@@ -43,8 +42,6 @@ lazy val money =
       moneyHttpClient,
       moneyJavaServlet,
       moneyJakartaServlet,
-      moneyWire,
-      moneyKafka,
       moneySpring,
       moneyOtelFormatters,
       moneyOtelHandler,
@@ -163,41 +160,6 @@ lazy val moneyJakartaServlet =
         ) ++ commonTestDependencies
     )
     .dependsOn(moneyCore % "test->test;compile->compile")
-
-lazy val moneyWire =
-  Project("money-wire", file("./money-wire"))
-    .enablePlugins(AutomateHeaderPlugin)
-    .settings(projectSettings: _*)
-    .settings(
-      libraryDependencies ++=
-        Seq(
-          json4sNative,
-          json4sJackson
-        ) ++ commonTestDependencies,
-      fork := false,
-      doc / javacOptions := Seq("-source", "1.6"),
-      // Configure the desired Avro version.  sbt-avro automatically injects a libraryDependency.
-      AvroConfig / version := "1.7.6",
-      AvroConfig / stringType := "String"
-    ).dependsOn(moneyCore % "test->test;compile->compile")
-
-lazy val moneyKafka =
-  Project("money-kafka", file("./money-kafka"))
-    .enablePlugins(AutomateHeaderPlugin)
-    .settings(projectSettings: _*)
-    .settings(
-      libraryDependencies ++=
-        Seq(
-          kafka,
-          bijectionCore,
-          bijectionAvro,
-          chill,
-          chillAvro,
-          chillBijection,
-          commonsIo
-        ) ++ commonTestDependencies
-    )
-    .dependsOn(moneyCore, moneyWire % "test->test;compile->compile")
 
 lazy val moneySpring =
   Project("money-spring", file("./money-spring"))

@@ -63,11 +63,11 @@ jobs:
 
       - name: Make target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v'))
-        run: mkdir -p money-java-servlet/target money-aspectj/target money-http-client/target money-otlp-http-exporter/target money-api/target money-kafka/target money-otel-handler/target money-otel-jaeger-exporter/target money-otlp-exporter/target money-otel-zipkin-exporter/target money-akka/target money-otel-formatters/target money-spring/target money-core/target money-otel-logging-exporter/target money-otel-inmemory-exporter/target money-jakarta-servlet/target money-wire/target project/target
+        run: mkdir -p money-java-servlet/target money-aspectj/target money-http-client/target money-otlp-http-exporter/target money-api/target money-otel-handler/target money-otel-jaeger-exporter/target money-otlp-exporter/target money-otel-zipkin-exporter/target money-akka/target money-otel-formatters/target money-spring/target money-core/target money-otel-logging-exporter/target money-otel-inmemory-exporter/target money-jakarta-servlet/target project/target
 
       - name: Compress target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v'))
-        run: tar cf targets.tar money-java-servlet/target money-aspectj/target money-http-client/target money-otlp-http-exporter/target money-api/target money-kafka/target money-otel-handler/target money-otel-jaeger-exporter/target money-otlp-exporter/target money-otel-zipkin-exporter/target money-akka/target money-otel-formatters/target money-spring/target money-core/target money-otel-logging-exporter/target money-otel-inmemory-exporter/target money-jakarta-servlet/target money-wire/target project/target
+        run: tar cf targets.tar money-java-servlet/target money-aspectj/target money-http-client/target money-otlp-http-exporter/target money-api/target money-otel-handler/target money-otel-jaeger-exporter/target money-otlp-exporter/target money-otel-zipkin-exporter/target money-akka/target money-otel-formatters/target money-spring/target money-core/target money-otel-logging-exporter/target money-otel-inmemory-exporter/target money-jakarta-servlet/target project/target
 
       - name: Upload target directories
         if: github.event_name != 'pull_request' && (startsWith(github.ref, 'refs/tags/v'))
